@@ -1,0 +1,65 @@
+# Dependencies
+node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+package-lock.json
+yarn.lock
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+server-app/.env
+
+# Build output
+dist/
+build/
+out/
+
+# Logs
+logs/
+*.log
+
+# OS specific
+.DS_Store
+Thumbs.db
+
+# IDE/Editor folders
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# Optional npm cache & test coverage
+.npm/
+.nyc_output
+coverage/
+
+# Debug files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Public assets
+server-app/public/
+
+# Temporary files
+tmp/
+temp/
+
+# Generated files
+*.bak
+*.swp
+*.tmp
+
+# Miscellaneous
+*.log.*
+*.pid
+*.seed
+*.pid.lock
+
+# Test output
+tests/*.test.js.snap
