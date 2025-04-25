@@ -14,6 +14,10 @@ yarn.lock
 .env.production.local
 server-app/.env
 
+# Keep env example files
+!.env.example
+!server-app/.env.example
+
 # Build output
 dist/
 build/

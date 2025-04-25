@@ -70,8 +70,7 @@ app.post('/api/register', async (req, res) => {
     console.error('Error registering user:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
-}
-);
+});
 
 // Start server
 app.listen(port, () => {
