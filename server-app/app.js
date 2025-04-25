@@ -1,4 +1,4 @@
-// filepath: f:\Development\totalwarhammer-tournament-app\server-app\app.js
+// ...existing code...
 const express = require('express');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
@@ -13,6 +13,26 @@ const app = express();
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('MongoDB connected'))
   .catch(err => console.error('MongoDB connection error:', err));
+
+// Define the schema and model for access_logs
+const accessLogSchema = new mongoose.Schema({
+  ipAddress: { type: String, required: true },
+  timestamp: { type: Date, default: Date.now }
+});
+
+const AccessLog = mongoose.model('AccessLog', accessLogSchema);
+
+// Middleware to log IP address
+app.use(async (req, res, next) => {
+  try {
+    const ipAddress = req.ip || req.connection.remoteAddress;
+    await AccessLog.create({ ipAddress });
+    console.log(`Logged IP: ${ipAddress}`);
+  } catch (err) {
+    console.error('Error logging IP address:', err);
+  }
+  next();
+});
 
 // Import routes
 const port = process.env.PORT || 3000;
