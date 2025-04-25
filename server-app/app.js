@@ -2,6 +2,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
+const bcrypt = require('bcrypt');
 
 // Load environment variables
 dotenv.config();
@@ -20,12 +21,21 @@ const accessLogSchema = new mongoose.Schema({
   timestamp: { type: Date, default: Date.now }
 });
 
+const userSchema = new mongoose.Schema({
+  username: { type: String, required: true },
+  password: { type: String, required: true },
+  email: { type: String, required: true },
+  createdAt: { type: Date, default: Date.now }
+});
+
+//Model Definitions
+const User = mongoose.model('User', userSchema);
 const AccessLog = mongoose.model('AccessLog', accessLogSchema);
 
 // Middleware to log IP address
 app.use(async (req, res, next) => {
   try {
-    const ipAddress = req.ip || req.connection.remoteAddress;
+    const ipAddress = req.ip || req.remoteAddress;
     await AccessLog.create({ ipAddress });
     console.log(`Logged IP: ${ipAddress}`);
   } catch (err) {
@@ -48,6 +58,20 @@ app.use(express.static('public'));
 app.get('/', (req, res) => {
   res.send('Welcome to the Total War: Warhammer Tournament App');
 });
+
+app.post('/api/register', async (req, res) => {
+  const { username, password, email } = req.body;
+  try {
+    const newUser = new User({ username, password, email });
+    newUser.password = await bcrypt.hash(password, 10);
+    await newUser.save();
+    res.status(201).json({ message: 'User registered successfully' });
+  } catch (err) {
+    console.error('Error registering user:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+}
+);
 
 // Start server
 app.listen(port, () => {
