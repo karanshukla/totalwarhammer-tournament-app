@@ -19,24 +19,21 @@ interface FormValues {
   password: string
 }
 
+// @ts-ignore
+const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+
 function onSubmit(data: FormValues) {
   console.log(data);
-  fetch('http://localhost:3000/api/register', {
+  fetch(apiUrl + '/register', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(data),
   })
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error('Registration failed');
-      }
-      return response.json();
-    })
     .then((responseData) => {
       toaster.create({
-        title: "Successfully Registered",
+        title: "Successfully Registered with the username " + data.username,
         description: "You will be notified when the app is ready",
         type: "success",
       })
@@ -46,7 +43,7 @@ function onSubmit(data: FormValues) {
       console.error('Error during registration:', error);
       toaster.create({
         title: "Registration Failed",
-        description: error.message || 'Registration failed. Please try again.',
+        description: error.message || 'Registration failed for an unknown reason',
         type: "error",
       })
     });
@@ -91,7 +88,7 @@ export function App() {
               </Field.Root>
 
               <Field.Root invalid={!!errors.password}>
-                <Field.Label>Password</Field.Label>
+                <Field.Label>Password (disabled)</Field.Label>
                 <Input disabled {...register("password")} />
                 <Field.ErrorText>{errors.password?.message}</Field.ErrorText>
               </Field.Root>
