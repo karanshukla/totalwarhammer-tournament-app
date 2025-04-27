@@ -1,12 +1,24 @@
-// User controller for handling user-related operations
 import User from '../../../domain/models/user.js';
 
-// Register a new user
 export const register = async (req, res) => {
   try {
     const { username, email, password } = req.body;
     
-    // Create new user
+    const existingEmail = await User.findOne({ email });
+    if (existingEmail) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email already in use'
+      });
+    }
+
+    const existingUsername = await User.findOne({ username });
+    if (existingUsername) {
+      return res.status(400).json({
+        success: false,
+        message: 'Username already taken'
+      });
+    }
     const newUser = await User.create({
       username,
       email,
