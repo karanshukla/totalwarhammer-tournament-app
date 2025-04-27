@@ -18,6 +18,6 @@ router.get('/', (req, res) => {
   res.send('Welcome to the Total War: Warhammer Tournament App. API is under construction.');
 });
 
-router.use('/api', userRoutes);
+router.use('/', userRoutes);
 
 export default router;
