@@ -1,9 +1,10 @@
 import { Box, Heading, Text, VStack, Container, Image } from "@chakra-ui/react";
 import { RegistrationForm } from "@/features/registration/components/RegistrationForm";
+import CommonHeader from "./features/registration/components/CommonHeader";
 
 export function App() {
   return (
-    <Box
+    <><CommonHeader title="Total War: Warhammer Tournament" /><Box
       display="flex"
       alignItems="center"
       justifyContent="center"
@@ -18,8 +19,7 @@ export function App() {
           <Image
             height="200px"
             src="/karlfranz.jpg"
-            alt="Summon the Elector Counts!"
-          />
+            alt="Summon the Elector Counts!" />
           <Heading size="2xl" mb={2}>
             Total Warhammer Tournament App
           </Heading>
@@ -30,7 +30,7 @@ export function App() {
           <RegistrationForm />
         </VStack>
       </Container>
-    </Box>
+    </Box></>
   );
 }
 
