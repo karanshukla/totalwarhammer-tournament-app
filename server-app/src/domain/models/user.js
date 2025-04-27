@@ -8,12 +8,10 @@ const userSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 });
 
-// Add method for password hashing
 userSchema.methods.hashPassword = async function(password) {
   return await bcrypt.hash(password, 10);
 };
 
-// Add method for password validation
 userSchema.methods.validatePassword = async function(password) {
   return await bcrypt.compare(password, this.password);
 };

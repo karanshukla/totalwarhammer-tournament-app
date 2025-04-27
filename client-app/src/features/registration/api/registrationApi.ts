@@ -36,7 +36,7 @@ export const registerUser = async (data: RegistrationData): Promise<Registration
     console.error('Error registering with the server:', error);
     toaster.create({
       title: "Registration Failed",
-      description: error instanceof Error ? error.message : 'Registration failed for an unknown reason',
+      description: error instanceof Error ? error.message : 'Failed to register your account',
       type: "error",
     });
     throw error;

@@ -5,9 +5,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { registerUser } from '../api/registrationApi';
 import { Toaster } from '@/shared/ui/toaster';
 
-// Domain validation schema
 const formSchema = z.object({
-  username: z.string().min(5, { message: 'A valid Username of at least 5 characters is required' }),
+  username: z.string().min(5, { message: 'A valid Username is required' }),
   email: z.string().email({ message: 'A valid Email Address is required' }),
   password: z.string().optional(),
 });
@@ -24,11 +23,7 @@ export function RegistrationForm() {
   });
 
   const onSubmit = async (data: RegistrationFormValues) => {
-    try {
       await registerUser(data);
-    } catch (error) {
-      // Error is already handled in the API function
-    }
   };
 
   return (

@@ -15,9 +15,9 @@ router.use(cors(corsOptions));
 router.use(express.json());
 
 router.get('/', (req, res) => {
-  res.send('Welcome to the Total War: Warhammer Tournament App. API is under construction.');
+  res.redirect(clientUrl);
 });
 
-router.use('/', userRoutes);
+router.use('/user', userRoutes);
 
 export default router;
