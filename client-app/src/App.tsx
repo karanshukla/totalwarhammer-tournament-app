@@ -1,12 +1,10 @@
 import { Box, Heading, Text, VStack, Container, Image } from "@chakra-ui/react";
 import { RegistrationForm } from "@/features/registration/components/RegistrationForm";
-import CommonHeader from "./features/registration/components/CommonHeader";
 import CommonNavBar from "./features/registration/components/CommonNavBar";
 
 export function App() {
   return (
     <>
-      <CommonHeader title="Total War: Warhammer Tournament App" />
       <CommonNavBar />
       <Box
         ml={{ base: "70px", md: "250px" }}  // Match the navbar width
