@@ -130,7 +130,7 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => navigate("/register")}
+            onClick={() => navigate("/registerLogin")}
           >
             Register/Login
           </Button>
