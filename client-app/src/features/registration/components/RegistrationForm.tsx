@@ -1,13 +1,13 @@
-import { Button, Field, Input, Stack } from '@chakra-ui/react';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { registerUser } from '../api/registrationApi';
-import { Toaster } from '@/shared/ui/toaster';
+import { Button, Field, Input, Stack } from "@chakra-ui/react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { registerUser } from "../api/registrationApi";
+import { Toaster } from "@/shared/ui/toaster";
 
 const formSchema = z.object({
-  username: z.string().min(5, { message: 'A valid Username is required' }),
-  email: z.string().email({ message: 'A valid Email Address is required' }),
+  username: z.string().min(5, { message: "A valid Username is required" }),
+  email: z.string().email({ message: "A valid Email Address is required" }),
   password: z.string().optional(),
 });
 
@@ -18,12 +18,12 @@ export function RegistrationForm() {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<RegistrationFormValues>({ 
-    resolver: zodResolver(formSchema)
+  } = useForm<RegistrationFormValues>({
+    resolver: zodResolver(formSchema),
   });
 
   const onSubmit = async (data: RegistrationFormValues) => {
-      await registerUser(data);
+    await registerUser(data);
   };
 
   return (
@@ -47,7 +47,9 @@ export function RegistrationForm() {
           <Input disabled {...register("password")} />
           <Field.ErrorText>{errors.password?.message}</Field.ErrorText>
         </Field.Root>
-        <Button type="submit" as="button">Submit</Button>
+        <Button type="submit" as="button">
+          Submit
+        </Button>
       </Stack>
     </form>
   );
