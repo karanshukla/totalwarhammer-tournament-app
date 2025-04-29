@@ -1,4 +1,5 @@
-import { sign, verify, decode } from 'jsonwebtoken';
+import jsonwebtoken from 'jsonwebtoken';
+const { sign, verify, decode } = jsonwebtoken;
 
 class JwtService {
     constructor(config = {}) {

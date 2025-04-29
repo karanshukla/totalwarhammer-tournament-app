@@ -27,7 +27,6 @@ export const registerUser = async (data: RegistrationData): Promise<Registration
     
     toaster.create({
       title: `Successfully registered with the Username ${data.username}`,
-      description: "You will be notified when the app is ready",
       type: "success",
     });
     

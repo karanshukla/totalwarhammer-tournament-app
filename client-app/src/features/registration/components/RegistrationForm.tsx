@@ -44,7 +44,7 @@ export function RegistrationForm() {
 
         <Field.Root invalid={!!errors.password}>
           <Field.Label>Password</Field.Label>
-          <Input {...register("password")} />
+          <Input type="password" {...register("password")} />
           <Field.ErrorText>{errors.password?.message}</Field.ErrorText>
         </Field.Root>
         <Button type="submit" as="button">

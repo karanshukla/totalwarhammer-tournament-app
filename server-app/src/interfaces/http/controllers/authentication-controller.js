@@ -1,6 +1,5 @@
 import User from '../../../domain/models/user.js';
 import JwtService from '../../../infrastructure/services/jwt-service.js';
-import * as crypto from 'crypto-s';
 
 const jwtService = new JwtService(); // Instantiate the service
 

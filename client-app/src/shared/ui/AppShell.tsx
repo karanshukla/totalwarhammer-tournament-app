@@ -23,6 +23,7 @@ import {
 import { BsEnvelope } from "react-icons/bs";
 import { ColorModeButton } from "@/shared/ui/color-mode";
 import { useRouter } from "@/core/router/RouterContext";
+import { useUserStore } from "../stores/userStore";
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -92,6 +93,17 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
     </Flex>
   );
 
+  const user = useUserStore((state) => state.user);
+  const isAuthenticated = () => {
+    return user && user.id !== "" && user.email !== "";
+  };
+  const logout = () => {
+    document.cookie = "jwt=; path=/; max-age=0; secure; samesite=strict";
+    const { setUser } = useUserStore.getState();
+    setUser({ id: "", email: "" });
+    navigate("/");
+  };
+
   return (
     <Box>
       <Flex
@@ -125,15 +137,20 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
             </Text>
           )}
         </Flex>
-
         <HStack gap={2} w="130px" justify="flex-end">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => navigate("/registerLogin")}
-          >
-            Register/Login
-          </Button>
+          {isAuthenticated() ? (
+            <Button variant="outline" size="sm" onClick={() => logout()}>
+              <Icon as={FiLogOut} boxSize={4} mr={2} /> Logout
+            </Button>
+          ) : (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate("/registerLogin")}
+            >
+              Register/Login
+            </Button>
+          )}
           <ColorModeButton />
         </HStack>
       </Flex>

@@ -4,26 +4,29 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { loginUser } from "../api/loginApi";
 import { Toaster } from "@/shared/ui/toaster";
+import { useRouter } from "@/core/router/RouterContext";
 
 const loginFormSchema = z.object({
   email: z.string().email({ message: "A valid Email Address is required" }),
-  password: z.string().min(1, { message: "Password is required" }), 
+  password: z.string().min(1, { message: "Password is required" }),
 });
 
 export type LoginFormValues = z.infer<typeof loginFormSchema>;
 
 export function LoginForm() {
   const {
-    register, 
+    register,
     handleSubmit,
     formState: { errors },
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginFormSchema),
   });
 
+  const { navigate } = useRouter();
+
   const onSubmit = async (data: LoginFormValues) => {
     await loginUser(data);
-    console.log("Login successful", data);
+    navigate("/");
   };
 
   return (
