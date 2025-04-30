@@ -1,4 +1,4 @@
-import { Button, Field, Input, Stack } from "@chakra-ui/react";
+import { Button, Field, Input, Stack, Checkbox } from "@chakra-ui/react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -13,13 +13,20 @@ const loginFormSchema = z.object({
 
 export type LoginFormValues = z.infer<typeof loginFormSchema>;
 
-export function LoginForm() {
+interface LoginFormProps {
+  defaultEmail?: string;
+}
+
+export function LoginForm({ defaultEmail = "" }: LoginFormProps) {
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginFormSchema),
+    defaultValues: {
+      email: defaultEmail,
+    },
   });
 
   const { navigate } = useRouter();
@@ -44,6 +51,13 @@ export function LoginForm() {
           <Input type="password" {...register("password")} />
           <Field.ErrorText>{errors.password?.message}</Field.ErrorText>
         </Field.Root>
+
+        <Checkbox.Root>
+          <Checkbox.HiddenInput />
+          <Checkbox.Control />
+          {/*/TODO - Implement remember me functionality via session token or something*/}
+          <Checkbox.Label>Remember Me</Checkbox.Label>
+        </Checkbox.Root>
         <Button type="submit" as="button">
           Login
         </Button>

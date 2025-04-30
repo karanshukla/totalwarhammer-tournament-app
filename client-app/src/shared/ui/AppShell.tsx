@@ -24,6 +24,7 @@ import { BsEnvelope } from "react-icons/bs";
 import { ColorModeButton } from "@/shared/ui/color-mode";
 import { useRouter } from "@/core/router/RouterContext";
 import { useUserStore } from "../stores/userStore";
+import { RegisterLogin } from "@/features/registration/components/RegisterLogin";
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -47,6 +48,7 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
   ]);
   const [isMobile] = useMediaQuery(["(max-width: 768px)"]);
   const { currentPath, navigate } = useRouter();
+  const { user, clearUser } = useUserStore();
 
   const NavItem = ({
     icon,
@@ -65,7 +67,7 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
       _dark={{ bg: isActive ? "whiteAlpha.200" : "transparent" }}
       borderRadius="md"
       onClick={() =>
-        toExternal ? window.open(toExternal, "_blank") : navigate(to)
+        toExternal ? window.open(toExternal, "_blank") : to && navigate(to)
       }
       role="group"
       _hover={{
@@ -93,14 +95,13 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
     </Flex>
   );
 
-  const user = useUserStore((state) => state.user);
   const isAuthenticated = () => {
     return user && user.id !== "" && user.email !== "";
   };
-  const logout = () => {
+
+  const handleLogout = () => {
     document.cookie = "jwt=; path=/; max-age=0; secure; samesite=strict";
-    const { setUser } = useUserStore.getState();
-    setUser({ id: "", email: "" });
+    clearUser();
     navigate("/");
   };
 
@@ -139,17 +140,11 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
         </Flex>
         <HStack gap={2} w="130px" justify="flex-end">
           {isAuthenticated() ? (
-            <Button variant="outline" size="sm" onClick={() => logout()}>
+            <Button variant="outline" size="sm" onClick={handleLogout}>
               <Icon as={FiLogOut} boxSize={4} mr={2} /> Logout
             </Button>
           ) : (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigate("/registerLogin")}
-            >
-              Register/Login
-            </Button>
+            <RegisterLogin />
           )}
           <ColorModeButton />
         </HStack>

@@ -1,51 +1,62 @@
-import React from "react";
-import { RegistrationForm } from "./RegistrationForm";
-import {
-  Box,
-  Container,
-  Heading,
-  Stack,
-  useBreakpointValue,
-  Separator,
-  Flex,
-} from "@chakra-ui/react";
-import { LoginForm } from "./LoginForm";
+"use client";
 
-export const RegisterLogin: React.FC = () => {
-  const direction = useBreakpointValue({ base: "column", md: "row" }) as
-    | "column"
-    | "row";
+import { Button, Drawer, Portal, createOverlay } from "@chakra-ui/react";
+import { AuthenticationForm } from "./AuthenticationForm";
+
+interface DialogProps {
+  title: string;
+  description?: string;
+  content?: React.ReactNode;
+  placement?: Drawer.RootProps["placement"];
+}
+
+export const RegisterLogin = () => {
+  const drawer = createOverlay<DialogProps>((props) => {
+    const { title, description, content, ...rest } = props;
+    return (
+      <Drawer.Root {...rest}>
+        <Portal>
+          <Drawer.Backdrop />
+          <Drawer.Positioner>
+            <Drawer.Content>
+              {title && (
+                <Drawer.Header>
+                  <Drawer.Title>{title}</Drawer.Title>
+                </Drawer.Header>
+              )}
+              <Drawer.Body spaceY="4">
+                {description && (
+                  <Drawer.Description>{description}</Drawer.Description>
+                )}
+                {
+                  <>
+                    <AuthenticationForm />
+                  </>
+                }
+              </Drawer.Body>
+            </Drawer.Content>
+          </Drawer.Positioner>
+        </Portal>
+      </Drawer.Root>
+    );
+  });
 
   return (
-    <Container maxW="container.xl" py={{ base: 4, md: 8 }}>
-      <Box textAlign="center" mb={{ base: 6, md: 10 }}>
-        <Heading as="h1" size={{ base: "md", md: "lg" }}>
-          Register or Login to your account
-        </Heading>
-      </Box>
-
-      <Flex justify="center" width="100%">
-        <Stack
-          direction={direction}
-          gap={{ base: 8, md: 12 }}
-          align={direction === "column" ? "stretch" : "flex-start"}
-          justify="center"
-          width="100%"
-          maxW={{ md: "900px" }}
-          separator={
-            <Separator
-              orientation={direction === "column" ? "horizontal" : "vertical"}
-            />
-          }
-        >
-          <Box flex="1" maxW={direction === "row" ? "45%" : "100%"}>
-            <RegistrationForm />
-          </Box>
-          <Box flex="1" maxW={direction === "row" ? "45%" : "100%"}>
-            <LoginForm />
-          </Box>
-        </Stack>
-      </Flex>
-    </Container>
+    <>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => {
+          drawer.open("authentication", {
+            title: "Authentication",
+            description: "Register or Login below!",
+            placement: "end",
+          });
+        }}
+      >
+        Register/Login
+      </Button>
+      <drawer.Viewport />
+    </>
   );
 };

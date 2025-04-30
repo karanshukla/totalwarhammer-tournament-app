@@ -1,12 +1,12 @@
 import User from '../../../domain/models/user.js';
 import JwtService from '../../../infrastructure/services/jwt-service.js';
 
-const jwtService = new JwtService(); // Instantiate the service
+const jwtService = new JwtService();
 
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
-
+    
     const user = await User
       .findOne({ email })
       .select('+password');
@@ -24,7 +24,7 @@ export const login = async (req, res) => {
       });
     }
 
-    const token = jwtService.generateToken({ // Use the service instance
+    const token = jwtService.generateToken({
       id: user.id,
       email: user.email
     });
@@ -34,7 +34,7 @@ export const login = async (req, res) => {
       data: {
         id: user.id,
         email: user.email,
-        token // Send the generated token
+        token 
       }
     });
   } catch (error) {
@@ -47,7 +47,7 @@ export const login = async (req, res) => {
 }
 export const logout = async (req, res) => {
   try {
-    // Invalidate the token or perform any necessary logout actions
+   //Invalidate or token stuff here
     res.status(200).json({
       success: true,
       message: 'Logout successful'

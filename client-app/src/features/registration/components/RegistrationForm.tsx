@@ -48,7 +48,7 @@ export function RegistrationForm() {
           <Field.ErrorText>{errors.password?.message}</Field.ErrorText>
         </Field.Root>
         <Button type="submit" as="button">
-          Submit
+          Register
         </Button>
       </Stack>
     </form>
