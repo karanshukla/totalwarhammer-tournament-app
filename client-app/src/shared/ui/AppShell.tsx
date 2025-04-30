@@ -136,13 +136,11 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
             </>
           ) : (
             <Text fontWeight="medium" textAlign="center" flex="1">
-              Total Warhammer Tournament App
+              Total Warhammer Tournament App{" "}
               {isGuestUser() && (
-                <Tooltip label="You're using a temporary guest account that expires in 48 hours">
-                  <Badge colorScheme="blue" ml={2}>
-                    Guest Mode
-                  </Badge>
-                </Tooltip>
+                <Badge colorScheme="blue" ml={2}>
+                  Guest Mode
+                </Badge>
               )}
             </Text>
           )}

@@ -26,36 +26,35 @@ export const createGuestUser = async (): Promise<GuestUserResponse> => {
     if (responseData.data?.token) {
       // Calculate max-age in seconds based on expiration time
       const now = Date.now();
-      const expiresAt = responseData.data.expiresAt || now + (48 * 3600 * 1000); // Default 48 hours if not provided
+      const expiresAt = responseData.data.expiresAt || now + 48 * 3600 * 1000; // Default 48 hours if not provided
       const maxAge = Math.floor((expiresAt - now) / 1000);
-      
+
       // Set JWT in cookie with appropriate expiration
       document.cookie = `jwt=${responseData.data.token}; path=/; max-age=${maxAge}; secure; samesite=strict`;
-      
-      // Save guest user info to store using getState().setUser
+
+      // Properly use the store's setUser method instead of setState directly
       const { setUser } = useUserStore.getState();
       setUser({
-        id: responseData.data.id,
-        email: responseData.data.email,
-        username: responseData.data.username,
-        isAuthenticated: true,
-        expiresAt: responseData.data.expiresAt,
-        isGuest: true
+        id: responseData.data?.id || "",
+        email: responseData.data?.email || "",
+        username: responseData.data?.username || "",
+        expiresAt: responseData.data?.expiresAt,
+        isGuest: true,
       });
     }
-    
+
     toaster.create({
       title: `Created guest account`,
-      description: "You can browse as a guest for the next 48 hours", 
+      description: "You can browse as a guest for the next 48 hours",
       type: "success",
     });
 
     return responseData;
   } catch (error) {
-    console.error('Error creating guest account:', error);
+    console.error("Error creating guest account:", error);
     toaster.create({
       title: "Failed to create guest account",
-      description: error instanceof Error ? error.message : 'An error occurred',
+      description: error instanceof Error ? error.message : "An error occurred",
       type: "error",
     });
     throw error;
