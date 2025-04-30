@@ -4,6 +4,8 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { registerUser } from "../api/registrationApi";
 import { Toaster } from "@/shared/ui/toaster";
+import { useRouter } from "@/core/router/RouterContext";
+import { useState } from "react";
 
 const formSchema = z.object({
   username: z.string().min(5, { message: "A valid Username is required" }),
@@ -14,6 +16,9 @@ const formSchema = z.object({
 export type RegistrationFormValues = z.infer<typeof formSchema>;
 
 export function RegistrationForm() {
+  const [isLoading, setIsLoading] = useState(false);
+  const { navigate } = useRouter();
+  
   const {
     register,
     handleSubmit,
@@ -23,7 +28,16 @@ export function RegistrationForm() {
   });
 
   const onSubmit = async (data: RegistrationFormValues) => {
-    await registerUser(data);
+    try {
+      setIsLoading(true);
+      await registerUser(data);
+      // Navigate to home page after successful registration and auto-login
+      navigate("/");
+    } catch (error) {
+      console.error("Registration failed:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -47,7 +61,12 @@ export function RegistrationForm() {
           <Input type="password" {...register("password")} />
           <Field.ErrorText>{errors.password?.message}</Field.ErrorText>
         </Field.Root>
-        <Button type="submit" as="button">
+        <Button 
+          type="submit" 
+          as="button"
+          isLoading={isLoading}
+          loadingText="Registering..."
+        >
           Register
         </Button>
       </Stack>

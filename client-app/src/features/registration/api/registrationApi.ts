@@ -1,6 +1,8 @@
 import { toaster } from "@/shared/ui/toaster";
 import { apiConfig } from "@/core/config/apiConfig";
 import { httpClient } from "@/core/api/httpClient";
+import { loginUser } from "./loginApi";
+import { useUserStore } from "@/shared/stores/userStore";
 
 export interface RegistrationData {
   username: string;
@@ -31,6 +33,29 @@ export const registerUser = async (
       title: `Successfully registered with the Username ${data.username}`,
       type: "success",
     });
+
+    // Auto-login the user after successful registration
+    try {
+      if (data.password) {
+        await loginUser({
+          email: data.email,
+          password: data.password,
+        });
+      } else {
+        // For cases where password might not be required or provided
+        // Set the user in the store using the registration response
+        const { setUser } = useUserStore.getState();
+        setUser({
+          id: responseData.data?.id || '',
+          email: data.email,
+          username: data.username,
+          isAuthenticated: true
+        });
+      }
+    } catch (loginError) {
+      console.error("Auto-login after registration failed:", loginError);
+      // Don't throw error here, as registration was successful
+    }
 
     return responseData;
   } catch (error) {

@@ -32,7 +32,7 @@ export const createGuestUser = async (): Promise<GuestUserResponse> => {
       // Set JWT in cookie with appropriate expiration
       document.cookie = `jwt=${responseData.data.token}; path=/; max-age=${maxAge}; secure; samesite=strict`;
       
-      // Save guest user info to store
+      // Save guest user info to store using getState().setUser
       const { setUser } = useUserStore.getState();
       setUser({
         id: responseData.data.id,
