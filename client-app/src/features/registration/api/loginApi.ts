@@ -8,6 +8,7 @@ import { useUserStore } from "@/shared/stores/userStore";
 export interface LoginData {
   email: string;
   password: string;
+  rememberMe?: boolean;
 }
 
 export interface LoginResponse {
@@ -16,7 +17,9 @@ export interface LoginResponse {
   data?: { 
     id: string;
     email: string;
+    username: string;
     token?: string;
+    expiresAt?: number; // New property from server to know when token expires
   };
 }
 
@@ -28,16 +31,26 @@ export const loginUser = async (data: LoginData): Promise<LoginResponse> => {
     );
 
     if (responseData.data?.token) {
-      document.cookie = `jwt=${responseData.data.token}; path=/; max-age=3600; secure; samesite=strict`;
+      // Calculate max-age in seconds based on expiration time
+      const now = Date.now();
+      const expiresAt = responseData.data.expiresAt || now + (3600 * 1000); // Default 1 hour if not provided
+      const maxAge = Math.floor((expiresAt - now) / 1000);
+      
+      // Set JWT in cookie with appropriate expiration
+      document.cookie = `jwt=${responseData.data.token}; path=/; max-age=${maxAge}; secure; samesite=strict`;
+      
+      // Save user info to store
+      const { setUser } = useUserStore.getState();
+      setUser({
+        id: responseData.data.id || "",
+        email: responseData.data.email || "",
+        username: responseData.data.username || "",
+        isAuthenticated: true,
+        expiresAt: responseData.data.expiresAt,
+        isGuest: false
+      });
     }
     
-
-    const { setUser } = useUserStore.getState();
-    setUser({
-      id: responseData.data?.id || "",
-       email: responseData.data?.email || "",
-     });
-     
     toaster.create({
       title: `Successfully logged in as ${data.email}`,
       description: "Welcome back!", 

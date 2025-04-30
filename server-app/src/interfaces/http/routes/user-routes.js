@@ -10,5 +10,6 @@ router.post('/register', userController.register);
 router.post('/login', authenticationController.login);
 router.post('/logout', authenticationController.logout);
 router.post('/exists', userController.userExists);
+router.post('/guest', userController.createGuestUser); // New guest user endpoint
 
 export default router;

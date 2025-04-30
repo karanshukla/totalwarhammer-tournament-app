@@ -9,6 +9,8 @@ import {
   Separator,
   Button,
   HStack,
+  Badge,
+  Tooltip,
 } from "@chakra-ui/react";
 import {
   FiHome,
@@ -48,7 +50,7 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
   ]);
   const [isMobile] = useMediaQuery(["(max-width: 768px)"]);
   const { currentPath, navigate } = useRouter();
-  const { user, clearUser } = useUserStore();
+  const { user, clearUser, isGuestUser } = useUserStore();
 
   const NavItem = ({
     icon,
@@ -135,6 +137,13 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
           ) : (
             <Text fontWeight="medium" textAlign="center" flex="1">
               Total Warhammer Tournament App
+              {isGuestUser() && (
+                <Tooltip label="You're using a temporary guest account that expires in 48 hours">
+                  <Badge colorScheme="blue" ml={2}>
+                    Guest Mode
+                  </Badge>
+                </Tooltip>
+              )}
             </Text>
           )}
         </Flex>
@@ -196,6 +205,11 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
           </NavItem>
           <NavItem icon={FiUser} to="/account">
             Account
+            {isGuestUser() && isPortrait && (
+              <Badge size="sm" colorScheme="blue" ml={1}>
+                Guest
+              </Badge>
+            )}
           </NavItem>
           {!isPortrait && (
             <>

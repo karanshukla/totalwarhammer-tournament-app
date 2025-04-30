@@ -9,6 +9,7 @@ import { useRouter } from "@/core/router/RouterContext";
 const loginFormSchema = z.object({
   email: z.string().email({ message: "A valid Email Address is required" }),
   password: z.string().min(1, { message: "Password is required" }),
+  rememberMe: z.boolean().optional(),
 });
 
 export type LoginFormValues = z.infer<typeof loginFormSchema>;
@@ -26,6 +27,7 @@ export function LoginForm({ defaultEmail = "" }: LoginFormProps) {
     resolver: zodResolver(loginFormSchema),
     defaultValues: {
       email: defaultEmail,
+      rememberMe: false,
     },
   });
 
@@ -53,9 +55,8 @@ export function LoginForm({ defaultEmail = "" }: LoginFormProps) {
         </Field.Root>
 
         <Checkbox.Root>
-          <Checkbox.HiddenInput />
+          <Checkbox.HiddenInput {...register("rememberMe")} />
           <Checkbox.Control />
-          {/*/TODO - Implement remember me functionality via session token or something*/}
           <Checkbox.Label>Remember Me</Checkbox.Label>
         </Checkbox.Root>
         <Button type="submit" as="button">

@@ -1,4 +1,4 @@
-import { Button, Field, Input, Stack, Checkbox } from "@chakra-ui/react";
+import { Button, Field, Input, Stack, Checkbox, HStack, Text, Divider } from "@chakra-ui/react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -9,6 +9,7 @@ import { userExists } from "../api/registrationApi";
 import { LoginForm } from "./LoginForm";
 import { RegistrationForm } from "./RegistrationForm";
 import { useState } from "react";
+import { createGuestUser } from "../api/guestApi";
 
 const authenticationFormSchema = z.object({
   usernameOrEmail: z
@@ -24,6 +25,7 @@ export function AuthenticationForm() {
     "check"
   );
   const [usernameOrEmailValue, setUsernameOrEmailValue] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const {
     register,
@@ -37,6 +39,7 @@ export function AuthenticationForm() {
 
   const onSubmit = async (data: authenticationFormValues) => {
     try {
+      setIsLoading(true);
       setUsernameOrEmailValue(data.usernameOrEmail);
       const exists = await userExists(data.usernameOrEmail);
       if (exists) {
@@ -46,6 +49,21 @@ export function AuthenticationForm() {
       }
     } catch (error) {
       console.error("Authentication check failed:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGuestLogin = async () => {
+    try {
+      setIsLoading(true);
+      await createGuestUser();
+      // Close the authentication drawer by routing to home
+      router.navigate("/");
+    } catch (error) {
+      console.error("Guest login failed:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -57,20 +75,47 @@ export function AuthenticationForm() {
       ) : formToShow === "register" ? (
         <RegistrationForm key="registration-form" />
       ) : (
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <Stack gap="4" align="flex-start" maxW="sm">
-            <Field.Root invalid={!!errors.usernameOrEmail} required>
-              <Field.Label>Username or Email</Field.Label>
-              <Input {...register("usernameOrEmail")} />
-              <Field.ErrorText>
-                {errors.usernameOrEmail?.message}
-              </Field.ErrorText>
-            </Field.Root>
-            <Button type="submit" as="button">
-              Submit
+        <Stack spacing={6}>
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <Stack gap="4" align="flex-start" maxW="sm">
+              <Field.Root invalid={!!errors.usernameOrEmail} required>
+                <Field.Label>Username or Email</Field.Label>
+                <Input {...register("usernameOrEmail")} />
+                <Field.ErrorText>
+                  {errors.usernameOrEmail?.message}
+                </Field.ErrorText>
+              </Field.Root>
+              <Button 
+                type="submit" 
+                as="button" 
+                isLoading={isLoading}
+                loadingText="Checking..."
+              >
+                Submit
+              </Button>
+            </Stack>
+          </form>
+          
+          <Divider />
+          
+          <Stack spacing={2} align="center">
+            <Text fontSize="sm" color="gray.500">
+              Don't want to create an account?
+            </Text>
+            <Button 
+              variant="outline" 
+              width="full" 
+              onClick={handleGuestLogin}
+              isLoading={isLoading}
+              loadingText="Creating guest account..."
+            >
+              Continue as Guest
             </Button>
+            <Text fontSize="xs" color="gray.400">
+              Guest accounts last for 48 hours
+            </Text>
           </Stack>
-        </form>
+        </Stack>
       )}
     </>
   );

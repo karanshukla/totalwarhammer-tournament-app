@@ -6,5 +6,6 @@ export const apiConfig = {
     userExists: '/user/exists',
     login: '/user/login',
     logout: '/user/logout',
+    guest: '/user/guest',
   }
 };

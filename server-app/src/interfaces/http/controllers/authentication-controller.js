@@ -5,7 +5,7 @@ const jwtService = new JwtService();
 
 export const login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, rememberMe = false } = req.body;
     
     const user = await User
       .findOne({ email })
@@ -24,17 +24,27 @@ export const login = async (req, res) => {
       });
     }
 
+    // Use rememberMe to determine token type
+    const tokenType = rememberMe ? 'rememberMe' : 'standard';
+    
     const token = jwtService.generateToken({
       id: user.id,
       email: user.email
-    });
+    }, tokenType);
+    
+    // Get token expiration for client reference
+    const decoded = jwtService.decodeToken(token);
+    const expiresAt = decoded.exp * 1000; // Convert to milliseconds
+    
     res.status(200).json({
       success: true,
       message: 'Login successful',
       data: {
         id: user.id,
         email: user.email,
-        token 
+        username: user.username,
+        token,
+        expiresAt
       }
     });
   } catch (error) {
@@ -45,9 +55,11 @@ export const login = async (req, res) => {
     });
   }
 }
+
 export const logout = async (req, res) => {
   try {
-   //Invalidate or token stuff here
+   // Client-side token invalidation is handled by the client
+   // We don't need server-side invalidation as tokens are stateless
     res.status(200).json({
       success: true,
       message: 'Logout successful'
