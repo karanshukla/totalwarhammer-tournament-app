@@ -1,4 +1,4 @@
-import { Button, Field, Input, Stack, Checkbox, HStack, Text, Divider } from "@chakra-ui/react";
+import { Button, Field, Input, Stack, Checkbox, HStack, Text, Separator } from "@chakra-ui/react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -96,7 +96,7 @@ export function AuthenticationForm() {
             </Stack>
           </form>
           
-          <Divider />
+          <Separator />
           
           <Stack spacing={2} align="center">
             <Text fontSize="sm" color="gray.500">
