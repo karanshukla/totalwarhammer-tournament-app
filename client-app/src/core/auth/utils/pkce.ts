@@ -1,6 +1,3 @@
-import { SHA256 } from "crypto-js";
-import Base64 from "crypto-js/enc-base64url";
-
 /**
  * PKCE (Proof Key for Code Exchange) utility functions
  * Used to secure authorization code flows against interception attacks
@@ -17,18 +14,12 @@ export class PKCEUtil {
     const charsetLen = charset.length;
     let result = "";
 
-    // Use crypto.getRandomValues when available (for better randomness)
-    if (window.crypto && window.crypto.getRandomValues) {
-      const values = new Uint8Array(length);
-      window.crypto.getRandomValues(values);
-      for (let i = 0; i < length; i++) {
-        result += charset.charAt(values[i] % charsetLen);
-      }
-    } else {
-      // Fallback to Math.random if crypto API isn't available
-      for (let i = 0; i < length; i++) {
-        result += charset.charAt(Math.floor(Math.random() * charsetLen));
-      }
+    // Use crypto.getRandomValues for secure random values
+    const values = new Uint8Array(length);
+    window.crypto.getRandomValues(values);
+
+    for (let i = 0; i < length; i++) {
+      result += charset.charAt(values[i] % charsetLen);
     }
 
     return result;
@@ -39,28 +30,47 @@ export class PKCEUtil {
    * @param codeVerifier The code verifier string
    * @returns The code challenge as a base64url encoded string
    */
-  static createCodeChallenge(codeVerifier: string): string {
-    // Create SHA-256 hash of the code verifier
-    const hash = SHA256(codeVerifier);
+  static async createCodeChallenge(codeVerifier: string): Promise<string> {
+    // Convert string to Uint8Array
+    const encoder = new TextEncoder();
+    const data = encoder.encode(codeVerifier);
 
-    // Base64url encode the hash (RFC 7636 compliant)
-    return Base64.stringify(hash)
-      .replace(/=/g, "")
-      .replace(/\+/g, "-")
-      .replace(/\//g, "_");
+    // Create SHA-256 hash using the Web Crypto API
+    const hashBuffer = await window.crypto.subtle.digest("SHA-256", data);
+
+    // Convert ArrayBuffer to Base64URL string
+    return this.arrayBufferToBase64URL(hashBuffer);
   }
 
   /**
    * Generates both a code verifier and its corresponding challenge
-   * @returns An object containing both the code verifier and challenge
+   * @returns A Promise resolving to an object containing both the code verifier and challenge
    */
-  static generatePKCEPair() {
+  static async generatePKCEPair() {
     const codeVerifier = this.generateCodeVerifier();
-    const codeChallenge = this.createCodeChallenge(codeVerifier);
+    const codeChallenge = await this.createCodeChallenge(codeVerifier);
 
     return {
       codeVerifier,
       codeChallenge,
     };
+  }
+
+  /**
+   * Converts an ArrayBuffer to a Base64URL string
+   * @param buffer The ArrayBuffer to convert
+   * @returns A Base64URL encoded string
+   */
+  private static arrayBufferToBase64URL(buffer: ArrayBuffer): string {
+    // Convert ArrayBuffer to regular Base64 string
+    const bytes = new Uint8Array(buffer);
+    let base64 = "";
+    const binString = Array.from(bytes)
+      .map((x) => String.fromCharCode(x))
+      .join("");
+    base64 = btoa(binString);
+
+    // Convert Base64 to Base64URL (RFC 7636 compliant)
+    return base64.replace(/=/g, "").replace(/\+/g, "-").replace(/\//g, "_");
   }
 }
