@@ -1,10 +1,19 @@
+import React from "react";
 import { Toaster } from "@/shared/ui/toaster";
 import AppShell from "@/shared/ui/AppShell";
 import { RouterProvider, Route } from "@/core/router/RouterContext";
-import { HomePage } from "@/features/home/components/HomePage";
-import { TournamentsPage } from "@/features/tournaments/components/TournamentsPage";
-import { StatisticsPage } from "@/features/statistics/components/StatisticsPage";
-import { AccountPage } from "@/features/account/components/AccountPage";
+import { lazyLoad } from "@/shared/utils/lazyLoad";
+
+const HomePage = lazyLoad(() => import("@/features/home/components/HomePage"));
+const TournamentsPage = lazyLoad(
+  () => import("@/features/tournaments/components/TournamentsPage")
+);
+const StatisticsPage = lazyLoad(
+  () => import("@/features/statistics/components/StatisticsPage")
+);
+const AccountPage = lazyLoad(
+  () => import("@/features/account/components/AccountPage")
+);
 
 export function App() {
   return (

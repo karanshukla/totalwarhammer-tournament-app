@@ -10,7 +10,6 @@ import { RegistrationForm } from "./RegistrationForm";
 import { useState } from "react";
 import { createGuestUser } from "../api/guestApi";
 
-// Simplified schema
 const authenticationFormSchema = z.object({
   usernameOrEmail: z
     .string()
@@ -24,7 +23,8 @@ export function AuthenticationForm() {
   const [formState, setFormState] = useState({
     view: "check" as "check" | "login" | "register",
     usernameOrEmail: "",
-    isLoading: false,
+    isCheckingUser: false,
+    isCreatingGuest: false,
   });
 
   const {
@@ -49,30 +49,30 @@ export function AuthenticationForm() {
     try {
       setFormState((prev) => ({
         ...prev,
-        isLoading: true,
+        isCheckingUser: true,
         usernameOrEmail: data.usernameOrEmail,
       }));
       const exists = await userExists(data.usernameOrEmail);
       setFormState((prev) => ({
         ...prev,
         view: exists ? "login" : "register",
-        isLoading: false,
+        isCheckingUser: false,
       }));
     } catch (error) {
       console.error("Authentication check failed:", error);
-      setFormState((prev) => ({ ...prev, isLoading: false }));
+      setFormState((prev) => ({ ...prev, isCheckingUser: false }));
     }
   };
 
   const handleGuestLogin = async () => {
     try {
-      setFormState((prev) => ({ ...prev, isLoading: true }));
+      setFormState((prev) => ({ ...prev, isCreatingGuest: true }));
       await createGuestUser();
       closeDrawer();
       setTimeout(() => router.navigate("/"), 100);
     } catch (error) {
       console.error("Guest login failed:", error);
-      setFormState((prev) => ({ ...prev, isLoading: false }));
+      setFormState((prev) => ({ ...prev, isCreatingGuest: false }));
     }
   };
 
@@ -113,7 +113,7 @@ export function AuthenticationForm() {
             </Field.Root>
             <Button
               type="submit"
-              loading={formState.isLoading}
+              loading={formState.isCheckingUser}
               loadingText="Checking..."
             >
               Submit
@@ -131,7 +131,7 @@ export function AuthenticationForm() {
             variant="outline"
             width="full"
             onClick={handleGuestLogin}
-            loading={formState.isLoading}
+            loading={formState.isCreatingGuest}
             loadingText="Creating guest account..."
           >
             Continue as Guest

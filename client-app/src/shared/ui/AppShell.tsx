@@ -134,7 +134,7 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
         <Flex align={isMobile ? "flex-start" : "flex-center"} flex="1">
           {isPortrait ? (
             <>
-              <Text>TWTA</Text>
+              <Text>TW Tournament App</Text>
             </>
           ) : (
             <Text fontWeight="medium" textAlign="center" flex="1">

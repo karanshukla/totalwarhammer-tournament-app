@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import {
   Toaster as ChakraToaster,
@@ -7,17 +7,27 @@ import {
   Stack,
   Toast,
   createToaster,
-} from "@chakra-ui/react"
+  useMediaQuery,
+} from "@chakra-ui/react";
+
+export const mobileToaster = createToaster({
+  placement: "top-start",
+  pauseOnPageIdle: true,
+});
 
 export const toaster = createToaster({
   placement: "bottom-end",
   pauseOnPageIdle: true,
-})
+});
 
 export const Toaster = () => {
+  const [isMobile] = useMediaQuery(["(max-width: 48em)"], { ssr: true });
   return (
     <Portal>
-      <ChakraToaster toaster={toaster} insetInline={{ mdDown: "4" }}>
+      <ChakraToaster
+        toaster={isMobile ? mobileToaster : toaster}
+        insetInline={{ mdDown: "4" }}
+      >
         {(toast) => (
           <Toast.Root width={{ md: "sm" }}>
             {toast.type === "loading" ? (
@@ -39,5 +49,5 @@ export const Toaster = () => {
         )}
       </ChakraToaster>
     </Portal>
-  )
-}
+  );
+};

@@ -1,8 +1,18 @@
 "use client";
 
-import { Button, Drawer, Portal, createOverlay } from "@chakra-ui/react";
+import {
+  Box,
+  Button,
+  Drawer,
+  Icon,
+  IconButton,
+  Portal,
+  createOverlay,
+} from "@chakra-ui/react";
 import { AuthenticationForm } from "./AuthenticationForm";
 import { useEffect, useState } from "react";
+import { LuSearch } from "react-icons/lu";
+import { BiArrowBack } from "react-icons/bi";
 
 interface DialogProps {
   title: string;
@@ -23,9 +33,20 @@ export const RegisterLogin = () => {
           <Drawer.Positioner>
             <Drawer.Content>
               {title && (
-                <Drawer.Header>
-                  <Drawer.Title>{title}</Drawer.Title>
-                </Drawer.Header>
+                <>
+                  <Drawer.Header>
+                    <Drawer.Title>{title}</Drawer.Title>
+                  </Drawer.Header>
+                  <Box position="absolute" top="4" right="4">
+                    <IconButton
+                      aria-label="Close"
+                      variant="ghost"
+                      onClick={() => drawer.close(overlayId)}
+                    >
+                      <BiArrowBack />
+                    </IconButton>
+                  </Box>
+                </>
               )}
               <Drawer.Body spaceY="4">
                 {description && (

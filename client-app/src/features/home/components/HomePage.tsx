@@ -1,7 +1,7 @@
 import React from "react";
 import { Heading, Text, Container, VStack, Image } from "@chakra-ui/react";
 
-export const HomePage: React.FC = () => {
+const HomePage: React.FC = () => {
   return (
     <Container maxW="container.xl">
       <VStack gap={6} py={10} align="flex-start">
@@ -16,3 +16,5 @@ export const HomePage: React.FC = () => {
     </Container>
   );
 };
+
+export default HomePage;
