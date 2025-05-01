@@ -1,5 +1,6 @@
 import express from 'express';
 import userRoutes from './user-routes.js';
+import authRoutes from './authentication-routes.js'; // Import auth routes
 import cors from 'cors';
 import { clientUrl } from '../../../infrastructure/config/env.js';
 const router = express.Router();
@@ -20,5 +21,6 @@ router.get('/', (req, res) => {
 });
 
 router.use('/user', userRoutes);
+router.use('/auth', authRoutes); // Add auth routes under /auth prefix
 
 export default router;

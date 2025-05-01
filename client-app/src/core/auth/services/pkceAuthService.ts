@@ -1,0 +1,81 @@
+import { PKCEUtil } from "../utils/pkce";
+
+/**
+ * Storage keys for PKCE values in sessionStorage
+ */
+const STORAGE_KEYS = {
+  CODE_VERIFIER: "pkce_code_verifier",
+  AUTH_STATE: "pkce_auth_state",
+};
+
+/**
+ * PKCE Authentication Service
+ * Manages PKCE flow and state for secure authentication
+ */
+export class PKCEAuthService {
+  /**
+   * Initialize PKCE auth flow by generating and storing a code verifier
+   * @returns Object containing the code challenge and randomly generated state
+   */
+  static initiatePKCEFlow() {
+    // Generate PKCE code verifier and challenge
+    const { codeVerifier, codeChallenge } = PKCEUtil.generatePKCEPair();
+
+    // Generate random state for CSRF protection
+    const state = this.generateRandomState();
+
+    // Store code verifier and state in sessionStorage
+    this.storeCodeVerifier(codeVerifier);
+    this.storeAuthState(state);
+
+    return {
+      codeChallenge,
+      state,
+    };
+  }
+
+  /**
+   * Retrieve stored code verifier and clear it from storage
+   * @returns The stored code verifier or null if not found
+   */
+  static getAndClearCodeVerifier(): string | null {
+    const codeVerifier = sessionStorage.getItem(STORAGE_KEYS.CODE_VERIFIER);
+    sessionStorage.removeItem(STORAGE_KEYS.CODE_VERIFIER);
+    return codeVerifier;
+  }
+
+  /**
+   * Verify that the returned state matches the stored state
+   * @param returnedState The state returned from the authorization server
+   * @returns Boolean indicating if the states match
+   */
+  static verifyAuthState(returnedState: string): boolean {
+    const storedState = sessionStorage.getItem(STORAGE_KEYS.AUTH_STATE);
+    sessionStorage.removeItem(STORAGE_KEYS.AUTH_STATE);
+    return storedState === returnedState;
+  }
+
+  /**
+   * Store code verifier in sessionStorage
+   * @param codeVerifier The code verifier to store
+   */
+  private static storeCodeVerifier(codeVerifier: string) {
+    sessionStorage.setItem(STORAGE_KEYS.CODE_VERIFIER, codeVerifier);
+  }
+
+  /**
+   * Store authentication state in sessionStorage
+   * @param state The state value to store
+   */
+  private static storeAuthState(state: string) {
+    sessionStorage.setItem(STORAGE_KEYS.AUTH_STATE, state);
+  }
+
+  /**
+   * Generate a random state value for CSRF protection
+   * @returns A random string to be used as state
+   */
+  private static generateRandomState(): string {
+    return PKCEUtil.generateCodeVerifier(32);
+  }
+}
