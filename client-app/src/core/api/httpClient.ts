@@ -11,15 +11,31 @@ class HttpClient {
     this.baseUrl = baseUrl;
   }
 
-  async get<T>(endpoint: string, p0: { apiConfig: { baseUrl: any; endpoints: { register: string; userExists: string; login: string; logout: string; }; }; "": any; }, options: RequestOptions = {}): Promise<T> {
+  async get<T>(
+    endpoint: string,
+    p0: {
+      apiConfig: {
+        baseUrl: any;
+        endpoints: {
+          register: string;
+          userExists: string;
+          login: string;
+          logout: string;
+        };
+      };
+      "": any;
+    },
+    options: RequestOptions = {}
+  ): Promise<T> {
     const { params, ...requestOptions } = options;
     const url = this.buildUrl(endpoint, params);
-    
+
     const response = await fetch(url, {
-      method: 'GET',
+      method: "GET",
+      credentials: "include", // Add credentials include for all requests
       ...requestOptions,
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         ...requestOptions.headers,
       },
     });
@@ -27,15 +43,20 @@ class HttpClient {
     return this.handleResponse<T>(response);
   }
 
-  async post<T>(endpoint: string, data?: unknown, options: RequestOptions = {}): Promise<T> {
+  async post<T>(
+    endpoint: string,
+    data?: unknown,
+    options: RequestOptions = {}
+  ): Promise<T> {
     const { params, ...requestOptions } = options;
     const url = this.buildUrl(endpoint, params);
-    
+
     const response = await fetch(url, {
-      method: 'POST',
+      method: "POST",
+      credentials: "include", // Add credentials include for all requests
       ...requestOptions,
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         ...requestOptions.headers,
       },
       body: data ? JSON.stringify(data) : undefined,
@@ -46,23 +67,30 @@ class HttpClient {
 
   private buildUrl(endpoint: string, params?: Record<string, string>): string {
     const url = new URL(`${this.baseUrl}${endpoint}`);
-    
+
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
         url.searchParams.append(key, value);
       });
     }
-    
+
     return url.toString();
   }
 
   private async handleResponse<T>(response: Response): Promise<T> {
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ message: 'An unknown error occurred' }));
-      throw new Error(errorData.message || `Error ${response.status}: ${response.statusText}`);
+      const errorData = await response
+        .json()
+        .catch(() => ({ message: "An unknown error occurred" }));
+      throw new Error(
+        errorData.message || `Error ${response.status}: ${response.statusText}`
+      );
     }
 
-    if (response.status === 204 || response.headers.get('content-length') === '0') {
+    if (
+      response.status === 204 ||
+      response.headers.get("content-length") === "0"
+    ) {
       return {} as T;
     }
 

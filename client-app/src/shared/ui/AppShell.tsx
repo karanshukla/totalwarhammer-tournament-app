@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   Box,
   useMediaQuery,
@@ -7,26 +7,23 @@ import {
   Icon,
   Flex,
   Separator,
-  Button,
   HStack,
   Badge,
-  Tooltip,
 } from "@chakra-ui/react";
 import {
   FiHome,
   FiAward,
   FiBarChart2,
   FiUser,
-  FiLogOut,
   FiGithub,
   FiHelpCircle,
   FiLock,
 } from "react-icons/fi";
-import { BsEnvelope } from "react-icons/bs";
 import { ColorModeButton } from "@/shared/ui/color-mode";
 import { useRouter } from "@/core/router/RouterContext";
 import { useUserStore } from "../stores/userStore";
 import { RegisterLogin } from "@/features/registration/components/RegisterLogin";
+import { LogoutButton } from "@/features/registration/components/LogoutButton";
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -50,7 +47,22 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
   ]);
   const [isMobile] = useMediaQuery(["(max-width: 768px)"]);
   const { currentPath, navigate } = useRouter();
-  const { user, clearUser, isGuestUser } = useUserStore();
+
+  const userStore = useUserStore();
+  const user = userStore.user;
+  const isUserLoggedIn = Boolean(user.isAuthenticated);
+  const isUserGuest = Boolean(user.isGuest);
+
+  // Debug logging
+  useEffect(() => {
+    console.log("User state:", {
+      user,
+      isAuthenticated: user.isAuthenticated,
+      isGuest: user.isGuest,
+      loggedIn: isUserLoggedIn,
+      guest: isUserGuest,
+    });
+  }, [user]);
 
   const NavItem = ({
     icon,
@@ -97,16 +109,6 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
     </Flex>
   );
 
-  const isAuthenticated = () => {
-    return user && user.id !== "" && user.email !== "";
-  };
-
-  const handleLogout = () => {
-    document.cookie = "jwt=; path=/; max-age=0; secure; samesite=strict";
-    clearUser();
-    navigate("/");
-  };
-
   return (
     <Box>
       <Flex
@@ -137,7 +139,7 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
           ) : (
             <Text fontWeight="medium" textAlign="center" flex="1">
               Total Warhammer Tournament App{" "}
-              {isGuestUser() && (
+              {isUserGuest && (
                 <Badge colorScheme="blue" ml={2}>
                   Guest Mode
                 </Badge>
@@ -146,13 +148,7 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
           )}
         </Flex>
         <HStack gap={2} w="130px" justify="flex-end">
-          {isAuthenticated() ? (
-            <Button variant="outline" size="sm" onClick={handleLogout}>
-              <Icon as={FiLogOut} boxSize={4} mr={2} /> Logout
-            </Button>
-          ) : (
-            <RegisterLogin />
-          )}
+          {isUserLoggedIn ? <LogoutButton /> : <RegisterLogin />}
           <ColorModeButton />
         </HStack>
       </Flex>
@@ -203,7 +199,7 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
           </NavItem>
           <NavItem icon={FiUser} to="/account">
             Account
-            {isGuestUser() && isPortrait && (
+            {isUserGuest && isPortrait && (
               <Badge size="sm" colorScheme="blue" ml={1}>
                 Guest
               </Badge>
@@ -215,8 +211,8 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
               <NavItem icon={FiHelpCircle} to="/contact">
                 Get Help
               </NavItem>
-              <NavItem icon={FiLock} to="/security">
-                Security
+              <NavItem icon={FiLock} to="/terms">
+                Terms of Use
               </NavItem>
               <NavItem
                 icon={FiGithub}

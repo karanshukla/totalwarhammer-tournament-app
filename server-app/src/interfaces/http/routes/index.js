@@ -8,7 +8,8 @@ const corsOptions = {
   origin: clientUrl,
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   preflightContinue: false,
-  optionsSuccessStatus: 204
+  optionsSuccessStatus: 204,
+  credentials: true  // Add this line to support credentials (cookies)
 };
 
 router.use(cors(corsOptions));

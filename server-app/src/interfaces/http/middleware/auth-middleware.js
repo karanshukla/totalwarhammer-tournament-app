@@ -4,8 +4,12 @@ import User from '../../../domain/models/user.js'; // Optional: To fetch user de
 const jwtService = new JwtService();
 
 const authenticateToken = async (req, res, next) => {
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+    let token = req.cookies.jwt;
+
+    if (!token) {
+        const authHeader = req.headers['authorization'];
+        token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+    }
 
     if (token == null) {
         return res.status(401).json({ success: false, message: 'Unauthorized: No token provided' });
@@ -13,13 +17,7 @@ const authenticateToken = async (req, res, next) => {
 
     try {
         const decoded = jwtService.verifyToken(token);
-        // Optional: Fetch user from DB if you need more user details than what's in the token
-        // const user = await User.findById(decoded.id);
-        // if (!user) {
-        //     return res.status(403).json({ success: false, message: 'Forbidden: User not found' });
-        // }
-        // req.user = user; // Attach full user object
-        req.user = decoded; // Attach decoded payload (e.g., { id: '...', email: '...' })
+        req.user = decoded; 
         next();
     } catch (error) {
         console.error("Token verification failed:", error.message);

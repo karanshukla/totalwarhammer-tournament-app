@@ -2,7 +2,7 @@
 
 import { Button, Drawer, Portal, createOverlay } from "@chakra-ui/react";
 import { AuthenticationForm } from "./AuthenticationForm";
-import { useEffect, useRef } from "react";
+import { useEffect, useState } from "react";
 
 interface DialogProps {
   title: string;
@@ -12,12 +12,8 @@ interface DialogProps {
 }
 
 export const RegisterLogin = () => {
-  // Create a ref to store the drawer instance
-  const drawerRef = useRef<ReturnType<
-    typeof createOverlay<DialogProps>
-  > | null>(null);
+  const [overlayId] = useState<string>("authentication");
 
-  // Create the drawer when the component is mounted
   const drawer = createOverlay<DialogProps>((props) => {
     const { title, description, content, ...rest } = props;
     return (
@@ -44,27 +40,22 @@ export const RegisterLogin = () => {
     );
   });
 
-  // Store the drawer in a ref
   useEffect(() => {
-    drawerRef.current = drawer;
-
-    // Listen for custom events to close the drawer
     const handleAuthEvent = (event: Event) => {
       const customEvent = event as CustomEvent;
       if (customEvent.detail?.type === "close-drawer") {
-        drawer.close();
+        drawer.close(overlayId);
       }
     };
 
-    // Add and remove event listener
     document.addEventListener("auth-event", handleAuthEvent);
     return () => {
       document.removeEventListener("auth-event", handleAuthEvent);
     };
-  }, [drawer]);
+  }, [drawer, overlayId]);
 
   const handleClick = () => {
-    drawer.open("authentication", {
+    drawer.open(overlayId, {
       title: "Authentication",
       description: "Register or Login below!",
       placement: "end",

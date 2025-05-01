@@ -2,6 +2,7 @@ import express from 'express';
 import { port } from './src/infrastructure/config/env.js';
 import { connectToDatabase } from './src/infrastructure/db/connection.js';
 import { rateLimit } from 'express-rate-limit'
+import cookieParser from 'cookie-parser';
 import routes from './src/interfaces/http/routes/index.js';
 
 // Create Express application
@@ -14,6 +15,7 @@ connectToDatabase();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
+app.use(cookieParser());
 
 // Rate limiting middleware
 const limiter = rateLimit({

@@ -95,6 +95,16 @@ export const createGuestUser = async (req, res) => {
     const decoded = jwtService.decodeToken(token);
     const expiresAt = decoded.exp * 1000; // Convert to milliseconds
     
+    // Set HttpOnly cookie with the token
+    const maxAge = expiresAt - Date.now();
+    res.cookie('jwt', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge,
+      path: '/'
+    });
+    
     res.status(201).json({
       success: true,
       message: "Guest user created successfully",
@@ -103,7 +113,6 @@ export const createGuestUser = async (req, res) => {
         username: guestUser.username,
         email: guestUser.email,
         isGuest: true,
-        token,
         expiresAt
       },
     });

@@ -15,13 +15,7 @@ const formSchema = z.object({
 
 export type RegistrationFormValues = z.infer<typeof formSchema>;
 
-interface RegistrationFormProps {
-  // Add props interface
-  onSuccess?: () => void; // Add onSuccess prop type
-}
-
-export function RegistrationForm({ onSuccess }: RegistrationFormProps) {
-  // Destructure onSuccess
+export function RegistrationForm() {
   const [isLoading, setIsLoading] = useState(false);
   const { navigate } = useRouter();
 
@@ -37,7 +31,6 @@ export function RegistrationForm({ onSuccess }: RegistrationFormProps) {
     try {
       setIsLoading(true);
       await registerUser(data);
-      onSuccess?.();
       navigate("/");
     } catch (error) {
       console.error("Registration failed:", error);
@@ -70,7 +63,7 @@ export function RegistrationForm({ onSuccess }: RegistrationFormProps) {
         <Button
           type="submit"
           as="button"
-          loading={isLoading} // Changed isLoading to loading
+          loading={isLoading}
           loadingText="Registering..."
         >
           Register

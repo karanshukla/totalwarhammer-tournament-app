@@ -64,6 +64,7 @@ export function LoginForm({ defaultEmail = "", onSuccess }: LoginFormProps) {
           <Field.ErrorText>{errors.password?.message}</Field.ErrorText>
         </Field.Root>
 
+        {/*This doesnt work*/}
         <Checkbox.Root>
           <Checkbox.HiddenInput />
           <Checkbox.Control />

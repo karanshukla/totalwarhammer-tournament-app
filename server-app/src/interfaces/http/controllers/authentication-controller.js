@@ -32,9 +32,18 @@ export const login = async (req, res) => {
       email: user.email
     }, tokenType);
     
-    // Get token expiration for client reference
+
     const decoded = jwtService.decodeToken(token);
     const expiresAt = decoded.exp * 1000; // Convert to milliseconds
+    
+    const maxAge = expiresAt - Date.now();
+    res.cookie('jwt', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production', // Use secure in production
+      sameSite: 'strict',
+      maxAge,
+      path: '/'
+    });
     
     res.status(200).json({
       success: true,
@@ -43,7 +52,6 @@ export const login = async (req, res) => {
         id: user.id,
         email: user.email,
         username: user.username,
-        token,
         expiresAt
       }
     });
@@ -58,8 +66,13 @@ export const login = async (req, res) => {
 
 export const logout = async (req, res) => {
   try {
-   // Client-side token invalidation is handled by the client
-   // We don't need server-side invalidation as tokens are stateless
+    res.clearCookie('jwt', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      path: '/'
+    });
+    
     res.status(200).json({
       success: true,
       message: 'Logout successful'
