@@ -53,17 +53,6 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
   const isUserLoggedIn = Boolean(user.isAuthenticated);
   const isUserGuest = Boolean(user.isGuest);
 
-  // Debug logging
-  useEffect(() => {
-    console.log("User state:", {
-      user,
-      isAuthenticated: user.isAuthenticated,
-      isGuest: user.isGuest,
-      loggedIn: isUserLoggedIn,
-      guest: isUserGuest,
-    });
-  }, [user]);
-
   const NavItem = ({
     icon,
     children,
