@@ -5,18 +5,22 @@
 
 # This workflow checks out code, performs a Codacy security scan
 # and integrates the results with the
-# GitHub Advanced Security code scanning feature.
+# GitHub Advanced Security code scanning feature.  For more information on
+# the Codacy security scan action usage and parameters, see
+# https://github.com/codacy/codacy-analysis-cli-action.
+# For more information on Codacy Analysis CLI in general, see
+# https://github.com/codacy/codacy-analysis-cli.
 
 name: Codacy Security Scan
 
 on:
   push:
-    branches: ["main"]
+    branches: [ "main" ]
   pull_request:
     # The branches below must be a subset of the branches above
-    branches: ["main"]
+    branches: [ "main" ]
   schedule:
-    - cron: "0 4 * * 1" # Run weekly on Mondays at 4:00 UTC for better timing
+    - cron: '29 8 * * 2'
 
 permissions:
   contents: read
@@ -33,137 +37,25 @@ jobs:
       # Checkout the repository to the GitHub Actions runner
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0 # Fetch all history for better code analysis
 
-      # Setup Node.js for potential code analysis tools
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: "npm"
-
-      # Install dependencies using workspace aware approach
-      - name: Install dependencies
-        run: |
-          # Install root dependencies if they exist
-          if [ -f package.json ]; then
-            npm ci || npm install
-          fi
-
-          # Install client dependencies
-          if [ -d client-app ]; then
-            cd client-app
-            npm ci || npm install
-            cd ..
-          fi
-
-          # Install server dependencies
-          if [ -d server-app ]; then
-            cd server-app
-            npm ci || npm install
-            cd ..
-          fi
-
-          echo "Successfully installed all dependencies"
-
-      # Create lock files in the root directory for Codacy to find
-      - name: Copy lock files to root for Codacy analysis
-        run: |
-          # Copy lock files to the repository root
-          if [ -f client-app/package-lock.json ]; then
-            cp client-app/package-lock.json ./package-lock.json
-            echo "Copied client-app package-lock.json to root"
-          fi
-
-          # Also maintain the symlinks for backward compatibility
-          mkdir -p .codacy-analysis
-
-          # Create symlinks for package-lock.json files
-          if [ -f client-app/package-lock.json ]; then
-            ln -sf $(pwd)/client-app/package-lock.json .codacy-analysis/client-package-lock.json
-            echo "Created symlink for client-app package-lock.json"
-          fi
-
-          if [ -f server-app/package-lock.json ]; then
-            ln -sf $(pwd)/server-app/package-lock.json .codacy-analysis/server-package-lock.json
-            echo "Created symlink for server-app package-lock.json"
-          fi
-
-      # Analyze code with ESLint for better coverage
-      - name: Run ESLint analysis
-        run: |
-          # Install ESLint globally for better compatibility
-          npm install -g eslint
-
-          # Run ESLint on client code (TypeScript)
-          echo "Analyzing client-app with ESLint..."
-          if [ -d client-app/src ]; then
-            eslint client-app/src --ext .ts,.tsx --format json > client-eslint-results.json || true
-          fi
-
-          # Run ESLint on server code (JavaScript)
-          echo "Analyzing server-app with ESLint..."
-          if [ -d server-app/src ]; then
-            eslint server-app/src --ext .js --format json > server-eslint-results.json || true
-          fi
-
-      # Execute Codacy Analysis CLI with improved configuration
+      # Execute Codacy Analysis CLI and generate a SARIF output with the security issues identified during the analysis
       - name: Run Codacy Analysis CLI
-        uses: codacy/codacy-analysis-cli-action@v4.4.0
+        uses: codacy/codacy-analysis-cli-action@d840f886c4bd4edc059706d09c6a1586111c540b
         with:
+          # Check https://github.com/codacy/codacy-analysis-cli#project-token to get your project token from your Codacy repository
+          # You can also omit the token and run the tools that support default configurations
           project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
           verbose: true
           output: results.sarif
           format: sarif
-          # Analyze all relevant directories with specific focus
-          directory: .,client-app,server-app,.codacy-analysis
-          # Enhanced tool selection for JavaScript/TypeScript full-stack apps
-          tool: eslint,npmaudit,snyk,sonarjs,nodejsscan
           # Adjust severity of non-security issues
           gh-code-scanning-compat: true
           # Force 0 exit code to allow SARIF file generation
+          # This will handover control about PR rejection to the GitHub side
           max-allowed-issues: 2147483647
-
-      # Extend analysis with extra npm audit check
-      - name: Run npm audit
-        run: |
-          echo "Running npm audit in client-app..."
-          cd client-app && npm audit --json > ../client-audit.json || true
-          cd ..
-
-          echo "Running npm audit in server-app..."
-          cd server-app && npm audit --json > ../server-audit.json || true
-          cd ..
-
-          # Format the audit results for better visibility
-          echo "Processing npm audit results..."
-          npm install -g json
-          cat client-audit.json | json -q 'vulnerabilities' | json -q -a severity | sort | uniq -c || echo "No vulnerabilities found in client-app"
-          cat server-audit.json | json -q 'vulnerabilities' | json -q -a severity | sort | uniq -c || echo "No vulnerabilities found in server-app"
 
       # Upload the SARIF file generated in the previous step
       - name: Upload SARIF results file
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: results.sarif
-
-      # Add a summary of findings
-      - name: Generate summary report
-        if: always()
-        run: |
-          echo "## Codacy Security Scan Summary" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Analysis completed" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "The full results are available in the GitHub Security tab." >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          if [ -f client-audit.json ]; then
-            echo "#### Client App Vulnerabilities" >> $GITHUB_STEP_SUMMARY
-            cat client-audit.json | json -q 'metadata.vulnerabilities.total' >> $GITHUB_STEP_SUMMARY || echo "Error processing client vulnerabilities" >> $GITHUB_STEP_SUMMARY
-          fi
-          echo "" >> $GITHUB_STEP_SUMMARY
-          if [ -f server-audit.json ]; then
-            echo "#### Server App Vulnerabilities" >> $GITHUB_STEP_SUMMARY
-            cat server-audit.json | json -q 'metadata.vulnerabilities.total' >> $GITHUB_STEP_SUMMARY || echo "Error processing server vulnerabilities" >> $GITHUB_STEP_SUMMARY
-          fi
