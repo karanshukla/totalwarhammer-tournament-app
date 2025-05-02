@@ -10,7 +10,9 @@ import { useState } from "react";
 const formSchema = z.object({
   username: z.string().min(5, { message: "A valid Username is required" }),
   email: z.string().email({ message: "A valid Email Address is required" }),
-  password: z.string().optional(),
+  password: z
+    .string()
+    .min(8, { message: "Password must be at least 8 characters long" }),
 });
 
 export type RegistrationFormValues = z.infer<typeof formSchema>;
