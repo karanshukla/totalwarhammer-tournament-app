@@ -41,6 +41,18 @@ jobs:
           node-version: "20"
           cache: "npm"
 
+      # Install client dependencies to generate lock file
+      - name: Install client dependencies
+        run: |
+          cd client-app
+          npm ci || npm install
+
+      # Install server dependencies to generate lock file
+      - name: Install server dependencies
+        run: |
+          cd server-app
+          npm ci || npm install
+
       # Execute Codacy Analysis CLI and generate a SARIF output with the security issues identified during the analysis
       - name: Run Codacy Analysis CLI
         uses: codacy/codacy-analysis-cli-action@v4.4.0
