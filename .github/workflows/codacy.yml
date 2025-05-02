@@ -5,22 +5,18 @@
 
 # This workflow checks out code, performs a Codacy security scan
 # and integrates the results with the
-# GitHub Advanced Security code scanning feature.  For more information on
-# the Codacy security scan action usage and parameters, see
-# https://github.com/codacy/codacy-analysis-cli-action.
-# For more information on Codacy Analysis CLI in general, see
-# https://github.com/codacy/codacy-analysis-cli.
+# GitHub Advanced Security code scanning feature.
 
 name: Codacy Security Scan
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
     # The branches below must be a subset of the branches above
-    branches: [ "main" ]
+    branches: ["main"]
   schedule:
-    - cron: '29 8 * * 2'
+    - cron: "29 8 * * 2" # Run weekly on Tuesdays at 8:29 UTC
 
 permissions:
   contents: read
@@ -38,20 +34,28 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # Setup Node.js for potential code analysis tools
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
       # Execute Codacy Analysis CLI and generate a SARIF output with the security issues identified during the analysis
       - name: Run Codacy Analysis CLI
-        uses: codacy/codacy-analysis-cli-action@d840f886c4bd4edc059706d09c6a1586111c540b
+        uses: codacy/codacy-analysis-cli-action@v4.4.0
         with:
-          # Check https://github.com/codacy/codacy-analysis-cli#project-token to get your project token from your Codacy repository
-          # You can also omit the token and run the tools that support default configurations
           project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
           verbose: true
           output: results.sarif
           format: sarif
+          # Specify directories to analyze specifically frontend and backend code
+          directory: client-app/src,server-app/src
+          # Specify tools for JavaScript/TypeScript analysis
+          tool: eslint,npmaudit,snyk
           # Adjust severity of non-security issues
           gh-code-scanning-compat: true
           # Force 0 exit code to allow SARIF file generation
-          # This will handover control about PR rejection to the GitHub side
           max-allowed-issues: 2147483647
 
       # Upload the SARIF file generated in the previous step
