@@ -28,7 +28,7 @@ export const requestPasswordReset = async (
 ): Promise<PasswordResetResponse> => {
   try {
     const response = await httpClient.post<PasswordResetResponse>(
-      "/password-reset/request",
+      `${apiConfig.endpoints.passwordReset}/request`,
       { email }
     );
 
@@ -68,7 +68,7 @@ export const verifyResetToken = async (
 ): Promise<TokenVerificationResponse> => {
   try {
     const response = await httpClient.post<TokenVerificationResponse>(
-      "/password-reset/verify",
+      `${apiConfig.endpoints.passwordReset}/verify`,
       { token }
     );
 
@@ -95,7 +95,7 @@ export const resetPassword = async (
 ): Promise<PasswordResetResponse> => {
   try {
     const response = await httpClient.post<PasswordResetResponse>(
-      "/password-reset/reset",
+      `${apiConfig.endpoints.passwordReset}/reset`,
       { token, newPassword }
     );
 

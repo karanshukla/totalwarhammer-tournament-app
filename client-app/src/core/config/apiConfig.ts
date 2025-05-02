@@ -8,5 +8,6 @@ export const apiConfig = {
     logout: "/user/logout",
     guest: "/user/guest",
     token: "/auth/token", // New endpoint for PKCE token exchange
+    passwordReset: "/password-reset", // Endpoint for password reset operations
   },
 };

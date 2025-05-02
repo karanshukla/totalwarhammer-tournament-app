@@ -199,7 +199,7 @@ const ResetPasswordPage: React.FC = () => {
 
         <Text fontSize="sm" textAlign="center">
           Remember your password?{" "}
-          <Button onClick={() => router.navigate("/")}>Return to login</Button>
+          <Button onClick={() => router.navigate("/")}>Return Home</Button>
         </Text>
       </VStack>
     </Container>
