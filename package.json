@@ -1,0 +1,16 @@
+{
+    "name": "totalwarhammer-tournament-app",
+    "version": "1.0.0",
+    "private": true,
+    "description": "Total War: Warhammer Tournament Application",
+    "workspaces": [
+        "client-app",
+        "server-app"
+    ],
+    "scripts": {
+        "install:all": "npm install && npm run install:client && npm run install:server",
+        "install:client": "cd client-app && npm install",
+        "install:server": "cd server-app && npm install"
+    },
+    "dependencies": {}
+}
