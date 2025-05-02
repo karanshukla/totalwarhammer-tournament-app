@@ -25,7 +25,7 @@ const resetPasswordFormSchema = z
   .object({
     password: z
       .string()
-      .min(6, { message: "Password must be at least 6 characters long" }),
+      .min(6, { message: "Password must be at least 8 characters long" }),
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {

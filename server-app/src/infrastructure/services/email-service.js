@@ -10,35 +10,33 @@ class EmailService {
    * Default sender email address
    * @type {string}
    */
-  #defaultSender = "TW Tournament Dev <anchorstandard@twtournament.app>";
+  #defaultSender = "TW Tournament Dev <dev@twtournament.app>";
 
   /**
    * Default recipient email address (for testing)
    * @type {string}
    */
-  #defaultRecipient = "anchorstandard@proton.me";
+  #defaultRecipient = "dev@twtournament.app";
 
   /**
    * Sends an email using Resend
    * @param {string} options.to - Recipient email address
    * @param {string} options.from - Sender email address
    * @param {string} options.subject - Email subject
-   * @param {string} options.text - Plain text content
    * @param {string} options.html - HTML content
    * @returns {Promise<Object>} - Promise representing the email sending operation
    */
   async sendEmail({
-    to = this.#defaultRecipient,
     from = this.#defaultSender,
+    to = this.#defaultRecipient,
     subject,
-    text,
     html,
   }) {
     if (!subject) {
       throw new Error("Email subject is required");
     }
 
-    if (!text && !html) {
+    if (!html) {
       throw new Error("Email must have text or HTML content");
     }
 
@@ -51,7 +49,7 @@ class EmailService {
 
     try {
       const response = await resend.emails.send(message);
-      if (response?.status === "success")
+      if (response?.error === null)
         return {
           success: true,
           messageId: response?.id || null,

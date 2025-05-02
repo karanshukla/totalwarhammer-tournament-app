@@ -1,25 +1,18 @@
 import { PKCEUtil } from "../utils/pkce";
 
-/**
- * Storage keys for PKCE values in sessionStorage
- */
 const STORAGE_KEYS = {
   CODE_VERIFIER: "pkce_code_verifier",
   AUTH_STATE: "pkce_auth_state",
 };
 
-/**
- * PKCE Authentication Service
- * Manages PKCE flow and state for secure authentication
- */
 export class PKCEAuthService {
   /**
    * Initialize PKCE auth flow by generating and storing a code verifier
    * @returns Object containing the code challenge and randomly generated state
    */
-  static initiatePKCEFlow() {
+  static async initiatePKCEFlow() {
     // Generate PKCE code verifier and challenge
-    const { codeVerifier, codeChallenge } = PKCEUtil.generatePKCEPair();
+    const { codeVerifier, codeChallenge } = await PKCEUtil.generatePKCEPair();
 
     // Generate random state for CSRF protection
     const state = this.generateRandomState();

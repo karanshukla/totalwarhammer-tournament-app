@@ -11,7 +11,6 @@ export const sendPasswordResetEmail = async (req, res) => {
   try {
     const { email } = req.body;
 
-    // Validate email format
     if (!email || !/\S+@\S+\.\S+/.test(email)) {
       return res.status(400).json({
         success: false,
@@ -19,7 +18,6 @@ export const sendPasswordResetEmail = async (req, res) => {
       });
     }
 
-    // Check if user exists
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(404).json({
@@ -28,16 +26,10 @@ export const sendPasswordResetEmail = async (req, res) => {
       });
     }
 
-    // Create password reset token
     const passwordResetToken = await PasswordReset.createResetToken(user._id);
-
-    // Generate reset link
     const resetLink = `${clientUrl}/reset-password?token=${passwordResetToken.resetKey}`;
-
-    // Get email content from the template
     const emailContent = createPasswordResetEmail(resetLink);
 
-    // Send password reset email
     await emailService.sendEmail({
       to: email,
       ...emailContent,
@@ -67,7 +59,6 @@ export const verifyResetToken = async (req, res) => {
       });
     }
 
-    // Check if token exists and is valid
     const resetToken = await PasswordReset.validateResetToken(token);
 
     if (!resetToken) {
@@ -106,15 +97,13 @@ export const resetPassword = async (req, res) => {
       });
     }
 
-    // Validate the password
-    if (newPassword.length < 6) {
+    if (newPassword.length < 8) {
       return res.status(400).json({
         success: false,
         message: "Password must be at least 6 characters long",
       });
     }
 
-    // Check if token exists and is valid
     const resetToken = await PasswordReset.validateResetToken(token);
 
     if (!resetToken) {
@@ -124,7 +113,6 @@ export const resetPassword = async (req, res) => {
       });
     }
 
-    // Get the user associated with the token
     const user = await User.findById(resetToken.userId);
     if (!user) {
       return res.status(404).json({
@@ -133,18 +121,14 @@ export const resetPassword = async (req, res) => {
       });
     }
 
-    // Hash the new password
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-    // Update user's password
     user.password = hashedPassword;
     await user.save();
 
-    // Mark the token as used
     resetToken.isUsed = true;
     await resetToken.save();
 
-    // Return success
     return res.status(200).json({
       success: true,
       message: "Password has been reset successfully",

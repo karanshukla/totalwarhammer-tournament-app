@@ -24,7 +24,7 @@ const TermsPage = lazyLoad(
   () => import("@/features/terms/components/TermsPage")
 );
 const ResetPasswordPage = lazyLoad(
-  () => import("@/features/registration/components/ResetPasswordPage")
+  () => import("@/features/authentication/components/ResetPasswordPage")
 );
 
 export function App() {
