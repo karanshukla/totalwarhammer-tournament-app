@@ -16,7 +16,7 @@ on:
     # The branches below must be a subset of the branches above
     branches: ["main"]
   schedule:
-    - cron: "29 8 * * 2" # Run weekly on Tuesdays at 8:29 UTC
+    - cron: "0 4 * * 1" # Run weekly on Mondays at 4:00 UTC for better timing
 
 permissions:
   contents: read
@@ -33,6 +33,8 @@ jobs:
       # Checkout the repository to the GitHub Actions runner
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Fetch all history for better code analysis
 
       # Setup Node.js for potential code analysis tools
       - name: Setup Node.js
@@ -41,36 +43,53 @@ jobs:
           node-version: "20"
           cache: "npm"
 
-      # Install client dependencies to generate lock file
-      - name: Install client dependencies
+      # Install dependencies using workspace aware approach
+      - name: Install dependencies
         run: |
-          cd client-app
           npm ci || npm install
+          # Verify installation success
+          if [ $? -ne 0 ]; then
+            echo "::error::Failed to install dependencies"
+            exit 1
+          fi
+          echo "Successfully installed workspace dependencies"
 
-      # Install server dependencies to generate lock file
-      - name: Install server dependencies
+      # Create symlinks to make sure Codacy properly analyzes npm audit results
+      - name: Create symlinks for proper analysis
         run: |
-          cd server-app
-          npm ci || npm install
+          # Create a directory to store symlinks
+          mkdir -p .codacy-analysis
 
-      # Copy lock files to root for Codacy to find them
-      - name: Copy lock files to repository root
-        run: |
-          # Create copies at the root level if they exist
-          [ -f client-app/package-lock.json ] && cp client-app/package-lock.json ./client-package-lock.json
-          [ -f server-app/package-lock.json ] && cp server-app/package-lock.json ./server-package-lock.json
-
-          # Create a simple package.json at root level if it doesn't exist
-          if [ ! -f package.json ]; then
-            echo '{"name":"totalwarhammer-tournament-app","private":true}' > package.json
+          # Create symlinks for package-lock.json files
+          if [ -f client-app/package-lock.json ]; then
+            ln -sf $(pwd)/client-app/package-lock.json .codacy-analysis/client-package-lock.json
+            echo "Created symlink for client-app package-lock.json"
           fi
 
-          # Create a merged package-lock.json at root level for security scanning
-          if [ -f client-app/package-lock.json ] || [ -f server-app/package-lock.json ]; then
-            echo '{"name":"totalwarhammer-tournament-app","lockfileVersion":3,"requires":true,"packages":{}}' > package-lock.json
+          if [ -f server-app/package-lock.json ]; then
+            ln -sf $(pwd)/server-app/package-lock.json .codacy-analysis/server-package-lock.json
+            echo "Created symlink for server-app package-lock.json"
           fi
 
-      # Execute Codacy Analysis CLI and generate a SARIF output with the security issues identified during the analysis
+      # Analyze code with ESLint for better coverage
+      - name: Run ESLint analysis
+        run: |
+          # Install ESLint globally for better compatibility
+          npm install -g eslint
+
+          # Run ESLint on client code (TypeScript)
+          echo "Analyzing client-app with ESLint..."
+          if [ -d client-app/src ]; then
+            eslint client-app/src --ext .ts,.tsx --format json > client-eslint-results.json || true
+          fi
+
+          # Run ESLint on server code (JavaScript)
+          echo "Analyzing server-app with ESLint..."
+          if [ -d server-app/src ]; then
+            eslint server-app/src --ext .js --format json > server-eslint-results.json || true
+          fi
+
+      # Execute Codacy Analysis CLI with improved configuration
       - name: Run Codacy Analysis CLI
         uses: codacy/codacy-analysis-cli-action@v4.4.0
         with:
@@ -78,17 +97,54 @@ jobs:
           verbose: true
           output: results.sarif
           format: sarif
-          # Analyze both root and subprojects
-          directory: .,client-app,server-app
-          # Specify tools for JavaScript/TypeScript analysis
-          tool: eslint,npmaudit,snyk
+          # Analyze all relevant directories with specific focus
+          directory: .,client-app,server-app,.codacy-analysis
+          # Enhanced tool selection for JavaScript/TypeScript full-stack apps
+          tool: eslint,npmaudit,snyk,sonarjs,nodejsscan
           # Adjust severity of non-security issues
           gh-code-scanning-compat: true
           # Force 0 exit code to allow SARIF file generation
           max-allowed-issues: 2147483647
+
+      # Extend analysis with extra npm audit check
+      - name: Run npm audit
+        run: |
+          echo "Running npm audit in client-app..."
+          cd client-app && npm audit --json > ../client-audit.json || true
+          cd ..
+
+          echo "Running npm audit in server-app..."
+          cd server-app && npm audit --json > ../server-audit.json || true
+          cd ..
+
+          # Format the audit results for better visibility
+          echo "Processing npm audit results..."
+          npm install -g json
+          cat client-audit.json | json -q 'vulnerabilities' | json -q -a severity | sort | uniq -c || echo "No vulnerabilities found in client-app"
+          cat server-audit.json | json -q 'vulnerabilities' | json -q -a severity | sort | uniq -c || echo "No vulnerabilities found in server-app"
 
       # Upload the SARIF file generated in the previous step
       - name: Upload SARIF results file
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: results.sarif
+
+      # Add a summary of findings
+      - name: Generate summary report
+        if: always()
+        run: |
+          echo "## Codacy Security Scan Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Analysis completed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "The full results are available in the GitHub Security tab." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ -f client-audit.json ]; then
+            echo "#### Client App Vulnerabilities" >> $GITHUB_STEP_SUMMARY
+            cat client-audit.json | json -q 'metadata.vulnerabilities.total' >> $GITHUB_STEP_SUMMARY || echo "Error processing client vulnerabilities" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ -f server-audit.json ]; then
+            echo "#### Server App Vulnerabilities" >> $GITHUB_STEP_SUMMARY
+            cat server-audit.json | json -q 'metadata.vulnerabilities.total' >> $GITHUB_STEP_SUMMARY || echo "Error processing server vulnerabilities" >> $GITHUB_STEP_SUMMARY
+          fi
