@@ -78,7 +78,7 @@ export const RegisterLogin = () => {
   const handleClick = () => {
     drawer.open(overlayId, {
       title: "Authentication",
-      description: "Register or Login below!",
+      description: "Register, login or reset your password",
       placement: "end",
     });
   };

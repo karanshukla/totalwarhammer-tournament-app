@@ -7,6 +7,7 @@ import { useRouter } from "@/core/router/RouterContext";
 import { userExists } from "../api/registrationApi";
 import { LoginForm } from "./LoginForm";
 import { RegistrationForm } from "./RegistrationForm";
+import { PasswordResetForm } from "./PasswordResetForm";
 import { useState } from "react";
 import { createGuestUser } from "../api/guestApi";
 
@@ -21,7 +22,7 @@ export type AuthEventType = "close-drawer";
 
 export function AuthenticationForm() {
   const [formState, setFormState] = useState({
-    view: "check" as "check" | "login" | "register",
+    view: "check" as "check" | "login" | "register" | "reset-password",
     usernameOrEmail: "",
     isCheckingUser: false,
     isCreatingGuest: false,
@@ -76,6 +77,20 @@ export function AuthenticationForm() {
     }
   };
 
+  const handlePasswordResetClick = () => {
+    setFormState((prev) => ({
+      ...prev,
+      view: "reset-password",
+    }));
+  };
+
+  const handleBackToLogin = () => {
+    setFormState((prev) => ({
+      ...prev,
+      view: "check",
+    }));
+  };
+
   if (formState.view === "login") {
     return (
       <>
@@ -95,6 +110,15 @@ export function AuthenticationForm() {
         <Toaster />
         <RegistrationForm key="registration-form" />
       </>
+    );
+  }
+
+  if (formState.view === "reset-password") {
+    return (
+      <PasswordResetForm
+        onBackClick={handleBackToLogin}
+        onSuccess={closeDrawer}
+      />
     );
   }
 
@@ -139,6 +163,15 @@ export function AuthenticationForm() {
           <Text fontSize="xs" color="gray.400">
             Guest accounts last for 48 hours
           </Text>
+
+          <Separator />
+          <Button
+            variant="solid"
+            width="full"
+            onClick={handlePasswordResetClick}
+          >
+            Reset Password
+          </Button>
         </Stack>
       </Stack>
     </>

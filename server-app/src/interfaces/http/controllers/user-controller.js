@@ -7,32 +7,32 @@ const jwtService = new JwtService();
 export const userExists = async (req, res) => {
   try {
     const { identifier } = req.query; // Use query parameter instead of body
-    
+
     if (!identifier) {
       return res.status(400).json({
         success: false,
         message: "Missing identifier parameter",
       });
     }
-    
+
     // Check if user exists by username or email
     let user = await User.findOne({ username: identifier });
     if (!user) {
       user = await User.findOne({ email: identifier });
     }
-    
+
     return res.status(200).json({
       success: true,
       message: user ? "User exists" : "User does not exist",
       data: {
-        exists: !!user
-      }
+        exists: !!user,
+      },
     });
   } catch (error) {
     return res.status(500).json({
       success: false,
       message: "Failed to check user existence",
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -86,7 +86,7 @@ export const createGuestUser = async (req, res) => {
     const timestamp = Date.now();
     const randomString = Math.random().toString(36).substring(2, 8);
     const guestUsername = `guest_${timestamp}_${randomString}`;
-    
+
     // Create a guest user without a password
     const guestUser = await User.create({
       username: guestUsername,
@@ -95,26 +95,29 @@ export const createGuestUser = async (req, res) => {
     });
 
     // Generate a guest JWT token with 48-hour expiration
-    const token = jwtService.generateToken({
-      id: guestUser.id,
-      email: guestUser.email,
-      isGuest: true
-    }, 'guest');
+    const token = jwtService.generateToken(
+      {
+        id: guestUser.id,
+        email: guestUser.email,
+        isGuest: true,
+      },
+      "guest"
+    );
 
     // Get token expiration for client reference
     const decoded = jwtService.decodeToken(token);
     const expiresAt = decoded.exp * 1000; // Convert to milliseconds
-    
+
     // Set HttpOnly cookie with the token
     const maxAge = expiresAt - Date.now();
-    res.cookie('jwt', token, {
+    res.cookie("jwt", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
       maxAge,
-      path: '/'
+      path: "/",
     });
-    
+
     res.status(201).json({
       success: true,
       message: "Guest user created successfully",
@@ -123,7 +126,7 @@ export const createGuestUser = async (req, res) => {
         username: guestUser.username,
         email: guestUser.email,
         isGuest: true,
-        expiresAt
+        expiresAt,
       },
     });
   } catch (error) {
