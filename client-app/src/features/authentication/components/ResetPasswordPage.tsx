@@ -11,6 +11,7 @@ import {
   VStack,
   Alert,
   Flex,
+  Link,
 } from "@chakra-ui/react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -24,7 +25,7 @@ const resetPasswordFormSchema = z
   .object({
     password: z
       .string()
-      .min(6, { message: "Password must be at least 6 characters long" }),
+      .min(6, { message: "Password must be at least 8 characters long" }),
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
@@ -197,10 +198,7 @@ const ResetPasswordPage: React.FC = () => {
           </Stack>
         </form>
 
-        <Text fontSize="sm" textAlign="center">
-          Remember your password?{" "}
-          <Button onClick={() => router.navigate("/")}>Return Home</Button>
-        </Text>
+        <Link href="/">Remember your password? Click here to go home</Link>
       </VStack>
     </Container>
   );

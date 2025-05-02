@@ -10,8 +10,8 @@ import {
 import { ColorModeButton } from "@/shared/ui/color-mode";
 import { useRouter } from "@/core/router/RouterContext";
 import { useUserStore } from "../stores/userStore";
-import { RegisterLogin } from "@/features/registration/components/RegisterLogin";
-import { LogoutButton } from "@/features/registration/components/LogoutButton";
+import { RegisterLogin } from "@/features/authentication/components/RegisterLogin";
+import { LogoutButton } from "@/features/authentication/components/LogoutButton";
 import NavItems from "./NavItems";
 
 interface AppShellProps {
