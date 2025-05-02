@@ -14,6 +14,15 @@ const StatisticsPage = lazyLoad(
 const AccountPage = lazyLoad(
   () => import("@/features/account/components/AccountPage")
 );
+const MatchesPage = lazyLoad(
+  () => import("@/features/matches/components/MatchesPage")
+);
+const ContactPage = lazyLoad(
+  () => import("@/features/contact/components/ContactPage")
+);
+const TermsPage = lazyLoad(
+  () => import("@/features/terms/components/TermsPage")
+);
 
 export function App() {
   return (
@@ -21,8 +30,11 @@ export function App() {
       <AppShell>
         <Route path="/" component={HomePage} />
         <Route path="/tournaments" component={TournamentsPage} />
+        <Route path="/matches" component={MatchesPage} />
         <Route path="/statistics" component={StatisticsPage} />
         <Route path="/account" component={AccountPage} />
+        <Route path="/contact" component={ContactPage} />
+        <Route path="/terms" component={TermsPage} />
       </AppShell>
       <Toaster />
     </RouterProvider>

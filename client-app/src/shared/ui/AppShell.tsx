@@ -1,29 +1,18 @@
-import React, { useEffect } from "react";
+import React from "react";
 import {
   Box,
   useMediaQuery,
-  Stack,
   Text,
-  Icon,
   Flex,
-  Separator,
   HStack,
   Badge,
 } from "@chakra-ui/react";
-import {
-  FiHome,
-  FiAward,
-  FiBarChart2,
-  FiUser,
-  FiGithub,
-  FiHelpCircle,
-  FiLock,
-} from "react-icons/fi";
 import { ColorModeButton } from "@/shared/ui/color-mode";
 import { useRouter } from "@/core/router/RouterContext";
 import { useUserStore } from "../stores/userStore";
 import { RegisterLogin } from "@/features/registration/components/RegisterLogin";
 import { LogoutButton } from "@/features/registration/components/LogoutButton";
+import NavItems from "./NavItems";
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -33,70 +22,17 @@ const HEADER_HEIGHT = "60px";
 const NAVBAR_WIDTH_DESKTOP = { base: "70px", md: "250px" };
 const NAVBAR_HEIGHT_MOBILE = "70px";
 
-type NavItemProps = {
-  icon: React.ElementType;
-  children: React.ReactNode;
-  to?: string;
-  isActive?: boolean;
-  toExternal?: string;
-};
-
 const AppShell: React.FC<AppShellProps> = ({ children }) => {
   const [isPortrait] = useMediaQuery([
     "(orientation: portrait) and (max-width: 768px)",
   ]);
   const [isMobile] = useMediaQuery(["(max-width: 768px)"]);
-  const { currentPath, navigate } = useRouter();
+  const { currentPath } = useRouter();
 
   const userStore = useUserStore();
   const user = userStore.user;
   const isUserLoggedIn = Boolean(user.isAuthenticated);
   const isUserGuest = Boolean(user.isGuest);
-
-  const NavItem = ({
-    icon,
-    children,
-    to,
-    isActive = currentPath === to,
-    toExternal,
-  }: NavItemProps) => (
-    <Flex
-      align="center"
-      p="2"
-      cursor="pointer"
-      direction={isPortrait ? "column" : "row"}
-      width="full"
-      bg={isActive ? "gray.100" : "transparent"}
-      _dark={{ bg: isActive ? "whiteAlpha.200" : "transparent" }}
-      borderRadius="md"
-      onClick={() =>
-        toExternal ? window.open(toExternal, "_blank") : to && navigate(to)
-      }
-      role="group"
-      _hover={{
-        bg: "gray.100",
-        _dark: { bg: "whiteAlpha.200" },
-      }}
-      transition="all 0.2s"
-    >
-      <Icon
-        as={icon}
-        boxSize={5}
-        mr={isPortrait ? 0 : 3}
-        mb={isPortrait ? 1 : 0}
-        color={isActive ? "blue.500" : "inherit"}
-      />
-      {(!isPortrait || !isMobile) && (
-        <Text
-          fontSize="sm"
-          fontWeight={isActive ? "semibold" : "normal"}
-          color={isActive ? "blue.500" : "inherit"}
-        >
-          {children}
-        </Text>
-      )}
-    </Flex>
-  );
 
   return (
     <Box>
@@ -169,64 +105,12 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
               px: { base: 2, md: 4 },
             })}
       >
-        <Stack
-          gap={4}
-          direction={isPortrait ? "row" : "column"}
-          align={isPortrait ? "center" : "flex-start"}
-          justify={isPortrait ? "space-around" : "flex-start"}
-          width="full"
-          height="full"
-        >
-          <NavItem icon={FiHome} to="/">
-            Home
-          </NavItem>
-          <NavItem icon={FiAward} to="/tournaments">
-            Tournaments
-          </NavItem>
-          <NavItem icon={FiBarChart2} to="/statistics">
-            Statistics
-          </NavItem>
-          <NavItem icon={FiUser} to="/account">
-            Account
-            {isUserGuest && isPortrait && (
-              <Badge size="sm" colorScheme="blue" ml={1}>
-                Guest
-              </Badge>
-            )}
-          </NavItem>
-          {!isPortrait && (
-            <>
-              <Separator />
-              <NavItem icon={FiHelpCircle} to="/contact">
-                Get Help
-              </NavItem>
-              <NavItem icon={FiLock} to="/terms">
-                Terms of Use
-              </NavItem>
-              <NavItem
-                icon={FiGithub}
-                toExternal="https://github.com/karanshukla/totalwarhammer-tournament-app"
-              >
-                Source Code
-              </NavItem>
-              <Separator />
-              <Box mt="auto" pb={4} w="full" textAlign="center">
-                <Text fontSize="xs" color="gray.500">
-                  &copy; {new Date().getFullYear()} TW Tournament App. All
-                  rights reserved.
-                </Text>
-                <Text
-                  fontSize="xs"
-                  color="gray.500"
-                  mt={1}
-                  display={{ base: "none", md: "block" }}
-                >
-                  This is a work in progress app. Thanks for trying it out!
-                </Text>
-              </Box>
-            </>
-          )}
-        </Stack>
+        <NavItems
+          isPortrait={isPortrait}
+          isMobile={isMobile}
+          currentPath={currentPath}
+          isUserGuest={isUserGuest}
+        />
       </Box>
 
       <Box

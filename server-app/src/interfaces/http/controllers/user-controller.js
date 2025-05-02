@@ -6,11 +6,21 @@ const jwtService = new JwtService();
 
 export const userExists = async (req, res) => {
   try {
-    const { username } = req.body
-    let user = await User.findOne({ username });
-    if (!user) {
-      user = await User.findOne({ email: username });
+    const { identifier } = req.query; // Use query parameter instead of body
+    
+    if (!identifier) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing identifier parameter",
+      });
     }
+    
+    // Check if user exists by username or email
+    let user = await User.findOne({ username: identifier });
+    if (!user) {
+      user = await User.findOne({ email: identifier });
+    }
+    
     return res.status(200).json({
       success: true,
       message: user ? "User exists" : "User does not exist",

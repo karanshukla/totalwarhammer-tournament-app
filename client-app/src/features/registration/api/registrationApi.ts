@@ -46,10 +46,10 @@ export const registerUser = async (
         // Set the user in the store using the registration response
         const { setUser } = useUserStore.getState();
         setUser({
-          id: responseData.data?.id || '',
+          id: responseData.data?.id || "",
           email: data.email,
           username: data.username,
-          isAuthenticated: true
+          isAuthenticated: true,
         });
       }
     } catch (loginError) {
@@ -72,12 +72,18 @@ export const registerUser = async (
   }
 };
 
-export const userExists = async (username: string): Promise<boolean> => {
+export const userExists = async (identifier: string): Promise<boolean> => {
   try {
-    const response = await httpClient.post<{
-      data: any;
-      exists: boolean;
-    }>(apiConfig.endpoints.userExists, { username });
+    const response = await httpClient.get<{
+      success: boolean;
+      message: string;
+      data: {
+        exists: boolean;
+      };
+    }>(apiConfig.endpoints.userExists, {
+      params: { identifier },
+    });
+
     return response.data.exists;
   } catch (error) {
     console.error("Error checking if user exists:", error);

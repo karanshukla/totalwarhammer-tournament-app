@@ -9,7 +9,7 @@ const router = express.Router();
 router.post('/register', userController.register);
 router.post('/login', authenticationController.login);
 router.post('/logout', authenticationController.logout);
-router.post('/exists', userController.userExists);
-router.post('/guest', userController.createGuestUser); // New guest user endpoint
+router.get('/exists', userController.userExists);
+router.post('/guest', userController.createGuestUser); 
 
 export default router;

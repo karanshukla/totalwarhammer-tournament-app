@@ -11,22 +11,7 @@ class HttpClient {
     this.baseUrl = baseUrl;
   }
 
-  async get<T>(
-    endpoint: string,
-    p0: {
-      apiConfig: {
-        baseUrl: any;
-        endpoints: {
-          register: string;
-          userExists: string;
-          login: string;
-          logout: string;
-        };
-      };
-      "": any;
-    },
-    options: RequestOptions = {}
-  ): Promise<T> {
+  async get<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
     const { params, ...requestOptions } = options;
     const url = this.buildUrl(endpoint, params);
 
