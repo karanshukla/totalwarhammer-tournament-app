@@ -46,18 +46,37 @@ jobs:
       # Install dependencies using workspace aware approach
       - name: Install dependencies
         run: |
-          npm ci || npm install
-          # Verify installation success
-          if [ $? -ne 0 ]; then
-            echo "::error::Failed to install dependencies"
-            exit 1
+          # Install root dependencies if they exist
+          if [ -f package.json ]; then
+            npm ci || npm install
           fi
-          echo "Successfully installed workspace dependencies"
 
-      # Create symlinks to make sure Codacy properly analyzes npm audit results
-      - name: Create symlinks for proper analysis
+          # Install client dependencies
+          if [ -d client-app ]; then
+            cd client-app
+            npm ci || npm install
+            cd ..
+          fi
+
+          # Install server dependencies
+          if [ -d server-app ]; then
+            cd server-app
+            npm ci || npm install
+            cd ..
+          fi
+
+          echo "Successfully installed all dependencies"
+
+      # Create lock files in the root directory for Codacy to find
+      - name: Copy lock files to root for Codacy analysis
         run: |
-          # Create a directory to store symlinks
+          # Copy lock files to the repository root
+          if [ -f client-app/package-lock.json ]; then
+            cp client-app/package-lock.json ./package-lock.json
+            echo "Copied client-app package-lock.json to root"
+          fi
+
+          # Also maintain the symlinks for backward compatibility
           mkdir -p .codacy-analysis
 
           # Create symlinks for package-lock.json files
