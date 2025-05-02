@@ -11,6 +11,7 @@ import {
   VStack,
   Alert,
   Flex,
+  Link,
 } from "@chakra-ui/react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -197,10 +198,7 @@ const ResetPasswordPage: React.FC = () => {
           </Stack>
         </form>
 
-        <Text fontSize="sm" textAlign="center">
-          Remember your password?{" "}
-          <Button onClick={() => router.navigate("/")}>Return Home</Button>
-        </Text>
+        <Link href="/">Remember your password? Click here to go home</Link>
       </VStack>
     </Container>
   );

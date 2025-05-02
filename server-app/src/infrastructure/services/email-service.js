@@ -1,14 +1,16 @@
-import sgMail from "@sendgrid/mail";
+import { Resend } from "resend";
 
-sgMail.setApiKey(process.env.SENDGRID_API_KEY) ??
-  console.error("SendGrid API key is not set");
+// Initialize Resend with API key
+const resend =
+  new Resend(process.env.RESEND_API_KEY) ??
+  console.error("Resend API key is not set");
 
 class EmailService {
   /**
    * Default sender email address
    * @type {string}
    */
-  #defaultSender = "anchorstandard@proton.me";
+  #defaultSender = "TW Tournament Dev <anchorstandard@twtournament.app>";
 
   /**
    * Default recipient email address (for testing)
@@ -17,8 +19,7 @@ class EmailService {
   #defaultRecipient = "anchorstandard@proton.me";
 
   /**
-   * Sends an email using SendGrid
-   * @param {Object} options - Email options
+   * Sends an email using Resend
    * @param {string} options.to - Recipient email address
    * @param {string} options.from - Sender email address
    * @param {string} options.subject - Email subject
@@ -41,42 +42,31 @@ class EmailService {
       throw new Error("Email must have text or HTML content");
     }
 
-    const msg = {
-      to,
+    const message = {
       from,
+      to,
       subject,
-      text,
       html,
     };
 
     try {
-      const response = await sgMail.send(msg);
-      console.log("Email sent successfully");
-      return {
-        success: true,
-        messageId: response?.[0]?.headers?.["x-message-id"] || null,
-      };
+      const response = await resend.emails.send(message);
+      if (response?.status === "success")
+        return {
+          success: true,
+          messageId: response?.id || null,
+        };
+      else {
+        return {
+          success: false,
+          error: response.error,
+        };
+      }
     } catch (error) {
       console.error("Error sending email:", error);
       throw error;
     }
   }
-
-  /**
-   * Sends a test email
-   * @param {string} [recipient] - Optional test recipient
-   * @returns {Promise<Object>} - Promise representing the email sending operation
-   */
-  sendTestEmail(recipient) {
-    return this.sendEmail({
-      to: recipient,
-      subject: "Sending with SendGrid is Fun",
-      text: "and easy to do anywhere, even with Node.js",
-      html: "<strong>and easy to do anywhere, even with Node.js</strong>",
-    });
-  }
 }
 
-// Export singleton instance
-const emailService = new EmailService();
-export default emailService;
+export default EmailService;

@@ -1,8 +1,11 @@
 import User from "../../../domain/models/user.js";
 import PasswordReset from "../../../domain/models/password-reset.js";
 import bcrypt from "bcrypt";
-import emailService from "../../../infrastructure/services/email-service.js";
+import EmailService from "../../../infrastructure/services/email-service.js";
 import { clientUrl } from "../../../infrastructure/config/env.js";
+import { createPasswordResetEmail } from "../../../infrastructure/email-templates/password-reset-template.js";
+
+const emailService = new EmailService();
 
 export const sendPasswordResetEmail = async (req, res) => {
   try {
@@ -28,13 +31,16 @@ export const sendPasswordResetEmail = async (req, res) => {
     // Create password reset token
     const passwordResetToken = await PasswordReset.createResetToken(user._id);
 
-    // Send password reset email
+    // Generate reset link
     const resetLink = `${clientUrl}/reset-password?token=${passwordResetToken.resetKey}`;
+
+    // Get email content from the template
+    const emailContent = createPasswordResetEmail(resetLink);
+
+    // Send password reset email
     await emailService.sendEmail({
       to: email,
-      subject: "Password Reset Request",
-      text: `Click the link to reset your password: ${resetLink}`,
-      html: `<p>Click the link to reset your password:</p><a href="${resetLink}">${resetLink}</a>`,
+      ...emailContent,
     });
 
     return res.status(200).json({
