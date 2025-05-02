@@ -12,7 +12,10 @@ yarn.lock
 .env.development.local
 .env.test.local
 .env.production.local
+client-app/.env
 server-app/.env
+server-app/sendgrid.env
+
 
 # Keep env example files
 !.env.example

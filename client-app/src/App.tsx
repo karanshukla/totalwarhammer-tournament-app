@@ -23,6 +23,9 @@ const ContactPage = lazyLoad(
 const TermsPage = lazyLoad(
   () => import("@/features/terms/components/TermsPage")
 );
+const ResetPasswordPage = lazyLoad(
+  () => import("@/features/registration/components/ResetPasswordPage")
+);
 
 export function App() {
   return (
@@ -35,6 +38,7 @@ export function App() {
         <Route path="/account" component={AccountPage} />
         <Route path="/contact" component={ContactPage} />
         <Route path="/terms" component={TermsPage} />
+        <Route path="/reset-password" component={ResetPasswordPage} />
       </AppShell>
       <Toaster />
     </RouterProvider>
