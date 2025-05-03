@@ -18,7 +18,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { verifyResetToken, resetPassword } from "../api/passwordResetApi";
 import { useNavigate } from "react-router-dom";
-import { toaster } from "@/shared/ui/toaster";
+import { toaster } from "@/shared/ui/Toaster";
 
 // Schema for password reset form validation
 const resetPasswordFormSchema = z
