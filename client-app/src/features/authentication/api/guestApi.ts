@@ -27,7 +27,6 @@ export const createGuestUser = async (): Promise<GuestUserResponse> => {
       // Calculate max-age in seconds based on expiration time
       const now = Date.now();
       const expiresAt = responseData.data.expiresAt || now + 48 * 3600 * 1000; // Default 48 hours if not provided
-      const maxAge = Math.floor((expiresAt - now) / 1000);
 
       // Get the store's setter directly
       const { setUser } = useUserStore.getState();

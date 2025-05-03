@@ -1,7 +1,7 @@
 import express from "express";
-import * as userController from "../controllers/user-controller.js";
+
 import * as authenticationController from "../controllers/authentication-controller.js";
-import authenticateToken from "../middleware/auth-middleware.js"; // Import the middleware
+import * as userController from "../controllers/user-controller.js";
 import {
   validateUserExists,
   validateUserRegistration,

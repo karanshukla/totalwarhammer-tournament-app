@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+
 import { mongoUri } from "../config/env.js";
 
 const connectOptions = {

@@ -1,6 +1,7 @@
-import User from '../../../domain/models/user.js';
-import JwtService from '../../../infrastructure/services/jwt-service.js';
-import crypto from 'crypto';
+import crypto from "crypto";
+
+import User from "../../../domain/models/user.js";
+import JwtService from "../../../infrastructure/services/jwt-service.js";
 
 const jwtService = new JwtService();
 
@@ -9,110 +10,113 @@ const authorizationCodes = new Map();
 
 export const login = async (req, res) => {
   try {
-    const { email, password, rememberMe = false, codeChallenge, codeChallengeMethod, state } = req.body;
-    
-    const user = await User
-      .findOne({ email })
-      .select('+password');
+    const {
+      email,
+      password,
+      rememberMe = false,
+      codeChallenge,
+      codeChallengeMethod,
+      state,
+    } = req.body;
+
+    const user = await User.findOne({ email }).select("+password");
     if (!user) {
       return res.status(401).json({
         success: false,
-        message: 'Invalid email or password'
+        message: "Invalid email or password",
       });
     }
     const isPasswordValid = await user.validatePassword(password);
     if (!isPasswordValid) {
       return res.status(401).json({
         success: false,
-        message: 'Invalid email or password'
+        message: "Invalid email or password",
       });
     }
 
-    // If PKCE is being used (codeChallenge is provided)
     if (codeChallenge) {
-      if (codeChallengeMethod !== 'S256') {
+      if (codeChallengeMethod !== "S256") {
         return res.status(400).json({
           success: false,
-          message: 'Only S256 code challenge method is supported'
+          message: "Only S256 code challenge method is supported",
         });
       }
 
-      // Generate an authorization code
       const authorizationCode = generateAuthCode();
-      
-      // Store the authorization code with associated code challenge
+
       authorizationCodes.set(authorizationCode, {
         userId: user.id,
         codeChallenge,
         codeChallengeMethod,
         createdAt: Date.now(),
-        used: false
+        used: false,
       });
 
-      // Return authorization code instead of directly providing a token
       return res.status(200).json({
         success: true,
-        message: 'Authorization code generated',
+        message: "Authorization code generated",
         data: {
           id: user.id,
           email: user.email,
           username: user.username,
           authorizationCode,
-          state // Echo state back for verification
-        }
+          state,
+        },
       });
     }
 
     // Legacy flow (no PKCE)
     // Use rememberMe to determine token type
-    const tokenType = rememberMe ? 'rememberMe' : 'standard';
-    
-    const token = jwtService.generateToken({
-      id: user.id,
-      email: user.email
-    }, tokenType);
-    
+    const tokenType = rememberMe ? "rememberMe" : "standard";
+
+    const token = jwtService.generateToken(
+      {
+        id: user.id,
+        email: user.email,
+      },
+      tokenType
+    );
 
     const decoded = jwtService.decodeToken(token);
     const expiresAt = decoded.exp * 1000; // Convert to milliseconds
-    
+
     const maxAge = expiresAt - Date.now();
-    res.cookie('jwt', token, {
+    res.cookie("jwt", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production', // Use secure in production
-      sameSite: 'strict',
+      secure: process.env.NODE_ENV === "production", // Use secure in production
+      sameSite: "strict",
       maxAge,
-      path: '/'
+      path: "/",
     });
-    
+
     res.status(200).json({
       success: true,
-      message: 'Login successful',
+      message: "Login successful",
       data: {
         id: user.id,
         email: user.email,
         username: user.username,
-        expiresAt
-      }
+        expiresAt,
+      },
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: 'Failed to login',
-      error: error.message
+      message: "Failed to login",
+      error: error.message,
     });
   }
-}
+};
 
 // New token endpoint for PKCE code exchange
 export const token = async (req, res) => {
   try {
     const { grant_type, code, code_verifier } = req.body;
 
-    if (grant_type !== 'authorization_code') {
+    if (grant_type !== "authorization_code") {
       return res.status(400).json({
         success: false,
-        message: 'Invalid grant type'
+        message: "Invalid grant type",
       });
     }
 
@@ -121,7 +125,7 @@ export const token = async (req, res) => {
     if (!codeData) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid authorization code'
+        message: "Invalid authorization code",
       });
     }
 
@@ -131,7 +135,7 @@ export const token = async (req, res) => {
       authorizationCodes.delete(code);
       return res.status(400).json({
         success: false,
-        message: 'Authorization code has already been used'
+        message: "Authorization code has already been used",
       });
     }
 
@@ -141,7 +145,7 @@ export const token = async (req, res) => {
       authorizationCodes.delete(code);
       return res.status(400).json({
         success: false,
-        message: 'Authorization code has expired'
+        message: "Authorization code has expired",
       });
     }
 
@@ -150,7 +154,7 @@ export const token = async (req, res) => {
     if (codeChallenge !== codeData.codeChallenge) {
       return res.status(400).json({
         success: false,
-        message: 'Code verifier does not match code challenge'
+        message: "Code verifier does not match code challenge",
       });
     }
 
@@ -162,83 +166,87 @@ export const token = async (req, res) => {
     if (!user) {
       return res.status(400).json({
         success: false,
-        message: 'User not found'
+        message: "User not found",
       });
     }
 
     // Generate and send the JWT token
-    const token = jwtService.generateToken({
-      id: user.id,
-      email: user.email
-    }, 'standard');
+    const token = jwtService.generateToken(
+      {
+        id: user.id,
+        email: user.email,
+      },
+      "standard"
+    );
 
     const decoded = jwtService.decodeToken(token);
     const expiresAt = decoded.exp * 1000;
 
     const maxAge = expiresAt - Date.now();
-    res.cookie('jwt', token, {
+    res.cookie("jwt", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
       maxAge,
-      path: '/'
+      path: "/",
     });
 
     return res.status(200).json({
       success: true,
-      message: 'Token issued successfully',
+      message: "Token issued successfully",
       data: {
         id: user.id,
         email: user.email,
         username: user.username,
-        expiresAt
-      }
+        expiresAt,
+      },
     });
   } catch (error) {
-    console.error('Token exchange error:', error);
+    console.error("Token exchange error:", error);
     return res.status(500).json({
       success: false,
-      message: 'Failed to exchange token',
-      error: error.message
+      message: "Failed to exchange token",
+      error: error.message,
     });
   }
-}
+};
 
 export const logout = async (req, res) => {
   try {
-    res.clearCookie('jwt', {
+    res.clearCookie("jwt", {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      path: '/'
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      path: "/",
     });
-    
+
     res.status(200).json({
       success: true,
-      message: 'Logout successful'
+      message: "Logout successful",
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: 'Failed to logout',
-      error: error.message
+      message: "Failed to logout",
+      error: error.message,
     });
   }
-}
+};
 
 // Helper function to generate random authorization code
 function generateAuthCode() {
-  return crypto.randomBytes(24).toString('hex');
+  return crypto.randomBytes(24).toString("hex");
 }
 
 // Helper function to generate code challenge from code verifier (S256 method)
 function generateCodeChallenge(codeVerifier) {
-  const hash = crypto.createHash('sha256')
+  const hash = crypto
+    .createHash("sha256")
     .update(codeVerifier)
-    .digest('base64')
-    .replace(/=/g, '')
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_');
-  
+    .digest("base64")
+    .replace(/=/g, "")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_");
+
   return hash;
 }

@@ -1,9 +1,12 @@
+import cors from "cors";
 import express from "express";
-import userRoutes from "./user-routes.js";
+
+import { clientUrl } from "../../../infrastructure/config/env.js";
+
 import authRoutes from "./authentication-routes.js";
 import passwordResetRoutes from "./password-reset-routes.js"; // Import password reset routes
-import cors from "cors";
-import { clientUrl } from "../../../infrastructure/config/env.js";
+import userRoutes from "./user-routes.js";
+
 const router = express.Router();
 
 const corsOptions = {

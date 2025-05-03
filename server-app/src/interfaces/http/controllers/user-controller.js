@@ -1,5 +1,6 @@
-import User from "../../../domain/models/user.js";
 import bcrypt from "bcrypt";
+
+import User from "../../../domain/models/user.js";
 import JwtService from "../../../infrastructure/services/jwt-service.js";
 
 const jwtService = new JwtService();

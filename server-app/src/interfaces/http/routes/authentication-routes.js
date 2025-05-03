@@ -1,4 +1,5 @@
 import express from "express";
+
 import * as authenticationController from "../controllers/authentication-controller.js";
 import {
   validateLogin,
@@ -20,6 +21,6 @@ router.post(
   validateToken,
   validationHandler,
   authenticationController.token
-); // New endpoint for PKCE token exchange
+);
 
 export default router;
