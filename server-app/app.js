@@ -7,7 +7,16 @@ import { rateLimit } from "express-rate-limit";
 import session from "express-session";
 import helmet from "helmet";
 import hpp from "hpp";
-import xss from "xss-clean";
+import { FilterXSS } from "xss";
+
+// Create XSS filter instance
+const xssFilter = new FilterXSS({
+  // You can configure options here
+  // For example:
+  // whiteList: {}, // Custom whitelist
+  // stripIgnoreTag: true, // Strip ignored tags
+  // stripIgnoreTagBody: ["script"], // Strip and delete ignored tags and their contents
+});
 
 import { port, mongoUri } from "./src/infrastructure/config/env.js";
 import { connectToDatabase } from "./src/infrastructure/db/connection.js";
@@ -40,7 +49,33 @@ store.on("error", function (error) {
 // Security
 app.use(helmet({}));
 app.use(mongoSanitize());
-app.use(xss());
+app.use((req, _res, next) => {
+  if (req.body) {
+    for (const [key, value] of Object.entries(req.body)) {
+      if (typeof value === "string") {
+        req.body[key] = xssFilter.process(value);
+      }
+    }
+  }
+
+  if (req.query) {
+    for (const [key, value] of Object.entries(req.query)) {
+      if (typeof value === "string") {
+        req.query[key] = xssFilter.process(value);
+      }
+    }
+  }
+
+  if (req.params) {
+    for (const [key, value] of Object.entries(req.params)) {
+      if (typeof value === "string") {
+        req.params[key] = xssFilter.process(value);
+      }
+    }
+  }
+
+  next();
+});
 app.use(hpp());
 
 // IMPORTANT: Add cookie parser before CORS and session

@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "bcrypt": "^5.1.1",
+    "connect-mongodb-session": "^5.0.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "crypto-js": "^4.2.0",
@@ -28,8 +29,9 @@
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.16.0",
     "mongoose": "^8.13.3",
+    "readable-stream": "^3.6.2",
     "resend": "^4.5.0",
-    "xss-clean": "^0.1.4"
+    "xss": "^1.0.15"
   },
   "devDependencies": {
     "@eslint/js": "^9.26.0",
