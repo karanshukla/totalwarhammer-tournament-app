@@ -3,8 +3,8 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { registerUser } from "../api/registrationApi";
-import { Toaster } from "@/shared/ui/toaster";
-import { useRouter } from "@/core/router/RouterContext";
+import { Toaster } from "@/shared/ui/Toaster";
+import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 
 const formSchema = z.object({
@@ -19,7 +19,7 @@ export type RegistrationFormValues = z.infer<typeof formSchema>;
 
 export function RegistrationForm() {
   const [isLoading, setIsLoading] = useState(false);
-  const { navigate } = useRouter();
+  const navigate = useNavigate();
 
   const {
     register,

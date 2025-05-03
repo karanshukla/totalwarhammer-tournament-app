@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Heading, Text, Container, VStack } from "@chakra-ui/react";
+import { Heading, Container } from "@chakra-ui/react";
 
 const AccountPage: React.FC = () => {
   return (

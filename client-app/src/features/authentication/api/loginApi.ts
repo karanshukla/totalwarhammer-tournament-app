@@ -1,9 +1,8 @@
-import { toaster } from "@/shared/ui/toaster";
+import { toaster } from "@/shared/ui/Toaster";
 import { apiConfig } from "@/core/config/apiConfig";
 import { httpClient } from "@/core/api/httpClient";
 import { useUserStore } from "@/shared/stores/userStore";
-import { PKCEAuthService } from "@/core/auth/services/pkceAuthService";
-
+import { PKCEAuthService } from "@/core/auth/pkceAuthService";
 export interface LoginData {
   email: string;
   password: string;

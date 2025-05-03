@@ -2,7 +2,7 @@ import { Button, Field, Input, Stack, Text, Separator } from "@chakra-ui/react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Toaster } from "@/shared/ui/toaster";
+import { Toaster } from "@/shared/ui/Toaster";
 import { userExists } from "../api/registrationApi";
 import { LoginForm } from "./LoginForm";
 import { RegistrationForm } from "./RegistrationForm";

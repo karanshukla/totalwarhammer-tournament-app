@@ -7,7 +7,7 @@ import {
   HStack,
   Badge,
 } from "@chakra-ui/react";
-import { ColorModeButton } from "@/shared/ui/color-mode";
+import { ColorModeButton } from "@/shared/ui/ColorMode";
 import { useLocation } from "react-router-dom";
 import { useUserStore } from "../stores/userStore";
 import { RegisterLogin } from "@/features/authentication/components/RegisterLogin";

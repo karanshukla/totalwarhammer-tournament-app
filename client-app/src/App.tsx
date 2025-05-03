@@ -1,8 +1,7 @@
-import React from "react";
-import { Toaster } from "@/shared/ui/toaster";
+import { Toaster } from "@/shared/ui/Toaster";
 import AppShell from "@/shared/ui/AppShell";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { lazyLoad } from "@/shared/utils/lazyLoad";
+import { lazyLoad } from "@/shared/utils/LazyLoad";
 
 const HomePage = lazyLoad(() => import("@/features/home/components/HomePage"));
 const TournamentsPage = lazyLoad(

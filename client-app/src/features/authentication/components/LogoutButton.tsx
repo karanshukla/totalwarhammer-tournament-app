@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { Button, Icon } from "@chakra-ui/react";
 import { FiLogOut } from "react-icons/fi";
-import { useRouter } from "@/core/router/RouterContext";
+import { useNavigate } from "react-router-dom";
 import { useUserStore } from "@/shared/stores/userStore";
-import { toaster } from "@/shared/ui/toaster";
+import { toaster } from "@/shared/ui/Toaster";
 import { apiConfig } from "@/core/config/apiConfig";
 
 interface LogoutButtonProps {
@@ -16,7 +16,7 @@ export const LogoutButton: React.FC<LogoutButtonProps> = ({
   variant = "outline",
 }) => {
   const [isLoading, setIsLoading] = useState(false);
-  const { navigate } = useRouter();
+  const navigate = useNavigate();
   const { clearUser } = useUserStore();
 
   const handleLogout = () => {
