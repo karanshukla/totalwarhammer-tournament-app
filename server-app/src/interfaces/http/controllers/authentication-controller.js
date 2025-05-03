@@ -2,9 +2,9 @@ import crypto from "crypto";
 import { promisify } from "util";
 
 import User from "../../../domain/models/user.js";
-import SessionService from "../../../infrastructure/services/session-service.js";
+import AuthStateService from "../../../infrastructure/services/auth-state-service.js";
 
-const sessionService = new SessionService();
+const authStateService = new AuthStateService();
 
 // In-memory store for authorization codes (in production, use Redis or another solution)
 const authorizationCodes = new Map();
@@ -98,7 +98,7 @@ export const login = async (req, res) => {
     // Regular session-based authentication
     try {
       // Create user session
-      sessionService.createSession(req, {
+      authStateService.createSession(req, {
         ...user.toObject(),
         rememberMe,
       });
@@ -209,7 +209,7 @@ export const token = async (req, res) => {
 
     try {
       // Create user session with the rememberMe preference from the code data
-      sessionService.createSession(req, {
+      authStateService.createSession(req, {
         ...user.toObject(),
         rememberMe: codeData.rememberMe || false,
       });
@@ -263,7 +263,7 @@ export const logout = async (req, res) => {
   try {
     // Promisify the session destroy method
     const destroySession = promisify(
-      sessionService.destroySession.bind(sessionService)
+      authStateService.destroySession.bind(authStateService)
     );
 
     // Destroy the session

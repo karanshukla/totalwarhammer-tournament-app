@@ -2,39 +2,33 @@ import { apiConfig } from "../config/apiConfig";
 
 interface RequestOptions extends RequestInit {
   params?: Record<string, string>;
-  skipCsrf?: boolean; // Option to skip CSRF token for specific requests
+  skipCsrf?: boolean;
 }
 
 class HttpClient {
   private baseUrl: string;
   private csrfToken: string | null = null;
   private tokenPromise: Promise<string | null> | null = null;
-  private debug: boolean = true; // Set to true for detailed console logs
+  private debug: boolean = false;
 
   constructor(baseUrl: string) {
     this.baseUrl = baseUrl;
   }
 
-  // Fetch CSRF token from the server with improved handling
   async ensureCsrfToken(): Promise<string | null> {
-    // If we already have a token, return it immediately
     if (this.csrfToken) {
       return this.csrfToken;
     }
-
-    // If there's already a token fetch in progress, return that promise
     if (this.tokenPromise) {
       return this.tokenPromise;
     }
-
-    // Create a new promise for fetching the token
     this.tokenPromise = new Promise<string | null>((resolve) => {
       if (this.debug) console.log("Fetching new CSRF token...");
 
       fetch(`${this.baseUrl}/auth/csrf-token`, {
         method: "GET",
-        credentials: "include", // Critical for including cookies
-        cache: "no-cache", // Avoid caching issues
+        credentials: "include",
+        cache: "no-cache",
       })
         .then((response) => {
           if (!response.ok) {
@@ -64,7 +58,6 @@ class HttpClient {
           resolve(null);
         })
         .finally(() => {
-          // Clear the promise reference
           this.tokenPromise = null;
         });
     });
@@ -78,7 +71,7 @@ class HttpClient {
 
     const response = await fetch(url, {
       method: "GET",
-      credentials: "include", // Include cookies in every request
+      credentials: "include",
       ...requestOptions,
       headers: {
         "Content-Type": "application/json",
@@ -94,7 +87,6 @@ class HttpClient {
     data?: unknown,
     options: RequestOptions = {}
   ): Promise<T> {
-    // Automatically skip CSRF for authentication endpoints
     const shouldSkipCsrf =
       endpoint.includes("/auth/login") ||
       endpoint.includes("/auth/logout") ||
@@ -103,7 +95,6 @@ class HttpClient {
 
     const { params, skipCsrf = shouldSkipCsrf, ...requestOptions } = options;
 
-    // For state-changing requests, ensure we have a CSRF token unless explicitly skipped
     let token = null;
     if (!skipCsrf) {
       token = await this.ensureCsrfToken();
@@ -114,19 +105,16 @@ class HttpClient {
 
     const url = this.buildUrl(endpoint, params);
 
-    // Prepare headers with CSRF token if available
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
       ...(requestOptions.headers as Record<string, string>),
     };
 
-    // Only add the token if we have it and aren't skipping CSRF
     if (token && !skipCsrf) {
       headers["X-CSRF-Token"] = token;
       if (this.debug) console.log(`Adding CSRF token to ${endpoint} request`);
     }
 
-    // Make the request
     if (this.debug) console.log(`Making POST request to ${endpoint}`);
 
     const response = await fetch(url, {
@@ -137,7 +125,6 @@ class HttpClient {
       body: data ? JSON.stringify(data) : undefined,
     });
 
-    // If we get a 403 with a specific message about CSRF, refresh and retry
     if (response.status === 403) {
       try {
         const errorData = await response.json();
@@ -145,18 +132,15 @@ class HttpClient {
         if (this.debug) console.log("Received 403 response:", errorData);
 
         if (errorData.error === "CSRF validation failed") {
-          // Clear current token and fetch a new one
           this.csrfToken = null;
           if (this.debug)
             console.log("CSRF validation failed, refreshing token...");
 
-          // Get a new token
           token = await this.ensureCsrfToken();
 
           if (token) {
             if (this.debug) console.log("Retrying request with new CSRF token");
 
-            // Retry the request with the new token
             const retryResponse = await fetch(url, {
               method: "POST",
               credentials: "include",
@@ -175,7 +159,6 @@ class HttpClient {
           }
         }
       } catch (e) {
-        // If parsing failed or other error, just continue with normal error handling
         console.error("Error handling CSRF retry:", e);
       }
     }
@@ -190,7 +173,6 @@ class HttpClient {
   ): Promise<T> {
     const { params, skipCsrf = false, ...requestOptions } = options;
 
-    // Ensure we have a CSRF token unless explicitly skipped
     let token = null;
     if (!skipCsrf) {
       token = await this.ensureCsrfToken();
@@ -222,7 +204,6 @@ class HttpClient {
       body: data ? JSON.stringify(data) : undefined,
     });
 
-    // Handle CSRF errors similar to POST method
     if (response.status === 403) {
       try {
         const errorData = await response.json();
@@ -268,7 +249,6 @@ class HttpClient {
   async delete<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
     const { params, skipCsrf = false, ...requestOptions } = options;
 
-    // For DELETE requests, always ensure we have a CSRF token unless explicitly skipped
     let token = null;
     if (!skipCsrf) {
       token = await this.ensureCsrfToken();
@@ -300,7 +280,6 @@ class HttpClient {
         headers,
       });
 
-      // Handle CSRF errors similar to other methods
       if (response.status === 403) {
         try {
           const errorData = await response.json();
@@ -364,13 +343,12 @@ class HttpClient {
     if (!response.ok) {
       let errorMessage = `Error ${response.status}: ${response.statusText}`;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      let errorData: any = {}; // To store parsed error data
+      let errorData: any = {};
 
       try {
         errorData = await response.json();
         errorMessage = errorData.message || errorMessage;
 
-        // Special handling for CSRF errors with debug info
         if (
           response.status === 403 &&
           errorData.error === "CSRF validation failed"
@@ -382,7 +360,6 @@ class HttpClient {
               status: response.status,
             });
 
-            // Log more detailed debugging info
             if (errorData.debug) {
               console.log("CSRF Debug Info:", {
                 hasSession: errorData.debug.hasSession,
@@ -394,7 +371,6 @@ class HttpClient {
             }
           }
 
-          // Clear the current token as it's invalid
           this.csrfToken = null;
         } else if (this.debug) {
           console.error("API Error Response:", {
@@ -424,23 +400,6 @@ class HttpClient {
     return await response.json();
   }
 
-  // Function to debug session state
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async debugSession(): Promise<any> {
-    try {
-      const response = await fetch(`${this.baseUrl}/auth/session-check`, {
-        method: "GET",
-        credentials: "include",
-      });
-
-      return await response.json();
-    } catch (error) {
-      console.error("Error checking session:", error);
-      return { error: String(error) };
-    }
-  }
-
-  // Function to explicitly reset the CSRF token
   resetCsrfToken(): void {
     if (this.debug) console.log("Explicitly resetting CSRF token");
     this.csrfToken = null;
@@ -448,5 +407,4 @@ class HttpClient {
   }
 }
 
-// Create and export a singleton instance
 export const httpClient = new HttpClient(apiConfig.baseUrl);

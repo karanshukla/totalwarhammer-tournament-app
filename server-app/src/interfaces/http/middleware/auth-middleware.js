@@ -1,6 +1,6 @@
-import SessionService from "../../../infrastructure/services/session-service.js";
+import AuthStateService from "../../../infrastructure/services/auth-state-service.js";
 
-const sessionService = new SessionService();
+const authStateService = new AuthStateService();
 
 /**
  * Middleware to verify user authentication from session
@@ -10,34 +10,28 @@ const sessionService = new SessionService();
  */
 const authenticateSession = (req, res, next) => {
   try {
-    // Check if session exists and user is authenticated
-    if (!sessionService.isAuthenticated(req)) {
+    if (!authStateService.isAuthenticated(req)) {
       return res
         .status(401)
         .json({ success: false, message: "Unauthorized: Not authenticated" });
     }
 
-    // Add user information from session to request object
-    req.user = sessionService.getCurrentUser(req);
+    req.user = authStateService.getCurrentUser(req);
 
     if (!req.user) {
-      return res
-        .status(401)
-        .json({
-          success: false,
-          message: "Unauthorized: Invalid session user",
-        });
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized: Invalid session user",
+      });
     }
 
     next();
   } catch (error) {
     console.error("Session authentication failed:", error.message);
-    return res
-      .status(500)
-      .json({
-        success: false,
-        message: "Internal server error during authentication",
-      });
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error during authentication",
+    });
   }
 };
 
@@ -48,12 +42,10 @@ const authenticateSession = (req, res, next) => {
 const checkRole = (roles) => {
   return (req, res, next) => {
     if (!req.user) {
-      return res
-        .status(401)
-        .json({
-          success: false,
-          message: "Unauthorized: User not authenticated",
-        });
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized: User not authenticated",
+      });
     }
 
     const userRole = req.user.role || "user";

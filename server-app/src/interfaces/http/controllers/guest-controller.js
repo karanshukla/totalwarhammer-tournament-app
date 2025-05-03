@@ -1,8 +1,9 @@
 import crypto from "crypto";
+import mongoose from "mongoose";
+import User from "../../../domain/models/user.js";
+import AuthStateService from "../../../infrastructure/services/auth-state-service.js";
 
-import SessionService from "../../../infrastructure/services/session-service.js";
-
-const sessionService = new SessionService();
+const authStateService = new AuthStateService();
 
 export const createGuestUser = async (req, res) => {
   try {
@@ -13,7 +14,7 @@ export const createGuestUser = async (req, res) => {
     const guestUsername = `Guest_${crypto.randomBytes(4).toString("hex")}`;
 
     // Create guest session
-    sessionService.createGuestSession(req, guestId);
+    authStateService.createGuestSession(req, guestId);
 
     // Store additional guest data in the session
     req.session.user = {
@@ -59,8 +60,8 @@ export const updateGuestUsername = async (req, res) => {
       });
     }
 
-    // Check if user is a guest
-    if (!req.session.user || !req.session.isGuest) {
+    // Check if user is a guest using the auth service
+    if (!authStateService.isAuthenticated(req) || !req.session.isGuest) {
       return res.status(403).json({
         success: false,
         message:

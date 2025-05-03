@@ -1,7 +1,7 @@
 /**
- * Service for managing user sessions
+ * Service for managing user authentication state
  */
-class SessionService {
+class AuthStateService {
   constructor() {
     this.DEFAULT_SESSION_TIMEOUT = 2 * 60 * 60 * 1000; // 2 hours
     this.REMEMBER_ME_TIMEOUT = 7 * 24 * 60 * 60 * 1000; // 7 days
@@ -71,12 +71,25 @@ class SessionService {
       const currentIp = req.ip;
       const currentUserAgent = req.get("user-agent");
 
-      if (
-        req.session.fingerprint.ip !== currentIp ||
-        req.session.fingerprint.userAgent !== currentUserAgent
-      ) {
-        // Potential session hijacking attempt
-        return false;
+      // Special handling for guest users - less strict validation
+      if (req.session.isGuest) {
+        // For guests, only validate user-agent to allow for IP changes
+        if (req.session.fingerprint.userAgent !== currentUserAgent) {
+          console.log("Guest session rejected: user agent mismatch");
+          return false;
+        }
+      } else {
+        // For regular users, keep the full validation
+        if (
+          req.session.fingerprint.ip !== currentIp ||
+          req.session.fingerprint.userAgent !== currentUserAgent
+        ) {
+          console.log("Session rejected: IP or user agent mismatch");
+          console.log(
+            `Original IP: ${req.session.fingerprint.ip}, Current IP: ${currentIp}`
+          );
+          return false;
+        }
       }
     }
 
@@ -128,4 +141,4 @@ class SessionService {
   }
 }
 
-export default SessionService;
+export default AuthStateService;
