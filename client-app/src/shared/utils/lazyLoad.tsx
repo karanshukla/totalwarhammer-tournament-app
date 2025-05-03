@@ -1,9 +1,26 @@
 import React, { ComponentType, lazy, Suspense } from "react";
 import { Center, Spinner, Stack, Text } from "@chakra-ui/react";
 
-interface LazyLoadedComponentProps {
-  fallback?: React.ReactNode;
-}
+/**
+ * Default loading component
+ */
+const DefaultLoadingFallback = () => (
+  <Center h="100%" minH="200px" w="100%">
+    <Spinner size="xl" />
+  </Center>
+);
+
+/**
+ * Default error component
+ */
+const DefaultErrorFallback = () => (
+  <Center h="100%" minH="200px" w="100%">
+    <Stack align="center">
+      <Text color="red.500">Failed to load component</Text>
+      <Text fontSize="sm">Please try refreshing the page</Text>
+    </Stack>
+  </Center>
+);
 
 /**
  * Error boundary component for handling lazy loading errors
@@ -34,50 +51,31 @@ class ErrorBoundary extends React.Component<
 }
 
 /**
- * Default loading component
+ * Creates a lazily loaded component with error handling
+ * @param importFunc - Dynamic import function that returns the component
+ * @param options - Optional configuration
+ * @returns A wrapped component that handles loading and error states
  */
-const DefaultLoadingFallback = () => (
-  <Center h="100%" minH="200px" w="100%">
-    <Spinner size="xl" />
-  </Center>
-);
-
-/**
- * Default error component
- */
-const DefaultErrorFallback = () => (
-  <Center h="100%" minH="200px" w="100%">
-    <Stack align="center">
-      <Text color="red.500">Failed to load component</Text>
-      <Text fontSize="sm">Please try refreshing the page</Text>
-    </Stack>
-  </Center>
-);
-
-/**
- * Creates a lazily loaded component with error boundary and loading state
- * @param importFunc Dynamic import function
- * @returns Wrapped component with suspense and error handling
- */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function lazyLoad<T extends ComponentType<any>>(
   importFunc: () => Promise<{ default: T }>,
-  loadingFallback?: React.ReactNode,
-  errorFallback?: React.ReactNode
+  options?: {
+    loadingFallback?: React.ReactNode;
+    errorFallback?: React.ReactNode;
+  }
 ) {
   const LazyComponent = lazy(importFunc);
 
-  const LoadingFallback = loadingFallback || <DefaultLoadingFallback />;
-  const ErrorFallback = errorFallback || <DefaultErrorFallback />;
-
-  return function WithLazyLoading(
-    props: React.ComponentProps<T> & LazyLoadedComponentProps
-  ) {
-    const { fallback = LoadingFallback, ...componentProps } = props;
+  return function LazyLoadWrapper(props: React.ComponentProps<T>) {
+    const loadingElement = options?.loadingFallback || (
+      <DefaultLoadingFallback />
+    );
+    const errorElement = options?.errorFallback || <DefaultErrorFallback />;
 
     return (
-      <ErrorBoundary fallback={ErrorFallback}>
-        <Suspense fallback={fallback}>
-          <LazyComponent {...(componentProps as any)} />
+      <ErrorBoundary fallback={errorElement}>
+        <Suspense fallback={loadingElement}>
+          <LazyComponent {...props} />
         </Suspense>
       </ErrorBoundary>
     );

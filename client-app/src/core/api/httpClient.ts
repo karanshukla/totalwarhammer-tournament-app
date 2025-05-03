@@ -38,7 +38,7 @@ class HttpClient {
 
     const response = await fetch(url, {
       method: "POST",
-      credentials: "include", // Add credentials include for all requests
+      credentials: "include",
       ...requestOptions,
       headers: {
         "Content-Type": "application/json",

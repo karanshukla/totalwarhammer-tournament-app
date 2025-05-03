@@ -3,7 +3,6 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { loginUser } from "../api/loginApi";
-import { useRouter } from "@/core/router/RouterContext";
 import { useState } from "react";
 
 const loginFormSchema = z.object({
@@ -33,20 +32,11 @@ export function LoginForm({ defaultEmail = "", onSuccess }: LoginFormProps) {
     },
   });
 
-  const { navigate } = useRouter();
-
   const onSubmit = async (data: LoginFormValues) => {
     setIsLoading(true);
-    try {
-      const response = await loginUser(data);
-      if (response.success) {
-        onSuccess ? onSuccess() : navigate("/");
-      }
-    } catch (error) {
-      console.error("Login error:", error);
-    } finally {
-      setIsLoading(false);
-    }
+    loginUser(data);
+    onSuccess?.();
+    setIsLoading(false);
   };
 
   return (

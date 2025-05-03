@@ -3,7 +3,6 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Toaster } from "@/shared/ui/toaster";
-import { useRouter } from "@/core/router/RouterContext";
 import { userExists } from "../api/registrationApi";
 import { LoginForm } from "./LoginForm";
 import { RegistrationForm } from "./RegistrationForm";
@@ -36,8 +35,6 @@ export function AuthenticationForm() {
     resolver: zodResolver(authenticationFormSchema),
   });
 
-  const router = useRouter();
-
   const closeDrawer = () => {
     document.dispatchEvent(
       new CustomEvent("auth-event", {
@@ -66,15 +63,10 @@ export function AuthenticationForm() {
   };
 
   const handleGuestLogin = async () => {
-    try {
-      setFormState((prev) => ({ ...prev, isCreatingGuest: true }));
-      await createGuestUser();
-      closeDrawer();
-      setTimeout(() => router.navigate("/"), 100);
-    } catch (error) {
-      console.error("Guest login failed:", error);
-      setFormState((prev) => ({ ...prev, isCreatingGuest: false }));
-    }
+    setFormState((prev) => ({ ...prev, isCreatingGuest: true }));
+    await createGuestUser();
+    closeDrawer();
+    setFormState((prev) => ({ ...prev, isCreatingGuest: false }));
   };
 
   const handlePasswordResetClick = () => {
@@ -161,7 +153,9 @@ export function AuthenticationForm() {
             Continue as Guest
           </Button>
           <Text fontSize="xs" color="gray.400">
-            Guest accounts last for 48 hours
+            Guest accounts last for 48 hours. You may create brackets and
+            participate in tournaments, but you cannot create a tournament or
+            appear in the site leaderboards.
           </Text>
 
           <Separator />

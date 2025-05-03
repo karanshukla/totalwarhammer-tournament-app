@@ -23,9 +23,20 @@ export interface LoginResponse {
   };
 }
 
+export interface TokenResponse {
+  success: boolean;
+  message: string;
+  data?: {
+    id: string;
+    email: string;
+    username: string;
+    expiresAt?: number;
+  };
+}
+
 export const loginUser = async (data: LoginData): Promise<LoginResponse> => {
   try {
-    const { codeChallenge, state } = PKCEAuthService.initiatePKCEFlow();
+    const { codeChallenge, state } = await PKCEAuthService.initiatePKCEFlow();
 
     const responseData = await httpClient.post<LoginResponse>(
       apiConfig.endpoints.login,
@@ -81,7 +92,6 @@ export const loginUser = async (data: LoginData): Promise<LoginResponse> => {
         type: "success",
       });
     } else {
-      console.error("Login failed:", responseData.message);
       toaster.create({
         title: "Login Failed",
         description:
@@ -92,7 +102,6 @@ export const loginUser = async (data: LoginData): Promise<LoginResponse> => {
 
     return responseData;
   } catch (error) {
-    console.error("Error logging in:", error);
     toaster.create({
       title: "Login Failed",
       description:
@@ -107,7 +116,7 @@ export const loginUser = async (data: LoginData): Promise<LoginResponse> => {
 
 const exchangeCodeForToken = async (code: string, codeVerifier: string) => {
   try {
-    return await httpClient.post<any>(apiConfig.endpoints.token, {
+    return await httpClient.post<TokenResponse>(apiConfig.endpoints.token, {
       grant_type: "authorization_code",
       code,
       code_verifier: codeVerifier,

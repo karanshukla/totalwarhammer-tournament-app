@@ -4,13 +4,12 @@ import {
   Box,
   Button,
   Drawer,
-  Icon,
   IconButton,
   Portal,
   createOverlay,
 } from "@chakra-ui/react";
 import { AuthenticationForm } from "./AuthenticationForm";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { LuSearch } from "react-icons/lu";
 import { BiArrowBack } from "react-icons/bi";
 
@@ -25,7 +24,7 @@ export const RegisterLogin = () => {
   const [overlayId] = useState<string>("authentication");
 
   const drawer = createOverlay<DialogProps>((props) => {
-    const { title, description, content, ...rest } = props;
+    const { title, description, ...rest } = props;
     return (
       <Drawer.Root {...rest}>
         <Portal>

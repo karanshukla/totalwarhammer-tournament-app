@@ -82,6 +82,7 @@ const ResetPasswordPage: React.FC = () => {
       if (response.success && response.data?.validUntil) {
         setExpiryTime(new Date(response.data.validUntil));
       }
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       setIsTokenValid(false);
       toaster.create({
