@@ -38,12 +38,7 @@ store.on("error", function (error) {
 });
 
 // Security
-app.use(
-  helmet({
-    contentSecurityPolicy: false, // Disable CSP for development
-    crossOriginEmbedderPolicy: false, // Allow cross-origin embedding for dev
-  })
-);
+app.use(helmet({}));
 app.use(mongoSanitize());
 app.use(xss());
 app.use(hpp());

@@ -8,7 +8,6 @@ const CSRF_SECRET =
 // Initialize the CSRF protection middleware with more debugging
 const { doubleCsrfProtection, generateCsrfToken, invalidCsrfTokenError } =
   doubleCsrf({
-    // Using session ID as the session identifier for the CSRF token
     getSessionIdentifier: (req) => {
       const sessionId = req.session?.id;
       if (!sessionId) {
@@ -20,10 +19,9 @@ const { doubleCsrfProtection, generateCsrfToken, invalidCsrfTokenError } =
     // Use fixed secret key for consistent tokens
     getSecret: () => CSRF_SECRET,
 
-    // Cookie config with more relaxed settings for development
     cookieOptions: {
       httpOnly: true,
-      sameSite: "lax", // Use lax for both dev and prod to avoid issues with redirects
+      sameSite: process.env.NODE_ENV === "production" ? "Strict" : "Lax",
       secure: process.env.NODE_ENV === "production",
       path: "/",
       maxAge: 24 * 60 * 60 * 1000, // 1 day
