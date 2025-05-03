@@ -34,9 +34,14 @@ export function LoginForm({ defaultEmail = "", onSuccess }: LoginFormProps) {
 
   const onSubmit = async (data: LoginFormValues) => {
     setIsLoading(true);
-    loginUser(data);
-    onSuccess?.();
-    setIsLoading(false);
+    try {
+      await loginUser(data);
+      onSuccess?.();
+      setIsLoading(false);
+    } catch (error) {
+      console.error("Login failed:", error);
+      setIsLoading(false);
+    }
   };
 
   return (

@@ -12,6 +12,7 @@ import { AuthenticationForm } from "./AuthenticationForm";
 import React, { useEffect, useState } from "react";
 import { LuSearch } from "react-icons/lu";
 import { BiArrowBack } from "react-icons/bi";
+import { FiX } from "react-icons/fi";
 
 interface DialogProps {
   title: string;
@@ -42,7 +43,7 @@ export const RegisterLogin = () => {
                       variant="ghost"
                       onClick={() => drawer.close(overlayId)}
                     >
-                      <BiArrowBack />
+                      <FiX />
                     </IconButton>
                   </Box>
                 </>

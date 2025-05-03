@@ -42,9 +42,14 @@ export function PasswordResetForm({
 
   const handlePasswordResetSubmit = async (data: PasswordResetFormValues) => {
     setIsRequestingReset(true);
-    await requestPasswordReset(data.email);
-    onSuccess();
-    setIsRequestingReset(false);
+    try {
+      await requestPasswordReset(data.email);
+      onSuccess();
+    } catch (error) {
+      console.error("Password reset failed:", error);
+    } finally {
+      setIsRequestingReset(false);
+    }
   };
 
   return (
