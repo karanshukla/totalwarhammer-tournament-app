@@ -8,7 +8,7 @@ import {
   Badge,
 } from "@chakra-ui/react";
 import { ColorModeButton } from "@/shared/ui/color-mode";
-import { useRouter } from "@/core/router/RouterContext";
+import { useLocation } from "react-router-dom";
 import { useUserStore } from "../stores/userStore";
 import { RegisterLogin } from "@/features/authentication/components/RegisterLogin";
 import { LogoutButton } from "@/features/authentication/components/LogoutButton";
@@ -27,7 +27,8 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
     "(orientation: portrait) and (max-width: 768px)",
   ]);
   const [isMobile] = useMediaQuery(["(max-width: 768px)"]);
-  const { currentPath } = useRouter();
+  const location = useLocation();
+  const currentPath = location.pathname;
 
   const userStore = useUserStore();
   const user = userStore.user;
