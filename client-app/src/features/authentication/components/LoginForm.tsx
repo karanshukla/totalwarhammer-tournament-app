@@ -2,8 +2,8 @@ import { Button, Field, Input, Stack, Checkbox } from "@chakra-ui/react";
 import { useForm, Controller } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { loginUser } from "../api/loginApi";
-import { useState } from "react";
+import { loginUser } from "../api/authenticationApi";
+import { useState, useRef } from "react";
 
 const loginFormSchema = z.object({
   email: z.string().email({ message: "A valid Email Address is required" }),
@@ -20,6 +20,8 @@ interface LoginFormProps {
 
 export function LoginForm({ defaultEmail = "", onSuccess }: LoginFormProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const isSubmittingRef = useRef(false);
+
   const {
     control,
     handleSubmit,
@@ -33,14 +35,25 @@ export function LoginForm({ defaultEmail = "", onSuccess }: LoginFormProps) {
   });
 
   const onSubmit = async (data: LoginFormValues) => {
-    setIsLoading(true);
+    // Prevent duplicate submissions
+    if (isSubmittingRef.current) {
+      return;
+    }
+
     try {
+      setIsLoading(true);
+      isSubmittingRef.current = true;
+
       await loginUser(data);
       onSuccess?.();
-      setIsLoading(false);
     } catch (error) {
       console.error("Login failed:", error);
+    } finally {
       setIsLoading(false);
+      // Add a small delay before allowing another submission
+      setTimeout(() => {
+        isSubmittingRef.current = false;
+      }, 1000);
     }
   };
 

@@ -1,7 +1,7 @@
 import { toaster } from "@/shared/ui/Toaster";
 import { apiConfig } from "@/core/config/apiConfig";
 import { httpClient } from "@/core/api/httpClient";
-import { loginUser } from "./loginApi";
+import { loginUser } from "./authenticationApi";
 import { useUserStore } from "@/shared/stores/userStore";
 
 export interface RegistrationData {

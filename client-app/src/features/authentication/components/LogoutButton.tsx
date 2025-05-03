@@ -1,10 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { Button, Icon } from "@chakra-ui/react";
 import { FiLogOut } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
-import { useUserStore } from "@/shared/stores/userStore";
-import { toaster } from "@/shared/ui/Toaster";
-import { apiConfig } from "@/core/config/apiConfig";
+import { logoutUser } from "../api/authenticationApi";
 
 interface LogoutButtonProps {
   size?: string;
@@ -16,39 +14,33 @@ export const LogoutButton: React.FC<LogoutButtonProps> = ({
   variant = "outline",
 }) => {
   const [isLoading, setIsLoading] = useState(false);
+  const isLoggingOutRef = useRef(false);
   const navigate = useNavigate();
-  const { clearUser } = useUserStore();
 
-  const handleLogout = () => {
-    setIsLoading(true);
-    fetch(`${apiConfig.baseUrl}${apiConfig.endpoints.logout}`, {
-      method: "POST",
-      credentials: "include",
-    })
-      .then((response) => {
-        if (response.ok) {
-          clearUser();
-          navigate("/");
-          toaster.create({
-            title: "Logged out",
-            description: "You're now logged out. See you next time!",
-            type: "success",
-          });
-        } else {
-          throw new Error(`Server responded with status: ${response.status}`);
-        }
-      })
-      .catch((error) => {
-        console.error("Logout failed:", error);
-        toaster.create({
-          title: "Logout failed",
-          description: "There was an error logging out. Please try again.",
-          type: "error",
-        });
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
+  const handleLogout = async () => {
+    // Prevent duplicate logout requests
+    if (isLoggingOutRef.current) {
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      isLoggingOutRef.current = true;
+
+      await logoutUser();
+      navigate("/");
+    } catch (error) {
+      console.error("Logout failed:", error);
+      // Even if server-side logout fails, the client-side state is cleared
+      // in the logoutUser function, so we should still redirect
+      navigate("/");
+    } finally {
+      setIsLoading(false);
+      // Add a small delay before allowing another logout attempt
+      setTimeout(() => {
+        isLoggingOutRef.current = false;
+      }, 1000);
+    }
   };
 
   return (
@@ -58,6 +50,7 @@ export const LogoutButton: React.FC<LogoutButtonProps> = ({
       onClick={handleLogout}
       isLoading={isLoading}
       loadingText="Logging out"
+      disabled={isLoggingOutRef.current}
     >
       <Icon as={FiLogOut} boxSize={4} mr={2} /> Logout
     </Button>

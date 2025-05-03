@@ -12,5 +12,7 @@
         "install:client": "cd client-app && npm install",
         "install:server": "cd server-app && npm install"
     },
-    "dependencies": {}
+    "dependencies": {
+        "connect-mongodb-session": "^5.0.0"
+    }
 }

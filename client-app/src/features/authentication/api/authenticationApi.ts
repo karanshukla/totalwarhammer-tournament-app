@@ -134,3 +134,49 @@ const exchangeCodeForToken = async (code: string, codeVerifier: string) => {
     throw error;
   }
 };
+
+/**
+ * Logs out the current user by making a request to the server
+ * to destroy the session and clears the local user state
+ * @returns Promise that resolves when logout is complete
+ */
+export const logoutUser = async (): Promise<{
+  success: boolean;
+  message: string;
+}> => {
+  try {
+    // Using POST method for logout to avoid CSRF issues with DELETE
+    const response = await httpClient.post<{
+      success: boolean;
+      message: string;
+    }>(apiConfig.endpoints.logout);
+
+    // Always clear the local user state, even if server response fails
+    const { clearUser } = useUserStore.getState();
+    clearUser();
+
+    if (response.success) {
+      toaster.create({
+        title: "Logged out",
+        description: "You're now logged out. See you next time!",
+        type: "success",
+      });
+    }
+
+    return response;
+  } catch (error) {
+    // Still clear the user state even on error
+    const { clearUser } = useUserStore.getState();
+    clearUser();
+
+    toaster.create({
+      title: "Logout Issue",
+      description:
+        "You've been logged out locally, but there was an issue with the server.",
+      type: "warning",
+    });
+
+    console.error("Logout error:", error);
+    return { success: true, message: "Logged out locally" };
+  }
+};
