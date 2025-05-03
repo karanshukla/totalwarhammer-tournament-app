@@ -44,22 +44,17 @@ export function AuthenticationForm() {
   };
 
   const onSubmit = async (data: authenticationFormValues) => {
-    try {
-      setFormState((prev) => ({
-        ...prev,
-        isCheckingUser: true,
-        usernameOrEmail: data.usernameOrEmail,
-      }));
-      const exists = await userExists(data.usernameOrEmail);
-      setFormState((prev) => ({
-        ...prev,
-        view: exists ? "login" : "register",
-        isCheckingUser: false,
-      }));
-    } catch (error) {
-      console.error("Authentication check failed:", error);
-      setFormState((prev) => ({ ...prev, isCheckingUser: false }));
-    }
+    setFormState((prev) => ({
+      ...prev,
+      isCheckingUser: true,
+      usernameOrEmail: data.usernameOrEmail,
+    }));
+    const exists = await userExists(data.usernameOrEmail);
+    setFormState((prev) => ({
+      ...prev,
+      view: exists ? "login" : "register",
+      isCheckingUser: false,
+    }));
   };
 
   const handleGuestLogin = async () => {

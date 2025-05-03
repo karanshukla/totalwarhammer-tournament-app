@@ -61,3 +61,38 @@ export const createGuestUser = async (): Promise<GuestUserResponse> => {
     throw error;
   }
 };
+
+export const updateGuestUsername = async (
+  username: string
+): Promise<GuestUserResponse> => {
+  try {
+    const responseData = await httpClient.post<GuestUserResponse>(
+      apiConfig.endpoints.guestUpdateUsername,
+      { username }
+    );
+
+    if (responseData.success && responseData.data) {
+      const { setUser } = useUserStore.getState();
+      setUser({
+        username: responseData.data.username,
+      });
+
+      toaster.create({
+        title: `Updated guest account`,
+        description: "Your username has been updated",
+        type: "success",
+      });
+    } else {
+      throw new Error("Failed to update guest user account");
+    }
+
+    return responseData;
+  } catch (error) {
+    toaster.create({
+      title: "Failed to update guest account",
+      description: error instanceof Error ? error.message : "An error occurred",
+      type: "error",
+    });
+    throw error;
+  }
+};

@@ -41,19 +41,10 @@ export function PasswordResetForm({
   });
 
   const handlePasswordResetSubmit = async (data: PasswordResetFormValues) => {
-    try {
-      setIsRequestingReset(true);
-      const response = await requestPasswordReset(data.email);
-
-      if (response.success) {
-        // Toast is created in the requestPasswordReset function
-        onSuccess(); // Close the drawer or navigate away
-      }
-    } catch (error) {
-      console.error("Password reset request failed:", error);
-    } finally {
-      setIsRequestingReset(false);
-    }
+    setIsRequestingReset(true);
+    await requestPasswordReset(data.email);
+    onSuccess();
+    setIsRequestingReset(false);
   };
 
   return (
