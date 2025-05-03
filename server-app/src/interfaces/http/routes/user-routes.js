@@ -2,9 +2,11 @@ import express from "express";
 
 import * as authenticationController from "../controllers/authentication-controller.js";
 import * as userController from "../controllers/user-controller.js";
+import authenticateToken from "../middleware/auth-middleware.js";
 import {
   validateUserExists,
   validateUserRegistration,
+  validateGuestUsername,
 } from "../middleware/validation/user-validation.js";
 import { validationHandler } from "../middleware/validation/validation-handler.js";
 
@@ -26,5 +28,12 @@ router.get(
   userController.userExists
 );
 router.post("/guest", userController.createGuestUser);
+router.post(
+  "/guest/update-username",
+  authenticateToken,
+  validateGuestUsername,
+  validationHandler,
+  userController.updateGuestUsername
+);
 
 export default router;
