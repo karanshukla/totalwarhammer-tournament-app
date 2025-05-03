@@ -11,7 +11,6 @@ export interface GuestUserResponse {
     username: string;
     email: string;
     isGuest: boolean;
-    token: string;
     expiresAt: number;
   };
 }

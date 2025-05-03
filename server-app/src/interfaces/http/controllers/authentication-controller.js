@@ -1,9 +1,9 @@
 import crypto from "crypto";
 
 import User from "../../../domain/models/user.js";
-import JwtService from "../../../infrastructure/services/jwt-service.js";
+import SessionService from "../../../infrastructure/services/session-service.js";
 
-const jwtService = new JwtService();
+const sessionService = new SessionService();
 
 // In-memory store for authorization codes (in production, use Redis or another solution)
 const authorizationCodes = new Map();
@@ -50,6 +50,7 @@ export const login = async (req, res) => {
         codeChallengeMethod,
         createdAt: Date.now(),
         used: false,
+        rememberMe, // Store the rememberMe preference with the code
       });
 
       return res.status(200).json({
@@ -65,28 +66,10 @@ export const login = async (req, res) => {
       });
     }
 
-    // Legacy flow (no PKCE)
-    // Use rememberMe to determine token type
-    const tokenType = rememberMe ? "rememberMe" : "standard";
-
-    const token = jwtService.generateToken(
-      {
-        id: user.id,
-        email: user.email,
-      },
-      tokenType
-    );
-
-    const decoded = jwtService.decodeToken(token);
-    const expiresAt = decoded.exp * 1000; // Convert to milliseconds
-
-    const maxAge = expiresAt - Date.now();
-    res.cookie("jwt", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // Use secure in production
-      sameSite: "strict",
-      maxAge,
-      path: "/",
+    // Create user session
+    sessionService.createSession(req, {
+      ...user.toObject(),
+      rememberMe,
     });
 
     res.status(200).json({
@@ -96,7 +79,9 @@ export const login = async (req, res) => {
         id: user.id,
         email: user.email,
         username: user.username,
-        expiresAt,
+        expiresAt:
+          req.session.cookie.expires?.getTime() ||
+          Date.now() + req.session.cookie.maxAge,
       },
     });
   } catch (error) {
@@ -170,42 +155,29 @@ export const token = async (req, res) => {
       });
     }
 
-    // Generate and send the JWT token
-    const token = jwtService.generateToken(
-      {
-        id: user.id,
-        email: user.email,
-      },
-      "standard"
-    );
-
-    const decoded = jwtService.decodeToken(token);
-    const expiresAt = decoded.exp * 1000;
-
-    const maxAge = expiresAt - Date.now();
-    res.cookie("jwt", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge,
-      path: "/",
+    // Create user session with the rememberMe preference from the code data
+    sessionService.createSession(req, {
+      ...user.toObject(),
+      rememberMe: codeData.rememberMe || false,
     });
 
     return res.status(200).json({
       success: true,
-      message: "Token issued successfully",
+      message: "Authentication successful",
       data: {
         id: user.id,
         email: user.email,
         username: user.username,
-        expiresAt,
+        expiresAt:
+          req.session.cookie.expires?.getTime() ||
+          Date.now() + req.session.cookie.maxAge,
       },
     });
   } catch (error) {
     console.error("Token exchange error:", error);
     return res.status(500).json({
       success: false,
-      message: "Failed to exchange token",
+      message: "Failed to authenticate",
       error: error.message,
     });
   }
@@ -213,16 +185,16 @@ export const token = async (req, res) => {
 
 export const logout = async (req, res) => {
   try {
-    res.clearCookie("jwt", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      path: "/",
-    });
+    // Destroy the session
+    sessionService.destroySession(req, (err) => {
+      if (err) {
+        throw new Error("Failed to destroy session");
+      }
 
-    res.status(200).json({
-      success: true,
-      message: "Logout successful",
+      res.status(200).json({
+        success: true,
+        message: "Logout successful",
+      });
     });
   } catch (error) {
     res.status(500).json({

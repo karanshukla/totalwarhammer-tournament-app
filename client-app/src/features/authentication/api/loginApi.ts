@@ -35,7 +35,13 @@ export interface TokenResponse {
 
 export const loginUser = async (data: LoginData): Promise<LoginResponse> => {
   try {
+    // We can still use PKCE for enhanced security, even with sessions
     const { codeChallenge, state } = await PKCEAuthService.initiatePKCEFlow();
+
+    // Store rememberMe preference in session storage to retrieve later
+    if (data.rememberMe) {
+      sessionStorage.setItem("pkce_remember_me", "true");
+    }
 
     const responseData = await httpClient.post<LoginResponse>(
       apiConfig.endpoints.login,
@@ -87,7 +93,9 @@ export const loginUser = async (data: LoginData): Promise<LoginResponse> => {
         title: `Successfully logged in as ${
           responseData.data?.email || data.email
         }`,
-        description: "Welcome back!",
+        description: data.rememberMe
+          ? "Welcome back! You'll stay signed in for 7 days."
+          : "Welcome back!",
         type: "success",
       });
     } else {
@@ -115,13 +123,14 @@ export const loginUser = async (data: LoginData): Promise<LoginResponse> => {
 
 const exchangeCodeForToken = async (code: string, codeVerifier: string) => {
   try {
+    // With session-based auth, this still exchanges the code but establishes a session instead of returning a JWT
     return await httpClient.post<TokenResponse>(apiConfig.endpoints.token, {
       grant_type: "authorization_code",
       code,
       code_verifier: codeVerifier,
     });
   } catch (error) {
-    console.error("Error exchanging code for token:", error);
+    console.error("Error during authentication:", error);
     throw error;
   }
 };

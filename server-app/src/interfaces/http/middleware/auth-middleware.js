@@ -1,36 +1,25 @@
-import JwtService from "../../../infrastructure/services/jwt-service.js";
+import SessionService from "../../../infrastructure/services/session-service.js";
 
-const jwtService = new JwtService();
+const sessionService = new SessionService();
 
-const authenticateToken = async (req, res, next) => {
-  let token = req.cookies.jwt;
-
-  if (!token) {
-    const authHeader = req.headers["authorization"];
-    token = authHeader && authHeader.split(" ")[1];
-  }
-
-  if (token == null) {
+const authenticateSession = async (req, res, next) => {
+  // Check if session exists and user is authenticated
+  if (!sessionService.isAuthenticated(req)) {
     return res
       .status(401)
-      .json({ success: false, message: "Unauthorized: No token provided" });
+      .json({ success: false, message: "Unauthorized: Not authenticated" });
   }
 
   try {
-    const decoded = jwtService.verifyToken(token);
-    req.user = decoded;
+    // Add user information from session to request object
+    req.user = sessionService.getCurrentUser(req);
     next();
   } catch (error) {
-    console.error("Token verification failed:", error.message);
-    if (error.name === "TokenExpiredError") {
-      return res
-        .status(401)
-        .json({ success: false, message: "Unauthorized: Token expired" });
-    }
+    console.error("Session authentication failed:", error.message);
     return res
       .status(403)
-      .json({ success: false, message: "Forbidden: Invalid token" });
+      .json({ success: false, message: "Forbidden: Invalid session" });
   }
 };
 
-export default authenticateToken;
+export default authenticateSession;

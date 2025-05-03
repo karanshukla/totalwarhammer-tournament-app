@@ -1,5 +1,5 @@
 import { Button, Field, Input, Stack, Checkbox } from "@chakra-ui/react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { loginUser } from "../api/loginApi";
@@ -21,7 +21,7 @@ interface LoginFormProps {
 export function LoginForm({ defaultEmail = "", onSuccess }: LoginFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const {
-    register,
+    control,
     handleSubmit,
     formState: { errors },
   } = useForm<LoginFormValues>({
@@ -49,22 +49,40 @@ export function LoginForm({ defaultEmail = "", onSuccess }: LoginFormProps) {
       <Stack gap="4" align="flex-start" maxW="sm">
         <Field.Root invalid={!!errors.email} required>
           <Field.Label>Email Address</Field.Label>
-          <Input {...register("email")} />
+          <Controller
+            name="email"
+            control={control}
+            render={({ field }) => <Input {...field} />}
+          />
           <Field.ErrorText>{errors.email?.message}</Field.ErrorText>
         </Field.Root>
 
         <Field.Root invalid={!!errors.password} required>
           <Field.Label>Password</Field.Label>
-          <Input type="password" {...register("password")} />
+          <Controller
+            name="password"
+            control={control}
+            render={({ field }) => <Input type="password" {...field} />}
+          />
           <Field.ErrorText>{errors.password?.message}</Field.ErrorText>
         </Field.Root>
 
-        {/*This doesnt work*/}
-        <Checkbox.Root>
-          <Checkbox.HiddenInput />
-          <Checkbox.Control />
-          <Checkbox.Label>Remember Me</Checkbox.Label>
-        </Checkbox.Root>
+        <Controller
+          name="rememberMe"
+          control={control}
+          render={({ field: { onChange, value, ref } }) => (
+            <Checkbox.Root
+              checked={value}
+              onCheckedChange={(checked) => {
+                onChange(checked.checked);
+              }}
+            >
+              <Checkbox.HiddenInput ref={ref} />
+              <Checkbox.Control />
+              <Checkbox.Label>Remember Me</Checkbox.Label>
+            </Checkbox.Root>
+          )}
+        />
 
         <Button type="submit" loading={isLoading} loadingText="Logging in...">
           Login

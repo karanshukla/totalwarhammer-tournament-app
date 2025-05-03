@@ -4,10 +4,10 @@ export const apiConfig = {
   endpoints: {
     register: "/user/register",
     userExists: "/user/exists",
-    login: "/user/login",
-    logout: "/user/logout",
-    guest: "/user/guest",
-    guestUpdateUsername: "/user/guest/update-username",
+    login: "/auth/login", // Updated to use auth routes
+    logout: "/auth/logout", // Updated to use auth routes
+    guest: "/guest", // Updated to use new guest routes
+    guestUpdateUsername: "/guest/username", // Updated to use new guest routes
     token: "/auth/token",
     passwordReset: "/password-reset",
   },

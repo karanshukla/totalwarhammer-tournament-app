@@ -11,7 +11,6 @@ export const validateLogin = [
 
   body("password").notEmpty().withMessage("Password is required"),
 
-  // Optional PKCE-related fields
   body("codeChallenge")
     .optional()
     .isString()
@@ -55,5 +54,3 @@ export const validateToken = [
     .isLength({ min: 43, max: 128 })
     .withMessage("Code verifier must be between 43 and 128 characters"),
 ];
-
-// No validation needed for logout since it doesn't take user inputs
