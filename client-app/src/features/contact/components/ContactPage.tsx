@@ -1,14 +1,5 @@
 import React from "react";
-import {
-  Heading,
-  Container,
-  Text,
-  VStack,
-  Link,
-  Button,
-  Icon,
-} from "@chakra-ui/react";
-import { FiMail, FiExternalLink } from "react-icons/fi";
+import { Heading, Container, VStack } from "@chakra-ui/react";
 
 const ContactPage: React.FC = () => {
   return (

@@ -17,8 +17,8 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { verifyResetToken, resetPassword } from "../api/passwordResetApi";
-import { useRouter } from "@/core/router/RouterContext";
-import { toaster } from "@/shared/ui/toaster";
+import { useNavigate } from "react-router-dom";
+import { toaster } from "@/shared/ui/Toaster";
 
 // Schema for password reset form validation
 const resetPasswordFormSchema = z
@@ -36,7 +36,7 @@ const resetPasswordFormSchema = z
 type ResetPasswordFormValues = z.infer<typeof resetPasswordFormSchema>;
 
 const ResetPasswordPage: React.FC = () => {
-  const router = useRouter();
+  const navigate = useNavigate();
   const [resetToken, setResetToken] = useState<string | null>(null);
   const [isTokenValid, setIsTokenValid] = useState<boolean | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -82,6 +82,7 @@ const ResetPasswordPage: React.FC = () => {
       if (response.success && response.data?.validUntil) {
         setExpiryTime(new Date(response.data.validUntil));
       }
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       setIsTokenValid(false);
       toaster.create({
@@ -105,7 +106,7 @@ const ResetPasswordPage: React.FC = () => {
       if (response.success) {
         // After success, redirect to login after a brief delay
         setTimeout(() => {
-          router.navigate("/");
+          navigate("/");
         }, 2000);
       }
     } catch (error) {
@@ -136,7 +137,7 @@ const ResetPasswordPage: React.FC = () => {
             The password reset link is invalid or has expired. Please request a
             new password reset link.
           </Text>
-          <Button onClick={() => router.navigate("/")} colorScheme="blue">
+          <Button onClick={() => navigate("/")} colorScheme="blue">
             Back to Home
           </Button>
         </VStack>

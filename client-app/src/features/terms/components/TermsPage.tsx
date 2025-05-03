@@ -1,5 +1,5 @@
 import React from "react";
-import { Heading, Container, Text, VStack, Box } from "@chakra-ui/react";
+import { Heading, Container } from "@chakra-ui/react";
 
 const TermsPage: React.FC = () => {
   return (

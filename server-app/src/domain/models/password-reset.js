@@ -1,5 +1,6 @@
-import mongoose from "mongoose";
 import crypto from "crypto";
+
+import mongoose from "mongoose";
 
 const passwordResetSchema = new mongoose.Schema({
   userId: {

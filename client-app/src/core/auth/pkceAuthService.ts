@@ -1,4 +1,4 @@
-import { PKCEUtil } from "../utils/pkce";
+import pkceChallenge from "pkce-challenge";
 
 const STORAGE_KEYS = {
   CODE_VERIFIER: "pkce_code_verifier",
@@ -12,7 +12,9 @@ export class PKCEAuthService {
    */
   static async initiatePKCEFlow() {
     // Generate PKCE code verifier and challenge
-    const { codeVerifier, codeChallenge } = await PKCEUtil.generatePKCEPair();
+    const result = await pkceChallenge();
+    const codeVerifier = result.code_verifier;
+    const codeChallenge = result.code_challenge;
 
     // Generate random state for CSRF protection
     const state = this.generateRandomState();
@@ -69,6 +71,11 @@ export class PKCEAuthService {
    * @returns A random string to be used as state
    */
   private static generateRandomState(): string {
-    return PKCEUtil.generateCodeVerifier(32);
+    // Generate a simpler random string for state
+    const array = new Uint8Array(32);
+    window.crypto.getRandomValues(array);
+    return Array.from(array, (byte) => byte.toString(16).padStart(2, "0")).join(
+      ""
+    );
   }
 }

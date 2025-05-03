@@ -10,7 +10,7 @@ import {
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Toaster } from "@/shared/ui/toaster";
+import { Toaster } from "@/shared/ui/Toaster";
 import { useState } from "react";
 import { requestPasswordReset } from "../api/passwordResetApi";
 import { FiArrowLeft } from "react-icons/fi";
@@ -41,16 +41,12 @@ export function PasswordResetForm({
   });
 
   const handlePasswordResetSubmit = async (data: PasswordResetFormValues) => {
+    setIsRequestingReset(true);
     try {
-      setIsRequestingReset(true);
-      const response = await requestPasswordReset(data.email);
-
-      if (response.success) {
-        // Toast is created in the requestPasswordReset function
-        onSuccess(); // Close the drawer or navigate away
-      }
+      await requestPasswordReset(data.email);
+      onSuccess();
     } catch (error) {
-      console.error("Password reset request failed:", error);
+      console.error("Password reset failed:", error);
     } finally {
       setIsRequestingReset(false);
     }

@@ -1,5 +1,6 @@
-import User from "../../../domain/models/user.js";
 import bcrypt from "bcrypt";
+
+import User from "../../../domain/models/user.js";
 import JwtService from "../../../infrastructure/services/jwt-service.js";
 
 const jwtService = new JwtService();
@@ -133,6 +134,67 @@ export const createGuestUser = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to create guest user",
+      error: error.message,
+    });
+  }
+};
+
+export const updateGuestUsername = async (req, res) => {
+  try {
+    const { username } = req.body;
+    const userId = req.user.id;
+
+    // Check if the user is a guest
+    if (!req.user.isGuest) {
+      return res.status(403).json({
+        success: false,
+        message:
+          "Only guest users can update their username using this endpoint",
+      });
+    }
+
+    // Check if username is taken
+    const existingUsername = await User.findOne({
+      username,
+      _id: { $ne: userId }, // Exclude the current user
+    });
+
+    if (existingUsername) {
+      return res.status(400).json({
+        success: false,
+        message: "Username already taken",
+      });
+    }
+
+    // Update the user's username
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { username },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Username updated successfully",
+      data: {
+        id: updatedUser.id,
+        username: updatedUser.username,
+        email: updatedUser.email,
+        isGuest: true,
+      },
+    });
+  } catch (error) {
+    console.error("Error updating guest username:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to update username",
       error: error.message,
     });
   }

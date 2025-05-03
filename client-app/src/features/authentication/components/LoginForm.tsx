@@ -1,10 +1,9 @@
 import { Button, Field, Input, Stack, Checkbox } from "@chakra-ui/react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { loginUser } from "../api/loginApi";
-import { useRouter } from "@/core/router/RouterContext";
-import { useState } from "react";
+import { loginUser } from "../api/authenticationApi";
+import { useState, useRef } from "react";
 
 const loginFormSchema = z.object({
   email: z.string().email({ message: "A valid Email Address is required" }),
@@ -21,8 +20,10 @@ interface LoginFormProps {
 
 export function LoginForm({ defaultEmail = "", onSuccess }: LoginFormProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const isSubmittingRef = useRef(false);
+
   const {
-    register,
+    control,
     handleSubmit,
     formState: { errors },
   } = useForm<LoginFormValues>({
@@ -33,19 +34,26 @@ export function LoginForm({ defaultEmail = "", onSuccess }: LoginFormProps) {
     },
   });
 
-  const { navigate } = useRouter();
-
   const onSubmit = async (data: LoginFormValues) => {
-    setIsLoading(true);
+    // Prevent duplicate submissions
+    if (isSubmittingRef.current) {
+      return;
+    }
+
     try {
-      const response = await loginUser(data);
-      if (response.success) {
-        onSuccess ? onSuccess() : navigate("/");
-      }
+      setIsLoading(true);
+      isSubmittingRef.current = true;
+
+      await loginUser(data);
+      onSuccess?.();
     } catch (error) {
-      console.error("Login error:", error);
+      console.error("Login failed:", error);
     } finally {
       setIsLoading(false);
+      // Add a small delay before allowing another submission
+      setTimeout(() => {
+        isSubmittingRef.current = false;
+      }, 1000);
     }
   };
 
@@ -54,22 +62,40 @@ export function LoginForm({ defaultEmail = "", onSuccess }: LoginFormProps) {
       <Stack gap="4" align="flex-start" maxW="sm">
         <Field.Root invalid={!!errors.email} required>
           <Field.Label>Email Address</Field.Label>
-          <Input {...register("email")} />
+          <Controller
+            name="email"
+            control={control}
+            render={({ field }) => <Input {...field} />}
+          />
           <Field.ErrorText>{errors.email?.message}</Field.ErrorText>
         </Field.Root>
 
         <Field.Root invalid={!!errors.password} required>
           <Field.Label>Password</Field.Label>
-          <Input type="password" {...register("password")} />
+          <Controller
+            name="password"
+            control={control}
+            render={({ field }) => <Input type="password" {...field} />}
+          />
           <Field.ErrorText>{errors.password?.message}</Field.ErrorText>
         </Field.Root>
 
-        {/*This doesnt work*/}
-        <Checkbox.Root>
-          <Checkbox.HiddenInput />
-          <Checkbox.Control />
-          <Checkbox.Label>Remember Me</Checkbox.Label>
-        </Checkbox.Root>
+        <Controller
+          name="rememberMe"
+          control={control}
+          render={({ field: { onChange, value, ref } }) => (
+            <Checkbox.Root
+              checked={value}
+              onCheckedChange={(checked) => {
+                onChange(checked.checked);
+              }}
+            >
+              <Checkbox.HiddenInput ref={ref} />
+              <Checkbox.Control />
+              <Checkbox.Label>Remember Me</Checkbox.Label>
+            </Checkbox.Root>
+          )}
+        />
 
         <Button type="submit" loading={isLoading} loadingText="Logging in...">
           Login

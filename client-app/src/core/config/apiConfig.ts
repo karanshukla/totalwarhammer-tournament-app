@@ -4,10 +4,11 @@ export const apiConfig = {
   endpoints: {
     register: "/user/register",
     userExists: "/user/exists",
-    login: "/user/login",
-    logout: "/user/logout",
-    guest: "/user/guest",
-    token: "/auth/token", // New endpoint for PKCE token exchange
-    passwordReset: "/password-reset", // Endpoint for password reset operations
+    login: "/auth/login", // Updated to use auth routes
+    logout: "/auth/logout", // Updated to use auth routes
+    guest: "/guest", // Updated to use new guest routes
+    guestUpdateUsername: "/guest/username", // Updated to use new guest routes
+    token: "/auth/token",
+    passwordReset: "/password-reset",
   },
 };

@@ -1,9 +1,8 @@
-import { toaster } from "@/shared/ui/toaster";
+import { toaster } from "@/shared/ui/Toaster";
 import { apiConfig } from "@/core/config/apiConfig";
 import { httpClient } from "@/core/api/httpClient";
 import { useUserStore } from "@/shared/stores/userStore";
-import { PKCEAuthService } from "@/core/auth/services/pkceAuthService";
-
+import { PKCEAuthService } from "@/core/auth/pkceAuthService";
 export interface LoginData {
   email: string;
   password: string;
@@ -23,9 +22,26 @@ export interface LoginResponse {
   };
 }
 
+export interface TokenResponse {
+  success: boolean;
+  message: string;
+  data?: {
+    id: string;
+    email: string;
+    username: string;
+    expiresAt?: number;
+  };
+}
+
 export const loginUser = async (data: LoginData): Promise<LoginResponse> => {
   try {
-    const { codeChallenge, state } = PKCEAuthService.initiatePKCEFlow();
+    // We can still use PKCE for enhanced security, even with sessions
+    const { codeChallenge, state } = await PKCEAuthService.initiatePKCEFlow();
+
+    // Store rememberMe preference in session storage to retrieve later
+    if (data.rememberMe) {
+      sessionStorage.setItem("pkce_remember_me", "true");
+    }
 
     const responseData = await httpClient.post<LoginResponse>(
       apiConfig.endpoints.login,
@@ -77,11 +93,12 @@ export const loginUser = async (data: LoginData): Promise<LoginResponse> => {
         title: `Successfully logged in as ${
           responseData.data?.email || data.email
         }`,
-        description: "Welcome back!",
+        description: data.rememberMe
+          ? "Welcome back! You'll stay signed in for 7 days."
+          : "Welcome back!",
         type: "success",
       });
     } else {
-      console.error("Login failed:", responseData.message);
       toaster.create({
         title: "Login Failed",
         description:
@@ -92,7 +109,6 @@ export const loginUser = async (data: LoginData): Promise<LoginResponse> => {
 
     return responseData;
   } catch (error) {
-    console.error("Error logging in:", error);
     toaster.create({
       title: "Login Failed",
       description:
@@ -107,13 +123,60 @@ export const loginUser = async (data: LoginData): Promise<LoginResponse> => {
 
 const exchangeCodeForToken = async (code: string, codeVerifier: string) => {
   try {
-    return await httpClient.post<any>(apiConfig.endpoints.token, {
+    // With session-based auth, this still exchanges the code but establishes a session instead of returning a JWT
+    return await httpClient.post<TokenResponse>(apiConfig.endpoints.token, {
       grant_type: "authorization_code",
       code,
       code_verifier: codeVerifier,
     });
   } catch (error) {
-    console.error("Error exchanging code for token:", error);
+    console.error("Error during authentication:", error);
     throw error;
+  }
+};
+
+/**
+ * Logs out the current user by making a request to the server
+ * to destroy the session and clears the local user state
+ * @returns Promise that resolves when logout is complete
+ */
+export const logoutUser = async (): Promise<{
+  success: boolean;
+  message: string;
+}> => {
+  try {
+    // Using POST method for logout to avoid CSRF issues with DELETE
+    const response = await httpClient.post<{
+      success: boolean;
+      message: string;
+    }>(apiConfig.endpoints.logout);
+
+    // Always clear the local user state, even if server response fails
+    const { clearUser } = useUserStore.getState();
+    clearUser();
+
+    if (response.success) {
+      toaster.create({
+        title: "Logged out",
+        description: "You're now logged out. See you next time!",
+        type: "success",
+      });
+    }
+
+    return response;
+  } catch (error) {
+    // Still clear the user state even on error
+    const { clearUser } = useUserStore.getState();
+    clearUser();
+
+    toaster.create({
+      title: "Logout Issue",
+      description:
+        "You've been logged out locally, but there was an issue with the server.",
+      type: "warning",
+    });
+
+    console.error("Logout error:", error);
+    return { success: true, message: "Logged out locally" };
   }
 };

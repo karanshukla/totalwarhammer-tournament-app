@@ -1,8 +1,7 @@
-import React from "react";
-import { Toaster } from "@/shared/ui/toaster";
+import { Toaster } from "@/shared/ui/Toaster";
 import AppShell from "@/shared/ui/AppShell";
-import { RouterProvider, Route } from "@/core/router/RouterContext";
-import { lazyLoad } from "@/shared/utils/lazyLoad";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { lazyLoad } from "@/shared/utils/LazyLoad";
 
 const HomePage = lazyLoad(() => import("@/features/home/components/HomePage"));
 const TournamentsPage = lazyLoad(
@@ -29,19 +28,21 @@ const ResetPasswordPage = lazyLoad(
 
 export function App() {
   return (
-    <RouterProvider>
+    <BrowserRouter>
       <AppShell>
-        <Route path="/" component={HomePage} />
-        <Route path="/tournaments" component={TournamentsPage} />
-        <Route path="/matches" component={MatchesPage} />
-        <Route path="/statistics" component={StatisticsPage} />
-        <Route path="/account" component={AccountPage} />
-        <Route path="/contact" component={ContactPage} />
-        <Route path="/terms" component={TermsPage} />
-        <Route path="/reset-password" component={ResetPasswordPage} />
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/tournaments" element={<TournamentsPage />} />
+          <Route path="/matches" element={<MatchesPage />} />
+          <Route path="/statistics" element={<StatisticsPage />} />
+          <Route path="/account" element={<AccountPage />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/terms" element={<TermsPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
+        </Routes>
       </AppShell>
       <Toaster />
-    </RouterProvider>
+    </BrowserRouter>
   );
 }
 

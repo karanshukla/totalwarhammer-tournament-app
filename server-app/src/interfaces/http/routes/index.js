@@ -1,9 +1,13 @@
-import express from "express";
-import userRoutes from "./user-routes.js";
-import authRoutes from "./authentication-routes.js";
-import passwordResetRoutes from "./password-reset-routes.js"; // Import password reset routes
 import cors from "cors";
+import express from "express";
+
 import { clientUrl } from "../../../infrastructure/config/env.js";
+
+import authRoutes from "./authentication-routes.js";
+import guestRoutes from "./guest-routes.js";
+import passwordResetRoutes from "./password-reset-routes.js"; // Import password reset routes
+import userRoutes from "./user-routes.js";
+
 const router = express.Router();
 
 const corsOptions = {
@@ -23,6 +27,7 @@ router.get("/", (req, res) => {
 
 router.use("/user", userRoutes);
 router.use("/auth", authRoutes);
+router.use("/guest", guestRoutes);
 router.use("/password-reset", passwordResetRoutes); // Add password reset routes under /password-reset prefix
 
 export default router;

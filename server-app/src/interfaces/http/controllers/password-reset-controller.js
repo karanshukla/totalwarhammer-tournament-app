@@ -1,9 +1,10 @@
-import User from "../../../domain/models/user.js";
-import PasswordReset from "../../../domain/models/password-reset.js";
 import bcrypt from "bcrypt";
-import EmailService from "../../../infrastructure/services/email-service.js";
+
+import PasswordReset from "../../../domain/models/password-reset.js";
+import User from "../../../domain/models/user.js";
 import { clientUrl } from "../../../infrastructure/config/env.js";
 import { createPasswordResetEmail } from "../../../infrastructure/email-templates/password-reset-template.js";
+import EmailService from "../../../infrastructure/services/email-service.js";
 
 const emailService = new EmailService();
 
@@ -20,9 +21,9 @@ export const sendPasswordResetEmail = async (req, res) => {
 
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found",
+      return res.status(200).json({
+        success: true,
+        message: "Password reset email sent successfully",
       });
     }
 

@@ -3,7 +3,6 @@ import {
   Stack,
   Text,
   Icon,
-  Flex,
   Separator,
   Box,
   Badge,
@@ -18,7 +17,7 @@ import {
   FiHelpCircle,
   FiLock,
 } from "react-icons/fi";
-import { useRouter } from "@/core/router/RouterContext";
+import { Link, useNavigate } from "react-router-dom";
 import { LuSword } from "react-icons/lu";
 
 // Define keyboard shortcuts
@@ -44,7 +43,7 @@ type NavItemProps = {
   shortcut?: string;
 };
 
-const NavItem = ({
+const NavItem: React.FC<NavItemProps> = ({
   icon,
   children,
   to,
@@ -53,8 +52,8 @@ const NavItem = ({
   isPortrait,
   isMobile,
   shortcut,
-}: NavItemProps) => {
-  const { navigate } = useRouter();
+}) => {
+  const navigate = useNavigate();
 
   const handleClick = () => {
     if (toExternal) {
@@ -65,35 +64,14 @@ const NavItem = ({
   };
 
   const handleKeyDown = (event: React.KeyboardEvent) => {
-    // Activate on Enter or Space
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
       handleClick();
     }
   };
 
-  return (
-    <Flex
-      align="center"
-      p="2"
-      cursor="pointer"
-      direction={isPortrait ? "column" : "row"}
-      width="full"
-      bg={isActive ? "gray.100" : "transparent"}
-      _dark={{ bg: isActive ? "whiteAlpha.200" : "transparent" }}
-      borderRadius="md"
-      onClick={handleClick}
-      onKeyDown={handleKeyDown}
-      role="button"
-      tabIndex={0}
-      aria-current={isActive ? "page" : undefined}
-      _hover={{
-        bg: "gray.100",
-        _dark: { bg: "whiteAlpha.200" },
-      }}
-      transition="all 0.2s"
-      position="relative"
-    >
+  const content = (
+    <>
       <Icon
         as={icon}
         boxSize={5}
@@ -122,10 +100,52 @@ const NavItem = ({
           )}
         </Text>
       )}
-      {/* Add visually hidden text for screen readers on mobile */}
       {isPortrait && isMobile && <VisuallyHidden>{children}</VisuallyHidden>}
-    </Flex>
+    </>
   );
+
+  // Common props for both link and div
+  const commonProps = {
+    display: "flex",
+    alignItems: "center",
+    p: 2,
+    cursor: "pointer",
+    flexDirection: isPortrait ? "column" : "row",
+    width: "full",
+    bg: isActive ? "gray.100" : "transparent",
+    _dark: { bg: isActive ? "whiteAlpha.200" : "transparent" },
+    borderRadius: "md",
+    role: "button",
+    tabIndex: 0,
+    "aria-current": isActive ? ("page" as const) : undefined,
+    _hover: {
+      bg: "gray.100",
+      _dark: { bg: "whiteAlpha.200" },
+    },
+    transition: "all 0.2s",
+    onKeyDown: handleKeyDown,
+  };
+
+  // For external links
+  if (toExternal) {
+    return (
+      <Box onClick={handleClick} {...commonProps}>
+        {content}
+      </Box>
+    );
+  }
+
+  // For internal links with react-router
+  if (to) {
+    return (
+      <Box as="div" onClick={() => navigate(to)} {...commonProps}>
+        {content}
+      </Box>
+    );
+  }
+
+  // Default case (no link)
+  return <Box {...commonProps}>{content}</Box>;
 };
 
 interface NavItemsProps {
@@ -141,12 +161,10 @@ const NavItems: React.FC<NavItemsProps> = ({
   currentPath,
   isUserGuest,
 }) => {
-  const { navigate } = useRouter();
+  const navigate = useNavigate();
 
-  // Setup keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      // Check if Alt key is pressed
       if (event.altKey) {
         switch (event.key) {
           case "1":
@@ -191,11 +209,7 @@ const NavItems: React.FC<NavItemsProps> = ({
     };
 
     document.addEventListener("keydown", handleKeyDown);
-
-    // Clean up the event listener when the component unmounts
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown);
-    };
+    return () => document.removeEventListener("keydown", handleKeyDown);
   }, [navigate]);
 
   return (
