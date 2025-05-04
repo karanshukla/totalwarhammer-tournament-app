@@ -2,11 +2,11 @@ import crypto from "crypto";
 import { promisify } from "util";
 
 import User from "../../../domain/models/user.js";
-import SessionService from "../../../infrastructure/services/session-service.js";
+import AuthStateService from "../../../infrastructure/services/auth-state-service.js";
+import logger from "../../../infrastructure/utils/logger.js";
 
-const sessionService = new SessionService();
+const authStateService = new AuthStateService();
 
-// In-memory store for authorization codes (in production, use Redis or another solution)
 const authorizationCodes = new Map();
 
 // Cleanup interval for expired authorization codes (runs every 15 minutes)
@@ -17,11 +17,14 @@ setInterval(
     for (const [code, data] of authorizationCodes.entries()) {
       if (now - data.createdAt > CODE_EXPIRATION_TIME) {
         authorizationCodes.delete(code);
+        logger.debug(
+          `Removed expired authorization code: ${code.substring(0, 8)}...`
+        );
       }
     }
   },
   15 * 60 * 1000
-); // Clean up every 15 minutes
+);
 
 /**
  * Authenticates a user and creates a session or authorization code
@@ -62,7 +65,6 @@ export const login = async (req, res) => {
       });
     }
 
-    // Handle PKCE flow if code challenge is provided
     if (codeChallenge) {
       if (codeChallengeMethod !== "S256") {
         return res.status(400).json({
@@ -79,7 +81,7 @@ export const login = async (req, res) => {
         codeChallengeMethod,
         createdAt: Date.now(),
         used: false,
-        rememberMe, // Store the rememberMe preference with the code
+        rememberMe,
       });
 
       return res.status(200).json({
@@ -95,10 +97,9 @@ export const login = async (req, res) => {
       });
     }
 
-    // Regular session-based authentication
     try {
       // Create user session
-      sessionService.createSession(req, {
+      authStateService.createServerSession(req, {
         ...user.toObject(),
         rememberMe,
       });
@@ -116,14 +117,16 @@ export const login = async (req, res) => {
         },
       });
     } catch (sessionError) {
-      console.error("Session creation error:", sessionError);
+      logger.error(`Session creation error: ${sessionError.message}`, {
+        error: sessionError,
+      });
       return res.status(500).json({
         success: false,
         message: "Failed to create user session",
       });
     }
   } catch (error) {
-    console.error("Login error:", error);
+    logger.error(`Login error: ${error.message}`, { error });
     res.status(500).json({
       success: false,
       message: "Failed to login",
@@ -209,7 +212,7 @@ export const token = async (req, res) => {
 
     try {
       // Create user session with the rememberMe preference from the code data
-      sessionService.createSession(req, {
+      authStateService.createSession(req, {
         ...user.toObject(),
         rememberMe: codeData.rememberMe || false,
       });
@@ -230,14 +233,16 @@ export const token = async (req, res) => {
         },
       });
     } catch (sessionError) {
-      console.error("Session creation error:", sessionError);
+      logger.error(`Session creation error: ${sessionError.message}`, {
+        error: sessionError,
+      });
       return res.status(500).json({
         success: false,
         message: "Failed to create user session",
       });
     }
   } catch (error) {
-    console.error("Token exchange error:", error);
+    logger.error(`Token exchange error: ${error.message}`, { error });
     return res.status(500).json({
       success: false,
       message: "Failed to authenticate",
@@ -263,7 +268,7 @@ export const logout = async (req, res) => {
   try {
     // Promisify the session destroy method
     const destroySession = promisify(
-      sessionService.destroySession.bind(sessionService)
+      authStateService.destroySession.bind(authStateService)
     );
 
     // Destroy the session
@@ -276,7 +281,7 @@ export const logout = async (req, res) => {
       message: "Logout successful",
     });
   } catch (error) {
-    console.error("Logout error:", error);
+    logger.error(`Logout error: ${error.message}`, { error });
     res.status(500).json({
       success: false,
       message: "Failed to logout",
