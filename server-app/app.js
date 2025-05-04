@@ -20,16 +20,13 @@ import {
 import routes from "./src/interfaces/http/routes/index.js";
 
 // Create XSS filter instance
-const xssFilter = new FilterXSS({
-  // You can configure options here
-  // For example:
-  // whiteList: {}, // Custom whitelist
-  // stripIgnoreTag: true, // Strip ignored tags
-  // stripIgnoreTagBody: ["script"], // Strip and delete ignored tags and their contents
-});
+const xssFilter = new FilterXSS({});
 
 // Create Express application
 const app = express();
+
+// Trust proxy if running behind one (common in staging/production)
+app.set("trust proxy", 1);
 
 // Connect to database
 connectToDatabase();
@@ -99,15 +96,13 @@ const SESSION_SECRET =
 
 // Determine environment-appropriate cookie settings
 const isProduction = process.env.NODE_ENV === "production";
-const isStaging = process.env.NODE_ENV === "staging";
-const useSecureCookies = isProduction && !isStaging; // Don't require HTTPS in staging
 
 logger.info(
   `Starting server in ${process.env.NODE_ENV || "development"} environment`
 );
-logger.info(
-  `Session cookie secure attribute: ${useSecureCookies ? "enabled" : "disabled"}`
-);
+// logger.info(
+//   `Session cookie secure attribute: ${useSecureCookies ? "enabled" : "disabled"}`
+// ); // Logging will happen dynamically based on request
 logger.info(
   `CORS origin: ${process.env.CLIENT_URL || "http://localhost:3000"}`
 );
@@ -115,16 +110,17 @@ logger.info(
 app.use(
   session({
     secret: SESSION_SECRET,
-    name: "sid", // Use a generic name instead of default "connect.sid"
+    name: "sid",
     resave: false,
-    saveUninitialized: false, // Changed to false - only save sessions when data is stored
-    rolling: true, // Changed back to true to refresh session expiration on activity
+    saveUninitialized: false,
+    rolling: true,
     store: store,
+    proxy: true, // Add this because we set 'trust proxy'
     cookie: {
-      secure: useSecureCookies, // Only require HTTPS in production, not staging
+      secure: "auto",
       httpOnly: true,
       maxAge: 7 * 24 * 60 * 60 * 1000,
-      sameSite: isProduction ? "strict" : "lax", // More permissive in non-production
+      sameSite: isProduction ? "strict" : "lax",
       path: "/",
     },
   })
