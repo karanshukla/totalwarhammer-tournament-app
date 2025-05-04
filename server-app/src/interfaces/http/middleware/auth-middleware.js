@@ -11,17 +11,6 @@ const authStateService = new AuthStateService();
 const authenticateSession = (req, res, next) => {
   try {
     if (!authStateService.isAuthenticated(req)) {
-      console.log(req);
-      console.log(req.session);
-      console.log(req.session.user);
-      console.log(req.session.userId);
-      console.log(req.session.user.role);
-      console.log(req.session.user.email);
-      console.log(req.session.user.username);
-      console.log(req.session.user.expiresAt);
-      console.log(req.session.user.isGuest);
-      console.log(req.session.user.rememberMe);
-      console.log(req.session.user.isAuthenticated);
       return res
         .status(401)
         .json({ success: false, message: "Unauthorized: Not authenticated" });

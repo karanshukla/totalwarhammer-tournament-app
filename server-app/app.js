@@ -102,7 +102,7 @@ app.use(
     name: "sid", // Use a generic name instead of default "connect.sid"
     resave: false,
     saveUninitialized: false, // Changed to false - only save sessions when data is stored
-    rolling: true,
+    rolling: false, // Changed from true to false to prevent session ID regeneration on every request
     store: store,
     cookie: {
       secure: process.env.NODE_ENV === "production",
