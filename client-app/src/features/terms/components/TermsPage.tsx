@@ -1,6 +1,6 @@
 import React from "react";
 import { Heading, Container, Stack } from "@chakra-ui/react";
-import { Prose } from "@/shared/ui/prose";
+import { Prose } from "@/shared/ui/Prose";
 
 const TermsPage: React.FC = () => {
   return (
