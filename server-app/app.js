@@ -9,6 +9,16 @@ import helmet from "helmet";
 import hpp from "hpp";
 import { FilterXSS } from "xss";
 
+// Import logger for centralized logging
+import { port, mongoUri } from "./src/infrastructure/config/env.js";
+import { connectToDatabase } from "./src/infrastructure/db/connection.js";
+import logger from "./src/infrastructure/utils/logger.js";
+import {
+  csrfErrorHandler,
+  csrfPrerequisiteCheck,
+} from "./src/interfaces/http/middleware/csrf-middleware.js";
+import routes from "./src/interfaces/http/routes/index.js";
+
 // Create XSS filter instance
 const xssFilter = new FilterXSS({
   // You can configure options here
@@ -17,14 +27,6 @@ const xssFilter = new FilterXSS({
   // stripIgnoreTag: true, // Strip ignored tags
   // stripIgnoreTagBody: ["script"], // Strip and delete ignored tags and their contents
 });
-
-import { port, mongoUri } from "./src/infrastructure/config/env.js";
-import { connectToDatabase } from "./src/infrastructure/db/connection.js";
-import {
-  csrfErrorHandler,
-  csrfPrerequisiteCheck,
-} from "./src/interfaces/http/middleware/csrf-middleware.js";
-import routes from "./src/interfaces/http/routes/index.js";
 
 // Create Express application
 const app = express();
@@ -43,7 +45,7 @@ const store = new MongoDBSessionStore({
 
 // Handle store errors
 store.on("error", function (error) {
-  console.error("Session store error:", error);
+  logger.error(`Session store error: ${error.message}`, { error });
 });
 
 // Security
@@ -99,14 +101,14 @@ app.use(
     secret: SESSION_SECRET,
     name: "sid", // Use a generic name instead of default "connect.sid"
     resave: false,
-    saveUninitialized: true, // Save even uninitialized sessions for CSRF to work
-    rolling: true, // Reset expiration with each request
-    store: store, // Use MongoDB to store sessions
+    saveUninitialized: false, // Changed to false - only save sessions when data is stored
+    rolling: true,
+    store: store,
     cookie: {
-      secure: process.env.NODE_ENV === "production", // Only use secure in production
+      secure: process.env.NODE_ENV === "production",
       httpOnly: true,
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-      sameSite: "lax", // Important for CORS requests to work with cookies
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      sameSite: "lax",
       path: "/",
     },
   })
@@ -130,7 +132,7 @@ app.use(limiter);
 
 // Debug middleware to log session and cookies
 app.use((req, res, next) => {
-  console.log(
+  logger.http(
     `${req.method} ${req.url} - Session ID: ${req.session?.id || "none"}`
   );
   next();
@@ -144,7 +146,7 @@ app.use(csrfErrorHandler);
 
 // Generic error handler
 app.use((err, req, res) => {
-  console.error("Application error:", err);
+  logger.error(`Application error: ${err.message}`, { error: err });
   res.status(500).json({
     error: "Server error",
     message:
@@ -156,7 +158,7 @@ app.use((err, req, res) => {
 
 // Start server
 app.listen(port, "::", () => {
-  console.log(`Server listening on [::]${port}`);
+  logger.info(`Server listening on [::]${port}`);
 });
 
 export default app;

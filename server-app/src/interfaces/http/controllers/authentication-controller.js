@@ -3,6 +3,7 @@ import { promisify } from "util";
 
 import User from "../../../domain/models/user.js";
 import AuthStateService from "../../../infrastructure/services/auth-state-service.js";
+import logger from "../../../infrastructure/utils/logger.js";
 
 const authStateService = new AuthStateService();
 
@@ -17,6 +18,9 @@ setInterval(
     for (const [code, data] of authorizationCodes.entries()) {
       if (now - data.createdAt > CODE_EXPIRATION_TIME) {
         authorizationCodes.delete(code);
+        logger.debug(
+          `Removed expired authorization code: ${code.substring(0, 8)}...`
+        );
       }
     }
   },
@@ -116,14 +120,16 @@ export const login = async (req, res) => {
         },
       });
     } catch (sessionError) {
-      console.error("Session creation error:", sessionError);
+      logger.error(`Session creation error: ${sessionError.message}`, {
+        error: sessionError,
+      });
       return res.status(500).json({
         success: false,
         message: "Failed to create user session",
       });
     }
   } catch (error) {
-    console.error("Login error:", error);
+    logger.error(`Login error: ${error.message}`, { error });
     res.status(500).json({
       success: false,
       message: "Failed to login",
@@ -230,14 +236,16 @@ export const token = async (req, res) => {
         },
       });
     } catch (sessionError) {
-      console.error("Session creation error:", sessionError);
+      logger.error(`Session creation error: ${sessionError.message}`, {
+        error: sessionError,
+      });
       return res.status(500).json({
         success: false,
         message: "Failed to create user session",
       });
     }
   } catch (error) {
-    console.error("Token exchange error:", error);
+    logger.error(`Token exchange error: ${error.message}`, { error });
     return res.status(500).json({
       success: false,
       message: "Failed to authenticate",
@@ -276,7 +284,7 @@ export const logout = async (req, res) => {
       message: "Logout successful",
     });
   } catch (error) {
-    console.error("Logout error:", error);
+    logger.error(`Logout error: ${error.message}`, { error });
     res.status(500).json({
       success: false,
       message: "Failed to logout",

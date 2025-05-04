@@ -1,6 +1,8 @@
 /**
  * Service for managing user authentication state
  */
+import logger from "../utils/logger.js";
+
 class AuthStateService {
   constructor() {
     this.DEFAULT_SESSION_TIMEOUT = 2 * 60 * 60 * 1000; // 2 hours
@@ -65,7 +67,6 @@ class AuthStateService {
     if (!req.session || !req.session.isAuthenticated) {
       return false;
     }
-
     console.log("session: ", req.session);
     console.log("session.user: ", req.session.user);
     console.log("session.isAuthenticated: ", req.session.isAuthenticated);
@@ -84,7 +85,7 @@ class AuthStateService {
       if (req.session.isGuest) {
         // For guests, only validate user-agent to allow for IP changes
         if (req.session.fingerprint.userAgent !== currentUserAgent) {
-          console.log("Guest session rejected: user agent mismatch");
+          logger.warn("Guest session rejected: user agent mismatch");
           return false;
         }
       } else {
@@ -93,8 +94,8 @@ class AuthStateService {
           req.session.fingerprint.ip !== currentIp ||
           req.session.fingerprint.userAgent !== currentUserAgent
         ) {
-          console.log("Session rejected: IP or user agent mismatch");
-          console.log(
+          logger.warn("Session rejected: IP or user agent mismatch");
+          logger.warn(
             `Original IP: ${req.session.fingerprint.ip}, Current IP: ${currentIp}`
           );
           return false;

@@ -1,6 +1,7 @@
 import crypto from "crypto";
 
 import AuthStateService from "../../../infrastructure/services/auth-state-service.js";
+import logger from "../../../infrastructure/utils/logger.js";
 
 const authStateService = new AuthStateService();
 
@@ -38,7 +39,7 @@ export const createGuestUser = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Error creating guest user:", error);
+    logger.error(`Error creating guest user: ${error.message}`, { error });
     res.status(500).json({
       success: false,
       message: "Failed to create guest user",
@@ -86,7 +87,7 @@ export const updateGuestUsername = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Error updating guest username:", error);
+    logger.error(`Error updating guest username: ${error.message}`, { error });
     res.status(500).json({
       success: false,
       message: "Failed to update guest username",
