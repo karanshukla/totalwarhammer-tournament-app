@@ -72,31 +72,46 @@ class AuthStateService {
     }
 
     // Explicitly check if it's a guest session
-    const isGuest = req.session.isGuest === true;
+    const isGuest =
+      req.session.isGuest === true || req.session.user?.isGuest === true;
+
+    if (isGuest) {
+      logger.debug(
+        "Guest session detected, using relaxed authentication rules"
+      );
+      // For guest sessions, we only need to verify the session exists with valid user data
+      if (!req.session.user || !req.session.user.id) {
+        logger.warn("Guest session rejected: missing or invalid user data");
+        return false;
+      }
+
+      // Only check user agent for guest sessions if fingerprint exists
+      if (req.session.fingerprint && req.session.fingerprint.userAgent) {
+        const currentUserAgent = req.get("user-agent");
+        if (req.session.fingerprint.userAgent !== currentUserAgent) {
+          logger.warn("Guest session rejected: user agent mismatch");
+          return false;
+        }
+      }
+
+      return true;
+    }
 
     // Additional security check for session hijacking prevention
     if (req.session.fingerprint) {
       const currentIp = req.ip;
       const currentUserAgent = req.get("user-agent");
 
-      if (isGuest) {
-        // For guest sessions, only validate user agent
-        if (req.session.fingerprint.userAgent !== currentUserAgent) {
-          logger.warn("Guest session rejected: user agent mismatch");
-          return false;
-        }
-      } else {
-        // For regular users, keep the full validation
-        if (
-          req.session.fingerprint.ip !== currentIp ||
-          req.session.fingerprint.userAgent !== currentUserAgent
-        ) {
-          logger.warn("Session rejected: IP or user agent mismatch");
-          logger.warn(
-            `Original IP: ${req.session.fingerprint.ip}, Current IP: ${currentIp}`
-          );
-          return false;
-        }
+      // For regular users, keep the full validation
+      if (
+        req.session.fingerprint.ip !== currentIp ||
+        req.session.fingerprint.userAgent !== currentUserAgent
+      ) {
+        logger.warn("Session rejected: IP or user agent mismatch");
+        logger.warn(
+          `Original IP: ${req.session.fingerprint.ip}, Current IP: ${currentIp}`
+        );
+        return false;
       }
     }
 

@@ -45,24 +45,42 @@ const authenticateSession = (req, res, next) => {
  */
 const authenticateGuestSession = (req, res, next) => {
   try {
-    // Just check if there's any session data for the user
-    if (!req.session || !req.session.user) {
-      logger.debug("Guest auth debug: No session or user data found");
+    logger.debug("Guest auth middleware called", {
+      sessionExists: !!req.session,
+      sessionId: req.session?.id,
+      sessionUser: !!req.session?.user,
+      isGuest: req.session?.isGuest,
+      userIsGuest: req.session?.user?.isGuest,
+      cookies: req.headers.cookie ? "Present" : "None",
+    });
+
+    // Check if session exists
+    if (!req.session) {
+      logger.warn("Guest auth failed: No session object");
       return res.status(401).json({
         success: false,
-        message: "Unauthorized: No session data",
-        debug: { hasSession: !!req.session },
+        message: "Unauthorized: No session found",
+        debug: { cookies: req.headers.cookie ? "Present" : "None" },
       });
     }
 
-    // Set the user object regardless of other checks
-    req.user = req.session.user;
+    // Set the user object from session if available
+    if (req.session.user) {
+      req.user = req.session.user;
+    } else {
+      logger.warn("Guest auth failed: No user in session");
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized: No user data in session",
+        debug: { sessionId: req.session.id },
+      });
+    }
 
     // Add debugging data
-    logger.debug("Guest session auth debug:", {
+    logger.debug("Guest session auth debug data:", {
       sessionId: req.session.id,
       isAuthenticated: !!req.session.isAuthenticated,
-      isGuest: !!req.session.isGuest,
+      isGuest: !!req.session.isGuest || !!req.session.user.isGuest,
       user: req.user,
     });
 

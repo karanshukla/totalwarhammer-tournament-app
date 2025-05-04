@@ -80,64 +80,66 @@ export const updateGuestUsername = async (req, res) => {
       });
     }
 
-    // RELAXED CHECK FOR DEBUGGING: Skip the guest authentication check
-    // Instead, try to work with whatever session data is available
-    if (!req.session || !req.session.user) {
+    // At this point, we should have req.user populated from middleware
+    if (!req.user || !req.user.id) {
       logger.warn(
-        "Missing session or user data, creating temporary guest session for debugging"
+        "Guest username update: req.user missing but proceeding with session data"
       );
 
-      if (!req.session) {
-        return res.status(400).json({
+      // Try to use session data if available
+      if (req.session && req.session.user && req.session.user.id) {
+        req.user = req.session.user;
+      } else {
+        return res.status(401).json({
           success: false,
-          message: "Debug error: No session object available",
-          debug: true,
+          message: "Authentication required: No valid user data found",
         });
       }
+    }
 
-      // Create a minimal user object if none exists
-      req.session.user = req.session.user || {
-        id: `debug_${Date.now()}`,
-        isGuest: true,
-        role: "guest",
-      };
+    // Ensure the guest flags are set
+    req.user.isGuest = true;
+    if (req.session && req.session.user) {
+      req.session.user.isGuest = true;
+      req.session.isGuest = true;
+      req.session.isAuthenticated = true;
     }
 
     // Update username in session
-    req.session.user.username = username;
-
-    // Make sure these flags are set
-    req.session.isAuthenticated = true;
-    req.session.isGuest = true;
+    if (req.session && req.session.user) {
+      req.session.user.username = username;
+    }
 
     // Calculate expiration time
     const expiresAt =
-      Date.now() + (req.session.cookie.maxAge || 48 * 60 * 60 * 1000);
+      Date.now() + (req.session?.cookie?.maxAge || 48 * 60 * 60 * 1000);
 
     // Save the session explicitly to ensure changes persist
-    await new Promise((resolve, reject) => {
-      req.session.save((err) => {
-        if (err) {
-          logger.error(`Error saving session: ${err.message}`);
-          reject(err);
-        } else {
-          logger.debug("Session saved successfully");
-          resolve();
-        }
+    if (req.session && req.session.save) {
+      await new Promise((resolve, reject) => {
+        req.session.save((err) => {
+          if (err) {
+            logger.error(`Error saving session: ${err.message}`);
+            reject(err);
+          } else {
+            logger.debug("Session saved successfully");
+            resolve();
+          }
+        });
       });
-    });
+    }
 
     logger.debug("Guest username updated successfully", {
       username,
-      sessionId: req.session.id,
-      userId: req.session.user.id,
+      sessionId: req.session?.id,
+      userId: req.user.id,
     });
 
     res.status(200).json({
       success: true,
       message: "Guest username updated successfully",
       data: {
-        id: req.session.user.id,
+        id: req.user.id,
         username: username,
         email: "",
         isGuest: true,
