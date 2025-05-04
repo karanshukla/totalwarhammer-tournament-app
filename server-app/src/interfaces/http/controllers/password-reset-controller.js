@@ -69,7 +69,6 @@ export const verifyResetToken = async (req, res) => {
       });
     }
 
-    // Return success with token validity
     return res.status(200).json({
       success: true,
       message: "Token is valid",

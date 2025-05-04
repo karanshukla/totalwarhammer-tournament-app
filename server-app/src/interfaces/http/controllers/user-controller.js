@@ -144,7 +144,6 @@ export const updateGuestUsername = async (req, res) => {
     const { username } = req.body;
     const userId = req.user.id;
 
-    // Check if the user is a guest
     if (!req.user.isGuest) {
       return res.status(403).json({
         success: false,
@@ -153,7 +152,6 @@ export const updateGuestUsername = async (req, res) => {
       });
     }
 
-    // Check if username is taken
     const existingUsername = await User.findOne({
       username,
       _id: { $ne: userId }, // Exclude the current user
@@ -166,7 +164,6 @@ export const updateGuestUsername = async (req, res) => {
       });
     }
 
-    // Update the user's username
     const updatedUser = await User.findByIdAndUpdate(
       userId,
       { username },

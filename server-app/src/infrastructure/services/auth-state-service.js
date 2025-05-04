@@ -11,16 +11,16 @@ class AuthStateService {
   }
 
   /**
-   * Creates a new user session
+   * Creates a new user session in the server
+   * Maybe worth moving to redis
    * @param {Object} req - Express request object
    * @param {Object} userData - User data to store in session
    */
-  createSession(req, userData) {
+  createServerSession(req, userData) {
     if (!userData || !req) {
       throw new Error("Invalid request or user data");
     }
 
-    // Store user data in session (excluding sensitive information)
     const sessionUser = {
       id: userData._id || userData.id,
       email: userData.email,
@@ -33,18 +33,14 @@ class AuthStateService {
     req.session.isAuthenticated = true;
     req.session.createdAt = new Date();
 
-    // Store fingerprint data for additional security
     req.session.fingerprint = {
       ip: req.ip,
       userAgent: req.get("user-agent"),
     };
 
-    // Set default session timeout
     req.session.cookie.maxAge = this.DEFAULT_SESSION_TIMEOUT;
 
-    // For remember me functionality
     if (userData.rememberMe) {
-      // Extend session expiration for remember me
       req.session.cookie.maxAge = this.REMEMBER_ME_TIMEOUT;
     }
   }
@@ -71,7 +67,6 @@ class AuthStateService {
       return false;
     }
 
-    // Explicitly check if it's a guest session
     const isGuest =
       req.session.isGuest === true || req.session.user?.isGuest === true;
 
@@ -79,13 +74,11 @@ class AuthStateService {
       logger.debug(
         "Guest session detected, using relaxed authentication rules"
       );
-      // For guest sessions, we only need to verify the session exists with valid user data
       if (!req.session.user || !req.session.user.id) {
         logger.warn("Guest session rejected: missing or invalid user data");
         return false;
       }
 
-      // Only check user agent for guest sessions if fingerprint exists
       if (req.session.fingerprint && req.session.fingerprint.userAgent) {
         const currentUserAgent = req.get("user-agent");
         if (req.session.fingerprint.userAgent !== currentUserAgent) {
@@ -97,7 +90,6 @@ class AuthStateService {
       return true;
     }
 
-    // Additional security check for session hijacking prevention
     if (req.session.fingerprint) {
       const currentIp = req.ip;
       const currentUserAgent = req.get("user-agent");
@@ -152,16 +144,13 @@ class AuthStateService {
     req.session.isGuest = true;
     req.session.createdAt = new Date();
 
-    // Store fingerprint data for additional security
     req.session.fingerprint = {
       ip: req.ip,
       userAgent: req.get("user-agent"),
     };
 
-    // Guest sessions expire after 2 days
     req.session.cookie.maxAge = this.GUEST_SESSION_TIMEOUT;
 
-    // Explicitly save the session to ensure persistence
     if (req.session.save) {
       req.session.save((err) => {
         if (err) {
