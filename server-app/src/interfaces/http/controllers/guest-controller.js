@@ -69,6 +69,8 @@ export const updateGuestUsername = async (req, res) => {
         isAuthenticated: !!req.session?.isAuthenticated,
         isGuest: !!req.session?.isGuest,
         username: req.session?.user?.username,
+        sessionID: req.session?.id,
+        cookies: req.headers.cookie ? "Present" : "None",
       },
     });
 
@@ -80,19 +82,46 @@ export const updateGuestUsername = async (req, res) => {
       });
     }
 
-    // At this point, we should have req.user populated from middleware
+    // First check for req.user (should be set by auth middleware)
     if (!req.user || !req.user.id) {
-      logger.warn(
-        "Guest username update: req.user missing but proceeding with session data"
-      );
+      logger.warn("Guest username update: req.user missing", {
+        sessionExists: !!req.session,
+        sessionUser: !!req.session?.user,
+      });
 
-      // Try to use session data if available
-      if (req.session && req.session.user && req.session.user.id) {
-        req.user = req.session.user;
+      // If session exists, ensure it's properly initialized for guest user
+      if (req.session) {
+        if (!req.session.user && req.session.id) {
+          // Create a minimal guest user with the session ID if missing
+          logger.info("Creating minimal guest user from session ID");
+          req.session.user = {
+            id: req.session.id,
+            isGuest: true,
+            role: "guest",
+            username: username, // Use the incoming username
+          };
+          req.session.isGuest = true;
+          req.session.isAuthenticated = true;
+
+          // Now we can use this user
+          req.user = req.session.user;
+        } else if (req.session.user) {
+          // Use the existing session user
+          req.user = req.session.user;
+        } else {
+          return res.status(401).json({
+            success: false,
+            message: "Authentication required: No valid user data found",
+            debug: {
+              sessionExists: !!req.session,
+              sessionID: req.session?.id,
+            },
+          });
+        }
       } else {
         return res.status(401).json({
           success: false,
-          message: "Authentication required: No valid user data found",
+          message: "Authentication required: No session found",
         });
       }
     }
@@ -105,7 +134,8 @@ export const updateGuestUsername = async (req, res) => {
       req.session.isAuthenticated = true;
     }
 
-    // Update username in session
+    // Update username in session and user object
+    req.user.username = username;
     if (req.session && req.session.user) {
       req.session.user.username = username;
     }
@@ -116,17 +146,25 @@ export const updateGuestUsername = async (req, res) => {
 
     // Save the session explicitly to ensure changes persist
     if (req.session && req.session.save) {
-      await new Promise((resolve, reject) => {
-        req.session.save((err) => {
-          if (err) {
-            logger.error(`Error saving session: ${err.message}`);
-            reject(err);
-          } else {
-            logger.debug("Session saved successfully");
-            resolve();
-          }
+      try {
+        await new Promise((resolve, reject) => {
+          req.session.save((err) => {
+            if (err) {
+              logger.error(`Error saving session: ${err.message}`, { err });
+              reject(err);
+            } else {
+              logger.debug("Session saved successfully", {
+                sessionID: req.session.id,
+                username,
+              });
+              resolve();
+            }
+          });
         });
-      });
+      } catch (saveError) {
+        logger.error("Failed to save session", { error: saveError });
+        // Continue with the request even if session save fails
+      }
     }
 
     logger.debug("Guest username updated successfully", {

@@ -96,19 +96,35 @@ app.use(
 // Session configuration - must come after cookieParser and CORS
 const SESSION_SECRET =
   process.env.SESSION_SECRET || "super-strong-secret-key-for-development-only";
+
+// Determine environment-appropriate cookie settings
+const isProduction = process.env.NODE_ENV === "production";
+const isStaging = process.env.NODE_ENV === "staging";
+const useSecureCookies = isProduction && !isStaging; // Don't require HTTPS in staging
+
+logger.info(
+  `Starting server in ${process.env.NODE_ENV || "development"} environment`
+);
+logger.info(
+  `Session cookie secure attribute: ${useSecureCookies ? "enabled" : "disabled"}`
+);
+logger.info(
+  `CORS origin: ${process.env.CLIENT_URL || "http://localhost:3000"}`
+);
+
 app.use(
   session({
     secret: SESSION_SECRET,
     name: "sid", // Use a generic name instead of default "connect.sid"
     resave: false,
     saveUninitialized: false, // Changed to false - only save sessions when data is stored
-    rolling: false, // Changed from true to false to prevent session ID regeneration on every request
+    rolling: true, // Changed back to true to refresh session expiration on activity
     store: store,
     cookie: {
-      secure: process.env.NODE_ENV === "production",
+      secure: useSecureCookies, // Only require HTTPS in production, not staging
       httpOnly: true,
       maxAge: 7 * 24 * 60 * 60 * 1000,
-      sameSite: "lax",
+      sameSite: isProduction ? "strict" : "lax", // More permissive in non-production
       path: "/",
     },
   })

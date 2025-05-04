@@ -37,8 +37,6 @@ const authenticateSession = (req, res, next) => {
 };
 
 /**
- * Lighter authentication middleware for guest operations
- * More lenient to help debug guest user issues
  * @param {Object} req - Express request object
  * @param {Object} res - Express response object
  * @param {Function} next - Express next middleware function
@@ -52,6 +50,7 @@ const authenticateGuestSession = (req, res, next) => {
       isGuest: req.session?.isGuest,
       userIsGuest: req.session?.user?.isGuest,
       cookies: req.headers.cookie ? "Present" : "None",
+      headers: req.headers ? Object.keys(req.headers) : [],
     });
 
     // Check if session exists
@@ -64,9 +63,48 @@ const authenticateGuestSession = (req, res, next) => {
       });
     }
 
-    // Set the user object from session if available
+    // Primary approach: Set the user object from session if available
     if (req.session.user) {
       req.user = req.session.user;
+
+      // Ensure isGuest flag is set
+      if (!req.user.isGuest && req.session.isGuest) {
+        req.user.isGuest = true;
+        logger.debug("Fixed missing isGuest flag on user object");
+      }
+    }
+    // Fallback: Attempt to recover session if it might exist but user data is missing
+    else if (req.session.id && req.session.isGuest) {
+      logger.warn(
+        "Attempting session recovery: Session exists but user data is missing"
+      );
+
+      // Create minimal user object based on session data
+      req.user = {
+        id: req.session.id, // Use session ID as fallback user ID
+        isGuest: true,
+        role: "guest",
+      };
+
+      // Store the recovered user back in the session
+      req.session.user = req.user;
+      req.session.isAuthenticated = true;
+
+      logger.info("Guest session recovered with minimal user data", {
+        sessionId: req.session.id,
+        recoveredUser: req.user,
+      });
+
+      // Save the session explicitly
+      if (req.session.save) {
+        req.session.save((err) => {
+          if (err) {
+            logger.error("Failed to save recovered session:", err);
+          } else {
+            logger.debug("Recovered session saved successfully");
+          }
+        });
+      }
     } else {
       logger.warn("Guest auth failed: No user in session");
       return res.status(401).json({
@@ -80,7 +118,7 @@ const authenticateGuestSession = (req, res, next) => {
     logger.debug("Guest session auth debug data:", {
       sessionId: req.session.id,
       isAuthenticated: !!req.session.isAuthenticated,
-      isGuest: !!req.session.isGuest || !!req.session.user.isGuest,
+      isGuest: !!req.session.isGuest || !!req.session.user?.isGuest,
       user: req.user,
     });
 
