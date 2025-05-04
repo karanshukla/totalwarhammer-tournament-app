@@ -1,6 +1,5 @@
 import crypto from "crypto";
-import mongoose from "mongoose";
-import User from "../../../domain/models/user.js";
+
 import AuthStateService from "../../../infrastructure/services/auth-state-service.js";
 
 const authStateService = new AuthStateService();

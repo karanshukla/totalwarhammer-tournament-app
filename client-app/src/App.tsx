@@ -39,6 +39,15 @@ export function App() {
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
+          //default 404 page
+          <Route
+            path="*"
+            element={
+              <div className="flex items-center justify-center h-screen text-2xl font-bold text-gray-700">
+                404 - Invalid URL
+              </div>
+            }
+          />
         </Routes>
       </AppShell>
       <Toaster />

@@ -66,6 +66,15 @@ class AuthStateService {
       return false;
     }
 
+    console.log("session: ", req.session);
+    console.log("session.user: ", req.session.user);
+    console.log("session.isAuthenticated: ", req.session.isAuthenticated);
+    console.log("session.createdAt: ", req.session.createdAt);
+    console.log("session.cookie: ", req.session.cookie);
+    console.log("session.fingerprint: ", req.session.fingerprint);
+    console.log("session.isGuest: ", req.session.isGuest);
+    console.log("session.userAgent: ", req.get("user-agent"));
+
     // Additional security check for session hijacking prevention
     if (req.session.fingerprint) {
       const currentIp = req.ip;
