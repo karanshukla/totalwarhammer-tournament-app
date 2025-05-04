@@ -23,6 +23,14 @@ export const createGuestUser = async (req, res) => {
       email: "", // Guests don't have email
     };
 
+    // Ensure session is saved
+    await new Promise((resolve, reject) => {
+      req.session.save((err) => {
+        if (err) reject(err);
+        else resolve();
+      });
+    });
+
     // Calculate expiration time
     const expiresAt =
       Date.now() + (req.session.cookie.maxAge || 48 * 60 * 60 * 1000); // Default 48 hours
@@ -107,9 +115,17 @@ export const updateGuestUsername = async (req, res) => {
       Date.now() + (req.session.cookie.maxAge || 48 * 60 * 60 * 1000);
 
     // Save the session explicitly to ensure changes persist
-    if (req.session.save) {
-      req.session.save();
-    }
+    await new Promise((resolve, reject) => {
+      req.session.save((err) => {
+        if (err) {
+          logger.error(`Error saving session: ${err.message}`);
+          reject(err);
+        } else {
+          logger.debug("Session saved successfully");
+          resolve();
+        }
+      });
+    });
 
     logger.debug("Guest username updated successfully", {
       username,

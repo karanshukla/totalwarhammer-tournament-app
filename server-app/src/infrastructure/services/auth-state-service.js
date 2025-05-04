@@ -145,6 +145,15 @@ class AuthStateService {
 
     // Guest sessions expire after 2 days
     req.session.cookie.maxAge = this.GUEST_SESSION_TIMEOUT;
+
+    // Explicitly save the session to ensure persistence
+    if (req.session.save) {
+      req.session.save((err) => {
+        if (err) {
+          console.error("Error saving guest session:", err);
+        }
+      });
+    }
   }
 }
 
