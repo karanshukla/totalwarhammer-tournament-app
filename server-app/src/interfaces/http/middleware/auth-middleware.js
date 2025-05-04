@@ -74,7 +74,7 @@ const authenticateGuestSession = (req, res, next) => {
       }
     }
     // Fallback: Attempt to recover session if it might exist but user data is missing
-    else if (req.session.id && req.session.isGuest) {
+    else if (req.session.id) {
       logger.warn(
         "Attempting session recovery: Session exists but user data is missing"
       );
@@ -84,10 +84,12 @@ const authenticateGuestSession = (req, res, next) => {
         id: req.session.id, // Use session ID as fallback user ID
         isGuest: true,
         role: "guest",
+        username: `Guest_${req.session.id.substring(0, 6)}`, // Generate a basic username
       };
 
       // Store the recovered user back in the session
       req.session.user = req.user;
+      req.session.isGuest = true;
       req.session.isAuthenticated = true;
 
       logger.info("Guest session recovered with minimal user data", {

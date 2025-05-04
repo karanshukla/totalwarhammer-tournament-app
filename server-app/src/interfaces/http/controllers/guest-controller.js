@@ -167,6 +167,16 @@ export const updateGuestUsername = async (req, res) => {
       }
     }
 
+    // Add a cookie touch to extend expiration in case that's the issue
+    if (req.session.touch) {
+      try {
+        req.session.touch();
+        logger.debug("Session touched to extend expiration");
+      } catch (touchError) {
+        logger.warn("Error touching session", { error: touchError });
+      }
+    }
+
     logger.debug("Guest username updated successfully", {
       username,
       sessionId: req.session?.id,
