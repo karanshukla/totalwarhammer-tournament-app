@@ -65,18 +65,26 @@ class AuthStateService {
    */
   isAuthenticated(req) {
     if (!req.session || !req.session.isAuthenticated) {
+      logger.debug(
+        "Session not authenticated: missing session or isAuthenticated flag"
+      );
       return false;
     }
+
+    // Explicitly check if it's a guest session
+    const isGuest = req.session.isGuest === true;
 
     // Additional security check for session hijacking prevention
     if (req.session.fingerprint) {
       const currentIp = req.ip;
       const currentUserAgent = req.get("user-agent");
 
-      // Special handling for guest users - less strict validation
-      if (req.session.isGuest) {
-        //loosen validation for guest users
-        return true;
+      if (isGuest) {
+        // For guest sessions, only validate user agent
+        if (req.session.fingerprint.userAgent !== currentUserAgent) {
+          logger.warn("Guest session rejected: user agent mismatch");
+          return false;
+        }
       } else {
         // For regular users, keep the full validation
         if (

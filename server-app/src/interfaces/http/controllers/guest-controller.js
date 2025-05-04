@@ -60,8 +60,15 @@ export const updateGuestUsername = async (req, res) => {
       });
     }
 
-    // Check if user is a guest using the auth service
-    if (!authStateService.isAuthenticated(req) || !req.session.isGuest) {
+    // Check if user is authenticated and is a guest
+    if (
+      !authStateService.isAuthenticated(req) ||
+      !req.session.user ||
+      !req.session.user.isGuest
+    ) {
+      logger.debug(
+        `Guest auth failed: isAuthenticated=${authStateService.isAuthenticated(req)}, user exists=${!!req.session.user}, isGuest=${req.session.user?.isGuest}`
+      );
       return res.status(403).json({
         success: false,
         message:
