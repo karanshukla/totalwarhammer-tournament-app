@@ -67,14 +67,6 @@ class AuthStateService {
     if (!req.session || !req.session.isAuthenticated) {
       return false;
     }
-    console.log("session: ", req.session);
-    console.log("session.user: ", req.session.user);
-    console.log("session.isAuthenticated: ", req.session.isAuthenticated);
-    console.log("session.createdAt: ", req.session.createdAt);
-    console.log("session.cookie: ", req.session.cookie);
-    console.log("session.fingerprint: ", req.session.fingerprint);
-    console.log("session.isGuest: ", req.session.isGuest);
-    console.log("session.userAgent: ", req.get("user-agent"));
 
     // Additional security check for session hijacking prevention
     if (req.session.fingerprint) {
@@ -83,11 +75,8 @@ class AuthStateService {
 
       // Special handling for guest users - less strict validation
       if (req.session.isGuest) {
-        // For guests, only validate user-agent to allow for IP changes
-        if (req.session.fingerprint.userAgent !== currentUserAgent) {
-          logger.warn("Guest session rejected: user agent mismatch");
-          return false;
-        }
+        //loosen validation for guest users
+        return true;
       } else {
         // For regular users, keep the full validation
         if (

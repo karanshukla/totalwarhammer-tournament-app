@@ -1,5 +1,6 @@
 import express from "express";
 
+import logger from "../../../infrastructure/utils/logger.js";
 import * as authenticationController from "../controllers/authentication-controller.js";
 import { generateCsrfToken } from "../middleware/csrf-middleware.js";
 import {
@@ -18,7 +19,10 @@ router.get("/csrf-token", (req, res) => {
 
   try {
     const token = generateCsrfToken(req, res);
-    console.log(`Generated CSRF token for session ${req.session.id}`);
+    logger.info("CSRF token generated successfully", {
+      sessionId: req.session.id,
+      csrfToken: token,
+    });
 
     res.json({
       csrfToken: token,
