@@ -99,7 +99,7 @@ export const login = async (req, res) => {
 
     try {
       // Create user session
-      authStateService.createServerSession(req, {
+      authStateService.createUserAuthState(req, {
         ...user.toObject(),
         rememberMe,
       });
@@ -212,7 +212,7 @@ export const token = async (req, res) => {
 
     try {
       // Create user session with the rememberMe preference from the code data
-      authStateService.createSession(req, {
+      authStateService.createUserAuthState(req, {
         ...user.toObject(),
         rememberMe: codeData.rememberMe || false,
       });
@@ -267,12 +267,12 @@ export const logout = async (req, res) => {
 
   try {
     // Promisify the session destroy method
-    const destroySession = promisify(
-      authStateService.destroySession.bind(authStateService)
+    const clearAuth = promisify(
+      authStateService.clearAuthState.bind(authStateService)
     );
 
-    // Destroy the session
-    await destroySession(req);
+    // Clear the authentication state
+    await clearAuth(req);
 
     res.clearCookie("connect.sid"); // Clear the session cookie
 

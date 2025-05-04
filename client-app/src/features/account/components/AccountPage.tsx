@@ -25,9 +25,8 @@ const AccountPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Basic validation
-    if (!username || username.length < 3) {
-      setError("Username must be at least 3 characters long");
+    if (!username || username.length < 5) {
+      setError("Username must be at least 5 characters long");
       return;
     }
     setIsSubmitting(true);
@@ -71,10 +70,11 @@ const AccountPage: React.FC = () => {
           </Box>
         </VStack>
       ) : (
-        <Text>
-          You are logged in as {user.username}. You can update your account
-          information here.
-        </Text>
+        <VStack gap={6} align="start">
+          <Text>Username: {user.username}</Text>
+          <Text>Email: {user.email}</Text>
+          <Text>Account Type: {user.isGuest ? "Guest" : "Registered"}</Text>
+        </VStack>
       )}
     </Container>
   );

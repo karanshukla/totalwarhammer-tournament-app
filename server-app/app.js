@@ -113,7 +113,7 @@ app.use(
     name: "sid",
     resave: false,
     saveUninitialized: false,
-    rolling: true,
+    rolling: false,
     store: store,
     proxy: true, // Add this because we set 'trust proxy'
     cookie: {

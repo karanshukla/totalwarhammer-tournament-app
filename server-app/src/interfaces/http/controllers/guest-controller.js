@@ -10,8 +10,8 @@ export const createGuestUser = async (req, res) => {
     const guestId = crypto.randomBytes(16).toString("hex");
     const guestUsername = `Guest_${crypto.randomBytes(4).toString("hex")}`;
 
-    // Create guest session
-    authStateService.createGuestSession(req, guestId);
+    // Create guest authentication state
+    authStateService.createGuestAuthState(req, guestId);
 
     req.session.user = {
       ...req.session.user,
