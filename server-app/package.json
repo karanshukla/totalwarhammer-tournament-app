@@ -9,7 +9,8 @@
     "dev": "nodemon app.js",
     "lint": "eslint . --ext .js",
     "lint:fix": "eslint . --ext .js --fix",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node --test",
+    "test:watch": "node --test --watch"
   },
   "dependencies": {
     "bcrypt": "^5.1.1",

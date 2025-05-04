@@ -1,7 +1,8 @@
 import { Resend } from "resend";
 
-// Initialize Resend with API key
-const resend = new Resend(process.env.RESEND_API_KEY);
+import { resendApiKey } from "../config/env.js";
+
+const resend = new Resend(resendApiKey);
 
 class EmailService {
   /**

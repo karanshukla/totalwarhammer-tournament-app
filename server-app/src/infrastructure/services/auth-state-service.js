@@ -38,6 +38,11 @@ class AuthStateService {
       userAgent: req.get("user-agent"),
     };
 
+    // Initialize session.cookie if it doesn't exist
+    if (!req.session.cookie) {
+      req.session.cookie = {};
+    }
+
     req.session.cookie.maxAge = this.DEFAULT_AUTH_STATE_TIMEOUT;
 
     if (userData.rememberMe) {
@@ -119,7 +124,12 @@ class AuthStateService {
    */
   clearAuthState(req, callback) {
     if (req.session) {
-      req.session.destroy(callback);
+      // Only pass the callback if it exists
+      if (callback) {
+        req.session.destroy(callback);
+      } else {
+        req.session.destroy();
+      }
     } else if (callback) {
       callback();
     }
@@ -150,6 +160,11 @@ class AuthStateService {
       ip: req.ip,
       userAgent: req.get("user-agent"),
     };
+
+    // Initialize session.cookie if it doesn't exist
+    if (!req.session.cookie) {
+      req.session.cookie = {};
+    }
 
     req.session.cookie.maxAge = this.GUEST_AUTH_STATE_TIMEOUT;
 

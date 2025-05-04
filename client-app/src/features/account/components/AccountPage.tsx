@@ -54,8 +54,7 @@ const AccountPage: React.FC = () => {
             <VStack gap={4} align="start">
               <Input
                 id="username"
-                placeholder="Enter new username"
-                value={username}
+                placeholder="Enter your new username"
                 onChange={handleUsernameChange}
               />
               <Button

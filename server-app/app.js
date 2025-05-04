@@ -91,8 +91,11 @@ app.use(
 );
 
 // Session configuration - must come after cookieParser and CORS
-const SESSION_SECRET =
-  process.env.SESSION_SECRET || "super-strong-secret-key-for-development-only";
+const SESSION_SECRET = process.env.SESSION_SECRET;
+if (!SESSION_SECRET) {
+  logger.error("SESSION_SECRET is not set in environment variables");
+  process.exit(1);
+}
 
 // Determine environment-appropriate cookie settings
 const isProduction = process.env.NODE_ENV === "production";
