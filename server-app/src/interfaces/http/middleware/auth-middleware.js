@@ -116,14 +116,6 @@ const authenticateGuestSession = (req, res, next) => {
       });
     }
 
-    // Add debugging data
-    logger.debug("Guest session auth debug data:", {
-      sessionId: req.session.id,
-      isAuthenticated: !!req.session.isAuthenticated,
-      isGuest: !!req.session.isGuest || !!req.session.user?.isGuest,
-      user: req.user,
-    });
-
     next();
   } catch (error) {
     logger.error("Guest session authentication error:", error);

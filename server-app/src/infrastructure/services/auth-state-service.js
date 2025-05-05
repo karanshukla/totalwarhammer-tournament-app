@@ -5,23 +5,23 @@ import logger from "../utils/logger.js";
 
 class AuthStateService {
   constructor() {
-    this.DEFAULT_SESSION_TIMEOUT = 2 * 60 * 60 * 1000; // 2 hours
+    this.DEFAULT_AUTH_STATE_TIMEOUT = 2 * 60 * 60 * 1000; // 2 hours
     this.REMEMBER_ME_TIMEOUT = 7 * 24 * 60 * 60 * 1000; // 7 days
-    this.GUEST_SESSION_TIMEOUT = 2 * 24 * 60 * 60 * 1000; // 48 hours
+    this.GUEST_AUTH_STATE_TIMEOUT = 2 * 24 * 60 * 60 * 1000; // 48 hours
   }
 
   /**
-   * Creates a new user session in the server
+   * Creates a new user authentication state in the server
    * Maybe worth moving to redis
    * @param {Object} req - Express request object
    * @param {Object} userData - User data to store in session
    */
-  createServerSession(req, userData) {
+  createUserAuthState(req, userData) {
     if (!userData || !req) {
       throw new Error("Invalid request or user data");
     }
 
-    const sessionUser = {
+    const authStateUser = {
       id: userData._id || userData.id,
       email: userData.email,
       username: userData.username,
@@ -29,7 +29,7 @@ class AuthStateService {
       isGuest: userData.isGuest || false,
     };
 
-    req.session.user = sessionUser;
+    req.session.user = authStateUser;
     req.session.isAuthenticated = true;
     req.session.createdAt = new Date();
 
@@ -38,7 +38,12 @@ class AuthStateService {
       userAgent: req.get("user-agent"),
     };
 
-    req.session.cookie.maxAge = this.DEFAULT_SESSION_TIMEOUT;
+    // Initialize session.cookie if it doesn't exist
+    if (!req.session.cookie) {
+      req.session.cookie = {};
+    }
+
+    req.session.cookie.maxAge = this.DEFAULT_AUTH_STATE_TIMEOUT;
 
     if (userData.rememberMe) {
       req.session.cookie.maxAge = this.REMEMBER_ME_TIMEOUT;
@@ -46,7 +51,7 @@ class AuthStateService {
   }
 
   /**
-   * Get current user from session
+   * Get current user from authentication state
    * @param {Object} req - Express request object
    * @returns {Object|null} - User data or null if not authenticated
    */
@@ -62,7 +67,7 @@ class AuthStateService {
   isAuthenticated(req) {
     if (!req.session || !req.session.isAuthenticated) {
       logger.debug(
-        "Session not authenticated: missing session or isAuthenticated flag"
+        "Authentication state invalid: missing session or isAuthenticated flag"
       );
       return false;
     }
@@ -72,17 +77,19 @@ class AuthStateService {
 
     if (isGuest) {
       logger.debug(
-        "Guest session detected, using relaxed authentication rules"
+        "Guest authentication detected, using relaxed authentication rules"
       );
       if (!req.session.user || !req.session.user.id) {
-        logger.warn("Guest session rejected: missing or invalid user data");
+        logger.warn(
+          "Guest authentication rejected: missing or invalid user data"
+        );
         return false;
       }
 
       if (req.session.fingerprint && req.session.fingerprint.userAgent) {
         const currentUserAgent = req.get("user-agent");
         if (req.session.fingerprint.userAgent !== currentUserAgent) {
-          logger.warn("Guest session rejected: user agent mismatch");
+          logger.warn("Guest authentication rejected: user agent mismatch");
           return false;
         }
       }
@@ -99,7 +106,7 @@ class AuthStateService {
         req.session.fingerprint.ip !== currentIp ||
         req.session.fingerprint.userAgent !== currentUserAgent
       ) {
-        logger.warn("Session rejected: IP or user agent mismatch");
+        logger.warn("Authentication rejected: IP or user agent mismatch");
         logger.warn(
           `Original IP: ${req.session.fingerprint.ip}, Current IP: ${currentIp}`
         );
@@ -111,24 +118,29 @@ class AuthStateService {
   }
 
   /**
-   * Destroy user session
+   * Clear user authentication state
    * @param {Object} req - Express request object
    * @param {Function} callback - Callback function
    */
-  destroySession(req, callback) {
+  clearAuthState(req, callback) {
     if (req.session) {
-      req.session.destroy(callback);
+      // Only pass the callback if it exists
+      if (callback) {
+        req.session.destroy(callback);
+      } else {
+        req.session.destroy();
+      }
     } else if (callback) {
       callback();
     }
   }
 
   /**
-   * Create guest session
+   * Create guest authentication state
    * @param {Object} req - Express request object
    * @param {string} guestId - ID for the guest user
    */
-  createGuestSession(req, guestId) {
+  createGuestAuthState(req, guestId) {
     if (!guestId || !req) {
       throw new Error("Invalid request or guest ID");
     }
@@ -149,12 +161,17 @@ class AuthStateService {
       userAgent: req.get("user-agent"),
     };
 
-    req.session.cookie.maxAge = this.GUEST_SESSION_TIMEOUT;
+    // Initialize session.cookie if it doesn't exist
+    if (!req.session.cookie) {
+      req.session.cookie = {};
+    }
+
+    req.session.cookie.maxAge = this.GUEST_AUTH_STATE_TIMEOUT;
 
     if (req.session.save) {
       req.session.save((err) => {
         if (err) {
-          console.error("Error saving guest session:", err);
+          console.error("Error saving guest authentication state:", err);
         }
       });
     }
