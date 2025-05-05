@@ -12,14 +12,15 @@ export const sendPasswordResetEmail = async (req, res) => {
   try {
     const { email } = req.body;
 
-    if (!email || !/\S+@\S+\.\S+/.test(email)) {
+    
+    if (!email || !email.includes("@")) {
       return res.status(400).json({
         success: false,
         message: "Invalid email address",
       });
     }
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email: { $eq: email } });
     if (!user) {
       return res.status(200).json({
         success: true,
