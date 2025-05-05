@@ -17,9 +17,15 @@ export const userExists = async (req, res) => {
     }
 
     // Check if user exists by username or email
-    let user = await User.findOne({ username: identifier });
+    if (typeof identifier !== "string") {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid identifier format",
+      });
+    }
+    let user = await User.findOne({ username: { $eq: identifier } });
     if (!user) {
-      user = await User.findOne({ email: identifier });
+      user = await User.findOne({ email: { $eq: identifier } });
     }
 
     return res.status(200).json({
@@ -42,7 +48,7 @@ export const register = async (req, res) => {
   try {
     const { username, email, password } = req.body;
 
-    const existingEmail = await User.findOne({ email });
+    const existingEmail = await User.findOne({ email: { $eq: email } });
     if (existingEmail) {
       return res.status(400).json({
         success: false,

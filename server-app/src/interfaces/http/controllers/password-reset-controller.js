@@ -12,7 +12,8 @@ export const sendPasswordResetEmail = async (req, res) => {
   try {
     const { email } = req.body;
 
-    if (!email || !/\S+@\S+\.\S+/.test(email)) {
+    
+    if (!email || !email.includes("@")) {
       return res.status(400).json({
         success: false,
         message: "Invalid email address",
