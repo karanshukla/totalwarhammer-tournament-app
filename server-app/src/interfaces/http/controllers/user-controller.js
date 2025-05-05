@@ -50,7 +50,13 @@ export const register = async (req, res) => {
       });
     }
 
-    const existingUsername = await User.findOne({ username });
+    if (typeof username !== "string") {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid username format",
+      });
+    }
+    const existingUsername = await User.findOne({ username: { $eq: username } });
     if (existingUsername) {
       return res.status(400).json({
         success: false,

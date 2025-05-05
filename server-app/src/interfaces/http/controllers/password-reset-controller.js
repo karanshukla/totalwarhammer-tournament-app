@@ -19,7 +19,7 @@ export const sendPasswordResetEmail = async (req, res) => {
       });
     }
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email: { $eq: email } });
     if (!user) {
       return res.status(200).json({
         success: true,
