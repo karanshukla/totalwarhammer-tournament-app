@@ -160,15 +160,8 @@ app.use(routes);
 app.use(csrfErrorHandler);
 
 // Generic error handler
-app.use((err, req, res) => {
+app.use((err) => {
   logger.error(`Application error: ${err.message}`, { error: err });
-  res.status(500).json({
-    error: "Server error",
-    message:
-      process.env.NODE_ENV === "production"
-        ? "An unexpected error occurred"
-        : err.message,
-  });
 });
 
 // Start server

@@ -1,0 +1,43 @@
+name: Server Tests
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "server-app/**"
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "server-app/**"
+
+jobs:
+  test:
+    name: Run Server Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: "npm"
+          cache-dependency-path: "server-app/package.json"
+
+      - name: Install dependencies
+        working-directory: ./server-app
+        run: npm install
+
+      - name: Create .env file
+        working-directory: ./server-app
+        run: |
+          echo "JWT_SECRET=test-secret-key" >> .env
+          echo "MONGO_URI=mongodb://localhost:27017" >> .env
+          echo "PORT=3000" >> .env
+          echo "NODE_ENV=test" >> .env
+
+      - name: Run tests
+        working-directory: ./server-app
+        run: npm test
