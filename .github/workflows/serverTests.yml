@@ -36,6 +36,7 @@ jobs:
           echo "JWT_SECRET=test-secret-key" >> .env
           echo "MONGO_URI=mongodb://localhost:27017" >> .env
           echo "PORT=3000" >> .env
+          echo "RESEND_API_KEY=test-api-key" >> .env
           echo "NODE_ENV=test" >> .env
 
       - name: Run tests
