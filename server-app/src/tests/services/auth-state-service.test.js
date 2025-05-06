@@ -4,8 +4,8 @@ import { describe, it, beforeEach, mock } from "node:test";
 
 import AuthStateService from "../../infrastructure/services/auth-state-service.js";
 
-// Enable mock timers for date
-mock.timers.enable(["date"]);
+// Enable mock timers with the proper option
+mock.timers.enable({ apis: ["Date"] });
 
 // Helper function for creating mock Express request objects
 function createMockRequest({

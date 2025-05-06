@@ -15,14 +15,16 @@ const mockEmailSend = {
   },
 };
 
-// Override the Resend constructor to return our mock
+// Mock the Resend constructor and emails.send method
 Resend.prototype.constructor = function () {
-  this.emails = {
-    send: async (params) => {
-      mockEmailSend.calls.push(params);
-      return mockEmailSend.response;
-    },
-  };
+  return this;
+};
+
+Resend.prototype.emails = {
+  send: async (params) => {
+    mockEmailSend.calls.push(params);
+    return mockEmailSend.response;
+  },
 };
 
 // Import the service under test
