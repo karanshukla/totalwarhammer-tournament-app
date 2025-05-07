@@ -9,7 +9,7 @@ class HttpClient {
   private baseUrl: string;
   private csrfToken: string | null = null;
   private tokenPromise: Promise<string | null> | null = null;
-  private debug: boolean = false;
+  private debug: boolean = true; // Enable debugging to see why CSRF validation fails
 
   constructor(baseUrl: string) {
     this.baseUrl = baseUrl;
