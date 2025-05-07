@@ -1,10 +1,8 @@
-import MongoDBStore from "connect-mongodb-session";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import express from "express";
 import mongoSanitize from "express-mongo-sanitize";
 import { rateLimit } from "express-rate-limit";
-import session from "express-session";
 import helmet from "helmet";
 import hpp from "hpp";
 import { FilterXSS } from "xss";
@@ -12,6 +10,7 @@ import { FilterXSS } from "xss";
 // Import logger for centralized logging
 import { port, mongoUri, clientUrl } from "./src/infrastructure/config/env.js";
 import { connectToDatabase } from "./src/infrastructure/db/connection.js";
+import { configureSessionMiddleware } from "./src/infrastructure/services/session-store-service.js";
 import logger from "./src/infrastructure/utils/logger.js";
 import {
   csrfErrorHandler,
@@ -30,20 +29,6 @@ app.set("trust proxy", 1);
 
 // Connect to database
 connectToDatabase();
-
-// Initialize MongoDB session store
-const MongoDBSessionStore = MongoDBStore(session);
-const store = new MongoDBSessionStore({
-  databaseName: "twta-app-sessions",
-  uri: mongoUri,
-  collection: "sessions",
-  expires: 7 * 24 * 60 * 60 * 1000, // 7 days
-});
-
-// Handle store errors
-store.on("error", function (error) {
-  logger.error(`Session store error: ${error.message}`, { error });
-});
 
 // Security
 app.use(helmet({}));
@@ -103,31 +88,12 @@ const isProduction = process.env.NODE_ENV === "production";
 logger.info(
   `Starting server in ${process.env.NODE_ENV || "development"} environment`
 );
-// logger.info(
-//   `Session cookie secure attribute: ${useSecureCookies ? "enabled" : "disabled"}`
-// ); // Logging will happen dynamically based on request
 logger.info(
   `CORS origin: ${process.env.CLIENT_URL || "http://localhost:3000"}`
 );
 
-app.use(
-  session({
-    secret: SESSION_SECRET,
-    name: "sid",
-    resave: false,
-    saveUninitialized: false,
-    rolling: false,
-    store: store,
-    proxy: true, // Add this because we set 'trust proxy'
-    cookie: {
-      secure: "auto",
-      httpOnly: true,
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-      sameSite: isProduction ? "strict" : "lax",
-      path: "/", 
-    },
-  })
-);
+// Configure and use session middleware
+app.use(configureSessionMiddleware(SESSION_SECRET, isProduction));
 
 // Add CSRF prerequisite check to debug session issues
 app.use(csrfPrerequisiteCheck);
@@ -165,9 +131,9 @@ app.use(routes);
 app.use(csrfErrorHandler);
 
 // Generic error handler
-app.use((err, req, res, next) => {
+app.use((err, _req, res, _next) => {
   logger.error(`Application error: ${err.message}`, { error: err });
-  res.status(500).json({ error: 'Server error occurred' });
+  res.status(500).json({ error: "Server error occurred" });
 });
 
 // Start server

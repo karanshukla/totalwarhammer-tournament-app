@@ -12,9 +12,8 @@ class AuthStateService {
 
   /**
    * Creates a new user authentication state in the server
-   * Maybe worth moving to redis
    * @param {Object} req - Express request object
-   * @param {Object} userData - User data to store in session
+   * @param {Object} userData - User data to store in auth state
    */
   createUserAuthState(req, userData) {
     if (!userData || !req) {
