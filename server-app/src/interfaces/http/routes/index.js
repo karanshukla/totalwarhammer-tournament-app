@@ -31,8 +31,4 @@ router.use("/auth", authRoutes);
 router.use("/guest", guestRoutes);
 router.use("/password-reset", passwordResetRoutes);
 
-// Create and export the main router that will prefix everything with /api
-const apiRouter = express.Router();
-apiRouter.use('/api', router);
-
-export default apiRouter;
+export default router;

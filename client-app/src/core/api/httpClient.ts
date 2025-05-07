@@ -92,8 +92,12 @@ class HttpClient {
       endpoint.includes("/auth/logout") ||
       endpoint.includes("/auth/token") ||
       options.skipCsrf;
+    
+    // Always include CSRF token for guest endpoints
+    const isGuestEndpoint = endpoint.includes("/guest");
+    const skipCsrfForEndpoint = isGuestEndpoint ? false : shouldSkipCsrf;
 
-    const { params, skipCsrf = shouldSkipCsrf, ...requestOptions } = options;
+    const { params, skipCsrf = skipCsrfForEndpoint, ...requestOptions } = options;
 
     let token = null;
     if (!skipCsrf) {
