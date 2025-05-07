@@ -9,7 +9,7 @@ class HttpClient {
   private baseUrl: string;
   private csrfToken: string | null = null;
   private tokenPromise: Promise<string | null> | null = null;
-  private debug: boolean = true; // Enable debugging to see why CSRF validation fails
+  private debug: boolean = false; // Set to true for debugging
 
   constructor(baseUrl: string) {
     this.baseUrl = baseUrl;
@@ -93,7 +93,15 @@ class HttpClient {
       endpoint.includes("/auth/token") ||
       options.skipCsrf;
 
-    const { params, skipCsrf = shouldSkipCsrf, ...requestOptions } = options;
+    // Always include CSRF token for guest endpoints
+    const isGuestEndpoint = endpoint.includes("/guest");
+    const skipCsrfForEndpoint = isGuestEndpoint ? false : shouldSkipCsrf;
+
+    const {
+      params,
+      skipCsrf = skipCsrfForEndpoint,
+      ...requestOptions
+    } = options;
 
     let token = null;
     if (!skipCsrf) {

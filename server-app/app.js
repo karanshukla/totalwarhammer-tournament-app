@@ -124,7 +124,7 @@ app.use(
       httpOnly: true,
       maxAge: 7 * 24 * 60 * 60 * 1000,
       sameSite: isProduction ? "strict" : "lax",
-      path: "/api",  // Updated to match the API URL prefix
+      path: "/", 
     },
   })
 );
@@ -158,7 +158,7 @@ app.get("/", (req, res) => {
   res.redirect(clientUrl);
 });
 
-// Mount API routes with /api prefix
+// Mount routes directly without /api prefix
 app.use(routes);
 
 // CSRF Error handler - place after routes but before other error handlers
@@ -173,7 +173,7 @@ app.use((err, req, res, next) => {
 // Start server
 app.listen(port, "::", () => {
   logger.info(`Server listening on [::]${port}`);
-  logger.info(`API endpoints available at [::]${port}/api/*`);
+  logger.info(`API endpoints available at [::]${port}/*`);
 });
 
 export default app;
