@@ -17,9 +17,13 @@ export interface GuestUserResponse {
 
 export const createGuestUser = async (): Promise<GuestUserResponse> => {
   try {
+    // Reset any stale CSRF token to ensure a fresh one is fetched
+    httpClient.resetCsrfToken();
+    
     const responseData = await httpClient.post<GuestUserResponse>(
       apiConfig.endpoints.guest,
-      {}
+      {},
+      { skipCsrf: false } // Explicitly require CSRF token
     );
 
     if (responseData.success && responseData.data) {

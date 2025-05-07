@@ -1,0 +1,38 @@
+name: Client Vitest Tests
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "client-app/**"
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "client-app/**"
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Run client Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: "npm"
+          cache-dependency-path: "client-app/package.json"
+
+      - name: Install dependencies
+        working-directory: ./client-app
+        run: npm install
+
+      - name: Run tests
+        working-directory: ./client-app
+        run: npm test

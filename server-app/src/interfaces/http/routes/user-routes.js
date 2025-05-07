@@ -29,14 +29,6 @@ router.get(
   validationHandler,
   userController.userExists
 );
-router.post("/guest", doubleCsrfProtection, userController.createGuestUser);
-router.post(
-  "/guest/update-username",
-  authenticateToken,
-  validateGuestUsername,
-  validationHandler,
-  doubleCsrfProtection,
-  userController.updateGuestUsername
-);
+// Guest routes have been removed as they are now handled in guest-routes.js
 
 export default router;
