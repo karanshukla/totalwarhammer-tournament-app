@@ -10,7 +10,7 @@ import hpp from "hpp";
 import { FilterXSS } from "xss";
 
 // Import logger for centralized logging
-import { port, mongoUri } from "./src/infrastructure/config/env.js";
+import { port, mongoUri, clientUrl } from "./src/infrastructure/config/env.js";
 import { connectToDatabase } from "./src/infrastructure/db/connection.js";
 import logger from "./src/infrastructure/utils/logger.js";
 import {
@@ -153,20 +153,27 @@ app.use((req, res, next) => {
   next();
 });
 
-// Routes
+// Root route redirects to client
+app.get("/", (req, res) => {
+  res.redirect(clientUrl);
+});
+
+// Mount API routes with /api prefix
 app.use(routes);
 
 // CSRF Error handler - place after routes but before other error handlers
 app.use(csrfErrorHandler);
 
 // Generic error handler
-app.use((err) => {
+app.use((err, req, res, next) => {
   logger.error(`Application error: ${err.message}`, { error: err });
+  res.status(500).json({ error: 'Server error occurred' });
 });
 
 // Start server
 app.listen(port, "::", () => {
   logger.info(`Server listening on [::]${port}`);
+  logger.info(`API endpoints available at [::]${port}/api/*`);
 });
 
 export default app;
