@@ -23,7 +23,7 @@ const { doubleCsrfProtection, generateCsrfToken, invalidCsrfTokenError } =
       httpOnly: true,
       sameSite: process.env.NODE_ENV === "production" ? "Strict" : "Lax",
       secure: process.env.NODE_ENV === "production",
-      path: "/api",  // Updated to match the new API URL prefix
+      path: "/", // Changed from /api to / to ensure cookie is sent with all requests
       maxAge: 24 * 60 * 60 * 1000, // 1 day
     },
 
