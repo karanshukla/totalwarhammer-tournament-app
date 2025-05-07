@@ -56,8 +56,16 @@ const csrfPrerequisiteCheck = (req, res, next) => {
 
 // Enhanced error handling middleware for CSRF errors
 const csrfErrorHandler = (err, req, res, next) => {
+  // Skip CSRF validation for preflight OPTIONS requests
+  if (req.method === 'OPTIONS') {
+    return next();
+  }
+  
   if (err === invalidCsrfTokenError) {
     console.error("CSRF Error:", {
+      method: req.method,
+      path: req.path,
+      origin: req.headers.origin,
       sessionId: req.session?.id,
       tokenHeader: req.headers["x-csrf-token"],
       cookies: req.cookies,
