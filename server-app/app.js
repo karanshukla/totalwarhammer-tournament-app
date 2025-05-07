@@ -124,7 +124,7 @@ app.use(
       httpOnly: true,
       maxAge: 7 * 24 * 60 * 60 * 1000,
       sameSite: isProduction ? "strict" : "lax",
-      path: "/",
+      path: "/api",  // Updated to match the API URL prefix
     },
   })
 );
