@@ -1,12 +1,21 @@
+/* eslint-disable react-refresh/only-export-components */
 import React, { ComponentType, lazy, Suspense } from "react";
-import { Center, Spinner, Stack, Text } from "@chakra-ui/react";
+import {
+  Center,
+  HStack,
+  Skeleton,
+  SkeletonCircle,
+  Stack,
+  Text,
+  Spinner,
+} from "@chakra-ui/react";
 
 /**
  * Default loading component
  */
 const DefaultLoadingFallback = () => (
   <Center h="100%" minH="200px" w="100%">
-    <Spinner size="xl" />
+    <Spinner />
   </Center>
 );
 

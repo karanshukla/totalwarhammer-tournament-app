@@ -36,13 +36,12 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
   const isUserGuest = Boolean(user.isGuest);
 
   return (
-    <Box>
+    <Flex direction="column" height="100vh" overflow="hidden">
+      {/* Fixed Header */}
       <Flex
         as="header"
-        position="fixed"
+        position="sticky"
         top={0}
-        left={0}
-        right={0}
         h={HEADER_HEIGHT}
         py={3}
         px={4}
@@ -51,6 +50,7 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
         zIndex="docked"
         bg="chakra-body-bg"
         borderBottomWidth="1px"
+        width="100%"
       >
         <Box
           w={!isPortrait ? NAVBAR_WIDTH_DESKTOP : "0"}
@@ -79,51 +79,54 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
         </HStack>
       </Flex>
 
-      <Box
-        as="nav"
-        position="fixed"
-        zIndex="base"
-        bg="chakra-body-bg"
-        transition="all 0.2s"
-        {...(isPortrait
-          ? {
-              bottom: 0,
-              left: 0,
-              right: 0,
-              width: "100%",
-              height: NAVBAR_HEIGHT_MOBILE,
-              borderTopWidth: "1px",
-              py: 2,
-              px: 4,
-            }
-          : {
-              left: 0,
-              top: HEADER_HEIGHT,
-              h: `calc(100vh - ${HEADER_HEIGHT})`,
-              w: NAVBAR_WIDTH_DESKTOP,
-              borderRightWidth: "1px",
-              py: 6,
-              px: { base: 2, md: 4 },
-            })}
-      >
-        <NavItems
-          isPortrait={isPortrait}
-          isMobile={isMobile}
-          currentPath={currentPath}
-          isUserGuest={isUserGuest}
-        />
-      </Box>
+      {/* Main Content Area with Sidebar and Content */}
+      <Flex flex="1" overflow="hidden">
+        {/* Sidebar Nav - Fixed on Desktop, Bottom on Mobile */}
+        <Box
+          as="nav"
+          position={isPortrait ? "fixed" : "sticky"}
+          zIndex="base"
+          bg="chakra-body-bg"
+          transition="all 0.2s"
+          {...(isPortrait
+            ? {
+                bottom: 0,
+                left: 0,
+                right: 0,
+                width: "100%",
+                height: NAVBAR_HEIGHT_MOBILE,
+                borderTopWidth: "1px",
+                py: 2,
+                px: 4,
+              }
+            : {
+                top: 0,
+                h: `calc(100vh - ${HEADER_HEIGHT})`,
+                w: NAVBAR_WIDTH_DESKTOP,
+                borderRightWidth: "1px",
+                py: 6,
+                px: { base: 2, md: 4 },
+                flexShrink: 0,
+              })}
+        >
+          <NavItems
+            isPortrait={isPortrait}
+            isMobile={isMobile}
+            currentPath={currentPath}
+            isUserGuest={isUserGuest}
+          />
+        </Box>
 
-      <Box
-        pt={HEADER_HEIGHT}
-        pl={!isPortrait ? NAVBAR_WIDTH_DESKTOP : 0}
-        pb={isPortrait ? NAVBAR_HEIGHT_MOBILE : 0}
-        transition="all 0.2s"
-        minH="100vh"
-      >
-        {children}
-      </Box>
-    </Box>
+        {/* Scrollable Content Area */}
+        <Box
+          flex="1"
+          overflow="auto"
+          pb={isPortrait ? NAVBAR_HEIGHT_MOBILE : 0}
+        >
+          {children}
+        </Box>
+      </Flex>
+    </Flex>
   );
 };
 

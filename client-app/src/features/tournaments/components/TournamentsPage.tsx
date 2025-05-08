@@ -1,42 +1,116 @@
-import React from "react";
-import { Heading, Container, Tabs, For, SimpleGrid } from "@chakra-ui/react";
-import { LuUser, LuBrackets, LuTrophy, LuHistory, LuClock } from "react-icons/lu";
+import React, { useState } from "react";
+import {
+  Heading,
+  Container,
+  Box,
+  SimpleGrid,
+  Text,
+  VStack,
+  Card,
+  Icon,
+} from "@chakra-ui/react";
+import { LuBrackets, LuTrophy, LuHistory, LuClock } from "react-icons/lu";
+import SimpleBracket from "./SimpleBracket";
 
 const TournamentsPage: React.FC = () => {
+  const [activeTab, setActiveTab] = useState("brackets");
+
+  const tabs = [
+    {
+      id: "brackets",
+      icon: LuBrackets,
+      label: "Create a Simple Bracket",
+      content: "Create a simple bracket tournament",
+    },
+    {
+      id: "createTournament",
+      icon: LuTrophy,
+      label: "Create a Tournament",
+      content: "Create a new Tournament",
+    },
+    {
+      id: "currentTournaments",
+      icon: LuClock,
+      label: "View Ongoing Tournaments",
+      content: "Check ongoing tournaments",
+    },
+    {
+      id: "pastTournaments",
+      icon: LuHistory,
+      label: "View Past Tournaments",
+      content: "Check past tournaments",
+    },
+  ];
+
   return (
     <Container maxW="container.xl" py={8}>
-      <Heading as="h1" size="xl" mb={4}>
+      <Heading as="h1" size="xl" mb={6}>
         Tournaments
       </Heading>
-          <Tabs.Root  defaultValue="members" variant="outline" colorScheme="blue">
-            <Tabs.List>
-              <Tabs.Trigger value="brackets">
-                <LuBrackets />
-                Create a Simple Bracket
-              </Tabs.Trigger>
-              <Tabs.Trigger value="createTournament">
-                <LuTrophy />
-                Create a Tournament
-              </Tabs.Trigger>
-              <Tabs.Trigger value="currentTournaments">
-                <LuClock />
-                View Ongoing Tournaments
-              </Tabs.Trigger>
-              <Tabs.Trigger value="pasTournaments">
-                <LuHistory />
-                View Past Tournaments
-              </Tabs.Trigger>
-            </Tabs.List>
-            <Tabs.Content value="brackets">
-            </Tabs.Content>
-            <Tabs.Content value="createTournament">Create a new Tournament</Tabs.Content>
-            <Tabs.Content value="currentTournaments">
+
+      {/* Navigation Cards - Touch & Mouse Friendly */}
+      <SimpleGrid columns={{ base: 2, md: 4 }} spacing={4} mb={8}>
+        {tabs.map((tab) => (
+          <Card.Root
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            cursor="pointer"
+            variant={activeTab === tab.id ? "filled" : "outline"}
+            _hover={{ shadow: "md" }}
+            transition="all 0.2s"
+          >
+            <Card.Body p={4}>
+              <VStack spacing={3}>
+                <Icon
+                  as={tab.icon}
+                  boxSize={6}
+                  color={activeTab === tab.id ? "blue.500" : "gray.500"}
+                />
+                <Text fontSize="md" fontWeight="medium" textAlign="center">
+                  {tab.label}
+                </Text>
+              </VStack>
+            </Card.Body>
+          </Card.Root>
+        ))}
+      </SimpleGrid>
+
+      {/* Content Area */}
+      <Card.Root>
+        <Card.Header>
+          <Heading size="md">
+            {tabs.find((tab) => tab.id === activeTab)?.label}
+          </Heading>
+        </Card.Header>
+        <Card.Body>
+          {activeTab === "brackets" && (
+            <Box>
+              <SimpleBracket />
+            </Box>
+          )}
+
+          {activeTab === "createTournament" && (
+            <Box py={2}>
+              {/* Create tournament content goes here */}
+              Create a new Tournament
+            </Box>
+          )}
+
+          {activeTab === "currentTournaments" && (
+            <Box py={2}>
+              {/* Current tournaments content goes here */}
               Check ongoing tournaments
-            </Tabs.Content>
-            <Tabs.Content value="pasTournaments">
+            </Box>
+          )}
+
+          {activeTab === "pastTournaments" && (
+            <Box py={2}>
+              {/* Past tournaments content goes here */}
               Check past tournaments
-            </Tabs.Content>
-          </Tabs.Root>
+            </Box>
+          )}
+        </Card.Body>
+      </Card.Root>
     </Container>
   );
 };
