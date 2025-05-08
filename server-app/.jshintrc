@@ -1,0 +1,17 @@
+{
+  "esversion": 6,
+  "node": true,
+  "mocha": true,
+  "asi": false,
+  "lastsemic": false,
+  "expr": true,
+  "loopfunc": true,
+  "globals": {
+    "describe": true,
+    "it": true,
+    "beforeEach": true,
+    "afterEach": true,
+    "before": true,
+    "after": true
+  }
+}
