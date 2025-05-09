@@ -7,10 +7,8 @@ import { validationHandler } from "../middleware/validation/validation-handler.j
 
 const router = express.Router();
 
-// Create a guest user without authentication
 router.post("/", guestController.createGuestUser);
 
-// Update guest username (using the more lenient guest authentication)
 router.post(
   "/username",
   authenticateGuestSession,
