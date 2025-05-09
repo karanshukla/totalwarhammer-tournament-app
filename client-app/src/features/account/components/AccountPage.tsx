@@ -16,6 +16,10 @@ import {
   updateUsername as updateAuthUsername,
   updatePassword,
 } from "@/features/account/api/accountApi";
+import {
+  PasswordInput,
+  PasswordStrengthMeter,
+} from "@/shared/ui/PasswordInput";
 
 const AccountPage: React.FC = () => {
   const user = useUserStore((state) => state.user);
@@ -188,21 +192,21 @@ const AccountPage: React.FC = () => {
 
               <Box as="form" onSubmit={handlePasswordSubmit} width="100%">
                 <VStack gap={4} align="start">
-                  <Input
+                  <PasswordInput
                     id="currentPassword"
                     type="password"
                     placeholder="Current password"
                     value={currentPassword}
                     onChange={handlePasswordChange}
                   />
-                  <Input
+                  <PasswordInput
                     id="newPassword"
                     type="password"
                     placeholder="New password"
                     value={newPassword}
                     onChange={handlePasswordChange}
                   />
-                  <Input
+                  <PasswordInput
                     id="confirmPassword"
                     type="password"
                     placeholder="Confirm new password"

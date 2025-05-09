@@ -6,6 +6,7 @@ import { registerUser } from "../api/registrationApi";
 import { Toaster } from "@/shared/ui/Toaster";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { PasswordInput } from "@/shared/ui/PasswordInput";
 
 const formSchema = z.object({
   username: z.string().min(5, { message: "A valid Username is required" }),
@@ -59,7 +60,7 @@ export function RegistrationForm() {
 
         <Field.Root invalid={!!errors.password}>
           <Field.Label>Password</Field.Label>
-          <Input type="password" {...register("password")} />
+          <PasswordInput type="password" {...register("password")} />
           <Field.ErrorText>{errors.password?.message}</Field.ErrorText>
         </Field.Root>
         <Button

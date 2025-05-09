@@ -19,6 +19,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { verifyResetToken, resetPassword } from "../api/passwordResetApi";
 import { useNavigate } from "react-router-dom";
 import { toaster } from "@/shared/ui/Toaster";
+import { PasswordInput } from "@/shared/ui/PasswordInput";
 
 // Schema for password reset form validation
 const resetPasswordFormSchema = z
@@ -166,8 +167,7 @@ const ResetPasswordPage: React.FC = () => {
           <Stack gap={6}>
             <Field.Root invalid={!!errors.password} required>
               <Field.Label>New Password</Field.Label>
-              <Input
-                type="password"
+              <PasswordInput
                 {...register("password")}
                 placeholder="Enter your new password"
               />
@@ -176,8 +176,7 @@ const ResetPasswordPage: React.FC = () => {
 
             <Field.Root invalid={!!errors.confirmPassword} required>
               <Field.Label>Confirm Password</Field.Label>
-              <Input
-                type="password"
+              <PasswordInput
                 {...register("confirmPassword")}
                 placeholder="Confirm your new password"
               />
