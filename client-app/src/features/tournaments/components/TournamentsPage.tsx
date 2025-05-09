@@ -49,7 +49,7 @@ const TournamentsPage: React.FC = () => {
       </Heading>
 
       {/* Navigation Cards - Touch & Mouse Friendly */}
-      <SimpleGrid columns={{ base: 2, md: 4 }} spacing={4} mb={8}>
+      <SimpleGrid columns={{ base: 2, md: 4 }} gap={4} mb={8}>
         {tabs.map((tab) => (
           <Card.Root
             key={tab.id}
