@@ -62,7 +62,9 @@ export const register = async (req, res) => {
         message: "Invalid username format",
       });
     }
-    const existingUsername = await User.findOne({ username: { $eq: username } });
+    const existingUsername = await User.findOne({
+      username: { $eq: username },
+    });
     if (existingUsername) {
       return res.status(400).json({
         success: false,
@@ -204,6 +206,108 @@ export const updateGuestUsername = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to update username",
+      error: error.message,
+    });
+  }
+};
+
+export const updateUsername = async (req, res) => {
+  try {
+    const { username } = req.body;
+    const userId = req.user.id;
+
+    // Check if username is already taken by another user
+    const existingUsername = await User.findOne({
+      username: { $eq: username },
+      _id: { $ne: userId }, // Exclude the current user
+    });
+
+    if (existingUsername) {
+      return res.status(400).json({
+        success: false,
+        message: "Username already taken",
+      });
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { username },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Update the session's user data
+    if (req.session && req.session.user) {
+      req.session.user.username = username;
+      await new Promise((resolve, reject) => {
+        req.session.save((err) => {
+          if (err) reject(err);
+          else resolve();
+        });
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Username updated successfully",
+      data: {
+        id: updatedUser.id,
+        username: updatedUser.username,
+        email: updatedUser.email,
+      },
+    });
+  } catch (error) {
+    console.error("Error updating username:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to update username",
+      error: error.message,
+    });
+  }
+};
+
+export const updatePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const userId = req.user.id;
+
+    // Find the user with their password
+    const user = await User.findById(userId).select("+password");
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Verify current password
+    const isPasswordValid = await user.validatePassword(currentPassword);
+    if (!isPasswordValid) {
+      return res.status(401).json({
+        success: false,
+        message: "Current password is incorrect",
+      });
+    }
+
+    // Update password
+    user.password = await bcrypt.hash(newPassword, 10);
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Password updated successfully",
+    });
+  } catch (error) {
+    console.error("Error updating password:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to update password",
       error: error.message,
     });
   }

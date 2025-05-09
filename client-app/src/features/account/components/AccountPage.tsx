@@ -12,6 +12,10 @@ import {
 } from "@chakra-ui/react";
 import { useUserStore } from "@/shared/stores/userStore";
 import { updateGuestUsername } from "@/features/authentication/api/guestApi";
+import {
+  updateUsername as updateAuthUsername,
+  updatePassword,
+} from "@/features/account/api/accountApi";
 
 const AccountPage: React.FC = () => {
   const user = useUserStore((state) => state.user);
@@ -37,8 +41,20 @@ const AccountPage: React.FC = () => {
       return;
     }
     setIsSubmitting(true);
-    await updateGuestUsername(username);
-    setUsername(username);
+    try {
+      if (user.isGuest) {
+        await updateGuestUsername(username);
+      } else {
+        await updateAuthUsername(username);
+      }
+      setError("");
+    } catch (error) {
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError("Failed to update username");
+      }
+    }
     setIsSubmitting(false);
   };
 
@@ -70,14 +86,23 @@ const AccountPage: React.FC = () => {
 
     setIsUpdatingPassword(true);
     try {
-      // You'll need to implement an API call to update the password
-      // await updatePassword(currentPassword, newPassword);
+      await updatePassword({
+        currentPassword,
+        newPassword,
+        confirmPassword,
+      });
+
+      // Clear fields on success
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
-      // Show success message
+      setPasswordError("");
     } catch (error) {
-      setPasswordError("Failed to update password");
+      if (error instanceof Error) {
+        setPasswordError(error.message);
+      } else {
+        setPasswordError("Failed to update password");
+      }
     }
     setIsUpdatingPassword(false);
   };
@@ -102,12 +127,14 @@ const AccountPage: React.FC = () => {
               <Input
                 id="username"
                 placeholder="Enter your new username"
+                value={username}
                 onChange={handleUsernameChange}
               />
+              {error && <Text color="red.500">{error}</Text>}
               <Button
                 type="submit"
                 colorScheme="blue"
-                loading={isSubmitting}
+                isLoading={isSubmitting}
                 loadingText="Updating"
               >
                 Update Username
@@ -142,7 +169,7 @@ const AccountPage: React.FC = () => {
                   <Button
                     type="submit"
                     colorScheme="blue"
-                    loading={isSubmitting}
+                    isLoading={isSubmitting}
                     loadingText="Updating"
                     width="full"
                   >
@@ -182,11 +209,13 @@ const AccountPage: React.FC = () => {
                     value={confirmPassword}
                     onChange={handlePasswordChange}
                   />
-                  {passwordError && <Text color="red.500">{passwordError}</Text>}
+                  {passwordError && (
+                    <Text color="red.500">{passwordError}</Text>
+                  )}
                   <Button
                     type="submit"
                     colorScheme="blue"
-                    loading={isUpdatingPassword}
+                    isLoading={isUpdatingPassword}
                     loadingText="Updating"
                     width="full"
                   >

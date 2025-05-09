@@ -15,7 +15,7 @@ import {
  */
 const DefaultLoadingFallback = () => (
   <Center h="100%" minH="200px" w="100%">
-    <Spinner />
+    <Spinner size="xl" />
   </Center>
 );
 
