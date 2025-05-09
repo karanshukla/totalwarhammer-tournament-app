@@ -15,7 +15,7 @@ permissions:
 
 jobs:
   test:
-    name: Run client Tests
+    name: Run Client App Jest Tests
     runs-on: ubuntu-latest
 
     steps:

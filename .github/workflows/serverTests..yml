@@ -15,8 +15,14 @@ permissions:
 
 jobs:
   test:
-    name: Run servers tests
+    name: Run Server App Node Tests
     runs-on: ubuntu-latest
+
+    services:
+      mongodb:
+        image: mongo:6
+        ports:
+          - 27017:27017
 
     steps:
       - name: Checkout code
@@ -36,3 +42,5 @@ jobs:
       - name: Run tests
         working-directory: ./server-app
         run: npm test
+        env:
+          NODE_ENV: test

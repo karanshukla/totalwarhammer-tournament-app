@@ -1,11 +1,8 @@
 // Tests for email-service.js
 import assert from "node:assert/strict";
-import { describe, it, beforeEach } from "node:test";
+import { describe, it, beforeEach, mock } from "node:test";
 
-// Mock the Resend module
-import { Resend } from "resend"; // We'll mock this import directly
-
-// Mock implementation
+// Setup mock implementation
 const mockEmailSend = {
   calls: [],
   response: { id: "mock-email-id", error: null },
@@ -15,17 +12,32 @@ const mockEmailSend = {
   },
 };
 
-// Mock the Resend constructor and emails.send method
-Resend.prototype.constructor = function () {
-  return this;
-};
+// Mock the Resend module before importing EmailService
+mock.method(globalThis, "fetch", async () => {
+  return {
+    ok: true,
+    status: 200,
+    json: async () => mockEmailSend.response,
+  };
+});
 
-Resend.prototype.emails = {
-  send: async (params) => {
-    mockEmailSend.calls.push(params);
-    return mockEmailSend.response;
-  },
-};
+// Mock implementation of Resend
+class MockResend {
+  constructor(apiKey) {
+    this.apiKey = apiKey || "test_resend_api_key";
+    this.emails = {
+      send: async (params) => {
+        mockEmailSend.calls.push(params);
+        return mockEmailSend.response;
+      },
+    };
+  }
+}
+
+// Replace the real Resend with our mock
+mock.module("resend", {
+  Resend: MockResend,
+});
 
 // Import the service under test
 import EmailService from "../../infrastructure/services/email-service.js";
