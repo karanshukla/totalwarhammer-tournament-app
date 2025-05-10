@@ -1,70 +1,72 @@
 // Tests for email-service.js
 import assert from "node:assert/strict";
-import { describe, it, beforeEach } from "node:test";
+import { describe, it, beforeEach, mock } from "node:test";
 
-// Mock the Resend module
-import { Resend } from "resend"; // We'll mock this import directly
-
-// Mock implementation
-const mockEmailSend = {
-  calls: [],
-  response: { id: "mock-email-id", error: null },
-  reset() {
-    this.calls = [];
-    this.response = { id: "mock-email-id", error: null };
-  },
-};
-
-// Mock the Resend constructor and emails.send method
-Resend.prototype.constructor = function () {
-  return this;
-};
-
-Resend.prototype.emails = {
-  send: async (params) => {
-    mockEmailSend.calls.push(params);
-    return mockEmailSend.response;
-  },
-};
-
-// Import the service under test
 import EmailService from "../../infrastructure/services/email-service.js";
+
+const mockSendFn = mock.fn();
+const mockResendClient = {
+  emails: {
+    send: mockSendFn,
+  },
+};
+
+const successResponse = { id: "mock-email-id", error: null };
+
+// Create a testing subclass of EmailService that replaces the Resend client
+class TestEmailService extends EmailService {
+  constructor() {
+    super();
+    Object.defineProperty(this, "resendClient", {
+      get: function () {
+        return mockResendClient;
+      },
+    });
+  }
+}
 
 describe("EmailService", () => {
   let emailService;
 
   beforeEach(() => {
-    // Reset mocks before each test
-    mockEmailSend.reset();
+    mockSendFn.mock.resetCalls();
 
-    // Create a new instance
-    emailService = new EmailService();
+    mockSendFn.mock.mockImplementation(() => Promise.resolve(successResponse));
+
+    emailService = new TestEmailService();
   });
 
   it("should send an email successfully", async () => {
-    // Act
-    const result = await emailService.sendEmail({
+    const emailData = {
       subject: "Test Email",
       html: "<p>Test content</p>",
-    });
+    };
 
-    // Assert
+    const result = await emailService.sendEmail(emailData);
+
     assert.equal(result.success, true);
+    assert.equal(mockSendFn.mock.callCount(), 1);
+
+    const sentEmailData = mockSendFn.mock.calls[0].arguments[0];
+    assert.equal(sentEmailData.subject, "Test Email");
+    assert.equal(sentEmailData.html, "<p>Test content</p>");
   });
 
   it("should throw when subject is missing", async () => {
-    // Act & Assert
     await assert.rejects(
       async () => await emailService.sendEmail({ html: "<p>Test</p>" }),
       { message: "Email subject is required" }
     );
+
+    assert.equal(mockSendFn.mock.callCount(), 0);
   });
 
   it("should throw when html content is missing", async () => {
-    // Act & Assert
     await assert.rejects(
       async () => await emailService.sendEmail({ subject: "Test" }),
       { message: "Email must have text or HTML content" }
     );
+
+    assert.equal(mockSendFn.mock.callCount(), 0);
   });
 });

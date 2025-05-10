@@ -1,6 +1,6 @@
 // Central configuration for API-related settings
 export const apiConfig = {
-  baseUrl: (import.meta.env.VITE_API_URL || "http://localhost:3000"),
+  baseUrl: import.meta.env.VITE_API_URL || "http://localhost:3000",
   endpoints: {
     register: "/user/register",
     userExists: "/user/exists",
@@ -10,5 +10,7 @@ export const apiConfig = {
     guestUpdateUsername: "/guest/username",
     token: "/auth/token",
     passwordReset: "/password-reset",
+    updateUsername: "/user/update-username",
+    updatePassword: "/user/update-password",
   },
 };

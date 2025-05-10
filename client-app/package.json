@@ -12,7 +12,8 @@
     "test": "vitest"
   },
   "dependencies": {
-    "@chakra-ui/react": "^3.16.1",
+    "@chakra-ui/icons": "^2.2.4",
+    "@chakra-ui/react": "^3.17.0",
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",
     "@emotion/react": "^11.14.0",

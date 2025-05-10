@@ -1,22 +1,28 @@
-name: Client Vitest Tests
+name: Server Node Tests
 
 on:
   push:
     branches: ["main"]
     paths:
-      - "client-app/**"
+      - "server-app/**"
   pull_request:
     branches: ["main"]
     paths:
-      - "client-app/**"
+      - "server-app/**"
 
 permissions:
   contents: read
 
 jobs:
   test:
-    name: Run Client App Jest Tests
+    name: Run Server App Node Tests
     runs-on: ubuntu-latest
+
+    services:
+      mongodb:
+        image: mongo:6
+        ports:
+          - 27017:27017
 
     steps:
       - name: Checkout code
@@ -25,14 +31,16 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 23
           cache: "npm"
-          cache-dependency-path: "client-app/package.json"
+          cache-dependency-path: "server-app/package.json"
 
       - name: Install dependencies
-        working-directory: ./client-app
+        working-directory: ./server-app
         run: npm install
 
       - name: Run tests
-        working-directory: ./client-app
+        working-directory: ./server-app
         run: npm test
+        env:
+          NODE_ENV: test

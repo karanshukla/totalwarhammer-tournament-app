@@ -1,13 +1,10 @@
-// Tests for auth-state-service.js using Node.js built-in test runner
 import assert from "node:assert";
 import { describe, it, beforeEach, mock } from "node:test";
 
 import AuthStateService from "../../infrastructure/services/auth-state-service.js";
 
-// Enable mock timers with the proper option
-mock.timers.enable({ apis: ["Date"] });
+mock.timers.enable(["Date"]);
 
-// Helper function for creating mock Express request objects
 function createMockRequest({
   session = {},
   ip = "127.0.0.1",
@@ -29,7 +26,6 @@ describe("AuthStateService", () => {
 
   describe("createUserAuthState", () => {
     it("should create a new user authentication state", () => {
-      // Arrange
       const req = createMockRequest({ session: { cookie: {} } });
       const userData = {
         _id: "123",
@@ -38,10 +34,8 @@ describe("AuthStateService", () => {
         role: "admin",
       };
 
-      // Act
       authStateService.createUserAuthState(req, userData);
 
-      // Assert
       assert.deepStrictEqual(req.session.user, {
         id: "123",
         email: "test@example.com",

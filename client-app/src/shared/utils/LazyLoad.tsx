@@ -1,5 +1,14 @@
+/* eslint-disable react-refresh/only-export-components */
 import React, { ComponentType, lazy, Suspense } from "react";
-import { Center, Spinner, Stack, Text } from "@chakra-ui/react";
+import {
+  Center,
+  HStack,
+  Skeleton,
+  SkeletonCircle,
+  Stack,
+  Text,
+  Spinner,
+} from "@chakra-ui/react";
 
 /**
  * Default loading component

@@ -7,8 +7,10 @@ import helmet from "helmet";
 import hpp from "hpp";
 import { FilterXSS } from "xss";
 
+import "./src/infrastructure/config/env-loader.js";
+
 // Import logger for centralized logging
-import { port, mongoUri, clientUrl } from "./src/infrastructure/config/env.js";
+import { port, clientUrl } from "./src/infrastructure/config/env.js";
 import { connectToDatabase } from "./src/infrastructure/db/connection.js";
 import { configureSessionMiddleware } from "./src/infrastructure/services/session-store-service.js";
 import logger from "./src/infrastructure/utils/logger.js";
@@ -139,7 +141,6 @@ app.use((err, _req, res, _next) => {
 // Start server
 app.listen(port, "::", () => {
   logger.info(`Server listening on [::]${port}`);
-  logger.info(`API endpoints available at [::]${port}/*`);
 });
 
 export default app;

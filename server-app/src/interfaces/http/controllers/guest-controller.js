@@ -87,7 +87,6 @@ export const updateGuestUsername = async (req, res) => {
       });
     }
 
-    // Update the username
     req.user.username = username;
     if (req.session && req.session.user) {
       req.session.user.username = username;
