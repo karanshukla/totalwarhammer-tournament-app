@@ -7,6 +7,8 @@ import helmet from "helmet";
 import hpp from "hpp";
 import { FilterXSS } from "xss";
 
+import "./src/infrastructure/config/env-loader.js";
+
 // Import logger for centralized logging
 import { port, clientUrl } from "./src/infrastructure/config/env.js";
 import { connectToDatabase } from "./src/infrastructure/db/connection.js";

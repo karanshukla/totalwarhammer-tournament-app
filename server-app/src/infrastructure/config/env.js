@@ -1,11 +1,6 @@
-import dotenv from "dotenv";
-
 import devConfig from "./environments/development.js";
 import prodConfig from "./environments/production.js";
 import testConfig from "./environments/test.js";
-
-// Load environment variables from .env file
-dotenv.config();
 
 // Determine current environment
 const environment = process.env.NODE_ENV || "development";

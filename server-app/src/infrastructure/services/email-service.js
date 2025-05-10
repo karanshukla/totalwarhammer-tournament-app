@@ -2,9 +2,13 @@ import { Resend } from "resend";
 
 import { resendApiKey } from "../config/env.js";
 
-const resend = new Resend(resendApiKey);
-
 class EmailService {
+  /**
+   * Resend API client
+   * @type {Resend}
+   */
+  #resendClient = null;
+
   /**
    * Default sender email address
    * @type {string}
@@ -16,6 +20,20 @@ class EmailService {
    * @type {string}
    */
   #defaultRecipient = "dev@twtournament.app";
+
+  /**
+   * Lazy getter for Resend client
+   * @returns {Resend} - Resend client instance
+   */
+  get resendClient() {
+    if (!this.#resendClient) {
+      if (!resendApiKey) {
+        throw new Error("RESEND_API_KEY is not set in environment variables");
+      }
+      this.#resendClient = new Resend(resendApiKey);
+    }
+    return this.#resendClient;
+  }
 
   /**
    * Sends an email using Resend
@@ -45,9 +63,8 @@ class EmailService {
       subject,
       html,
     };
-
     try {
-      const response = await resend.emails.send(message);
+      const response = await this.resendClient.emails.send(message);
       if (response?.error === null)
         return {
           success: true,
