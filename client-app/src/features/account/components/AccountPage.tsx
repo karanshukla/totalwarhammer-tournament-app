@@ -7,8 +7,9 @@ import {
   Button,
   Input,
   Box,
-  HStack,
   Stack,
+  CardRoot,
+  Separator,
 } from "@chakra-ui/react";
 import { useUserStore } from "@/shared/stores/userStore";
 import { updateGuestUsername } from "@/features/authentication/api/guestApi";
@@ -16,10 +17,9 @@ import {
   updateUsername as updateAuthUsername,
   updatePassword,
 } from "@/features/account/api/accountApi";
-import {
-  PasswordInput,
-  PasswordStrengthMeter,
-} from "@/shared/ui/PasswordInput";
+import { PasswordInput } from "@/shared/ui/PasswordInput";
+import { logoutUser } from "@/features/authentication/api/authenticationApi";
+import { useNavigate } from "react-router-dom";
 
 const AccountPage: React.FC = () => {
   const user = useUserStore((state) => state.user);
@@ -31,6 +31,7 @@ const AccountPage: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
+  const navigate = useNavigate();
 
   const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setUsername(e.target.value);
@@ -96,7 +97,6 @@ const AccountPage: React.FC = () => {
         confirmPassword,
       });
 
-      // Clear fields on success
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
@@ -111,13 +111,21 @@ const AccountPage: React.FC = () => {
     setIsUpdatingPassword(false);
   };
 
+  const handleLogout = async () => {
+    try {
+      await logoutUser();
+      navigate("/");
+    } catch (error) {
+      console.error("Logout failed:", error);
+    } finally {
+      setTimeout(() => {}, 1000);
+    }
+  };
+
   return (
     <Container maxW="container.xl" py={8}>
       <Heading as="h1" size="xl" mb={4}>
-        Account Page
-      </Heading>
-      <Heading as="h2" size="lg" mb={4}>
-        User Information
+        Account
       </Heading>
 
       {user.isGuest && (
@@ -155,8 +163,7 @@ const AccountPage: React.FC = () => {
           w="100%"
           align="flex-start"
         >
-          {/* Username Update Column */}
-          <Box flex="1" p={5} borderWidth="1px" borderRadius="lg">
+          <CardRoot flex="1" p={5} borderWidth="1px" borderRadius="lg">
             <VStack align="start" gap={4}>
               <Heading size="md">Update Username</Heading>
               <Text>Change your current username</Text>
@@ -181,11 +188,15 @@ const AccountPage: React.FC = () => {
                   </Button>
                 </VStack>
               </Box>
+              <Text fontSize="sm" color="gray.500">
+                Usernames must be at least 5 characters long.
+              </Text>
             </VStack>
-          </Box>
+            <Separator my={4} />
+            <Button onClick={handleLogout}>Logout</Button>
+          </CardRoot>
 
-          {/* Password Update Column */}
-          <Box flex="1" p={5} borderWidth="1px" borderRadius="lg">
+          <CardRoot flex="1" p={5} borderWidth="1px" borderRadius="lg">
             <VStack align="start" gap={4}>
               <Heading size="md">Update Password</Heading>
               <Text>Change your current password</Text>
@@ -228,8 +239,14 @@ const AccountPage: React.FC = () => {
                 </VStack>
               </Box>
             </VStack>
-          </Box>
+          </CardRoot>
         </Stack>
+      )}
+
+      {!user.isAuthenticated && (
+        <CardRoot p={5} borderWidth="1px" borderRadius="lg" width="50%">
+          <Text>You aren't logged in! :(</Text>
+        </CardRoot>
       )}
     </Container>
   );

@@ -13,12 +13,21 @@ const envPath = path.resolve(__dirname, "../../..", ".env");
 // Load environment variables from .env file
 const result = dotenv.config({ path: envPath });
 
+// Check if we're in production (most cloud environments set this)
+const isProduction = process.env.NODE_ENV === "production";
+
 if (result.error) {
-  console.warn(
-    `Warning: .env file not found or has syntax errors. Environment variables may not be properly loaded.`,
-    result.error
-  );
+  if (isProduction) {
+    console.log(
+      "Running in production mode. No .env file found, but this is expected if environment variables are set directly by the platform."
+    );
+  } else {
+    console.warn("Warning: .env file not found at path:", envPath);
+    console.log(
+      "This is fine if you've set environment variables another way."
+    );
+    console.log("Current working directory:", process.cwd());
+  }
 }
 
-// Export something to ensure the module is executed when imported
 export const initialized = true;

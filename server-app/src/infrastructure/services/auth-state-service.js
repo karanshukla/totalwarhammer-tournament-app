@@ -99,10 +99,21 @@ class AuthStateService {
     if (req.session.fingerprint) {
       const currentIp = req.ip;
       const currentUserAgent = req.get("user-agent");
+      const isLocalhost = (ip) => {
+        return (
+          ip === "::1" ||
+          ip === "127.0.0.1" ||
+          ip === "localhost" ||
+          ip === "::ffff:127.0.0.1"
+        );
+      };
 
-      // For regular users, keep the full validation
+      const ipMismatch =
+        req.session.fingerprint.ip !== currentIp &&
+        !(isLocalhost(req.session.fingerprint.ip) && isLocalhost(currentIp));
+
       if (
-        req.session.fingerprint.ip !== currentIp ||
+        ipMismatch ||
         req.session.fingerprint.userAgent !== currentUserAgent
       ) {
         logger.warn("Authentication rejected: IP or user agent mismatch");

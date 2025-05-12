@@ -19,7 +19,6 @@ router.post(
   "/register",
   validateUserRegistration,
   validationHandler,
-  doubleCsrfProtection,
   userController.register
 );
 router.post("/login", authenticationController.login);

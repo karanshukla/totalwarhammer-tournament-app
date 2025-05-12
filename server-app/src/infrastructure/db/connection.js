@@ -4,7 +4,7 @@ import mongoose from "mongoose";
 import { mongoUri } from "../config/env.js";
 
 const connectOptions = {
-  dbName: "twta-app",
+  dbName: "twt-app",
 };
 
 export const connectToDatabase = async () => {
