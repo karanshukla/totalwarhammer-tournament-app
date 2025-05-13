@@ -9,10 +9,54 @@ class HttpClient {
   private baseUrl: string;
   private csrfToken: string | null = null;
   private tokenPromise: Promise<string | null> | null = null;
-  private debug: boolean = false; // Set to true for debugging
+  private debug: boolean = true; // Enable debugging for troubleshooting
+  private lastSessionId: string | null = null;
 
   constructor(baseUrl: string) {
     this.baseUrl = baseUrl;
+  }
+
+  /**
+   * Check if the current session is valid and functioning
+   * @returns Promise with session check result
+   */
+  async checkSessionStatus(): Promise<{
+    valid: boolean;
+    sessionId: string | null;
+  }> {
+    try {
+      const response = await fetch(`${this.baseUrl}/auth/csrf-token`, {
+        method: "GET",
+        credentials: "include",
+        cache: "no-cache",
+      });
+
+      if (!response.ok) {
+        if (this.debug)
+          console.error("Session check failed:", response.statusText);
+        return { valid: false, sessionId: null };
+      }
+
+      const data = await response.json();
+      const currentSessionId = data.sessionId;
+
+      if (this.debug) {
+        console.log("Session check result:", {
+          sessionId: currentSessionId,
+          previousSessionId: this.lastSessionId,
+          sessionConsistent:
+            !this.lastSessionId || this.lastSessionId === currentSessionId,
+        });
+      }
+
+      // Store the current session ID for comparison in future requests
+      this.lastSessionId = currentSessionId;
+
+      return { valid: true, sessionId: currentSessionId };
+    } catch (error) {
+      if (this.debug) console.error("Session check error:", error);
+      return { valid: false, sessionId: null };
+    }
   }
 
   async ensureCsrfToken(): Promise<string | null> {
@@ -81,12 +125,31 @@ class HttpClient {
 
     return this.handleResponse<T>(response);
   }
-
   async post<T>(
     endpoint: string,
     data?: unknown,
     options: RequestOptions = {}
   ): Promise<T> {
+    // Check session status for sensitive operations
+    const sensitiveEndpoints = [
+      "/user/update-username",
+      "/user/update-password",
+      "/guest/username",
+    ];
+
+    if (sensitiveEndpoints.some((e) => endpoint.includes(e))) {
+      // Check session status before proceeding
+      const sessionStatus = await this.checkSessionStatus();
+      if (this.debug)
+        console.log(`Session check before ${endpoint}:`, sessionStatus);
+
+      if (!sessionStatus.valid) {
+        throw new Error(
+          "Session appears to be invalid. Please try logging in again."
+        );
+      }
+    }
+
     const shouldSkipCsrf =
       endpoint.includes("/auth/login") ||
       endpoint.includes("/auth/logout") ||

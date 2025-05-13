@@ -24,6 +24,21 @@ export interface AccountUpdateResponse {
 }
 
 /**
+ * Refreshes the user's session by making a request to fetch CSRF token
+ * This keeps the session active and helps prevent authentication issues
+ */
+export const refreshSession = async (): Promise<boolean> => {
+  try {
+    // This will make a request to the server which keeps the session active
+    const result = await httpClient.checkSessionStatus();
+    return result.valid;
+  } catch (error) {
+    console.error("Failed to refresh session:", error);
+    return false;
+  }
+};
+
+/**
  * Updates the username of an authenticated user
  * @param username New username to set
  * @returns Promise with response from the server
@@ -32,6 +47,14 @@ export const updateUsername = async (
   username: string
 ): Promise<AccountUpdateResponse> => {
   try {
+    // First, check the CSRF token to ensure we have a valid session
+    await httpClient.checkSessionStatus().catch((error) => {
+      console.error("Session check failed:", error);
+      throw new Error(
+        "Your session appears to be invalid. Please try logging in again."
+      );
+    });
+
     const responseData = await httpClient.post<AccountUpdateResponse>(
       apiConfig.endpoints.updateUsername,
       { username }
@@ -73,6 +96,14 @@ export const updatePassword = async (
   data: UpdatePasswordRequest
 ): Promise<AccountUpdateResponse> => {
   try {
+    // First, check the CSRF token to ensure we have a valid session
+    await httpClient.checkSessionStatus().catch((error) => {
+      console.error("Session check failed:", error);
+      throw new Error(
+        "Your session appears to be invalid. Please try logging in again."
+      );
+    });
+
     const responseData = await httpClient.post<AccountUpdateResponse>(
       apiConfig.endpoints.updatePassword,
       data
