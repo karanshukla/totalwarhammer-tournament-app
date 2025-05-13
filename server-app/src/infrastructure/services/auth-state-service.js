@@ -104,12 +104,23 @@ class AuthStateService {
           ip === "::1" ||
           ip === "127.0.0.1" ||
           ip === "localhost" ||
-          ip === "::ffff:127.0.0.1"
+          ip === "::ffff:127.0.0.1" ||
+          ip.startsWith("::ffff:") // Handle all IPv4-mapped IPv6 addresses
         );
       };
 
+      // Get the host parts of IPs (excluding port)
+      const getIpHost = (ip) =>
+        ip
+          .split(":")
+          .filter((p) => !p.match(/^\d+$/))
+          .join(":");
+
+      const sessionIpHost = getIpHost(req.session.fingerprint.ip);
+      const currentIpHost = getIpHost(currentIp);
+
       const ipMismatch =
-        req.session.fingerprint.ip !== currentIp &&
+        sessionIpHost !== currentIpHost &&
         !(isLocalhost(req.session.fingerprint.ip) && isLocalhost(currentIp));
 
       if (
