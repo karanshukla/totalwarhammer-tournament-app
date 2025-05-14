@@ -96,6 +96,23 @@ class AuthStateService {
       return true;
     }
 
+    if (req.session.fingerprint) {
+      const currentIp = req.ip;
+      const currentUserAgent = req.get("user-agent");
+
+      // For regular users, keep the full validation
+      if (
+        req.session.fingerprint.ip !== currentIp ||
+        req.session.fingerprint.userAgent !== currentUserAgent
+      ) {
+        logger.warn("Authentication rejected: IP or user agent mismatch");
+        logger.warn(
+          `Original IP: ${req.session.fingerprint.ip}, Current IP: ${currentIp}`
+        );
+        return false;
+      }
+    }
+
     return true;
   }
 
