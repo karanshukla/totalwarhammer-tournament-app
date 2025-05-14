@@ -86,7 +86,7 @@ const PasswordUpdateForm: React.FC = () => {
         <Button
           type="submit"
           colorScheme="blue"
-          isLoading={isUpdatingPassword}
+          loading={isUpdatingPassword}
           loadingText="Updating"
           width="full"
         >
