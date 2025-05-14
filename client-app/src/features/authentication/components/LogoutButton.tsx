@@ -31,12 +31,9 @@ export const LogoutButton: React.FC<LogoutButtonProps> = ({
       navigate("/");
     } catch (error) {
       console.error("Logout failed:", error);
-      // Even if server-side logout fails, the client-side state is cleared
-      // in the logoutUser function, so we should still redirect
       navigate("/");
     } finally {
       setIsLoading(false);
-      // Add a small delay before allowing another logout attempt
       setTimeout(() => {
         isLoggingOutRef.current = false;
       }, 1000);

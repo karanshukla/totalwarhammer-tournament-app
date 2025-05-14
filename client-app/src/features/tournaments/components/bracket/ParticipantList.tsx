@@ -35,7 +35,9 @@ interface ParticipantListProps {
   newParticipantCount: number;
   onSetNewParticipantCount: (count: number) => void;
   onAddParticipants: () => void;
-  onRandomize: () => void;
+  onSaveTournament: () => void;
+  onResetBracket: () => void;
+  onResetParticipants: () => void;
   onEditParticipant: (participant: Participant) => void;
   onDeleteParticipant: (participantId: string) => void;
 }
@@ -46,7 +48,9 @@ export function ParticipantList({
   newParticipantCount,
   onSetNewParticipantCount,
   onAddParticipants,
-  onRandomize,
+  onSaveTournament,
+  onResetBracket,
+  onResetParticipants,
   onEditParticipant,
   onDeleteParticipant,
 }: ParticipantListProps) {
@@ -121,14 +125,23 @@ export function ParticipantList({
                     <LuPlus size={16} />
                   </Button>
                 </HStack>
-              </HStack>
-
+              </HStack>{" "}
               <ButtonGroup size="md" width={{ base: "full", md: "auto" }}>
-                <Button onClick={onAddParticipants} leftIcon={<LuPlus />}>
-                  Add
+                <Button onClick={onAddParticipants}>
+                  <LuPlus /> Add
                 </Button>
-                <Button onClick={onRandomize} variant="outline">
-                  Randomize
+                <Button onClick={onSaveTournament} variant="solid">
+                  Save
+                </Button>
+                <Button onClick={onResetBracket} variant="outline" color="red">
+                  Reset Bracket
+                </Button>
+                <Button
+                  onClick={onResetParticipants}
+                  variant="outline"
+                  color="orange"
+                >
+                  Reset Participants
                 </Button>
               </ButtonGroup>
             </Flex>
