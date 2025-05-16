@@ -44,10 +44,7 @@ const PasswordUpdateForm: React.FC = () => {
         confirmPassword,
       });
 
-      setCurrentPassword("");
-      setNewPassword("");
-      setConfirmPassword("");
-      setPasswordError("");
+      window.location.reload();
     } catch (error) {
       if (error instanceof Error) {
         setPasswordError(error.message);
