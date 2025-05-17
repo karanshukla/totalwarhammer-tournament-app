@@ -47,6 +47,9 @@ export function MatchParticipantSlot({
           <Text fontSize="sm" fontWeight="medium" noOfLines={1} ml={1}>
             {participant.name}
           </Text>
+          <Text fontSize="xs" color="gray.500" ml={2}>
+            {participant.faction}
+          </Text>
           <Button
             aria-label="Remove participant"
             size="xs"

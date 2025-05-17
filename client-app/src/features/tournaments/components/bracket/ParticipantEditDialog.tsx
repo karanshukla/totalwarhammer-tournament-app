@@ -34,7 +34,7 @@ export function ParticipantEditDialog({
   const cancelRef = React.useRef<HTMLButtonElement>(null);
   const bgColor = useColorModeValue("white", "gray.800");
   const borderColor = useColorModeValue("gray.200", "gray.600");
-  const inputBgColor = useColorModeValue("white", "gray.700");
+  const inputBgColor = useColorModeValue("white", "gray.900");
   const triggerHoverBorderColor = useColorModeValue("gray.300", "gray.500");
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
