@@ -4,10 +4,9 @@ import {
   Button,
   Field,
   Input,
-  Portal,
   VStack,
-  Box,
-  chakra, // Add chakra factory
+  chakra,
+  Portal,
 } from "@chakra-ui/react";
 import { useColorModeValue } from "@/shared/ui/ColorMode";
 import { Participant, FACTIONS } from "./types";
@@ -35,7 +34,6 @@ export function ParticipantEditDialog({
   const bgColor = useColorModeValue("white", "gray.800");
   const borderColor = useColorModeValue("gray.200", "gray.600");
   const inputBgColor = useColorModeValue("white", "gray.900");
-  const triggerHoverBorderColor = useColorModeValue("gray.300", "gray.500");
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (participant) {
@@ -46,7 +44,6 @@ export function ParticipantEditDialog({
     }
   };
 
-  // New handler for standard Select component
   const handleFactionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     if (participant) {
       onParticipantChange({
@@ -71,34 +68,30 @@ export function ParticipantEditDialog({
             borderRadius="md"
           >
             <Dialog.Header
-              py={4}
-              px={6}
+              py={3}
+              px={4}
               borderBottomWidth="1px"
               borderColor={borderColor}
             >
-              <Dialog.Title fontSize="xl" fontWeight="medium">
+              <Dialog.Title fontSize="lg" fontWeight="medium">
                 Edit Participant
               </Dialog.Title>
             </Dialog.Header>
-            <Dialog.Body py={5} px={6}>
-              <VStack spacing={5} align="stretch">
+            <Dialog.Body py={4} px={4}>
+              <VStack spacing={4} align="stretch">
                 <Field.Root>
-                  <Field.Label fontSize="sm" mb={1} fontWeight="medium">
+                  <Field.Label mb={1} fontWeight="medium">
                     Name
                   </Field.Label>
                   <Input
                     value={participant?.name || ""}
                     onChange={handleNameChange}
-                    size="md"
-                    px={3}
-                    py={2}
                     bg={inputBgColor}
                     borderColor={borderColor}
-                    borderRadius="md"
                   />
                 </Field.Root>
                 <Field.Root>
-                  <Field.Label fontSize="sm" mb={1} fontWeight="medium">
+                  <Field.Label mb={1} fontWeight="medium">
                     Faction
                   </Field.Label>
                   <chakra.select
@@ -108,18 +101,9 @@ export function ParticipantEditDialog({
                     bg={inputBgColor}
                     borderColor={borderColor}
                     borderRadius="md"
-                    px={3}
-                    py={2}
-                    _hover={{ borderColor: triggerHoverBorderColor }}
-                    _focus={{
-                      borderColor: "blue.500",
-                      boxShadow: `0 0 0 1px blue.500`,
-                    }}
-                    // Apply a height consistent with other inputs if necessary, e.g., h="2.5rem" or size="md" equivalent
-                    // For now, relying on px, py and browser default height for select
+                    p={2}
                   >
-                    <option value="">Select Faction</option>{" "}
-                    {/* Placeholder option */}
+                    <option value="">Select Faction</option>
                     {FACTIONS.map((faction) => (
                       <option key={faction} value={faction}>
                         {faction}
@@ -130,8 +114,8 @@ export function ParticipantEditDialog({
               </VStack>
             </Dialog.Body>
             <Dialog.Footer
-              py={4}
-              px={6}
+              py={3}
+              px={4}
               gap={3}
               borderTopWidth="1px"
               borderColor={borderColor}
@@ -139,7 +123,6 @@ export function ParticipantEditDialog({
               <Button
                 ref={cancelRef}
                 onClick={onClose}
-                size="md"
                 variant="outline"
                 width={{ base: "full", sm: "auto" }}
               >
@@ -148,7 +131,6 @@ export function ParticipantEditDialog({
               <Button
                 colorScheme="blue"
                 onClick={onSave}
-                size="md"
                 width={{ base: "full", sm: "auto" }}
               >
                 Save

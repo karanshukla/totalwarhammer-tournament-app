@@ -11,191 +11,156 @@ import {
 } from "@chakra-ui/react";
 import { LuPlus } from "react-icons/lu";
 import { MatchParticipantSlot } from "./MatchParticipantSlot";
-import { Participant, Round, Match } from "./types";
+import { useTournamentStore } from "@/shared/stores/tournamentStore";
 
-interface TournamentBracketProps {
-  rounds: Round[];
-  participants: Participant[];
-  onAddRound: () => void;
-  onAddMatchToRound: (roundId: string) => void;
-  onRemoveMatch: (matchId: string) => void;
-  onRemoveParticipantFromSlot: (matchId: string, position: 1 | 2) => void;
-}
+export function TournamentBracket() {
+  const store = useTournamentStore();
+  const rounds = useTournamentStore((state) => state.rounds);
+  const participants = useTournamentStore((state) => state.participants);
 
-export function TournamentBracket({
-  rounds,
-  participants,
-  onAddRound,
-  onAddMatchToRound,
-  onRemoveMatch,
-  onRemoveParticipantFromSlot,
-}: TournamentBracketProps) {
-  const getSortOrder = (title: string) => {
-    const lowerCaseTitle = title.toLowerCase();
-    if (lowerCaseTitle.includes("grand final") || lowerCaseTitle === "finals") {
-      return 1000; // Give grand finals a very high sort order
-    }
-    if (
-      lowerCaseTitle.includes("semi") &&
-      (lowerCaseTitle.includes("final") || lowerCaseTitle.includes("finals"))
-    ) {
-      return 999; // Give semi finals a high sort order but below grand finals
-    }
-    return 0; // All other rounds get a default low value
+  const onAddRound = () => store.addRound();
+  const onAddMatchToRound = (roundId: string) => store.addMatchToRound(roundId);
+  const onRemoveMatch = (matchId: string) => store.removeMatch(matchId);
+  const onRemoveParticipantFromSlot = (matchId: string, position: 1 | 2) => {
+    store.updateMatchParticipant(
+      matchId,
+      position === 1 ? "participant1Id" : "participant2Id",
+      null
+    );
   };
 
-  const sortedRounds = [...rounds].sort(
-    // Ensure that semi and grand finals are at the end of the list
-    (a, b) => getSortOrder(a.title) - getSortOrder(b.title)
-  );
+  // Sort rounds to keep finals at the end
+  const sortedRounds = [...rounds].sort((a, b) => {
+    const aIsFinals = a.title.toLowerCase().includes("final") ? 1 : 0;
+    const bIsFinals = b.title.toLowerCase().includes("final") ? 1 : 0;
+
+    if (aIsFinals !== bIsFinals) return aIsFinals - bIsFinals; // Finals go last
+    return 0; // Keep original order otherwise
+  });
 
   return (
-    <Card.Root borderRadius="lg" boxShadow="md" overflow="hidden">
-      <Card.Header p={4}>
+    <Card.Root borderRadius="md" boxShadow="sm" overflow="hidden">
+      <Card.Header py={3} px={4}>
         <Heading size="md">Tournament Bracket</Heading>
       </Card.Header>
-      <Card.Body p={{ base: 3, md: 6 }}>
-        <Text fontSize="sm" mb={4} color="gray.600">
+      <Card.Body p={4}>
+        <Text fontSize="sm" mb={3} color="gray.600">
           Drag participants into the empty slots below
         </Text>
         <Button
-          leftIcon={<Icon as={LuPlus} />}
-          mb={6}
+          leftIcon={<LuPlus />}
+          mb={4}
           onClick={onAddRound}
           size="sm"
           colorScheme="blue"
           variant="outline"
-          width="fit-content"
-          borderRadius="md"
-          fontWeight="normal"
         >
           Add Round
         </Button>
 
-        <Box position="relative" minH="500px" w="100%">
-          <Flex
-            gap={{ base: 3, md: 6 }}
-            direction={{ base: "column", lg: "row" }}
-            pb={4}
-            position="relative"
-            overflowX={{ base: "hidden", md: "auto" }}
-          >
-            {sortedRounds.map((round) => (
-              <VStack
-                key={round.id}
-                spacing={4}
-                align="stretch"
-                minW="240px"
-                flex="1"
-                maxW={{ base: "100%", lg: "320px" }}
+        <Flex
+          gap={4}
+          direction={{ base: "column", lg: "row" }}
+          overflowX="auto"
+        >
+          {sortedRounds.map((round) => (
+            <VStack
+              key={round.id}
+              spacing={3}
+              align="stretch"
+              minW={{ base: "auto", lg: "240px" }}
+              flex="1"
+              maxW={{ base: "100%", lg: "300px" }}
+            >
+              <Text
+                fontWeight="bold"
+                textAlign="center"
+                fontSize="md"
+                color="blue.600"
+                pb={2}
+                borderBottom="1px solid"
+                borderColor="gray.200"
               >
-                <Text
-                  fontWeight="bold"
-                  textAlign="center"
-                  fontSize="md"
-                  color="blue.600"
-                  p={2}
-                  borderBottom="2px solid"
-                  borderColor="gray.200"
+                {round.title}
+              </Text>
+
+              {round.matches.map((match) => (
+                <Card.Root
+                  key={match.id}
+                  id={`match-${match.id}`}
+                  variant="outline"
+                  data-match-id={match.id}
+                  boxShadow="sm"
+                  _hover={{ boxShadow: "md" }}
+                  transition="all 0.2s"
                 >
-                  {round.title}
-                </Text>
+                  <Card.Header py={2} px={3} borderBottomWidth="1px">
+                    <Flex justify="space-between" align="center">
+                      <Text fontSize="sm" fontWeight="medium">
+                        {match.title}
+                      </Text>
+                      <Button
+                        size="xs"
+                        onClick={() => onRemoveMatch(match.id)}
+                        variant="ghost"
+                        colorScheme="red"
+                      >
+                        Remove
+                      </Button>
+                    </Flex>
+                  </Card.Header>
 
-                {round.matches.map((match) => (
-                  <Card.Root
-                    key={match.id}
-                    id={`match-${match.id}`}
-                    variant="outline"
-                    size="sm"
-                    p={0}
-                    position="relative"
-                    data-match-id={match.id}
-                    borderWidth="1px"
-                    borderColor="gray.200"
-                    boxShadow="sm"
-                    _hover={{ boxShadow: "md" }}
-                    transition="all 0.2s"
-                    borderRadius="md"
-                  >
-                    <Card.Header
-                      py={2}
-                      px={3}
-                      borderBottomWidth="1px"
-                      borderColor="gray.200"
-                    >
-                      <Flex justify="space-between" align="center">
-                        <Text fontSize="sm" fontWeight="medium">
-                          {match.title}
-                        </Text>
-                        <Button
-                          size="xs"
-                          onClick={() => onRemoveMatch(match.id)}
-                          variant="ghost"
-                          colorScheme="red"
-                          fontSize="xs"
-                          p={1}
-                          h="auto"
-                          minW="auto"
-                        >
-                          Remove
-                        </Button>
-                      </Flex>
-                    </Card.Header>
+                  <Card.Body py={2} px={3}>
+                    <VStack spacing={2}>
+                      <MatchParticipantSlot
+                        matchId={match.id}
+                        position={1}
+                        participantId={match.participant1Id}
+                        participants={participants}
+                        onRemove={() =>
+                          onRemoveParticipantFromSlot(match.id, 1)
+                        }
+                      />
 
-                    <Card.Body py={3} px={3}>
-                      <VStack spacing={2}>
-                        <MatchParticipantSlot
-                          matchId={match.id}
-                          position={1}
-                          participantId={match.participant1Id}
-                          participants={participants}
-                          onRemove={() =>
-                            onRemoveParticipantFromSlot(match.id, 1)
-                          }
-                        />
+                      <Text
+                        fontSize="xs"
+                        fontWeight="medium"
+                        color="gray.500"
+                        bg="gray.50"
+                        py={1}
+                        textAlign="center"
+                        width="100%"
+                      >
+                        VS
+                      </Text>
 
-                        <Text
-                          fontSize="xs"
-                          fontWeight="medium"
-                          color="gray.500"
-                          bg="gray.50"
-                          py={1}
-                          px={2}
-                          borderRadius="md"
-                          width="100%"
-                          textAlign="center"
-                        >
-                          VS
-                        </Text>
+                      <MatchParticipantSlot
+                        matchId={match.id}
+                        position={2}
+                        participantId={match.participant2Id}
+                        participants={participants}
+                        onRemove={() =>
+                          onRemoveParticipantFromSlot(match.id, 2)
+                        }
+                      />
+                    </VStack>
+                  </Card.Body>
+                </Card.Root>
+              ))}
 
-                        <MatchParticipantSlot
-                          matchId={match.id}
-                          position={2}
-                          participantId={match.participant2Id}
-                          participants={participants}
-                          onRemove={() =>
-                            onRemoveParticipantFromSlot(match.id, 2)
-                          }
-                        />
-                      </VStack>
-                    </Card.Body>
-                  </Card.Root>
-                ))}
-
-                <Button
-                  leftIcon={<Icon as={LuPlus} boxSize="3" />}
-                  size="sm"
-                  onClick={() => onAddMatchToRound(round.id)}
-                  variant="ghost"
-                  colorScheme="blue"
-                  width="full"
-                >
-                  Add Match
-                </Button>
-              </VStack>
-            ))}
-          </Flex>
-        </Box>
+              <Button
+                leftIcon={<Icon as={LuPlus} boxSize={3} />}
+                size="sm"
+                onClick={() => onAddMatchToRound(round.id)}
+                variant="ghost"
+                colorScheme="blue"
+                width="full"
+              >
+                Add Match
+              </Button>
+            </VStack>
+          ))}
+        </Flex>
       </Card.Body>
     </Card.Root>
   );

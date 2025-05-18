@@ -33,21 +33,21 @@ export function MatchParticipantSlot({
       borderRadius="md"
       borderColor={isOver ? "blue.300" : "gray.200"}
       p={2}
-      bg={isOver ? "blue.50" : "transparent"}
+      bg={isOver ? "blue.50" : "white"}
       _dark={{
         borderColor: isOver ? "blue.500" : "gray.600",
-        bg: isOver ? "blue.900" : "transparent",
+        bg: isOver ? "blue.900" : "gray.800",
       }}
       width="100%"
-      height="40px"
+      height="36px"
       transition="all 0.2s"
     >
       {participant ? (
         <Flex justify="space-between" align="center" height="100%">
-          <Text fontSize="sm" fontWeight="medium" noOfLines={1} ml={1}>
+          <Text fontSize="sm" fontWeight="medium" noOfLines={1} flex="1">
             {participant.name}
           </Text>
-          <Text fontSize="xs" color="gray.500" ml={2}>
+          <Text fontSize="xs" color="gray.500" mx={1} noOfLines={1}>
             {participant.faction}
           </Text>
           <Button
@@ -55,18 +55,24 @@ export function MatchParticipantSlot({
             size="xs"
             onClick={onRemove}
             variant="ghost"
-            color="red.500"
-            _hover={{ bg: "red.50" }}
-            _dark={{ _hover: { bg: "red.900" } }}
+            colorScheme="red"
             height="24px"
-            minWidth="unset"
-            px={2}
+            minWidth="auto"
+            px={1}
           >
-            Remove
+            ×
           </Button>
         </Flex>
       ) : (
-        <Text fontSize="sm" color="gray.500" textAlign="center" py={1}>
+        <Text
+          fontSize="xs"
+          color="gray.500"
+          textAlign="center"
+          height="100%"
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+        >
           Drop player here
         </Text>
       )}
