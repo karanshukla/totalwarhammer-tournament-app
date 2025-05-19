@@ -49,7 +49,7 @@ export function TournamentBracket() {
         </Text>
         <Button
           leftIcon={<LuPlus />}
-          mb={4}
+          mb={4} // Increased margin bottom for more space before rounds
           onClick={onAddRound}
           size="sm"
           colorScheme="blue"
@@ -59,27 +59,29 @@ export function TournamentBracket() {
         </Button>
 
         <Flex
-          gap={4}
+          gap={6} // Increased gap between rounds
           direction={{ base: "column", lg: "row" }}
           overflowX="auto"
+          py={2} // Added some padding for visual separation
         >
           {sortedRounds.map((round) => (
             <VStack
               key={round.id}
-              spacing={3}
+              spacing={4} // Increased spacing between matches in a round
               align="stretch"
-              minW={{ base: "auto", lg: "240px" }}
+              minW={{ base: "auto", lg: "220px" }} // Slightly reduced minW
               flex="1"
-              maxW={{ base: "100%", lg: "300px" }}
+              maxW={{ base: "100%", lg: "280px" }} // Slightly reduced maxW
             >
               <Text
                 fontWeight="bold"
                 textAlign="center"
-                fontSize="md"
+                fontSize="md" // Kept as is, seems reasonable for round titles
                 color="blue.600"
                 pb={2}
                 borderBottom="1px solid"
                 borderColor="gray.200"
+                mb={2} // Added margin bottom for space below round title
               >
                 {round.title}
               </Text>
@@ -90,13 +92,18 @@ export function TournamentBracket() {
                   id={`match-${match.id}`}
                   variant="outline"
                   data-match-id={match.id}
-                  boxShadow="sm"
+                  boxShadow="xs" // Reduced shadow for a lighter feel
                   _hover={{ boxShadow: "md" }}
                   transition="all 0.2s"
+                  borderRadius="sm" // Slightly smaller border radius
                 >
-                  <Card.Header py={2} px={3} borderBottomWidth="1px">
+                  <Card.Header py={1.5} px={2.5} borderBottomWidth="1px">
+                    {" "}
+                    {/* Reduced padding */}
                     <Flex justify="space-between" align="center">
-                      <Text fontSize="sm" fontWeight="medium">
+                      <Text fontSize="xs" fontWeight="medium">
+                        {" "}
+                        {/* Reduced font size */}
                         {match.title}
                       </Text>
                       <Button
@@ -104,14 +111,19 @@ export function TournamentBracket() {
                         onClick={() => onRemoveMatch(match.id)}
                         variant="ghost"
                         colorScheme="red"
+                        px={1.5} // Reduced padding for a smaller button
                       >
                         Remove
                       </Button>
                     </Flex>
                   </Card.Header>
 
-                  <Card.Body py={2} px={3}>
-                    <VStack spacing={2}>
+                  <Card.Body py={1.5} px={2.5}>
+                    {" "}
+                    {/* Reduced padding */}
+                    <VStack spacing={1.5}>
+                      {" "}
+                      {/* Reduced spacing */}
                       <MatchParticipantSlot
                         matchId={match.id}
                         position={1}
@@ -121,19 +133,18 @@ export function TournamentBracket() {
                           onRemoveParticipantFromSlot(match.id, 1)
                         }
                       />
-
                       <Text
-                        fontSize="xs"
+                        fontSize="2xs" // Reduced font size for "VS"
                         fontWeight="medium"
                         color="gray.500"
                         bg="gray.50"
-                        py={1}
+                        py={0.5} // Reduced padding
                         textAlign="center"
                         width="100%"
+                        my={0.5} // Added small vertical margin
                       >
                         VS
                       </Text>
-
                       <MatchParticipantSlot
                         matchId={match.id}
                         position={2}
@@ -150,11 +161,12 @@ export function TournamentBracket() {
 
               <Button
                 leftIcon={<Icon as={LuPlus} boxSize={3} />}
-                size="sm"
+                size="xs" // Made "Add Match" button smaller
                 onClick={() => onAddMatchToRound(round.id)}
                 variant="ghost"
                 colorScheme="blue"
                 width="full"
+                mt={2} // Added margin top for spacing
               >
                 Add Match
               </Button>

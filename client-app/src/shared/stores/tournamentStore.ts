@@ -106,6 +106,56 @@ const populateTournamentDefaultBracket = (): Round[] => {
   ];
 };
 
+// Helper to determine sort order of rounds
+const getRoundSortKey = (title: string): number => {
+  const lowerTitle = title.toLowerCase();
+  // Prioritize specific final stages
+  if (
+    lowerTitle.includes("final") &&
+    !lowerTitle.includes("semi") &&
+    !lowerTitle.includes("quarter") &&
+    !lowerTitle.includes("bronze")
+  )
+    return 100; // Final
+  if (lowerTitle.includes("bronze final") || lowerTitle.includes("3rd place"))
+    return 99; // Bronze Final / 3rd Place
+  if (lowerTitle.includes("semi-final")) return 90; // Semi-Final
+  if (lowerTitle.includes("quarter-final")) return 80; // Quarter-Final
+
+  // Handle numbered rounds
+  const roundMatch = lowerTitle.match(/round\s+(\d+)/);
+  if (roundMatch && roundMatch[1]) {
+    return 10 + parseInt(roundMatch[1], 10); // e.g., Round 1 -> 11, Round 2 -> 12
+  }
+
+  // Default for other titles (e.g., Group Stages, early custom rounds)
+  return 50;
+};
+
+const sortRounds = (rounds: Round[]): Round[] => {
+  return [...rounds].sort(
+    (a, b) => getRoundSortKey(a.title) - getRoundSortKey(b.title)
+  );
+};
+
+// Helper function to renumber match titles globally, preserving special titles
+// Assumes currentRounds are already sorted in the desired logical order
+const renumberAllMatchTitlesGlobally = (currentRounds: Round[]): Round[] => {
+  let matchNumber = 1;
+  return currentRounds.map((round) => ({
+    ...round,
+    matches: round.matches.map((match) => {
+      // If the title is "Final Match" (or contains "final" case-insensitively), keep it.
+      // Otherwise, renumber it.
+      if (match.title.toLowerCase().includes("final")) {
+        return match; // Keep original special title
+      }
+      // For all other matches, assign a new sequential title
+      return { ...match, title: `Match ${matchNumber++}` };
+    }),
+  }));
+};
+
 interface TournamentState {
   participants: Participant[];
   rounds: Round[];
@@ -129,12 +179,17 @@ interface TournamentState {
   resetParticipantsAndBracket: () => void;
 }
 
+// Initial state setup
+const initialRawRounds = populateTournamentDefaultBracket();
+const sortedInitialRounds = sortRounds(initialRawRounds);
+const renumberedAndSortedInitialRounds =
+  renumberAllMatchTitlesGlobally(sortedInitialRounds);
+
 export const useTournamentStore = create<TournamentState>()(
   persist(
     (set) => ({
-      // Removed unused get parameter
       participants: createDefaultParticipants(),
-      rounds: populateTournamentDefaultBracket(),
+      rounds: renumberedAndSortedInitialRounds, // Use pre-sorted and renumbered initial rounds
       lastUpdated: new Date().toISOString(),
 
       addParticipants: (count) =>
@@ -212,58 +267,75 @@ export const useTournamentStore = create<TournamentState>()(
               const match = r.title.match(/Round\s+(\d+)/i); // Fixed regex escape
               return match ? parseInt(match[1], 10) : 0;
             })
-            .filter((n) => !isNaN(n));
+            .filter((n) => !isNaN(n) && n > 0); // Ensure only positive numbers from "Round X"
           const highestRoundNumber =
             numericRounds.length > 0 ? Math.max(...numericRounds) : 0;
           const nextRoundNumber = highestRoundNumber + 1;
           const newRoundId = `r${Date.now()}`; // Fixed template literal
+
+          const newRound: Round = {
+            id: newRoundId,
+            title: `Round ${nextRoundNumber}`, // Fixed template literal
+            matches: [],
+          };
+
+          let updatedRounds = [...state.rounds, newRound];
+          updatedRounds = sortRounds(updatedRounds); // Sort all rounds including the new one
+          updatedRounds = renumberAllMatchTitlesGlobally(updatedRounds); // Renumber matches based on new sorted order
+
           return {
-            rounds: [
-              ...state.rounds,
-              {
-                id: newRoundId,
-                title: `Round ${nextRoundNumber}`,
-                matches: [],
-              }, // Fixed template literal
-            ],
+            rounds: updatedRounds,
             lastUpdated: new Date().toISOString(),
           };
         }),
 
       addMatchToRound: (roundId) =>
-        set((state) => ({
-          rounds: state.rounds.map((round) => {
-            if (round.id === roundId) {
-              const newMatchId = `m${Date.now()}`; // Fixed template literal
+        set((state) => {
+          let newRounds = state.rounds.map((r) => {
+            if (r.id === roundId) {
+              const newMatchId = `m${Date.now()}_${r.matches.length + 1}`;
+              const newMatch = {
+                id: newMatchId,
+                title: "Match", // Placeholder title, will be correctly numbered
+                bestOf: 3,
+                roundId: r.id,
+                participant1Id: null,
+                participant2Id: null,
+                winnerId: null,
+              };
               return {
-                ...round,
-                matches: [
-                  ...round.matches,
-                  {
-                    id: newMatchId,
-                    title: `Match ${round.matches.length + 1}`,
-                    bestOf: 3,
-                    roundId,
-                    participant1Id: null,
-                    participant2Id: null,
-                    winnerId: null,
-                  }, // Fixed template literal
-                ],
+                ...r,
+                matches: [...r.matches, newMatch],
               };
             }
-            return round;
-          }),
-          lastUpdated: new Date().toISOString(),
-        })),
+            return r;
+          });
+          // state.rounds is already sorted, so newRounds maintains that round order
+          const renumberedRounds = renumberAllMatchTitlesGlobally(newRounds);
+          return {
+            rounds: renumberedRounds,
+            lastUpdated: new Date().toISOString(),
+          };
+        }),
 
       removeMatch: (matchId) =>
-        set((state) => ({
-          rounds: state.rounds.map((round) => ({
+        set((state) => {
+          const roundsWithMatchRemoved = state.rounds.map((round) => ({
             ...round,
             matches: round.matches.filter((match) => match.id !== matchId),
-          })),
-          lastUpdated: new Date().toISOString(),
-        })),
+          }));
+          // Note: This doesn't remove empty rounds. If a round becomes empty, it stays.
+          // This is generally fine as the UI should handle displaying empty rounds if necessary,
+          // or further logic could be added to remove empty non-essential rounds.
+          // state.rounds is already sorted
+          const renumberedRounds = renumberAllMatchTitlesGlobally(
+            roundsWithMatchRemoved
+          );
+          return {
+            rounds: renumberedRounds,
+            lastUpdated: new Date().toISOString(),
+          };
+        }),
 
       updateMatchParticipant: (matchId, position, participantId) =>
         set((state) => ({
@@ -280,21 +352,33 @@ export const useTournamentStore = create<TournamentState>()(
         })),
 
       resetBracket: () =>
-        set({
-          rounds: populateTournamentDefaultBracket(), // Resets to the static default structure
-          lastUpdated: new Date().toISOString(),
+        set(() => {
+          const defaultRounds = populateTournamentDefaultBracket();
+          const sortedRounds = sortRounds(defaultRounds);
+          const renumberedRounds = renumberAllMatchTitlesGlobally(sortedRounds);
+          return {
+            rounds: renumberedRounds,
+            lastUpdated: new Date().toISOString(),
+          };
         }),
 
       resetParticipantsAndBracket: () =>
-        set({
-          participants: createDefaultParticipants(),
-          rounds: populateTournamentDefaultBracket(),
-          lastUpdated: new Date().toISOString(),
+        set(() => {
+          const defaultParticipants = createDefaultParticipants();
+          const defaultRounds = populateTournamentDefaultBracket();
+          const sortedRounds = sortRounds(defaultRounds);
+          const renumberedRounds = renumberAllMatchTitlesGlobally(sortedRounds);
+          return {
+            participants: defaultParticipants,
+            rounds: renumberedRounds,
+            lastUpdated: new Date().toISOString(),
+          };
         }),
     }),
     {
       name: "tournament-storage",
       storage: createJSONStorage(() => localStorage),
+      // Consider partializing if some state shouldn't be persisted or needs migration
     }
   )
 );

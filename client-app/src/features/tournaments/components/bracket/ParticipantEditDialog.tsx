@@ -53,6 +53,11 @@ export function ParticipantEditDialog({
     }
   };
 
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault(); // Prevent default form submission (page reload)
+    onSave();
+  };
+
   return (
     <Dialog.Root
       open={isOpen}
@@ -77,65 +82,68 @@ export function ParticipantEditDialog({
                 Edit Participant
               </Dialog.Title>
             </Dialog.Header>
-            <Dialog.Body py={4} px={4}>
-              <VStack spacing={4} align="stretch">
-                <Field.Root>
-                  <Field.Label mb={1} fontWeight="medium">
-                    Name
-                  </Field.Label>
-                  <Input
-                    value={participant?.name || ""}
-                    onChange={handleNameChange}
-                    bg={inputBgColor}
-                    borderColor={borderColor}
-                  />
-                </Field.Root>
-                <Field.Root>
-                  <Field.Label mb={1} fontWeight="medium">
-                    Faction
-                  </Field.Label>
-                  <chakra.select
-                    value={participant?.faction || ""}
-                    onChange={handleFactionChange}
-                    width="100%"
-                    bg={inputBgColor}
-                    borderColor={borderColor}
-                    borderRadius="md"
-                    p={2}
-                  >
-                    <option value="">Select Faction</option>
-                    {FACTIONS.map((faction) => (
-                      <option key={faction} value={faction}>
-                        {faction}
-                      </option>
-                    ))}
-                  </chakra.select>
-                </Field.Root>
-              </VStack>
-            </Dialog.Body>
-            <Dialog.Footer
-              py={3}
-              px={4}
-              gap={3}
-              borderTopWidth="1px"
-              borderColor={borderColor}
-            >
-              <Button
-                ref={cancelRef}
-                onClick={onClose}
-                variant="outline"
-                width={{ base: "full", sm: "auto" }}
+            <chakra.form onSubmit={handleSubmit}>
+              <Dialog.Body py={4} px={4}>
+                <VStack spacing={4} align="stretch">
+                  <Field.Root>
+                    <Field.Label mb={1} fontWeight="medium">
+                      Name
+                    </Field.Label>
+                    <Input
+                      value={participant?.name || ""}
+                      onChange={handleNameChange}
+                      bg={inputBgColor}
+                      borderColor={borderColor}
+                      autoFocus
+                    />
+                  </Field.Root>
+                  <Field.Root>
+                    <Field.Label mb={1} fontWeight="medium">
+                      Faction
+                    </Field.Label>
+                    <chakra.select
+                      value={participant?.faction || ""}
+                      onChange={handleFactionChange}
+                      width="100%"
+                      bg={inputBgColor}
+                      borderColor={borderColor}
+                      borderRadius="md"
+                      p={2}
+                    >
+                      <option value="">Select Faction</option>
+                      {FACTIONS.map((faction) => (
+                        <option key={faction} value={faction}>
+                          {faction}
+                        </option>
+                      ))}
+                    </chakra.select>
+                  </Field.Root>
+                </VStack>
+              </Dialog.Body>
+              <Dialog.Footer
+                py={3}
+                px={4}
+                gap={3}
+                borderTopWidth="1px"
+                borderColor={borderColor}
               >
-                Cancel
-              </Button>
-              <Button
-                colorScheme="blue"
-                onClick={onSave}
-                width={{ base: "full", sm: "auto" }}
-              >
-                Save
-              </Button>
-            </Dialog.Footer>
+                <Button
+                  ref={cancelRef}
+                  onClick={onClose}
+                  variant="outline"
+                  width={{ base: "full", sm: "auto" }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit" // Changed to type="submit"
+                  colorScheme="blue"
+                  width={{ base: "full", sm: "auto" }}
+                >
+                  Save
+                </Button>
+              </Dialog.Footer>
+            </chakra.form>
           </Dialog.Content>
         </Dialog.Positioner>
       </Portal>
