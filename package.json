@@ -1,21 +1,21 @@
 {
-    "name": "totalwarhammer-tournament-app",
-    "version": "1.0.0",
-    "private": true,
-    "description": "Total War: Warhammer Tournament Application",
-    "workspaces": [
-        "client-app",
-        "server-app"
-    ],
-    "scripts": {
-        "install:all": "npm install",
-        "install:client": "npm install --workspace=client-app",
-        "install:server": "npm install --workspace=server-app",
-        "dev:client": "npm run dev --workspace=client-app",
-        "dev:server": "npm run dev --workspace=server-app",
-        "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\""
-    },
-    "devDependencies": {
-        "concurrently": "^8.2.0"
-    }
+  "name": "totalwarhammer-tournament-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Total War: Warhammer Tournament Application",
+  "workspaces": [
+    "client-app",
+    "server-app"
+  ],
+  "scripts": {
+    "install:all": "npm install",
+    "install:client": "npm install --workspace=client-app",
+    "install:server": "npm install --workspace=server-app",
+    "dev:client": "npm run dev --workspace=client-app",
+    "dev:server": "npm run dev --workspace=server-app",
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
 }

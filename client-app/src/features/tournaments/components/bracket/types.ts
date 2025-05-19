@@ -38,4 +38,13 @@ export const FACTIONS = [
   "Beastmen",
   "Wood Elves",
   "Norsca",
+  "Chaos Dwarfs",
+  "Daemons of Chaos",
+  "Cathay",
+  "Ogre Kingdoms",
+  "Kislev",
+  "Tzeentch",
+  "Nurgle",
+  "Slaanesh",
+  "Khorne",
 ];

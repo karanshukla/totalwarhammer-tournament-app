@@ -9,63 +9,38 @@ import {
   Card,
   VStack,
   Spacer,
-  HStack, // Added HStack
+  HStack,
 } from "@chakra-ui/react";
 import {
   SortableContext,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { DragOverlay } from "@dnd-kit/core";
-import { LuPlus, LuMinus } from "react-icons/lu"; // Added LuMinus
+import { LuPlus, LuMinus } from "react-icons/lu";
 import { useColorModeValue } from "@/shared/ui/ColorMode";
 import { SortableItem } from "./SortableItem";
 import { Participant } from "./types";
-// Removed NumberInput imports as they are replaced by Buttons
-// import {
-//   NumberInputRoot,
-//   NumberInputField,
-//   NumberInputControl,
-//   NumberInputIncrementTrigger,
-//   NumberInputDecrementTrigger,
-// } from "@/shared/ui/NumberInput";
+import { useTournamentStore } from "@/shared/stores/tournamentStore";
+import { toaster } from "@/shared/ui/Toaster";
 
 interface ParticipantListProps {
-  participants: Participant[];
   activeParticipant: Participant | null;
   newParticipantCount: number;
   onSetNewParticipantCount: (count: number) => void;
-  onAddParticipants: () => void;
-  onSaveTournament: () => void;
-  onResetBracket: () => void;
-  onResetParticipants: () => void;
   onEditParticipant: (participant: Participant) => void;
-  onDeleteParticipant: (participantId: string) => void;
 }
 
 export function ParticipantList({
-  participants,
   activeParticipant,
   newParticipantCount,
   onSetNewParticipantCount,
-  onAddParticipants,
-  onSaveTournament,
-  onResetBracket,
-  onResetParticipants,
   onEditParticipant,
-  onDeleteParticipant,
 }: ParticipantListProps) {
   const overlayBgColor = useColorModeValue("white", "gray.700");
-  const borderColor = useColorModeValue("gray.200", "gray.600");
 
-  // Removed useCallback for handleValueChange as NumberInput is removed
-  // const handleValueChange = useCallback(
-  //   (valueAsString: string, valueAsNumber: number) => {
-  //     onSetNewParticipantCount(isNaN(valueAsNumber) ? 1 : valueAsNumber);
-  //   },
-  //   [onSetNewParticipantCount]
-  // );
+  const store = useTournamentStore();
+  const participants = useTournamentStore((state) => state.participants);
 
-  // Handle incrementing and decrementing participant count
   const increment = () => {
     onSetNewParticipantCount(Math.min(newParticipantCount + 1, 100));
   };
@@ -74,74 +49,86 @@ export function ParticipantList({
     onSetNewParticipantCount(Math.max(newParticipantCount - 1, 1));
   };
 
+  const handleAddParticipants = () => {
+    store.addParticipants(newParticipantCount);
+    toaster.success({
+      description: `${newParticipantCount} new participant(s) added.`,
+    });
+    onSetNewParticipantCount(1);
+  };
+
+  const handleResetBracket = () => {
+    store.resetBracket();
+    toaster.info({ description: "Bracket has been reset." });
+  };
+
+  const handleResetParticipantsAndBracket = () => {
+    store.resetParticipantsAndBracket();
+    toaster.info({ description: "Participants and bracket have been reset." });
+  };
+
+  const handleDeleteParticipant = (participantId: string) => {
+    store.deleteParticipant(participantId);
+    toaster.info({ description: "Participant deleted." });
+  };
+
   return (
-    <Card.Root p={5} mb={6}>
-      <VStack align="stretch" spacing={6}>
+    <Card.Root p={4} mb={5}>
+      <VStack align="stretch" spacing={4}>
         <Text fontSize="xl" fontWeight="bold">
           Tournament Participants
         </Text>
 
-        {/* Add new participants controls */}
-        <Card.Root p={4} variant="outline">
-          <VStack align="stretch" spacing={4}>
-            <Text fontSize="md" fontWeight="medium">
-              Add New Participants
-            </Text>
-
+        {/* Control panel */}
+        <Card.Root variant="outline" p={3}>
+          <VStack align="stretch" spacing={3}>
+            <Text fontWeight="medium">Add New Participants</Text>
             <Flex
-              direction={{ base: "column", md: "row" }}
-              gap={4}
+              wrap="wrap"
+              gap={3}
+              justify="space-between"
               align={{ base: "stretch", md: "center" }}
             >
-              {/* Replaced NumberInput with Buttons and HStack */}
-              <HStack spacing={2} minW="120px" alignItems="center">
-                <Text mr={1}>Quantity:</Text>
-                <HStack spacing={1}>
-                  <Button
-                    onClick={decrement}
-                    size="sm"
-                    variant="outline"
-                    aria-label="Decrease quantity"
-                    isDisabled={newParticipantCount <= 1}
-                  >
-                    <LuMinus size={16} />
-                  </Button>
-                  <Box
-                    minW="30px"
-                    textAlign="center"
-                    fontWeight="medium"
-                    fontSize="sm"
-                    px={1}
-                  >
-                    {newParticipantCount}
-                  </Box>
-                  <Button
-                    onClick={increment}
-                    size="sm"
-                    variant="outline"
-                    aria-label="Increase quantity"
-                    isDisabled={newParticipantCount >= 100}
-                  >
-                    <LuPlus size={16} />
-                  </Button>
-                </HStack>
-              </HStack>{" "}
-              <ButtonGroup size="md" width={{ base: "full", md: "auto" }}>
-                <Button onClick={onAddParticipants}>
-                  <LuPlus /> Add
+              <HStack>
+                <Text>Quantity:</Text>
+                <Button
+                  onClick={decrement}
+                  size="sm"
+                  variant="outline"
+                  isDisabled={newParticipantCount <= 1}
+                >
+                  <LuMinus />
                 </Button>
-                <Button onClick={onSaveTournament} variant="solid">
-                  Save
+                <Text fontWeight="medium" px={2}>
+                  {newParticipantCount}
+                </Text>
+                <Button
+                  onClick={increment}
+                  size="sm"
+                  variant="outline"
+                  isDisabled={newParticipantCount >= 100}
+                >
+                  <LuPlus />
                 </Button>
-                <Button onClick={onResetBracket} variant="outline" color="red">
+              </HStack>
+
+              <ButtonGroup size="sm">
+                <Button onClick={handleAddParticipants} colorScheme="blue">
+                  <LuPlus /> Add Participants
+                </Button>
+                <Button
+                  onClick={handleResetBracket}
+                  colorScheme="red"
+                  variant="outline"
+                >
                   Reset Bracket
                 </Button>
                 <Button
-                  onClick={onResetParticipants}
+                  onClick={handleResetParticipantsAndBracket}
+                  colorScheme="orange"
                   variant="outline"
-                  color="orange"
                 >
-                  Reset Participants
+                  Reset All
                 </Button>
               </ButtonGroup>
             </Flex>
@@ -150,71 +137,55 @@ export function ParticipantList({
 
         <Text>Drag participants to tournament bracket:</Text>
 
-        {/* Participant list */}
-        <Box
-          borderWidth="1px"
-          borderRadius="md"
-          borderColor={borderColor}
-          p={4}
-        >
+        {/* Participants list */}
+        <Box borderWidth="1px" borderRadius="md" p={3}>
           <SortableContext
             items={participants.map((p) => p.id)}
             strategy={verticalListSortingStrategy}
           >
-            <SimpleGrid columns={{ base: 1, sm: 2, lg: 3 }} spacing={4}>
+            <SimpleGrid columns={{ base: 1, sm: 2, md: 3 }} spacing={3}>
               {participants.map((participant) => (
-                <Box
+                <Flex
                   key={participant.id}
                   borderWidth="1px"
                   borderRadius="md"
-                  borderColor={borderColor}
                   p={2}
+                  align="center"
                 >
-                  <Flex>
-                    <SortableItem
-                      id={participant.id}
-                      participant={participant}
-                    />
-                    <Spacer />
-                    <ButtonGroup size="xs" variant="ghost">
-                      <Button
-                        onClick={() => onEditParticipant(participant)}
-                        color="blue.500"
-                      >
-                        Edit
-                      </Button>
-                      <Button
-                        onClick={() => onDeleteParticipant(participant.id)}
-                        color="red.500"
-                      >
-                        Delete
-                      </Button>
-                    </ButtonGroup>
-                  </Flex>
-                </Box>
+                  <SortableItem id={participant.id} participant={participant} />
+                  <Spacer />
+                  <ButtonGroup size="xs" variant="ghost" spacing={1}>
+                    <Button
+                      onClick={() => onEditParticipant(participant)}
+                      color="blue.500"
+                    >
+                      Edit
+                    </Button>
+                    <Button
+                      onClick={() => handleDeleteParticipant(participant.id)}
+                      color="red.500"
+                    >
+                      Delete
+                    </Button>
+                  </ButtonGroup>
+                </Flex>
               ))}
             </SimpleGrid>
           </SortableContext>
 
-          {/* Drag overlay */}
           <DragOverlay>
             {activeParticipant ? (
               <Box
                 p={2}
-                borderWidth="1px"
-                borderRadius="md"
                 bg={overlayBgColor}
+                borderRadius="md"
                 boxShadow="md"
-                width="180px"
+                borderWidth="1px"
               >
-                <Flex justifyContent="space-between" alignItems="center">
-                  <Text fontWeight="medium" fontSize="xs" noOfLines={1}>
-                    {activeParticipant.name}
-                  </Text>
-                  <Text fontSize="xs" color="gray.500">
-                    {activeParticipant.faction}
-                  </Text>
-                </Flex>
+                <SortableItem
+                  id={activeParticipant.id}
+                  participant={activeParticipant}
+                />
               </Box>
             ) : null}
           </DragOverlay>

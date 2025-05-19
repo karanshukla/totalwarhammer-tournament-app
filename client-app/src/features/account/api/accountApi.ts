@@ -47,14 +47,7 @@ export const updateUsername = async (
   username: string
 ): Promise<AccountUpdateResponse> => {
   try {
-    // First, check the CSRF token to ensure we have a valid session
-    await httpClient.checkSessionStatus().catch((error) => {
-      console.error("Session check failed:", error);
-      throw new Error(
-        "Your session appears to be invalid. Please try logging in again."
-      );
-    });
-
+    // Note: httpClient.post() will internally validate the session for sensitive endpoints.
     const responseData = await httpClient.post<AccountUpdateResponse>(
       apiConfig.endpoints.updateUsername,
       { username }
@@ -96,14 +89,7 @@ export const updatePassword = async (
   data: UpdatePasswordRequest
 ): Promise<AccountUpdateResponse> => {
   try {
-    // First, check the CSRF token to ensure we have a valid session
-    await httpClient.checkSessionStatus().catch((error) => {
-      console.error("Session check failed:", error);
-      throw new Error(
-        "Your session appears to be invalid. Please try logging in again."
-      );
-    });
-
+    // Note: httpClient.post() will internally validate the session for sensitive endpoints.
     const responseData = await httpClient.post<AccountUpdateResponse>(
       apiConfig.endpoints.updatePassword,
       data

@@ -9,15 +9,15 @@ class HttpClient {
   private baseUrl: string;
   private csrfToken: string | null = null;
   private tokenPromise: Promise<string | null> | null = null;
-  private debug: boolean = true; // Enable debugging for troubleshooting
-  private lastSessionId: string | null = null;
+  private debug: boolean = false; // Set to false by default
 
   constructor(baseUrl: string) {
     this.baseUrl = baseUrl;
   }
 
   /**
-   * Check if the current session is valid and functioning
+   * Check if the current session is valid and functioning.
+   * This also refreshes the CSRF token as a side-effect.
    * @returns Promise with session check result
    */
   async checkSessionStatus(): Promise<{
@@ -32,29 +32,19 @@ class HttpClient {
       });
 
       if (!response.ok) {
-        if (this.debug)
-          console.error("Session check failed:", response.statusText);
         return { valid: false, sessionId: null };
       }
 
       const data = await response.json();
-      const currentSessionId = data.sessionId;
 
-      if (this.debug) {
-        console.log("Session check result:", {
-          sessionId: currentSessionId,
-          previousSessionId: this.lastSessionId,
-          sessionConsistent:
-            !this.lastSessionId || this.lastSessionId === currentSessionId,
-        });
+      // Update the CSRF token as it's available from this endpoint
+      if (data.csrfToken) {
+        this.csrfToken = data.csrfToken;
       }
 
-      // Store the current session ID for comparison in future requests
-      this.lastSessionId = currentSessionId;
-
-      return { valid: true, sessionId: currentSessionId };
-    } catch (error) {
-      if (this.debug) console.error("Session check error:", error);
+      return { valid: true, sessionId: data.sessionId };
+    } catch {
+      // Error is intentionally not logged here as debug is false
       return { valid: false, sessionId: null };
     }
   }
@@ -67,8 +57,6 @@ class HttpClient {
       return this.tokenPromise;
     }
     this.tokenPromise = new Promise<string | null>((resolve) => {
-      if (this.debug) console.log("Fetching new CSRF token...");
-
       fetch(`${this.baseUrl}/auth/csrf-token`, {
         method: "GET",
         credentials: "include",
@@ -88,11 +76,6 @@ class HttpClient {
           }
 
           this.csrfToken = data.csrfToken;
-
-          if (this.debug) {
-            console.log("CSRF token fetch successful");
-            console.log(`Session ID from server: ${data.sessionId || "none"}`);
-          }
 
           resolve(this.csrfToken);
         })
@@ -140,8 +123,6 @@ class HttpClient {
     if (sensitiveEndpoints.some((e) => endpoint.includes(e))) {
       // Check session status before proceeding
       const sessionStatus = await this.checkSessionStatus();
-      if (this.debug)
-        console.log(`Session check before ${endpoint}:`, sessionStatus);
 
       if (!sessionStatus.valid) {
         throw new Error(
@@ -183,10 +164,7 @@ class HttpClient {
 
     if (token && !skipCsrf) {
       headers["X-CSRF-Token"] = token;
-      if (this.debug) console.log(`Adding CSRF token to ${endpoint} request`);
     }
-
-    if (this.debug) console.log(`Making POST request to ${endpoint}`);
 
     const response = await fetch(url, {
       method: "POST",
@@ -200,18 +178,12 @@ class HttpClient {
       try {
         const errorData = await response.json();
 
-        if (this.debug) console.log("Received 403 response:", errorData);
-
         if (errorData.error === "CSRF validation failed") {
           this.csrfToken = null;
-          if (this.debug)
-            console.log("CSRF validation failed, refreshing token...");
 
           token = await this.ensureCsrfToken();
 
           if (token) {
-            if (this.debug) console.log("Retrying request with new CSRF token");
-
             const retryResponse = await fetch(url, {
               method: "POST",
               credentials: "include",
@@ -261,11 +233,7 @@ class HttpClient {
 
     if (token && !skipCsrf) {
       headers["X-CSRF-Token"] = token;
-      if (this.debug)
-        console.log(`Adding CSRF token to ${endpoint} PUT request`);
     }
-
-    if (this.debug) console.log(`Making PUT request to ${endpoint}`);
 
     const response = await fetch(url, {
       method: "PUT",
@@ -279,19 +247,12 @@ class HttpClient {
       try {
         const errorData = await response.json();
 
-        if (this.debug) console.log("Received 403 response:", errorData);
-
         if (errorData.error === "CSRF validation failed") {
           this.csrfToken = null;
-          if (this.debug)
-            console.log("CSRF validation failed, refreshing token...");
 
           token = await this.ensureCsrfToken();
 
           if (token) {
-            if (this.debug)
-              console.log("Retrying PUT request with new CSRF token");
-
             const retryResponse = await fetch(url, {
               method: "PUT",
               credentials: "include",
@@ -337,65 +298,47 @@ class HttpClient {
 
     if (token && !skipCsrf) {
       headers["X-CSRF-Token"] = token;
-      if (this.debug)
-        console.log(`Adding CSRF token to ${endpoint} DELETE request`);
     }
 
-    if (this.debug) console.log(`Making DELETE request to ${endpoint}`);
+    const response = await fetch(url, {
+      method: "DELETE",
+      credentials: "include",
+      ...requestOptions,
+      headers,
+    });
 
-    try {
-      const response = await fetch(url, {
-        method: "DELETE",
-        credentials: "include",
-        ...requestOptions,
-        headers,
-      });
+    if (response.status === 403) {
+      try {
+        const errorData = await response.json();
 
-      if (response.status === 403) {
-        try {
-          const errorData = await response.json();
+        if (errorData.error === "CSRF validation failed") {
+          this.csrfToken = null;
 
-          if (this.debug) console.log("Received 403 response:", errorData);
+          token = await this.ensureCsrfToken();
 
-          if (errorData.error === "CSRF validation failed") {
-            this.csrfToken = null;
-            if (this.debug)
-              console.log("CSRF validation failed, refreshing token...");
+          if (token) {
+            const retryResponse = await fetch(url, {
+              method: "DELETE",
+              credentials: "include",
+              ...requestOptions,
+              headers: {
+                "Content-Type": "application/json",
+                "X-CSRF-Token": token,
+                ...requestOptions.headers,
+              },
+            });
 
-            token = await this.ensureCsrfToken();
-
-            if (token) {
-              if (this.debug)
-                console.log("Retrying DELETE request with new CSRF token");
-
-              const retryResponse = await fetch(url, {
-                method: "DELETE",
-                credentials: "include",
-                ...requestOptions,
-                headers: {
-                  "Content-Type": "application/json",
-                  "X-CSRF-Token": token,
-                  ...requestOptions.headers,
-                },
-              });
-
-              return this.handleResponse<T>(retryResponse);
-            } else {
-              throw new Error("Could not refresh CSRF token after failure");
-            }
+            return this.handleResponse<T>(retryResponse);
+          } else {
+            throw new Error("Could not refresh CSRF token after failure");
           }
-        } catch (e) {
-          console.error("Error handling CSRF retry:", e);
         }
+      } catch (e) {
+        console.error("Error handling CSRF retry:", e);
       }
-
-      return this.handleResponse<T>(response);
-    } catch (error) {
-      if (this.debug) {
-        console.error(`DELETE request to ${endpoint} failed:`, error);
-      }
-      throw error;
     }
+
+    return this.handleResponse<T>(response);
   }
 
   private buildUrl(endpoint: string, params?: Record<string, string>): string {
@@ -424,30 +367,7 @@ class HttpClient {
           response.status === 403 &&
           errorData.error === "CSRF validation failed"
         ) {
-          if (this.debug) {
-            console.error("CSRF validation failed:", {
-              message: errorData.message,
-              debug: errorData.debug || {},
-              status: response.status,
-            });
-
-            if (errorData.debug) {
-              console.log("CSRF Debug Info:", {
-                hasSession: errorData.debug.hasSession,
-                hasSessionId: errorData.debug.hasSessionId,
-                hasToken: errorData.debug.hasToken,
-                serverExpectsToken: true,
-                clientProvidedToken: !!this.csrfToken,
-              });
-            }
-          }
-
           this.csrfToken = null;
-        } else if (this.debug) {
-          console.error("API Error Response:", {
-            status: response.status,
-            data: errorData,
-          });
         }
 
         throw new Error(errorMessage);
@@ -472,7 +392,6 @@ class HttpClient {
   }
 
   resetCsrfToken(): void {
-    if (this.debug) console.log("Explicitly resetting CSRF token");
     this.csrfToken = null;
     this.tokenPromise = null;
   }

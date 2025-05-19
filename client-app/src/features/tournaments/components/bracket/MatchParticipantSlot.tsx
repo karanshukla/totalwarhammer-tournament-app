@@ -25,45 +25,53 @@ export function MatchParticipantSlot({
   const participant = participantId
     ? participants.find((p) => p.id === participantId)
     : null;
-
   return (
     <Box
       ref={setNodeRef}
       borderWidth="1px"
       borderRadius="md"
       borderColor={isOver ? "blue.300" : "gray.200"}
-      p={2}
-      bg={isOver ? "blue.50" : "transparent"}
+      p={1}
+      bg={isOver ? "blue.50" : "white"}
       _dark={{
         borderColor: isOver ? "blue.500" : "gray.600",
-        bg: isOver ? "blue.900" : "transparent",
+        bg: isOver ? "blue.900" : "gray.800",
       }}
       width="100%"
-      height="40px"
+      height="32px"
       transition="all 0.2s"
     >
       {participant ? (
         <Flex justify="space-between" align="center" height="100%">
-          <Text fontSize="sm" fontWeight="medium" noOfLines={1} ml={1}>
+          <Text fontSize="xs" fontWeight="medium" noOfLines={1} flex="1">
             {participant.name}
+          </Text>
+          <Text fontSize="2xs" color="gray.500" mx={1} noOfLines={1}>
+            {participant.faction}
           </Text>
           <Button
             aria-label="Remove participant"
             size="xs"
             onClick={onRemove}
             variant="ghost"
-            color="red.500"
-            _hover={{ bg: "red.50" }}
-            _dark={{ _hover: { bg: "red.900" } }}
-            height="24px"
-            minWidth="unset"
-            px={2}
+            colorScheme="red"
+            height="20px"
+            minWidth="auto"
+            px={1}
           >
-            Remove
+            ×
           </Button>
         </Flex>
       ) : (
-        <Text fontSize="sm" color="gray.500" textAlign="center" py={1}>
+        <Text
+          fontSize="xs"
+          color="gray.500"
+          textAlign="center"
+          height="100%"
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+        >
           Drop player here
         </Text>
       )}
