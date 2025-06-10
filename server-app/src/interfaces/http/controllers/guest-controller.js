@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import crypto from "crypto";
 
 import AuthStateService from "../../../infrastructure/services/auth-state-service.js";

@@ -16,7 +16,7 @@ const HomePage: React.FC = () => {
     <Container maxW="container.xl">
       <VStack gap={6} py={10} align="flex-start">
         <Prose>
-          <Text>
+          <Text fontSize="2xl" fontWeight="bold">
             Create custom brackets, participate in Total War Warhammer 3
             tournaments within the multiplayer community, and view statistics
             for recorded matchups.
@@ -32,8 +32,8 @@ const HomePage: React.FC = () => {
           </Button>
         </HStack>
         <Text>
-          Want to participate in an upcoming tournament? Head over to the
-          "Tournaments" page using the navigation bar
+          Want to create a tournament? Create an account and login to access the
+          tournament page.
         </Text>
       </VStack>
       <Prose>
@@ -42,8 +42,8 @@ const HomePage: React.FC = () => {
       </Prose>
       <br></br>
       <Prose>
-        Want to host tournaments? Create an account and login to access
-        tournament management features
+        Guest accounts are limited to viewing tournaments and participating in
+        matches. To create a tournament, you must register.
       </Prose>
     </Container>
   );

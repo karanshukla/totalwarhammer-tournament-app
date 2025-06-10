@@ -11,6 +11,7 @@ import {
 } from "@chakra-ui/react";
 import { LuBrackets, LuTrophy, LuHistory, LuClock } from "react-icons/lu";
 import SimpleBracket from "./SimpleBracket";
+import CreateTournamentForm from "./CreateTournamentForm";
 
 const TournamentsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState("brackets");
@@ -87,22 +88,18 @@ const TournamentsPage: React.FC = () => {
             <Box>
               <SimpleBracket />
             </Box>
-          )}
-
+          )}{" "}
           {activeTab === "createTournament" && (
             <Box py={2}>
-              {/* Create tournament content goes here */}
-              Create a new Tournament
+              <CreateTournamentForm />
             </Box>
           )}
-
           {activeTab === "currentTournaments" && (
             <Box py={2}>
               {/* Current tournaments content goes here */}
               Check ongoing tournaments
             </Box>
           )}
-
           {activeTab === "pastTournaments" && (
             <Box py={2}>
               {/* Past tournaments content goes here */}
