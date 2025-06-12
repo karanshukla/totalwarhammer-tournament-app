@@ -171,71 +171,93 @@ const CreateTournamentForm: React.FC = () => {
         </Field.Root>
         <Field.Root w="100%">
           <Field.Label>Banned Factions</Field.Label>
-          <CheckboxGroup
-            value={
-              Array.isArray(formData.bannedFactions)
-                ? formData.bannedFactions
-                : []
-            }
-            onChange={(values: string[] | number[]) =>
-              setFormData((prev) => ({
-                ...prev,
-                bannedFactions: values as string[],
-              }))
-            }
+          <Grid
+            templateColumns={{ base: "1fr", md: "2fr 1fr" }}
+            gap={6}
+            alignItems="start"
+            w="100%"
           >
-            <SimpleGrid
-              columns={{ base: 1, sm: 2, md: 3 }}
-              spacingX={6}
-              spacingY={3}
-              w="100%"
-            >
-              {warhammer3Factions.map((faction) => (
-                <chakra.label
-                  key={faction}
-                  display="flex"
-                  alignItems="center"
+            <Box>
+              <CheckboxGroup
+                value={
+                  Array.isArray(formData.bannedFactions)
+                    ? formData.bannedFactions
+                    : []
+                }
+                onChange={(values: string[] | number[]) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    bannedFactions: values as string[],
+                  }))
+                }
+              >
+                <SimpleGrid
+                  columns={{ base: 1, sm: 2, md: 3 }}
+                  spacingX={6}
+                  spacingY={3}
                   w="100%"
-                  minWidth={0}
-                  p={2}
-                  borderRadius="md"
-                  borderWidth={1}
-                  borderColor="gray.200"
-                  _focusWithin={{
-                    borderColor: "blue.400",
-                    boxShadow: "outline",
-                  }}
-                  cursor="pointer"
-                  flexDirection="row"
-                  flex={1}
-                  gap={3}
-                  justifyContent="space-between"
-                  style={{ width: "100%", flex: 1, minWidth: 0 }}
                 >
-                  <chakra.input
-                    type="checkbox"
-                    value={faction}
-                    onChange={undefined}
-                    accentColor="blue.500"
-                    style={{ width: 18, height: 18, flexShrink: 0 }}
-                  />
-                  <Text
-                    fontSize="sm"
-                    flex={1}
-                    textAlign="left"
-                    whiteSpace="normal"
-                    wordBreak="break-word"
-                    ml={2}
-                  >
-                    {faction}
-                  </Text>
-                </chakra.label>
-              ))}
-            </SimpleGrid>
-          </CheckboxGroup>
-          <Text fontSize="sm" color="gray.500" mt={2}>
-            Select factions that will be banned in this tournament.
-          </Text>
+                  {warhammer3Factions.map((faction) => (
+                    <chakra.label
+                      key={faction}
+                      display="flex"
+                      alignItems="center"
+                      w="100%"
+                      minWidth={0}
+                      p={2}
+                      borderRadius="md"
+                      borderWidth={1}
+                      borderColor="gray.200"
+                      _focusWithin={{
+                        borderColor: "blue.400",
+                        boxShadow: "outline",
+                      }}
+                      cursor="pointer"
+                      flexDirection="row"
+                      flex={1}
+                      gap={3}
+                      justifyContent="space-between"
+                      style={{ width: "100%", flex: 1, minWidth: 0 }}
+                    >
+                      <chakra.input
+                        type="checkbox"
+                        value={faction}
+                        onChange={undefined}
+                        accentColor="blue.500"
+                        style={{ width: 18, height: 18, flexShrink: 0 }}
+                      />
+                      <Text
+                        fontSize="sm"
+                        flex={1}
+                        textAlign="left"
+                        whiteSpace="normal"
+                        wordBreak="break-word"
+                        ml={2}
+                      >
+                        {faction}
+                      </Text>
+                    </chakra.label>
+                  ))}
+                </SimpleGrid>
+              </CheckboxGroup>
+              <Text fontSize="sm" color="gray.500" mt={2}>
+                Select factions that will be banned in this tournament.
+              </Text>
+            </Box>
+            <Box
+              display={{ base: "none", md: "block" }}
+              pl={2}
+              style={{ flex: 1 }}
+            >
+              <Text fontSize="sm" color="gray.600">
+                Once you create your tournament, head over to the "Matches" page
+                to manage it, invite users and advance the rounds. Your
+                tournament will be visibile in the app by all other users, so
+                check your player size! You cannot edit a tournament once its
+                created, but you can delete it if you haven't started it.
+              </Text>
+            </Box>
+          </Grid>
         </Field.Root>
         <Button type="submit" colorScheme="blue" size="md" mt={4}>
           Create Tournament
