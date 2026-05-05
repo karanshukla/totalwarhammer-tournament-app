@@ -5,10 +5,14 @@ on:
     branches: ["main"]
     paths:
       - "client-app/**"
+      - "package.json"
+      - "package-lock.json"
   pull_request:
     branches: ["main"]
     paths:
       - "client-app/**"
+      - "package.json"
+      - "package-lock.json"
 
 permissions:
   contents: read
