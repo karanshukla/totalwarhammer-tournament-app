@@ -2,17 +2,28 @@ import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   Heading,
   Container,
-  Box,
   SimpleGrid,
   Text,
   VStack,
+  HStack,
   Card,
   Icon,
+  Input,
+  Button,
 } from "@chakra-ui/react";
-import { LuBrackets, LuTrophy, LuHistory, LuClock } from "react-icons/lu";
+import {
+  LuBrackets,
+  LuTrophy,
+  LuHistory,
+  LuClock,
+  LuSearch,
+} from "react-icons/lu";
+import { useNavigate } from "react-router-dom";
 import SimpleBracket from "./SimpleBracket";
 import CreateTournamentForm from "./CreateTournamentForm";
+import TournamentBrowser from "./TournamentBrowser";
 import { useColorModeValue } from "@/shared/ui/ColorMode";
+import { httpClient } from "@/core/api/httpClient";
 
 const TournamentsPage: React.FC = () => {
   const tabs = useMemo(
@@ -42,7 +53,7 @@ const TournamentsPage: React.FC = () => {
         content: "Check past tournaments",
       },
     ],
-    []
+    [],
   );
 
   // Define colors for light and dark modes
@@ -70,6 +81,28 @@ const TournamentsPage: React.FC = () => {
   }, [tabs]);
 
   const [activeTab, setActiveTab] = useState(getInitialTab);
+  const [codeInput, setCodeInput] = useState("");
+  const [codeError, setCodeError] = useState<string | null>(null);
+  const [codeLoading, setCodeLoading] = useState(false);
+  const navigate = useNavigate();
+
+  const handleFindByCode = async () => {
+    const code = codeInput.trim().toUpperCase();
+    if (!code) return;
+    setCodeLoading(true);
+    setCodeError(null);
+    try {
+      const res = (await httpClient.get(`/tournament/code/${code}`)) as {
+        success: boolean;
+        data: { _id: string };
+      };
+      navigate(`/tournament/${res.data._id}`);
+    } catch {
+      setCodeError("No tournament found with that code.");
+    } finally {
+      setCodeLoading(false);
+    }
+  };
 
   // Effect 1: Update URL hash when activeTab changes (e.g., from a click)
   useEffect(() => {
@@ -111,93 +144,116 @@ const TournamentsPage: React.FC = () => {
 
   return (
     <Container maxW="container.xl" py={8}>
-      <Heading as="h1" size="xl" mb={6}>
-        Tournaments
-      </Heading>
-
-      {/* Navigation Cards - Touch & Mouse Friendly */}
-      <SimpleGrid columns={{ base: 2, md: 4 }} gap={4} mb={8}>
-        {tabs.map((tab) => (
-          <Card.Root
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)} // This will trigger the useEffect to update the hash
-            cursor="pointer"
-            borderWidth={1}
-            borderRadius="md"
-            bg={activeTab === tab.id ? activeBg : inactiveBg}
-            borderColor={
-              activeTab === tab.id ? activeBorderColor : inactiveBorderColor
-            }
-            shadow={activeTab === tab.id ? "sm" : "none"}
-            _hover={{
-              shadow: "md",
-              borderColor:
-                activeTab === tab.id
-                  ? hoverActiveBorderColor
-                  : hoverInactiveBorderColor,
-              bg: activeTab === tab.id ? activeBg : hoverInactiveBg, // Apply hover background for inactive cards
-            }}
-            transition="all 0.2s ease-in-out"
-          >
-            <Card.Body p={4}>
-              <VStack spacing={3} alignItems="center">
-                <Icon
-                  as={tab.icon}
-                  boxSize={6}
-                  color={
-                    activeTab === tab.id ? activeIconColor : inactiveIconColor
-                  }
-                  transition="color 0.2s"
-                />
-                <Text
-                  fontSize="md"
-                  fontWeight="medium"
-                  textAlign="center"
-                  color={
-                    activeTab === tab.id ? activeTextColor : inactiveTextColor
-                  }
-                  transition="color 0.2s"
-                >
-                  {tab.label}
-                </Text>
-              </VStack>
-            </Card.Body>
-          </Card.Root>
-        ))}
-      </SimpleGrid>
-
-      {/* Content Area */}
-      <Card.Root>
-        <Card.Header>
-          <Heading size="md">
-            {tabs.find((tab) => tab.id === activeTab)?.label}
+      <VStack gap={6} align="stretch">
+        <HStack gap={4} wrap="wrap" alignItems="flex-end">
+          <Heading as="h1" size="xl" flex={1}>
+            Tournaments
           </Heading>
-        </Card.Header>
-        <Card.Body>
-          {activeTab === "brackets" && (
-            <Box>
-              <SimpleBracket />
-            </Box>
-          )}{" "}
-          {activeTab === "createTournament" && (
-            <Box py={2}>
-              <CreateTournamentForm />
-            </Box>
-          )}
-          {activeTab === "currentTournaments" && (
-            <Box py={2}>
-              {/* Current tournaments content goes here */}
-              Check ongoing tournaments
-            </Box>
-          )}
-          {activeTab === "pastTournaments" && (
-            <Box py={2}>
-              {/* Past tournaments content goes here */}
-              Check past tournaments
-            </Box>
-          )}
-        </Card.Body>
-      </Card.Root>
+          <VStack alignItems="flex-end" gap={1}>
+            <HStack gap={2}>
+              <Input
+                placeholder="Enter tournament code..."
+                value={codeInput}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setCodeInput(e.target.value)
+                }
+                onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
+                  e.key === "Enter" && handleFindByCode()
+                }
+                maxW="220px"
+                size="sm"
+                fontFamily="mono"
+                textTransform="uppercase"
+              />
+              <Button
+                size="sm"
+                colorPalette="blue"
+                onClick={handleFindByCode}
+                loading={codeLoading}
+                gap={2}
+              >
+                <LuSearch /> Find Tournament
+              </Button>
+            </HStack>
+            {codeError && (
+              <Text fontSize="xs" color="fg.error">
+                {codeError}
+              </Text>
+            )}
+          </VStack>
+        </HStack>
+
+        {/* Navigation Cards - Touch & Mouse Friendly */}
+        <SimpleGrid columns={{ base: 2, md: 4 }} gap={4}>
+          {tabs.map((tab) => (
+            <Card.Root
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)} // This will trigger the useEffect to update the hash
+              cursor="pointer"
+              borderWidth={1}
+              borderRadius="md"
+              bg={activeTab === tab.id ? activeBg : inactiveBg}
+              borderColor={
+                activeTab === tab.id ? activeBorderColor : inactiveBorderColor
+              }
+              shadow={activeTab === tab.id ? "sm" : "none"}
+              _hover={{
+                shadow: "md",
+                borderColor:
+                  activeTab === tab.id
+                    ? hoverActiveBorderColor
+                    : hoverInactiveBorderColor,
+                bg: activeTab === tab.id ? activeBg : hoverInactiveBg, // Apply hover background for inactive cards
+              }}
+              transition="all 0.2s ease-in-out"
+            >
+              <Card.Body p={4}>
+                <VStack gap={3} alignItems="center">
+                  <Icon
+                    as={tab.icon}
+                    boxSize={6}
+                    color={
+                      activeTab === tab.id ? activeIconColor : inactiveIconColor
+                    }
+                    transition="color 0.2s"
+                  />
+                  <Text
+                    fontSize="md"
+                    fontWeight="medium"
+                    textAlign="center"
+                    color={
+                      activeTab === tab.id ? activeTextColor : inactiveTextColor
+                    }
+                    transition="color 0.2s"
+                  >
+                    {tab.label}
+                  </Text>
+                </VStack>
+              </Card.Body>
+            </Card.Root>
+          ))}
+        </SimpleGrid>
+
+        {/* Content Area */}
+        <Card.Root>
+          <Card.Body>
+            {activeTab === "brackets" && <SimpleBracket />}
+            {activeTab === "createTournament" && <CreateTournamentForm />}
+            {activeTab === "currentTournaments" && (
+              <TournamentBrowser
+                statusFilter="pending"
+                emptyMessage="No open tournaments right now. Create one!"
+              />
+            )}
+            {activeTab === "pastTournaments" && (
+              <TournamentBrowser
+                statusFilter="completed"
+                emptyMessage="No completed tournaments yet."
+              />
+            )}
+          </Card.Body>
+        </Card.Root>
+      </VStack>
     </Container>
   );
 };

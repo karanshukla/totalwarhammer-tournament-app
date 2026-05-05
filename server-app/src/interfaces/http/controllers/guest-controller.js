@@ -33,7 +33,9 @@ export const createGuestUser = async (req, res) => {
       success: true,
       message: "Guest user created successfully",
       data: {
+        id: guestId,
         username: guestUsername,
+        email: "",
         isGuest: true,
         expiresAt,
       },

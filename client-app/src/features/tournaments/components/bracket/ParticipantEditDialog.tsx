@@ -84,7 +84,7 @@ export function ParticipantEditDialog({
             </Dialog.Header>
             <chakra.form onSubmit={handleSubmit}>
               <Dialog.Body py={4} px={4}>
-                <VStack spacing={4} align="stretch">
+                <VStack gap={4} align="stretch">
                   <Field.Root>
                     <Field.Label mb={1} fontWeight="medium">
                       Name
@@ -137,7 +137,7 @@ export function ParticipantEditDialog({
                 </Button>
                 <Button
                   type="submit" // Changed to type="submit"
-                  colorScheme="blue"
+                  colorPalette="blue"
                   width={{ base: "full", sm: "auto" }}
                 >
                   Save

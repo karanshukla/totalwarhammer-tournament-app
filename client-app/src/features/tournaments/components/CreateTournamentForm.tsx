@@ -1,22 +1,19 @@
 import React, { useState } from "react";
 import {
-  Box,
   Button,
   Text,
   Textarea,
   VStack,
+  Flex,
   Field,
-  CheckboxGroup,
-  Grid,
-  GridItem,
   SimpleGrid,
   Input,
+  Alert,
+  Card,
   chakra,
-  Select,
-  Checkbox,
 } from "@chakra-ui/react";
-import { ChevronDownIcon } from "@chakra-ui/icons";
 import { NumberInputRoot, NumberInputField } from "@/shared/ui/NumberInput";
+import { httpClient } from "@/core/api/httpClient";
 
 const warhammer3Factions = [
   "Empire",
@@ -60,9 +57,12 @@ const CreateTournamentForm: React.FC = () => {
     tournamentType: tournamentTypes[0],
     bannedFactions: [] as string[],
   });
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
 
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -72,45 +72,47 @@ const CreateTournamentForm: React.FC = () => {
     setFormData((prev) => ({ ...prev, playerCount: parseInt(value) || 2 }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log(formData);
+    setIsLoading(true);
+    setError(null);
+    setSuccess(false);
+
+    try {
+      await httpClient.post("/tournament", formData);
+      setSuccess(true);
+      setFormData({
+        name: "",
+        description: "",
+        playerCount: 8,
+        tournamentType: tournamentTypes[0],
+        bannedFactions: [],
+      });
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Failed to create tournament",
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <Box
-      as="form"
-      onSubmit={handleSubmit}
-      maxW="100%" // changed from lg to 100%
-      w="100%" // ensure full width
-      mx="auto"
-      mt={8}
-      p={6}
-      borderWidth={1}
-      borderRadius="lg"
-      boxShadow="md"
-    >
-      <VStack spacing={6} align="stretch" w="100%">
-        <Grid
-          templateColumns={{ base: "1fr", md: "repeat(3, 1fr)" }}
-          gap={4}
-          w="100%"
-        >
-          <GridItem colSpan={1} w="100%">
-            <Field.Root required w="100%">
+    <Card.Root as="form" onSubmit={handleSubmit} maxW="container.lg" mx="auto">
+      <Card.Body>
+        <VStack gap={6} align="stretch">
+          <SimpleGrid columns={{ base: 1, md: 3 }} gap={4}>
+            <Field.Root required>
               <Field.Label>Tournament Name</Field.Label>
               <Input
                 name="name"
                 value={formData.name}
                 onChange={handleInputChange}
                 placeholder="Enter tournament name"
-                w="100%"
               />
             </Field.Root>
-          </GridItem>
 
-          <GridItem colSpan={1} w="100%">
-            <Field.Root required w="100%">
+            <Field.Root required>
               <Field.Label>Tournament Type</Field.Label>
               <chakra.select
                 name="tournamentType"
@@ -121,13 +123,12 @@ const CreateTournamentForm: React.FC = () => {
                     tournamentType: e.target.value,
                   }))
                 }
-                w="100%"
+                w="full"
                 borderRadius="md"
-                borderWidth={1}
-                borderColor="gray.200"
+                borderWidth="1px"
+                borderColor="border"
                 fontSize="md"
                 p={2}
-                _focus={{ borderColor: "blue.400", boxShadow: "outline" }}
               >
                 {tournamentTypes.map((type) => (
                   <option key={type} value={type}>
@@ -136,134 +137,123 @@ const CreateTournamentForm: React.FC = () => {
                 ))}
               </chakra.select>
             </Field.Root>
-          </GridItem>
 
-          <GridItem colSpan={1} w="100%">
-            <Field.Root required w="100%">
+            <Field.Root required>
               <Field.Label>Number of Players</Field.Label>
-              <Box w="100%">
-                <NumberInputRoot
-                  value={formData.playerCount}
-                  min={2}
-                  max={128}
-                  onValueChange={handleNumberChange}
-                  w="100%"
-                >
-                  <NumberInputField />
-                </NumberInputRoot>
-              </Box>
-            </Field.Root>
-          </GridItem>
-        </Grid>
-        <Field.Root>
-          <Field.Label>Description</Field.Label>
-          <Textarea
-            name="description"
-            value={formData.description}
-            onChange={handleInputChange}
-            placeholder="Enter tournament description (Markdown supported)"
-            minH="100px"
-            w="100%"
-          />
-          <Text fontSize="sm" color="gray.500" mt={1}>
-            You can use Markdown formatting in the description.
-          </Text>
-        </Field.Root>
-        <Field.Root w="100%">
-          <Field.Label>Banned Factions</Field.Label>
-          <Grid
-            templateColumns={{ base: "1fr", md: "2fr 1fr" }}
-            gap={6}
-            alignItems="start"
-            w="100%"
-          >
-            <Box>
-              <CheckboxGroup
-                value={
-                  Array.isArray(formData.bannedFactions)
-                    ? formData.bannedFactions
-                    : []
-                }
-                onChange={(values: string[] | number[]) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    bannedFactions: values as string[],
-                  }))
-                }
+              <NumberInputRoot
+                value={formData.playerCount}
+                min={2}
+                max={128}
+                onValueChange={handleNumberChange}
               >
-                <SimpleGrid
-                  columns={{ base: 1, sm: 2, md: 3 }}
-                  spacingX={6}
-                  spacingY={3}
-                  w="100%"
-                >
+                <NumberInputField />
+              </NumberInputRoot>
+            </Field.Root>
+          </SimpleGrid>
+
+          <Field.Root>
+            <Field.Label>Description</Field.Label>
+            <Textarea
+              name="description"
+              value={formData.description}
+              onChange={handleInputChange}
+              placeholder="Enter tournament description (Markdown supported)"
+              minH="100px"
+            />
+            <Field.HelperText>
+              You can use Markdown formatting in the description.
+            </Field.HelperText>
+          </Field.Root>
+
+          <Field.Root>
+            <Field.Label>Banned Factions</Field.Label>
+            <SimpleGrid columns={{ base: 1, md: 2 }} gap={6}>
+              <VStack gap={2} align="stretch">
+                <SimpleGrid columns={{ base: 1, sm: 2, lg: 3 }} gap={2}>
                   {warhammer3Factions.map((faction) => (
-                    <chakra.label
+                    <Flex
                       key={faction}
-                      display="flex"
-                      alignItems="center"
-                      w="100%"
-                      minWidth={0}
+                      align="center"
+                      gap={2}
                       p={2}
                       borderRadius="md"
-                      borderWidth={1}
-                      borderColor="gray.200"
-                      _focusWithin={{
-                        borderColor: "blue.400",
-                        boxShadow: "outline",
-                      }}
+                      borderWidth="1px"
+                      borderColor="border"
                       cursor="pointer"
-                      flexDirection="row"
-                      flex={1}
-                      gap={3}
-                      justifyContent="space-between"
-                      style={{ width: "100%", flex: 1, minWidth: 0 }}
+                      _hover={{ bg: "bg.muted" }}
+                      transition="background 0.2s"
+                      onClick={() => {
+                        const isChecked =
+                          !formData.bannedFactions.includes(faction);
+                        setFormData((prev) => ({
+                          ...prev,
+                          bannedFactions: isChecked
+                            ? [...prev.bannedFactions, faction]
+                            : prev.bannedFactions.filter((f) => f !== faction),
+                        }));
+                      }}
                     >
-                      <chakra.input
+                      <input
                         type="checkbox"
                         value={faction}
-                        onChange={undefined}
-                        accentColor="blue.500"
-                        style={{ width: 18, height: 18, flexShrink: 0 }}
+                        checked={formData.bannedFactions.includes(faction)}
+                        onChange={(e) => {
+                          const isChecked = e.target.checked;
+                          setFormData((prev) => ({
+                            ...prev,
+                            bannedFactions: isChecked
+                              ? [...prev.bannedFactions, faction]
+                              : prev.bannedFactions.filter(
+                                  (f) => f !== faction,
+                                ),
+                          }));
+                        }}
+                        width={16}
+                        height={16}
                       />
-                      <Text
-                        fontSize="sm"
-                        flex={1}
-                        textAlign="left"
-                        whiteSpace="normal"
-                        wordBreak="break-word"
-                        ml={2}
-                      >
+                      <Text fontSize="sm" userSelect="none">
                         {faction}
                       </Text>
-                    </chakra.label>
+                    </Flex>
                   ))}
                 </SimpleGrid>
-              </CheckboxGroup>
-              <Text fontSize="sm" color="gray.500" mt={2}>
-                Select factions that will be banned in this tournament.
-              </Text>
-            </Box>
-            <Box
-              display={{ base: "none", md: "block" }}
-              pl={2}
-              style={{ flex: 1 }}
-            >
-              <Text fontSize="sm" color="gray.600">
-                Once you create your tournament, head over to the "Matches" page
-                to manage it, invite users and advance the rounds. Your
-                tournament will be visibile in the app by all other users, so
-                check your player size! You cannot edit a tournament once its
-                created, but you can delete it if you haven't started it.
-              </Text>
-            </Box>
-          </Grid>
-        </Field.Root>
-        <Button type="submit" colorScheme="blue" size="md" mt={4}>
+                <Text color="fg.muted" fontSize="sm">
+                  Select factions that will be banned in this tournament.
+                </Text>
+              </VStack>
+
+              <Flex display={{ base: "none", md: "flex" }}>
+                <Text color="fg.muted" fontSize="sm">
+                  Once you create your tournament, head over to the "Matches"
+                  page to manage it, invite users and advance the rounds. Your
+                  tournament will be visible to all users. Note: You cannot edit
+                  a tournament once it's created, but you can delete it if you
+                  haven't started it.
+                </Text>
+              </Flex>
+            </SimpleGrid>
+          </Field.Root>
+
+          {error && (
+            <Alert.Root status="error">
+              <Alert.Indicator />
+              <Alert.Title>{error}</Alert.Title>
+            </Alert.Root>
+          )}
+          {success && (
+            <Alert.Root status="success">
+              <Alert.Indicator />
+              <Alert.Title>Tournament created successfully!</Alert.Title>
+            </Alert.Root>
+          )}
+        </VStack>
+      </Card.Body>
+      <Card.Footer>
+        <Button type="submit" colorPalette="blue" size="md" loading={isLoading}>
           Create Tournament
         </Button>
-      </VStack>
-    </Box>
+      </Card.Footer>
+    </Card.Root>
   );
 };
 

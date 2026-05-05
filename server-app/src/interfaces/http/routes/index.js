@@ -5,7 +5,9 @@ import { clientUrl } from "../../../infrastructure/config/env.js";
 
 import authRoutes from "./authentication-routes.js";
 import guestRoutes from "./guest-routes.js";
+import matchRoutes from "./match-routes.js";
 import passwordResetRoutes from "./password-reset-routes.js"; // Import password reset routes
+import tournamentRoutes from "./tournament-routes.js";
 import userRoutes from "./user-routes.js";
 
 const router = express.Router();
@@ -30,5 +32,7 @@ router.use("/user", userRoutes);
 router.use("/auth", authRoutes);
 router.use("/guest", guestRoutes);
 router.use("/password-reset", passwordResetRoutes);
+router.use("/tournament", tournamentRoutes);
+router.use("/match", matchRoutes);
 
 export default router;

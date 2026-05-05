@@ -1,0 +1,49 @@
+import mongoose from "mongoose";
+
+const tournamentSchema = new mongoose.Schema({
+  name: { type: String, required: true, trim: true },
+  code: {
+    type: String,
+    unique: true,
+    sparse: true,
+    uppercase: true,
+    index: true,
+  },
+  description: { type: String, default: "" },
+  playerCount: { type: Number, required: true, min: 2, max: 128 },
+  tournamentType: {
+    type: String,
+    required: true,
+    enum: [
+      "Single Elimination",
+      "Double Elimination",
+      "Round Robin",
+      "Swiss System",
+    ],
+  },
+  bannedFactions: { type: [String], default: [] },
+  participants: {
+    type: [
+      {
+        name: { type: String, required: true, trim: true },
+        faction: { type: String, default: "" },
+      },
+    ],
+    default: [],
+  },
+  createdBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
+  },
+  status: {
+    type: String,
+    enum: ["pending", "active", "completed"],
+    default: "pending",
+  },
+  createdAt: { type: Date, default: Date.now },
+});
+
+const Tournament = mongoose.model("Tournament", tournamentSchema);
+
+export default Tournament;
