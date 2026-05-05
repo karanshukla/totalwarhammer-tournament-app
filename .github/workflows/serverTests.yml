@@ -31,13 +31,12 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 23
+          node-version: 22
           cache: "npm"
-          cache-dependency-path: "server-app/package.json"
+          cache-dependency-path: "package-lock.json"
 
       - name: Install dependencies
-        working-directory: ./server-app
-        run: npm install
+        run: npm ci
 
       - name: Run tests
         working-directory: ./server-app

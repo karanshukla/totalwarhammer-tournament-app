@@ -459,7 +459,16 @@ export const advanceRound = async (req, res) => {
           message: `${incomplete.length} match(es) in round ${maxRound} are not yet completed`,
         });
       }
-      // If admin advances after final swiss round, mark completed
+      // Auto-complete after the standard number of Swiss rounds: ceil(log2(n))
+      const n = tournament.participants.length;
+      const maxSwissRounds = Math.ceil(Math.log2(Math.max(n, 2)));
+      if (maxRound >= maxSwissRounds) {
+        tournament.status = "completed";
+        await tournament.save();
+        return res
+          .status(200)
+          .json({ success: true, data: tournament, completed: true });
+      }
       const nextRound = maxRound + 1;
       const result = swissAdvance(
         tournament._id,

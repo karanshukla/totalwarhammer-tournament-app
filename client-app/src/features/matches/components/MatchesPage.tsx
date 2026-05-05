@@ -20,6 +20,7 @@ import {
   Dialog,
   Portal,
   Table,
+  Flex,
 } from "@chakra-ui/react";
 import {
   LuTrophy,
@@ -37,11 +38,16 @@ import {
   LuChevronsRight,
   LuClock,
   LuCircleCheck,
+  LuCalendar,
+  LuTrendingUp,
+  LuAward,
+  LuHash,
 } from "react-icons/lu";
 import { useNavigate, useLocation } from "react-router-dom";
 import { httpClient } from "@/core/api/httpClient";
 import { useColorModeValue } from "@/shared/ui/ColorMode";
 import { useUserStore } from "@/shared/stores/userStore";
+import { toaster } from "@/shared/ui/Toaster";
 import MatchCard from "./MatchCard";
 
 const warhammer3Factions = [
@@ -236,10 +242,12 @@ const MatchesPage: React.FC = () => {
       setNewName("");
       setNewFaction("");
       await refreshSelected(selected._id);
+      toaster.create({ title: "Participant added", type: "success" });
     } catch (err) {
-      setActionError(
-        err instanceof Error ? err.message : "Failed to add participant",
-      );
+      const msg =
+        err instanceof Error ? err.message : "Failed to add participant";
+      setActionError(msg);
+      toaster.create({ title: "Error", description: msg, type: "error" });
     } finally {
       setActionLoading(false);
     }
@@ -254,10 +262,12 @@ const MatchesPage: React.FC = () => {
         `/tournament/${selected._id}/participants/${participantId}`,
       );
       await refreshSelected(selected._id);
+      toaster.create({ title: "Participant removed", type: "success" });
     } catch (err) {
-      setActionError(
-        err instanceof Error ? err.message : "Failed to remove participant",
-      );
+      const msg =
+        err instanceof Error ? err.message : "Failed to remove participant";
+      setActionError(msg);
+      toaster.create({ title: "Error", description: msg, type: "error" });
     } finally {
       setActionLoading(false);
     }
@@ -269,10 +279,12 @@ const MatchesPage: React.FC = () => {
     try {
       await httpClient.patch(`/match/${matchId}/result`, { winnerId });
       if (selected) await fetchMatches(selected._id);
+      toaster.create({ title: "Result recorded", type: "success" });
     } catch (err) {
-      setActionError(
-        err instanceof Error ? err.message : "Failed to record result",
-      );
+      const msg =
+        err instanceof Error ? err.message : "Failed to record result";
+      setActionError(msg);
+      toaster.create({ title: "Error", description: msg, type: "error" });
     } finally {
       setActionLoading(false);
     }
@@ -284,10 +296,16 @@ const MatchesPage: React.FC = () => {
     try {
       await httpClient.patch(`/match/${matchId}/report`, { winnerId });
       if (selected) await fetchMatches(selected._id);
+      toaster.create({
+        title: "Result reported",
+        description: "Waiting for opponent confirmation",
+        type: "success",
+      });
     } catch (err) {
-      setActionError(
-        err instanceof Error ? err.message : "Failed to report result",
-      );
+      const msg =
+        err instanceof Error ? err.message : "Failed to report result";
+      setActionError(msg);
+      toaster.create({ title: "Error", description: msg, type: "error" });
     } finally {
       setActionLoading(false);
     }
@@ -306,10 +324,12 @@ const MatchesPage: React.FC = () => {
       setOverrideWinnerId("");
       setOverrideReason("");
       if (selected) await fetchMatches(selected._id);
+      toaster.create({ title: "Result overridden", type: "success" });
     } catch (err) {
-      setActionError(
-        err instanceof Error ? err.message : "Failed to override result",
-      );
+      const msg =
+        err instanceof Error ? err.message : "Failed to override result";
+      setActionError(msg);
+      toaster.create({ title: "Error", description: msg, type: "error" });
     } finally {
       setOverrideLoading(false);
     }
@@ -322,10 +342,12 @@ const MatchesPage: React.FC = () => {
     try {
       await httpClient.post(`/tournament/${selected._id}/start`, {});
       await refreshSelected(selected._id);
+      toaster.create({ title: "Tournament started!", type: "success" });
     } catch (err) {
-      setActionError(
-        err instanceof Error ? err.message : "Failed to start tournament",
-      );
+      const msg =
+        err instanceof Error ? err.message : "Failed to start tournament";
+      setActionError(msg);
+      toaster.create({ title: "Error", description: msg, type: "error" });
     } finally {
       setActionLoading(false);
     }
@@ -343,10 +365,12 @@ const MatchesPage: React.FC = () => {
       setEditDialogOpen(false);
       setEditingParticipant(null);
       await refreshSelected(selected._id);
+      toaster.create({ title: "Participant updated", type: "success" });
     } catch (err) {
-      setActionError(
-        err instanceof Error ? err.message : "Failed to update participant",
-      );
+      const msg =
+        err instanceof Error ? err.message : "Failed to update participant";
+      setActionError(msg);
+      toaster.create({ title: "Error", description: msg, type: "error" });
     } finally {
       setActionLoading(false);
     }
@@ -358,10 +382,12 @@ const MatchesPage: React.FC = () => {
     try {
       await httpClient.patch(`/match/${matchId}/resolve`, { winnerId });
       if (selected) await fetchMatches(selected._id);
+      toaster.create({ title: "Dispute resolved", type: "success" });
     } catch (err) {
-      setActionError(
-        err instanceof Error ? err.message : "Failed to resolve dispute",
-      );
+      const msg =
+        err instanceof Error ? err.message : "Failed to resolve dispute";
+      setActionError(msg);
+      toaster.create({ title: "Error", description: msg, type: "error" });
     } finally {
       setActionLoading(false);
     }
@@ -372,12 +398,25 @@ const MatchesPage: React.FC = () => {
     setActionLoading(true);
     setActionError(null);
     try {
-      await httpClient.post(`/tournament/${selected._id}/advance`, {});
+      const res = (await httpClient.post(
+        `/tournament/${selected._id}/advance`,
+        {},
+      )) as { completed?: boolean };
       await refreshSelected(selected._id);
+      if (res.completed) {
+        toaster.create({
+          title: "Tournament completed!",
+          description: "Final standings are ready.",
+          type: "success",
+        });
+      } else {
+        toaster.create({ title: "Round advanced", type: "success" });
+      }
     } catch (err) {
-      setActionError(
-        err instanceof Error ? err.message : "Failed to advance round",
-      );
+      const msg =
+        err instanceof Error ? err.message : "Failed to advance round";
+      setActionError(msg);
+      toaster.create({ title: "Error", description: msg, type: "error" });
     } finally {
       setActionLoading(false);
     }
@@ -391,10 +430,12 @@ const MatchesPage: React.FC = () => {
       await httpClient.delete(`/tournament/${selected._id}`);
       setSelected(null);
       await fetchTournaments();
+      toaster.create({ title: "Tournament deleted", type: "success" });
     } catch (err) {
-      setActionError(
-        err instanceof Error ? err.message : "Failed to delete tournament",
-      );
+      const msg =
+        err instanceof Error ? err.message : "Failed to delete tournament";
+      setActionError(msg);
+      toaster.create({ title: "Error", description: msg, type: "error" });
     } finally {
       setActionLoading(false);
     }
@@ -619,6 +660,37 @@ const MatchesPage: React.FC = () => {
               isActive &&
               matches.length > 0 &&
               (() => {
+                if (isDoubleElim) {
+                  const wbMax = Math.max(
+                    ...matches
+                      .filter((m) => m.bracketSide === "winners")
+                      .map((m) => m.round),
+                    0,
+                  );
+                  const lbMax = Math.max(
+                    ...matches
+                      .filter((m) => m.bracketSide === "losers")
+                      .map((m) => m.round),
+                    0,
+                  );
+                  const gfLast = matches
+                    .filter((m) => m.bracketSide === "grand_final")
+                    .slice(-1)[0];
+                  const wbDone = matches
+                    .filter(
+                      (m) => m.bracketSide === "winners" && m.round === wbMax,
+                    )
+                    .every((m) => m.status === "completed");
+                  const lbDone =
+                    lbMax === 0 ||
+                    matches
+                      .filter(
+                        (m) => m.bracketSide === "losers" && m.round === lbMax,
+                      )
+                      .every((m) => m.status === "completed");
+                  const gfDone = !gfLast || gfLast.status === "completed";
+                  return wbDone && lbDone && gfDone;
+                }
                 const maxRound = Math.max(...matches.map((m) => m.round));
                 return matches
                   .filter((m) => m.round === maxRound)
@@ -631,7 +703,13 @@ const MatchesPage: React.FC = () => {
                   loading={actionLoading}
                 >
                   <LuChevronsRight />
-                  Advance Round
+                  {isRoundRobin
+                    ? "Finalize Tournament"
+                    : isSwiss &&
+                        Math.max(...matches.map((m) => m.round)) >=
+                          roundNumbers.length
+                      ? "Finalize Tournament"
+                      : "Advance Round"}
                 </Button>
               )}
             {canDelete && (
@@ -816,36 +894,169 @@ const MatchesPage: React.FC = () => {
               </Card.Header>
               <Card.Body>
                 <VStack gap={3} alignItems="stretch">
+                  {/* Tournament Code */}
                   <HStack justifyContent="space-between">
-                    <Text color="fg.muted" fontSize="sm">
-                      Format
-                    </Text>
+                    <HStack gap={1}>
+                      <LuHash size={14} />
+                      <Text color="fg.muted" fontSize="sm">
+                        Code
+                      </Text>
+                    </HStack>
+                    <HStack gap={1}>
+                      <Text fontWeight="medium" fontFamily="mono">
+                        {selected.code}
+                      </Text>
+                      <Button
+                        size="xs"
+                        variant="ghost"
+                        onClick={() => {
+                          navigator.clipboard.writeText(selected.code);
+                          toaster.create({
+                            title: "Copied!",
+                            description: "Tournament code copied to clipboard",
+                            type: "success",
+                          });
+                        }}
+                      >
+                        <LuCopy size={14} />
+                      </Button>
+                    </HStack>
+                  </HStack>
+                  <Separator />
+
+                  {/* Format */}
+                  <HStack justifyContent="space-between">
+                    <HStack gap={1}>
+                      <LuSwords size={14} />
+                      <Text color="fg.muted" fontSize="sm">
+                        Format
+                      </Text>
+                    </HStack>
                     <Text fontWeight="medium">{selected.tournamentType}</Text>
                   </HStack>
                   <Separator />
+
+                  {/* Players */}
                   <HStack justifyContent="space-between">
-                    <Text color="fg.muted" fontSize="sm">
-                      Players
-                    </Text>
+                    <HStack gap={1}>
+                      <LuUsers size={14} />
+                      <Text color="fg.muted" fontSize="sm">
+                        Players
+                      </Text>
+                    </HStack>
                     <Text fontWeight="medium">
                       {selected.participants.length}/{selected.playerCount}
                     </Text>
                   </HStack>
                   <Separator />
+
+                  {/* Current Round (for active Swiss/DE tournaments) */}
+                  {isActive && matches.length > 0 && !isRoundRobin && (
+                    <>
+                      <HStack justifyContent="space-between">
+                        <HStack gap={1}>
+                          <LuTrendingUp size={14} />
+                          <Text color="fg.muted" fontSize="sm">
+                            Current Round
+                          </Text>
+                        </HStack>
+                        <Text fontWeight="medium">
+                          {Math.max(
+                            ...matches
+                              .filter(
+                                (m) =>
+                                  m.bracketSide !== "losers" &&
+                                  m.bracketSide !== "grand_final",
+                              )
+                              .map((m) => m.round),
+                          )}{" "}
+                          of {roundNumbers.length}
+                        </Text>
+                      </HStack>
+                      <Separator />
+                    </>
+                  )}
+
+                  {/* Match Progress */}
+                  {matches.length > 0 && (
+                    <>
+                      <HStack justifyContent="space-between">
+                        <HStack gap={1}>
+                          <LuCircleCheck size={14} />
+                          <Text color="fg.muted" fontSize="sm">
+                            Matches Completed
+                          </Text>
+                        </HStack>
+                        <Text fontWeight="medium">
+                          {
+                            matches.filter((m) => m.status === "completed")
+                              .length
+                          }
+                          / {matches.length}
+                        </Text>
+                      </HStack>
+                      <Separator />
+                    </>
+                  )}
+
+                  {/* Champion (for completed tournaments) */}
+                  {selected.status === "completed" && (
+                    <>
+                      <HStack justifyContent="space-between">
+                        <HStack gap={1}>
+                          <LuAward size={14} color="yellow.500" />
+                          <Text color="fg.muted" fontSize="sm">
+                            Champion
+                          </Text>
+                        </HStack>
+                        {(() => {
+                          const finalMatch = matches.find(
+                            (m) =>
+                              m.winnerId &&
+                              m.round ===
+                                Math.max(...matches.map((x) => x.round)),
+                          );
+                          if (!finalMatch)
+                            return <Text fontWeight="medium">—</Text>;
+                          const champion =
+                            finalMatch.winnerId ===
+                            finalMatch.player1.participantId
+                              ? finalMatch.player1
+                              : finalMatch.player2;
+                          return (
+                            <Text fontWeight="bold" color="yellow.500">
+                              {champion.name}
+                            </Text>
+                          );
+                        })()}
+                      </HStack>
+                      <Separator />
+                    </>
+                  )}
+
+                  {/* Status */}
                   <HStack justifyContent="space-between">
-                    <Text color="fg.muted" fontSize="sm">
-                      Status
-                    </Text>
+                    <HStack gap={1}>
+                      <LuClock size={14} />
+                      <Text color="fg.muted" fontSize="sm">
+                        Status
+                      </Text>
+                    </HStack>
                     <Badge colorPalette={statusColorMap[selected.status]}>
                       {selected.status.charAt(0).toUpperCase() +
                         selected.status.slice(1)}
                     </Badge>
                   </HStack>
                   <Separator />
+
+                  {/* Created */}
                   <HStack justifyContent="space-between">
-                    <Text color="fg.muted" fontSize="sm">
-                      Created
-                    </Text>
+                    <HStack gap={1}>
+                      <LuCalendar size={14} />
+                      <Text color="fg.muted" fontSize="sm">
+                        Created
+                      </Text>
+                    </HStack>
                     <Text fontSize="sm">
                       {new Date(selected.createdAt).toLocaleDateString()}
                     </Text>
@@ -1546,6 +1757,53 @@ const MatchesPage: React.FC = () => {
                   </VStack>
                 )}
               </Card.Body>
+              {/* Sticky footer for admin actions */}
+              {isAdmin && isActive && matches.length > 0 && (
+                <Card.Footer
+                  position="sticky"
+                  bottom={4}
+                  bg="bg.panel"
+                  borderTopWidth="1px"
+                  borderColor="border"
+                  py={3}
+                  px={4}
+                  boxShadow="0 -4px 6px -1px rgba(0, 0, 0, 0.1)"
+                  zIndex={10}
+                >
+                  <Flex
+                    justifyContent="space-between"
+                    alignItems="center"
+                    w="full"
+                  >
+                    <HStack gap={2}>
+                      <Text fontSize="sm" color="fg.muted">
+                        {isRoundRobin
+                          ? `${matches.filter((m) => m.status === "completed").length} / ${matches.length} matches`
+                          : `Round ${Math.max(...matches.filter((m) => m.bracketSide !== "losers" && m.bracketSide !== "grand_final").map((m) => m.round))} of ${roundNumbers.length}`}
+                      </Text>
+                      <Badge colorPalette="blue" variant="subtle" size="sm">
+                        {matches.filter((m) => m.status === "completed").length}
+                        / {matches.length} matches done
+                      </Badge>
+                    </HStack>
+                    <Button
+                      colorPalette="blue"
+                      size="sm"
+                      onClick={handleAdvanceRound}
+                      loading={actionLoading}
+                    >
+                      <LuChevronsRight />
+                      {isRoundRobin
+                        ? "Finalize Tournament"
+                        : isSwiss &&
+                            Math.max(...matches.map((m) => m.round)) >=
+                              roundNumbers.length
+                          ? "Finalize Tournament"
+                          : "Advance Round"}
+                    </Button>
+                  </Flex>
+                </Card.Footer>
+              )}
             </Card.Root>
           )}
         </SimpleGrid>
