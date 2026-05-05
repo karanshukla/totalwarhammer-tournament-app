@@ -8,12 +8,13 @@ import {
   Field,
   SimpleGrid,
   Input,
-  Alert,
   Card,
   chakra,
 } from "@chakra-ui/react";
 import { NumberInputRoot, NumberInputField } from "@/shared/ui/NumberInput";
 import { httpClient } from "@/core/api/httpClient";
+import { useNavigate } from "react-router-dom";
+import { toaster } from "@/shared/ui/Toaster";
 
 const warhammer3Factions = [
   "Empire",
@@ -58,8 +59,7 @@ const CreateTournamentForm: React.FC = () => {
     bannedFactions: [] as string[],
   });
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
+  const navigate = useNavigate();
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -75,12 +75,20 @@ const CreateTournamentForm: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setError(null);
-    setSuccess(false);
 
     try {
-      await httpClient.post("/tournament", formData);
-      setSuccess(true);
+      const response = (await httpClient.post("/tournament", formData)) as {
+        success: boolean;
+        data: { _id: string; name: string };
+      };
+      toaster.success({
+        title: "Tournament Created",
+        description: `"${response.data.name}" created successfully.`,
+        action: {
+          label: "Go to Tournament",
+          onClick: () => navigate(`/matches#${response.data._id}`),
+        },
+      });
       setFormData({
         name: "",
         description: "",
@@ -89,9 +97,10 @@ const CreateTournamentForm: React.FC = () => {
         bannedFactions: [],
       });
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to create tournament",
-      );
+      toaster.error({
+        title: "Failed to Create Tournament",
+        description: err instanceof Error ? err.message : "An error occurred",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -235,19 +244,6 @@ const CreateTournamentForm: React.FC = () => {
               </Flex>
             </SimpleGrid>
           </Field.Root>
-
-          {error && (
-            <Alert.Root status="error">
-              <Alert.Indicator />
-              <Alert.Title>{error}</Alert.Title>
-            </Alert.Root>
-          )}
-          {success && (
-            <Alert.Root status="success">
-              <Alert.Indicator />
-              <Alert.Title>Tournament created successfully!</Alert.Title>
-            </Alert.Root>
-          )}
         </VStack>
       </Card.Body>
       <Card.Footer>

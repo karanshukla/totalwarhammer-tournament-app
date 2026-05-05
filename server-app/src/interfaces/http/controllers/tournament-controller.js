@@ -1,5 +1,15 @@
 import Match from "../../../domain/models/match.js";
 import Tournament from "../../../domain/models/tournament.js";
+import {
+  singleElimStart,
+  singleElimAdvance,
+  doubleElimStart,
+  doubleElimAdvance,
+  roundRobinStart,
+  roundRobinAdvance,
+  swissStart,
+  swissAdvance,
+} from "../../../domain/services/tournament-service.js";
 import logger from "../../../infrastructure/utils/logger.js";
 
 function generateCode() {
@@ -354,39 +364,31 @@ export const startTournament = async (req, res) => {
         message: "Need at least 2 participants to start",
       });
     }
+
     tournament.status = "active";
     await tournament.save();
 
-    // Auto-generate round 1 matches
-    const participants = [...tournament.participants];
-    // Shuffle for elimination formats, keep order for round-robin/swiss
-    if (
-      ["Single Elimination", "Double Elimination"].includes(
-        tournament.tournamentType,
-      )
-    ) {
-      for (let i = participants.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [participants[i], participants[j]] = [participants[j], participants[i]];
-      }
-    }
+    let matchDocs;
+    const { tournamentType, _id: tId, participants } = tournament;
 
-    const matchDocs = [];
-    let matchNumber = 1;
-    for (let i = 0; i + 1 < participants.length; i += 2) {
-      const p1 = participants[i];
-      const p2 = participants[i + 1];
-      matchDocs.push({
-        tournament: tournament._id,
-        round: 1,
-        matchNumber: matchNumber++,
-        player1: { participantId: p1._id, name: p1.name, faction: p1.faction },
-        player2: { participantId: p2._id, name: p2.name, faction: p2.faction },
-      });
+    switch (tournamentType) {
+      case "Single Elimination":
+        matchDocs = singleElimStart(tId, participants);
+        break;
+      case "Double Elimination":
+        matchDocs = doubleElimStart(tId, participants);
+        break;
+      case "Round Robin":
+        matchDocs = roundRobinStart(tId, participants);
+        break;
+      case "Swiss System":
+        matchDocs = swissStart(tId, participants);
+        break;
+      default:
+        matchDocs = singleElimStart(tId, participants);
     }
 
     const matches = await Match.insertMany(matchDocs);
-
     return res.status(200).json({ success: true, data: tournament, matches });
   } catch (error) {
     logger.error(`Start tournament error: ${error.message}`, { error });
@@ -416,7 +418,6 @@ export const advanceRound = async (req, res) => {
         .json({ success: false, message: "Tournament is not active" });
     }
 
-    // Find the highest completed round
     const allMatches = await Match.find({ tournament: tournament._id }).sort({
       round: 1,
     });
@@ -426,10 +427,103 @@ export const advanceRound = async (req, res) => {
         .json({ success: false, message: "No matches found" });
     }
 
-    const maxRound = Math.max(...allMatches.map((m) => m.round));
-    const currentRoundMatches = allMatches.filter((m) => m.round === maxRound);
+    const { tournamentType } = tournament;
 
-    // All matches in current round must be completed
+    // ── Round Robin ────────────────────────────────────────────────────────
+    if (tournamentType === "Round Robin") {
+      const result = roundRobinAdvance(allMatches);
+      if (!result.completed) {
+        return res
+          .status(400)
+          .json({ success: false, message: result.message });
+      }
+      tournament.status = "completed";
+      await tournament.save();
+      return res
+        .status(200)
+        .json({ success: true, data: tournament, completed: true });
+    }
+
+    // ── Swiss System ───────────────────────────────────────────────────────
+    if (tournamentType === "Swiss System") {
+      const maxRound = Math.max(...allMatches.map((m) => m.round));
+      const currentRoundMatches = allMatches.filter(
+        (m) => m.round === maxRound,
+      );
+      const incomplete = currentRoundMatches.filter(
+        (m) => m.status !== "completed",
+      );
+      if (incomplete.length > 0) {
+        return res.status(400).json({
+          success: false,
+          message: `${incomplete.length} match(es) in round ${maxRound} are not yet completed`,
+        });
+      }
+      // If admin advances after final swiss round, mark completed
+      const nextRound = maxRound + 1;
+      const result = swissAdvance(
+        tournament._id,
+        tournament.participants,
+        allMatches,
+        nextRound,
+      );
+      const newMatches = await Match.insertMany(result.docs);
+      return res
+        .status(200)
+        .json({ success: true, round: nextRound, matches: newMatches });
+    }
+
+    // ── Double Elimination ─────────────────────────────────────────────────
+    if (tournamentType === "Double Elimination") {
+      // Ensure all matches in the current "active" round(s) are done
+      const wbMatches = allMatches.filter((m) => m.bracketSide === "winners");
+      const lbMatches = allMatches.filter((m) => m.bracketSide === "losers");
+      const gfMatches = allMatches.filter(
+        (m) => m.bracketSide === "grand_final",
+      );
+
+      const wbMax = wbMatches.length
+        ? Math.max(...wbMatches.map((m) => m.round))
+        : 0;
+      const lbMax = lbMatches.length
+        ? Math.max(...lbMatches.map((m) => m.round))
+        : 0;
+
+      const wbCurr = wbMatches.filter((m) => m.round === wbMax);
+      const lbCurr = lbMatches.filter((m) => m.round === lbMax);
+      const gfCurr = gfMatches.length ? [gfMatches[gfMatches.length - 1]] : [];
+
+      const activeCurr = [...wbCurr, ...lbCurr, ...gfCurr];
+      const incomplete = activeCurr.filter((m) => m.status !== "completed");
+      if (incomplete.length > 0) {
+        return res.status(400).json({
+          success: false,
+          message: `${incomplete.length} match(es) are not yet completed`,
+        });
+      }
+
+      const result = doubleElimAdvance(tournament._id, allMatches);
+      if (result.completed) {
+        tournament.status = "completed";
+        await tournament.save();
+        return res
+          .status(200)
+          .json({ success: true, data: tournament, completed: true });
+      }
+      if (result.message && result.docs.length === 0) {
+        return res
+          .status(400)
+          .json({ success: false, message: result.message });
+      }
+      const newMatches = await Match.insertMany(result.docs);
+      return res.status(200).json({ success: true, matches: newMatches });
+    }
+
+    // ── Single Elimination (default) ───────────────────────────────────────
+    const maxRound = Math.max(...allMatches.map((m) => m.round));
+    const currentRoundMatches = allMatches.filter(
+      (m) => m.round === maxRound && m.bracketSide !== "losers",
+    );
     const incomplete = currentRoundMatches.filter(
       (m) => m.status !== "completed",
     );
@@ -440,77 +534,22 @@ export const advanceRound = async (req, res) => {
       });
     }
 
-    // Collect winners from current round
-    const winners = currentRoundMatches.map((m) => {
-      const winnerId = m.winnerId?.toString();
-      const p =
-        winnerId === m.player1.participantId?.toString()
-          ? m.player1
-          : m.player2;
-      return p;
-    });
-
-    // If only one winner → tournament is over
-    if (winners.length === 1) {
+    const result = singleElimAdvance(
+      tournament._id,
+      currentRoundMatches,
+      maxRound + 1,
+    );
+    if (result.completed) {
       tournament.status = "completed";
       await tournament.save();
       return res
         .status(200)
         .json({ success: true, data: tournament, completed: true });
     }
-
-    // Generate next round matches
-    const nextRound = maxRound + 1;
-    const matchDocs = [];
-    let matchNumber = 1;
-    for (let i = 0; i + 1 < winners.length; i += 2) {
-      const p1 = winners[i];
-      const p2 = winners[i + 1];
-      matchDocs.push({
-        tournament: tournament._id,
-        round: nextRound,
-        matchNumber: matchNumber++,
-        player1: {
-          participantId: p1.participantId,
-          name: p1.name,
-          faction: p1.faction,
-        },
-        player2: {
-          participantId: p2.participantId,
-          name: p2.name,
-          faction: p2.faction,
-        },
-      });
-    }
-
-    // If odd winner count (bye), carry the last winner to next round automatically
-    if (winners.length % 2 !== 0) {
-      const bye = winners[winners.length - 1];
-      matchDocs.push({
-        tournament: tournament._id,
-        round: nextRound,
-        matchNumber: matchNumber++,
-        player1: {
-          participantId: bye.participantId,
-          name: bye.name,
-          faction: bye.faction,
-        },
-        player2: {
-          participantId: null,
-          name: "BYE",
-          faction: "",
-        },
-        winnerId: bye.participantId,
-        loserId: null,
-        status: "completed",
-        completedAt: new Date(),
-      });
-    }
-
-    const newMatches = await Match.insertMany(matchDocs);
+    const newMatches = await Match.insertMany(result.docs);
     return res
       .status(200)
-      .json({ success: true, round: nextRound, matches: newMatches });
+      .json({ success: true, round: maxRound + 1, matches: newMatches });
   } catch (error) {
     logger.error(`Advance round error: ${error.message}`, { error });
     return res.status(500).json({

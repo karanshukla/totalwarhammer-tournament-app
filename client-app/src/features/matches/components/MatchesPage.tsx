@@ -1,3 +1,4 @@
+// REWRITTEN - clean version
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   Container,
@@ -18,6 +19,7 @@ import {
   chakra,
   Dialog,
   Portal,
+  Table,
 } from "@chakra-ui/react";
 import {
   LuTrophy,
@@ -40,6 +42,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { httpClient } from "@/core/api/httpClient";
 import { useColorModeValue } from "@/shared/ui/ColorMode";
 import { useUserStore } from "@/shared/stores/userStore";
+import MatchCard from "./MatchCard";
 
 const warhammer3Factions = [
   "Empire",
@@ -90,6 +93,7 @@ interface Match {
     overriddenAt: string;
   }[];
   completedAt: string | null;
+  bracketSide: "winners" | "losers" | "grand_final" | null;
 }
 
 interface Participant {
@@ -454,6 +458,79 @@ const MatchesPage: React.FC = () => {
     const roundNumbers = [...new Set(matches.map((m) => m.round))].sort(
       (a, b) => a - b,
     );
+    const tournamentType = selected.tournamentType;
+    const isDoubleElim = tournamentType === "Double Elimination";
+    const isRoundRobin = tournamentType === "Round Robin";
+    const isSwiss = tournamentType === "Swiss System";
+    const isRROrSwiss = isRoundRobin || isSwiss;
+
+    // Standings for RR / Swiss
+    const standings = isRROrSwiss
+      ? (() => {
+          const map = new Map<
+            string,
+            {
+              name: string;
+              faction: string;
+              wins: number;
+              losses: number;
+              played: number;
+            }
+          >();
+          for (const p of selected.participants) {
+            map.set(p._id, {
+              name: p.name,
+              faction: p.faction,
+              wins: 0,
+              losses: 0,
+              played: 0,
+            });
+          }
+          for (const m of matches) {
+            if (
+              m.status !== "completed" ||
+              !m.winnerId ||
+              m.player2.name === "BYE"
+            )
+              continue;
+            const wId = m.winnerId;
+            const lId =
+              wId === m.player1.participantId
+                ? m.player2.participantId
+                : m.player1.participantId;
+            if (map.has(wId)) {
+              const e = map.get(wId)!;
+              e.wins++;
+              e.played++;
+            }
+            if (lId && map.has(lId)) {
+              const e = map.get(lId)!;
+              e.losses++;
+              e.played++;
+            }
+          }
+          return [...map.values()].sort(
+            (a, b) => b.wins - a.wins || a.losses - b.losses,
+          );
+        })()
+      : [];
+
+    // Double elim bracket splits
+    const wbMatches = isDoubleElim
+      ? matches.filter((m) => m.bracketSide === "winners")
+      : [];
+    const lbMatches = isDoubleElim
+      ? matches.filter((m) => m.bracketSide === "losers")
+      : [];
+    const gfMatches = isDoubleElim
+      ? matches.filter((m) => m.bracketSide === "grand_final")
+      : [];
+    const wbRounds = [...new Set(wbMatches.map((m) => m.round))].sort(
+      (a, b) => a - b,
+    );
+    const lbRounds = [...new Set(lbMatches.map((m) => m.round))].sort(
+      (a, b) => a - b,
+    );
 
     return (
       <Container maxW="container.xl" py={8}>
@@ -707,7 +784,6 @@ const MatchesPage: React.FC = () => {
                       color="fg"
                       p={2}
                     >
-                      <option value="">No Faction</option>
                       {warhammer3Factions
                         .filter((f) => !selected.bannedFactions.includes(f))
                         .map((f) => (
@@ -867,10 +943,25 @@ const MatchesPage: React.FC = () => {
                   <HStack gap={2}>
                     <LuSwords />
                     <Heading size="md">Matches</Heading>
-                    {matches.length > 0 && (
+                    {matches.length > 0 && !isDoubleElim && !isRROrSwiss && (
                       <Badge colorPalette="gray" variant="subtle">
                         Round {Math.max(...matches.map((m) => m.round))} of{" "}
                         {roundNumbers.length}
+                      </Badge>
+                    )}
+                    {isRoundRobin && (
+                      <Badge colorPalette="teal" variant="subtle">
+                        Round Robin
+                      </Badge>
+                    )}
+                    {isSwiss && (
+                      <Badge colorPalette="purple" variant="subtle">
+                        Swiss System
+                      </Badge>
+                    )}
+                    {isDoubleElim && (
+                      <Badge colorPalette="blue" variant="subtle">
+                        Double Elimination
                       </Badge>
                     )}
                   </HStack>
@@ -884,47 +975,359 @@ const MatchesPage: React.FC = () => {
                   </Text>
                 ) : (
                   <VStack gap={6} alignItems="stretch">
-                    <For each={roundNumbers}>
-                      {(round) => {
-                        const maxRound = Math.max(
-                          ...matches.map((m) => m.round),
-                        );
-                        const isCurrentRound = round === maxRound && isActive;
-                        return (
-                          <Box key={round}>
+                    {/* ── Standings table for RR / Swiss ── */}
+                    {isRROrSwiss && standings.length > 0 && (
+                      <Box>
+                        <Text
+                          fontWeight="semibold"
+                          fontSize="sm"
+                          color="fg.muted"
+                          textTransform="uppercase"
+                          letterSpacing="wider"
+                          mb={2}
+                        >
+                          Standings
+                        </Text>
+                        <Table.Root size="sm" variant="outline">
+                          <Table.Header>
+                            <Table.Row>
+                              <Table.ColumnHeader>#</Table.ColumnHeader>
+                              <Table.ColumnHeader>Player</Table.ColumnHeader>
+                              <Table.ColumnHeader>Faction</Table.ColumnHeader>
+                              <Table.ColumnHeader textAlign="center">
+                                W
+                              </Table.ColumnHeader>
+                              <Table.ColumnHeader textAlign="center">
+                                L
+                              </Table.ColumnHeader>
+                              <Table.ColumnHeader textAlign="center">
+                                Played
+                              </Table.ColumnHeader>
+                            </Table.Row>
+                          </Table.Header>
+                          <Table.Body>
+                            {standings.map((s, i) => (
+                              <Table.Row key={s.name}>
+                                <Table.Cell color="fg.muted">
+                                  {i + 1}
+                                </Table.Cell>
+                                <Table.Cell
+                                  fontWeight={i === 0 ? "bold" : "normal"}
+                                >
+                                  {s.name}
+                                </Table.Cell>
+                                <Table.Cell color="fg.muted">
+                                  {s.faction || "—"}
+                                </Table.Cell>
+                                <Table.Cell textAlign="center" color="green.fg">
+                                  {s.wins}
+                                </Table.Cell>
+                                <Table.Cell textAlign="center" color="red.fg">
+                                  {s.losses}
+                                </Table.Cell>
+                                <Table.Cell textAlign="center">
+                                  {s.played}
+                                </Table.Cell>
+                              </Table.Row>
+                            ))}
+                          </Table.Body>
+                        </Table.Root>
+                        <Separator mt={4} />
+                      </Box>
+                    )}
+
+                    {/* ── Double Elimination: separate WB / LB / GF sections ── */}
+                    {isDoubleElim && (
+                      <>
+                        {wbRounds.length > 0 && (
+                          <Box>
                             <HStack mb={3} gap={2}>
                               <Text
                                 fontWeight="semibold"
                                 fontSize="sm"
-                                color={isCurrentRound ? "blue.fg" : "fg.muted"}
                                 textTransform="uppercase"
                                 letterSpacing="wider"
+                                color="blue.fg"
                               >
-                                Round {round}
+                                Winners Bracket
                               </Text>
-                              {isCurrentRound && (
+                              <Badge
+                                colorPalette="blue"
+                                size="sm"
+                                variant="subtle"
+                              >
+                                W
+                              </Badge>
+                            </HStack>
+                            <VStack gap={4} alignItems="stretch">
+                              {wbRounds.map((round) => (
+                                <Box key={`wb-${round}`}>
+                                  <Text
+                                    fontSize="xs"
+                                    color="fg.muted"
+                                    fontWeight="medium"
+                                    mb={2}
+                                  >
+                                    Round {round}
+                                  </Text>
+                                  <SimpleGrid
+                                    columns={{ base: 1, md: 2 }}
+                                    gap={3}
+                                  >
+                                    <For
+                                      each={wbMatches.filter(
+                                        (m) => m.round === round,
+                                      )}
+                                    >
+                                      {(m) => {
+                                        const p1Won =
+                                          m.winnerId ===
+                                          m.player1.participantId;
+                                        const p2Won =
+                                          m.winnerId ===
+                                          m.player2.participantId;
+                                        const isOverriding =
+                                          overrideMatchId === m._id;
+                                        const uName = user?.username
+                                          ?.trim()
+                                          .toLowerCase();
+                                        const uId = user?.id;
+                                        const isP1 =
+                                          m.player1.participantId === uId ||
+                                          (uName &&
+                                            m.player1.name
+                                              .trim()
+                                              .toLowerCase() === uName) ||
+                                          m.player1.name === uId;
+                                        const isP2 =
+                                          m.player2.participantId === uId ||
+                                          (uName &&
+                                            m.player2.name
+                                              .trim()
+                                              .toLowerCase() === uName) ||
+                                          m.player2.name === uId;
+                                        const myRep = m.reportedResults?.find(
+                                          (r) =>
+                                            r.reportedBy ===
+                                              (isP1
+                                                ? m.player1.participantId
+                                                : m.player2.participantId) ||
+                                            r.reportedByName === uName,
+                                        );
+                                        const canPR =
+                                          !isAdmin &&
+                                          (isP1 || isP2) &&
+                                          isActive &&
+                                          m.status !== "completed" &&
+                                          m.status !== "disputed";
+                                        return (
+                                          <MatchCard
+                                            key={m._id}
+                                            m={m}
+                                            p1Won={p1Won}
+                                            p2Won={p2Won}
+                                            isOverriding={isOverriding}
+                                            isAdmin={isAdmin}
+                                            isActive={isActive}
+                                            myReport={myRep}
+                                            canParticipantReport={canPR}
+                                            isP1={!!isP1}
+                                            isP2={!!isP2}
+                                            actionLoading={actionLoading}
+                                            overrideLoading={overrideLoading}
+                                            overrideWinnerId={overrideWinnerId}
+                                            overrideReason={overrideReason}
+                                            borderColor={borderColor}
+                                            mutedBg={mutedBg}
+                                            onRecordResult={handleRecordResult}
+                                            onReportResult={handleReportResult}
+                                            onResolveDispute={
+                                              handleResolveDispute
+                                            }
+                                            onStartOverride={() => {
+                                              setOverrideMatchId(m._id);
+                                              setOverrideWinnerId("");
+                                              setOverrideReason("");
+                                            }}
+                                            onCancelOverride={() =>
+                                              setOverrideMatchId(null)
+                                            }
+                                            onSetOverrideWinner={
+                                              setOverrideWinnerId
+                                            }
+                                            onSetOverrideReason={
+                                              setOverrideReason
+                                            }
+                                            onConfirmOverride={
+                                              handleOverrideResult
+                                            }
+                                          />
+                                        );
+                                      }}
+                                    </For>
+                                  </SimpleGrid>
+                                </Box>
+                              ))}
+                            </VStack>
+                          </Box>
+                        )}
+                        {lbRounds.length > 0 && (
+                          <Box>
+                            <HStack mb={3} gap={2}>
+                              <Text
+                                fontWeight="semibold"
+                                fontSize="sm"
+                                textTransform="uppercase"
+                                letterSpacing="wider"
+                                color="orange.fg"
+                              >
+                                Losers Bracket
+                              </Text>
+                              <Badge
+                                colorPalette="orange"
+                                size="sm"
+                                variant="subtle"
+                              >
+                                L
+                              </Badge>
+                            </HStack>
+                            <VStack gap={4} alignItems="stretch">
+                              {lbRounds.map((round) => (
+                                <Box key={`lb-${round}`}>
+                                  <Text
+                                    fontSize="xs"
+                                    color="fg.muted"
+                                    fontWeight="medium"
+                                    mb={2}
+                                  >
+                                    Round {round}
+                                  </Text>
+                                  <SimpleGrid
+                                    columns={{ base: 1, md: 2 }}
+                                    gap={3}
+                                  >
+                                    <For
+                                      each={lbMatches.filter(
+                                        (m) => m.round === round,
+                                      )}
+                                    >
+                                      {(m) => {
+                                        const p1Won =
+                                          m.winnerId ===
+                                          m.player1.participantId;
+                                        const p2Won =
+                                          m.winnerId ===
+                                          m.player2.participantId;
+                                        const isOverriding =
+                                          overrideMatchId === m._id;
+                                        const uName = user?.username
+                                          ?.trim()
+                                          .toLowerCase();
+                                        const uId = user?.id;
+                                        const isP1 =
+                                          m.player1.participantId === uId ||
+                                          (uName &&
+                                            m.player1.name
+                                              .trim()
+                                              .toLowerCase() === uName) ||
+                                          m.player1.name === uId;
+                                        const isP2 =
+                                          m.player2.participantId === uId ||
+                                          (uName &&
+                                            m.player2.name
+                                              .trim()
+                                              .toLowerCase() === uName) ||
+                                          m.player2.name === uId;
+                                        const myRep = m.reportedResults?.find(
+                                          (r) =>
+                                            r.reportedBy ===
+                                              (isP1
+                                                ? m.player1.participantId
+                                                : m.player2.participantId) ||
+                                            r.reportedByName === uName,
+                                        );
+                                        const canPR =
+                                          !isAdmin &&
+                                          (isP1 || isP2) &&
+                                          isActive &&
+                                          m.status !== "completed" &&
+                                          m.status !== "disputed";
+                                        return (
+                                          <MatchCard
+                                            key={m._id}
+                                            m={m}
+                                            p1Won={p1Won}
+                                            p2Won={p2Won}
+                                            isOverriding={isOverriding}
+                                            isAdmin={isAdmin}
+                                            isActive={isActive}
+                                            myReport={myRep}
+                                            canParticipantReport={canPR}
+                                            isP1={!!isP1}
+                                            isP2={!!isP2}
+                                            actionLoading={actionLoading}
+                                            overrideLoading={overrideLoading}
+                                            overrideWinnerId={overrideWinnerId}
+                                            overrideReason={overrideReason}
+                                            borderColor={borderColor}
+                                            mutedBg={mutedBg}
+                                            onRecordResult={handleRecordResult}
+                                            onReportResult={handleReportResult}
+                                            onResolveDispute={
+                                              handleResolveDispute
+                                            }
+                                            onStartOverride={() => {
+                                              setOverrideMatchId(m._id);
+                                              setOverrideWinnerId("");
+                                              setOverrideReason("");
+                                            }}
+                                            onCancelOverride={() =>
+                                              setOverrideMatchId(null)
+                                            }
+                                            onSetOverrideWinner={
+                                              setOverrideWinnerId
+                                            }
+                                            onSetOverrideReason={
+                                              setOverrideReason
+                                            }
+                                            onConfirmOverride={
+                                              handleOverrideResult
+                                            }
+                                          />
+                                        );
+                                      }}
+                                    </For>
+                                  </SimpleGrid>
+                                </Box>
+                              ))}
+                            </VStack>
+                          </Box>
+                        )}
+                        {gfMatches.length > 0 && (
+                          <Box>
+                            <HStack mb={3} gap={2}>
+                              <LuTrophy />
+                              <Text
+                                fontWeight="semibold"
+                                fontSize="sm"
+                                textTransform="uppercase"
+                                letterSpacing="wider"
+                                color="yellow.fg"
+                              >
+                                Grand Final
+                              </Text>
+                              {gfMatches.length > 1 && (
                                 <Badge
-                                  colorPalette="blue"
+                                  colorPalette="yellow"
                                   size="sm"
                                   variant="subtle"
                                 >
-                                  Current
-                                </Badge>
-                              )}
-                              {!isCurrentRound && round < maxRound && (
-                                <Badge
-                                  colorPalette="gray"
-                                  size="sm"
-                                  variant="subtle"
-                                >
-                                  Completed
+                                  Bracket Reset
                                 </Badge>
                               )}
                             </HStack>
                             <SimpleGrid columns={{ base: 1, md: 2 }} gap={3}>
-                              <For
-                                each={matches.filter((m) => m.round === round)}
-                              >
+                              <For each={gfMatches}>
                                 {(m) => {
                                   const p1Won =
                                     m.winnerId === m.player1.participantId;
@@ -932,588 +1335,214 @@ const MatchesPage: React.FC = () => {
                                     m.winnerId === m.player2.participantId;
                                   const isOverriding =
                                     overrideMatchId === m._id;
-                                  const userName = user?.username
+                                  const uName = user?.username
                                     ?.trim()
                                     .toLowerCase();
-                                  const userId = user?.id;
+                                  const uId = user?.id;
                                   const isP1 =
-                                    m.player1.participantId === userId ||
-                                    (userName &&
+                                    m.player1.participantId === uId ||
+                                    (uName &&
                                       m.player1.name.trim().toLowerCase() ===
-                                        userName) ||
-                                    m.player1.name === userId;
+                                        uName) ||
+                                    m.player1.name === uId;
                                   const isP2 =
-                                    m.player2.participantId === userId ||
-                                    (userName &&
+                                    m.player2.participantId === uId ||
+                                    (uName &&
                                       m.player2.name.trim().toLowerCase() ===
-                                        userName) ||
-                                    m.player2.name === userId;
-                                  const myReport = m.reportedResults?.find(
+                                        uName) ||
+                                    m.player2.name === uId;
+                                  const myRep = m.reportedResults?.find(
                                     (r) =>
                                       r.reportedBy ===
                                         (isP1
                                           ? m.player1.participantId
                                           : m.player2.participantId) ||
-                                      r.reportedByName === userName,
+                                      r.reportedByName === uName,
                                   );
-                                  const canParticipantReport =
+                                  const canPR =
                                     !isAdmin &&
                                     (isP1 || isP2) &&
                                     isActive &&
                                     m.status !== "completed" &&
                                     m.status !== "disputed";
                                   return (
-                                    <Box
+                                    <MatchCard
                                       key={m._id}
-                                      p={4}
-                                      borderRadius="md"
-                                      borderWidth={1}
-                                      borderColor={
-                                        m.status === "disputed"
-                                          ? "orange.emphasized"
-                                          : m.status === "completed"
-                                            ? "green.muted"
-                                            : borderColor
+                                      m={m}
+                                      p1Won={p1Won}
+                                      p2Won={p2Won}
+                                      isOverriding={isOverriding}
+                                      isAdmin={isAdmin}
+                                      isActive={isActive}
+                                      myReport={myRep}
+                                      canParticipantReport={canPR}
+                                      isP1={!!isP1}
+                                      isP2={!!isP2}
+                                      actionLoading={actionLoading}
+                                      overrideLoading={overrideLoading}
+                                      overrideWinnerId={overrideWinnerId}
+                                      overrideReason={overrideReason}
+                                      borderColor={borderColor}
+                                      mutedBg={mutedBg}
+                                      onRecordResult={handleRecordResult}
+                                      onReportResult={handleReportResult}
+                                      onResolveDispute={handleResolveDispute}
+                                      onStartOverride={() => {
+                                        setOverrideMatchId(m._id);
+                                        setOverrideWinnerId("");
+                                        setOverrideReason("");
+                                      }}
+                                      onCancelOverride={() =>
+                                        setOverrideMatchId(null)
                                       }
-                                      bg={
-                                        m.status === "disputed"
-                                          ? "orange.subtle"
-                                          : m.status === "completed"
-                                            ? "green.subtle"
-                                            : mutedBg
-                                      }
-                                    >
-                                      {/* Match status row */}
-                                      <HStack
-                                        mb={2}
-                                        justifyContent="space-between"
-                                      >
-                                        <Text fontSize="xs" color="fg.subtle">
-                                          Match {m.matchNumber}
-                                        </Text>
-                                        {m.status === "completed" && (
-                                          <Badge
-                                            colorPalette="green"
-                                            size="sm"
-                                            variant="subtle"
-                                          >
-                                            <LuCircleCheck /> Completed
-                                          </Badge>
-                                        )}
-                                        {m.status === "disputed" && (
-                                          <Badge
-                                            colorPalette="orange"
-                                            size="sm"
-                                            variant="solid"
-                                          >
-                                            ⚠ Disputed
-                                          </Badge>
-                                        )}
-                                        {m.status === "in_progress" && (
-                                          <Badge
-                                            colorPalette="blue"
-                                            size="sm"
-                                            variant="subtle"
-                                          >
-                                            <LuClock /> In Progress
-                                          </Badge>
-                                        )}
-                                        {m.status === "pending" && (
-                                          <Badge
-                                            colorPalette="gray"
-                                            size="sm"
-                                            variant="subtle"
-                                          >
-                                            Pending
-                                          </Badge>
-                                        )}
-                                      </HStack>
-                                      <HStack
-                                        gap={4}
-                                        justifyContent="space-between"
-                                        wrap="wrap"
-                                      >
-                                        <VStack
-                                          alignItems="flex-start"
-                                          gap={0}
-                                          flex={1}
-                                        >
-                                          <HStack gap={1}>
-                                            {p1Won && (
-                                              <Badge
-                                                colorPalette="green"
-                                                size="sm"
-                                              >
-                                                W
-                                              </Badge>
-                                            )}
-                                            {m.winnerId && !p1Won && (
-                                              <Badge
-                                                colorPalette="red"
-                                                size="sm"
-                                              >
-                                                L
-                                              </Badge>
-                                            )}
-                                            <Text
-                                              fontWeight={
-                                                p1Won ? "bold" : "medium"
-                                              }
-                                            >
-                                              {m.player1.name}
-                                            </Text>
-                                          </HStack>
-                                          {m.player1.faction && (
-                                            <Text
-                                              fontSize="xs"
-                                              color="fg.muted"
-                                            >
-                                              {m.player1.faction}
-                                            </Text>
-                                          )}
-                                        </VStack>
-                                        <VStack gap={0}>
-                                          <Text
-                                            color="fg.muted"
-                                            fontWeight="bold"
-                                            fontSize="sm"
-                                          >
-                                            vs
-                                          </Text>
-                                        </VStack>
-                                        <VStack
-                                          alignItems="flex-end"
-                                          gap={0}
-                                          flex={1}
-                                        >
-                                          <HStack gap={1}>
-                                            {p2Won && (
-                                              <Badge
-                                                colorPalette="green"
-                                                size="sm"
-                                              >
-                                                W
-                                              </Badge>
-                                            )}
-                                            {m.winnerId &&
-                                              !p2Won &&
-                                              m.player2.name !== "BYE" && (
-                                                <Badge
-                                                  colorPalette="red"
-                                                  size="sm"
-                                                >
-                                                  L
-                                                </Badge>
-                                              )}
-                                            <Text
-                                              fontWeight={
-                                                p2Won ? "bold" : "medium"
-                                              }
-                                              color={
-                                                m.player2.name === "BYE"
-                                                  ? "fg.subtle"
-                                                  : undefined
-                                              }
-                                              fontStyle={
-                                                m.player2.name === "BYE"
-                                                  ? "italic"
-                                                  : undefined
-                                              }
-                                            >
-                                              {m.player2.name}
-                                            </Text>
-                                          </HStack>
-                                          {m.player2.faction &&
-                                            m.player2.name !== "BYE" && (
-                                              <Text
-                                                fontSize="xs"
-                                                color="fg.muted"
-                                              >
-                                                {m.player2.faction}
-                                              </Text>
-                                            )}
-                                        </VStack>
-                                        {isAdmin &&
-                                          isActive &&
-                                          m.status === "disputed" && (
-                                            <VStack
-                                              gap={2}
-                                              flexShrink={0}
-                                              alignItems="flex-start"
-                                            >
-                                              <Text
-                                                fontSize="xs"
-                                                color="orange.400"
-                                                fontWeight="bold"
-                                              >
-                                                ⚠ Disputed — resolve:
-                                              </Text>
-                                              {(m.reportedResults ?? []).map(
-                                                (r) => {
-                                                  const reporterName =
-                                                    r.reportedBy ===
-                                                    m.player1.participantId
-                                                      ? m.player1.name
-                                                      : r.reportedBy ===
-                                                          m.player2
-                                                            .participantId
-                                                        ? m.player2.name
-                                                        : r.reportedByName;
-                                                  const votedForName =
-                                                    r.winnerId ===
-                                                    m.player1.participantId
-                                                      ? m.player1.name
-                                                      : m.player2.name;
-                                                  return (
-                                                    <Text
-                                                      key={r.reportedBy}
-                                                      fontSize="xs"
-                                                      color="fg.muted"
-                                                    >
-                                                      <strong>
-                                                        {reporterName}
-                                                      </strong>{" "}
-                                                      says{" "}
-                                                      <strong>
-                                                        {votedForName}
-                                                      </strong>{" "}
-                                                      won
-                                                    </Text>
-                                                  );
-                                                },
-                                              )}
-                                              <Button
-                                                size="xs"
-                                                colorPalette="orange"
-                                                variant="solid"
-                                                onClick={() =>
-                                                  handleResolveDispute(
-                                                    m._id,
-                                                    m.player1.participantId,
-                                                  )
-                                                }
-                                                loading={actionLoading}
-                                              >
-                                                {m.player1.name} wins
-                                              </Button>
-                                              <Button
-                                                size="xs"
-                                                colorPalette="orange"
-                                                variant="solid"
-                                                onClick={() =>
-                                                  handleResolveDispute(
-                                                    m._id,
-                                                    m.player2.participantId,
-                                                  )
-                                                }
-                                                loading={actionLoading}
-                                              >
-                                                {m.player2.name} wins
-                                              </Button>
-                                            </VStack>
-                                          )}
-                                        {isAdmin &&
-                                          isActive &&
-                                          m.status !== "completed" &&
-                                          m.status !== "disputed" &&
-                                          m.player2.name !== "BYE" && (
-                                            <VStack gap={1} flexShrink={0}>
-                                              <Text
-                                                fontSize="xs"
-                                                color="fg.muted"
-                                                fontWeight="medium"
-                                              >
-                                                Record result:
-                                              </Text>
-                                              <Button
-                                                size="xs"
-                                                colorPalette="green"
-                                                variant="outline"
-                                                onClick={() =>
-                                                  handleRecordResult(
-                                                    m._id,
-                                                    m.player1.participantId,
-                                                  )
-                                                }
-                                                loading={actionLoading}
-                                              >
-                                                <LuSwords /> {m.player1.name}{" "}
-                                                wins
-                                              </Button>
-                                              <Button
-                                                size="xs"
-                                                colorPalette="green"
-                                                variant="outline"
-                                                onClick={() =>
-                                                  handleRecordResult(
-                                                    m._id,
-                                                    m.player2.participantId,
-                                                  )
-                                                }
-                                                loading={actionLoading}
-                                              >
-                                                <LuSwords /> {m.player2.name}{" "}
-                                                wins
-                                              </Button>
-                                            </VStack>
-                                          )}
-                                        {isAdmin &&
-                                          isActive &&
-                                          m.status === "completed" && (
-                                            <Button
-                                              size="xs"
-                                              colorPalette="orange"
-                                              variant="outline"
-                                              onClick={() => {
-                                                setOverrideMatchId(m._id);
-                                                setOverrideWinnerId("");
-                                                setOverrideReason("");
-                                              }}
-                                            >
-                                              <LuShieldAlert /> Override
-                                            </Button>
-                                          )}
-                                      </HStack>
-
-                                      {/* Participant report buttons */}
-                                      {canParticipantReport && (
-                                        <Box
-                                          mt={3}
-                                          pt={3}
-                                          borderTopWidth={1}
-                                          borderColor="border"
-                                        >
-                                          <VStack gap={2} alignItems="stretch">
-                                            <Text
-                                              fontSize="xs"
-                                              color="fg.muted"
-                                              fontWeight="medium"
-                                            >
-                                              {myReport
-                                                ? "Change your reported winner:"
-                                                : "Report match result:"}
-                                            </Text>
-                                            <HStack gap={2}>
-                                              <Button
-                                                size="xs"
-                                                flex={1}
-                                                colorPalette={
-                                                  myReport?.winnerId ===
-                                                  m.player1.participantId
-                                                    ? "green"
-                                                    : "gray"
-                                                }
-                                                variant={
-                                                  myReport?.winnerId ===
-                                                  m.player1.participantId
-                                                    ? "solid"
-                                                    : "outline"
-                                                }
-                                                onClick={() =>
-                                                  handleReportResult(
-                                                    m._id,
-                                                    m.player1.participantId,
-                                                  )
-                                                }
-                                                loading={actionLoading}
-                                              >
-                                                {m.player1.name} won
-                                              </Button>
-                                              <Button
-                                                size="xs"
-                                                flex={1}
-                                                colorPalette={
-                                                  myReport?.winnerId ===
-                                                  m.player2.participantId
-                                                    ? "green"
-                                                    : "gray"
-                                                }
-                                                variant={
-                                                  myReport?.winnerId ===
-                                                  m.player2.participantId
-                                                    ? "solid"
-                                                    : "outline"
-                                                }
-                                                onClick={() =>
-                                                  handleReportResult(
-                                                    m._id,
-                                                    m.player2.participantId,
-                                                  )
-                                                }
-                                                loading={actionLoading}
-                                              >
-                                                {m.player2.name} won
-                                              </Button>
-                                            </HStack>
-                                          </VStack>
-                                        </Box>
-                                      )}
-                                      {!isAdmin &&
-                                        (isP1 || isP2) &&
-                                        m.status === "in_progress" &&
-                                        myReport && (
-                                          <Text
-                                            fontSize="xs"
-                                            color="blue.fg"
-                                            mt={2}
-                                            textAlign="center"
-                                          >
-                                            You reported{" "}
-                                            <strong>
-                                              {myReport.winnerId ===
-                                              m.player1.participantId
-                                                ? m.player1.name
-                                                : m.player2.name}
-                                            </strong>{" "}
-                                            as winner — waiting for opponent
-                                          </Text>
-                                        )}
-                                      {!isAdmin &&
-                                        (isP1 || isP2) &&
-                                        m.status === "disputed" && (
-                                          <Text
-                                            fontSize="xs"
-                                            color="orange.fg"
-                                            mt={2}
-                                            textAlign="center"
-                                            fontWeight="medium"
-                                          >
-                                            Result disputed — awaiting organiser
-                                            decision
-                                          </Text>
-                                        )}
-
-                                      {m.winnerId && (
-                                        <Box
-                                          mt={2}
-                                          pt={2}
-                                          borderTopWidth={1}
-                                          borderColor="border"
-                                        >
-                                          <HStack
-                                            gap={1}
-                                            justifyContent="center"
-                                          >
-                                            <LuTrophy size={12} />
-                                            <Text
-                                              fontSize="xs"
-                                              color="fg.muted"
-                                              fontWeight="medium"
-                                            >
-                                              Winner:{" "}
-                                              <strong>
-                                                {m.winnerId ===
-                                                m.player1.participantId
-                                                  ? m.player1.name
-                                                  : m.player2.name}
-                                              </strong>
-                                            </Text>
-                                          </HStack>
-                                        </Box>
-                                      )}
-                                      {isOverriding && (
-                                        <Box
-                                          mt={3}
-                                          pt={3}
-                                          borderTopWidth={1}
-                                          borderColor="border"
-                                        >
-                                          <VStack gap={2} alignItems="stretch">
-                                            <Text
-                                              fontSize="sm"
-                                              fontWeight="medium"
-                                            >
-                                              Override Result
-                                            </Text>
-                                            <HStack gap={2}>
-                                              <Button
-                                                size="xs"
-                                                variant={
-                                                  overrideWinnerId ===
-                                                  m.player1.participantId
-                                                    ? "solid"
-                                                    : "outline"
-                                                }
-                                                colorPalette="blue"
-                                                onClick={() =>
-                                                  setOverrideWinnerId(
-                                                    m.player1.participantId,
-                                                  )
-                                                }
-                                              >
-                                                {m.player1.name}
-                                              </Button>
-                                              <Button
-                                                size="xs"
-                                                variant={
-                                                  overrideWinnerId ===
-                                                  m.player2.participantId
-                                                    ? "solid"
-                                                    : "outline"
-                                                }
-                                                colorPalette="blue"
-                                                onClick={() =>
-                                                  setOverrideWinnerId(
-                                                    m.player2.participantId,
-                                                  )
-                                                }
-                                              >
-                                                {m.player2.name}
-                                              </Button>
-                                            </HStack>
-                                            <Input
-                                              size="sm"
-                                              placeholder="Reason (optional)"
-                                              value={overrideReason}
-                                              onChange={(
-                                                e: React.ChangeEvent<HTMLInputElement>,
-                                              ) =>
-                                                setOverrideReason(
-                                                  e.target.value,
-                                                )
-                                              }
-                                            />
-                                            <HStack gap={2}>
-                                              <Button
-                                                size="xs"
-                                                colorPalette="orange"
-                                                onClick={handleOverrideResult}
-                                                loading={overrideLoading}
-                                                disabled={!overrideWinnerId}
-                                              >
-                                                Confirm Override
-                                              </Button>
-                                              <Button
-                                                size="xs"
-                                                variant="ghost"
-                                                onClick={() =>
-                                                  setOverrideMatchId(null)
-                                                }
-                                              >
-                                                Cancel
-                                              </Button>
-                                            </HStack>
-                                            {m.resultOverrides.length > 0 && (
-                                              <Text
-                                                fontSize="xs"
-                                                color="fg.muted"
-                                              >
-                                                {m.resultOverrides.length}{" "}
-                                                previous override(s)
-                                              </Text>
-                                            )}
-                                          </VStack>
-                                        </Box>
-                                      )}
-                                    </Box>
+                                      onSetOverrideWinner={setOverrideWinnerId}
+                                      onSetOverrideReason={setOverrideReason}
+                                      onConfirmOverride={handleOverrideResult}
+                                    />
                                   );
                                 }}
                               </For>
                             </SimpleGrid>
                           </Box>
-                        );
-                      }}
-                    </For>
+                        )}
+                      </>
+                    )}
+
+                    {/* ── SE / Round Robin / Swiss: standard round-by-round ── */}
+                    {!isDoubleElim && (
+                      <For each={roundNumbers}>
+                        {(round) => {
+                          const maxRound = Math.max(
+                            ...matches.map((m) => m.round),
+                          );
+                          const isCurrentRound = round === maxRound && isActive;
+                          return (
+                            <Box key={round}>
+                              <HStack mb={3} gap={2}>
+                                <Text
+                                  fontWeight="semibold"
+                                  fontSize="sm"
+                                  color={
+                                    isCurrentRound ? "blue.fg" : "fg.muted"
+                                  }
+                                  textTransform="uppercase"
+                                  letterSpacing="wider"
+                                >
+                                  {isRROrSwiss
+                                    ? `Round ${round} of ${roundNumbers.length}`
+                                    : `Round ${round}`}
+                                </Text>
+                                {isCurrentRound && !isRROrSwiss && (
+                                  <Badge
+                                    colorPalette="blue"
+                                    size="sm"
+                                    variant="subtle"
+                                  >
+                                    Current
+                                  </Badge>
+                                )}
+                                {!isCurrentRound &&
+                                  round < maxRound &&
+                                  !isRROrSwiss && (
+                                    <Badge
+                                      colorPalette="gray"
+                                      size="sm"
+                                      variant="subtle"
+                                    >
+                                      Completed
+                                    </Badge>
+                                  )}
+                              </HStack>
+                              <SimpleGrid columns={{ base: 1, md: 2 }} gap={3}>
+                                <For
+                                  each={matches.filter(
+                                    (m) => m.round === round,
+                                  )}
+                                >
+                                  {(m) => {
+                                    const p1Won =
+                                      m.winnerId === m.player1.participantId;
+                                    const p2Won =
+                                      m.winnerId === m.player2.participantId;
+                                    const isOverriding =
+                                      overrideMatchId === m._id;
+                                    const userName = user?.username
+                                      ?.trim()
+                                      .toLowerCase();
+                                    const userId = user?.id;
+                                    const isP1 =
+                                      m.player1.participantId === userId ||
+                                      (userName &&
+                                        m.player1.name.trim().toLowerCase() ===
+                                          userName) ||
+                                      m.player1.name === userId;
+                                    const isP2 =
+                                      m.player2.participantId === userId ||
+                                      (userName &&
+                                        m.player2.name.trim().toLowerCase() ===
+                                          userName) ||
+                                      m.player2.name === userId;
+                                    const myReport = m.reportedResults?.find(
+                                      (r) =>
+                                        r.reportedBy ===
+                                          (isP1
+                                            ? m.player1.participantId
+                                            : m.player2.participantId) ||
+                                        r.reportedByName === userName,
+                                    );
+                                    const canParticipantReport =
+                                      !isAdmin &&
+                                      (isP1 || isP2) &&
+                                      isActive &&
+                                      m.status !== "completed" &&
+                                      m.status !== "disputed";
+                                    return (
+                                      <MatchCard
+                                        key={m._id}
+                                        m={m}
+                                        p1Won={p1Won}
+                                        p2Won={p2Won}
+                                        isOverriding={isOverriding}
+                                        isAdmin={isAdmin}
+                                        isActive={isActive}
+                                        myReport={myReport}
+                                        canParticipantReport={
+                                          canParticipantReport
+                                        }
+                                        isP1={!!isP1}
+                                        isP2={!!isP2}
+                                        actionLoading={actionLoading}
+                                        overrideLoading={overrideLoading}
+                                        overrideWinnerId={overrideWinnerId}
+                                        overrideReason={overrideReason}
+                                        borderColor={borderColor}
+                                        mutedBg={mutedBg}
+                                        onRecordResult={handleRecordResult}
+                                        onReportResult={handleReportResult}
+                                        onResolveDispute={handleResolveDispute}
+                                        onStartOverride={() => {
+                                          setOverrideMatchId(m._id);
+                                          setOverrideWinnerId("");
+                                          setOverrideReason("");
+                                        }}
+                                        onCancelOverride={() =>
+                                          setOverrideMatchId(null)
+                                        }
+                                        onSetOverrideWinner={
+                                          setOverrideWinnerId
+                                        }
+                                        onSetOverrideReason={setOverrideReason}
+                                        onConfirmOverride={handleOverrideResult}
+                                      />
+                                    );
+                                  }}
+                                </For>
+                              </SimpleGrid>
+                            </Box>
+                          );
+                        }}
+                      </For>
+                    )}
                   </VStack>
                 )}
               </Card.Body>
@@ -1700,10 +1729,12 @@ const MatchesPage: React.FC = () => {
                     </Text>
                     <Separator />
                     <HStack gap={4} fontSize="sm" color="fg.muted">
-                      <Text>
-                        {t.participants.length}/{t.playerCount} players
-                      </Text>
-                      <Text>{new Date(t.createdAt).toLocaleDateString()}</Text>
+                      <HStack gap={1}>
+                        <LuUsers />
+                        <Text>
+                          {t.participants.length}/{t.playerCount}
+                        </Text>
+                      </HStack>
                     </HStack>
                   </VStack>
                 </Card.Body>

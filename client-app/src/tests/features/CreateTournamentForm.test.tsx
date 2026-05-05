@@ -4,6 +4,14 @@ import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom";
 import React from "react";
 import { ChakraProvider, defaultSystem } from "@chakra-ui/react";
+import { BrowserRouter } from "react-router-dom";
+
+vi.mock("@/shared/ui/Toaster", () => ({
+  toaster: {
+    success: vi.fn(),
+    error: vi.fn(),
+  },
+}));
 
 vi.mock("@/core/api/httpClient", () => ({
   httpClient: {
@@ -29,22 +37,28 @@ vi.mock("@/shared/ui/NumberInput", () => ({
   NumberInputField: () => <input data-testid="number-input-field" />,
 }));
 
+import { toaster } from "@/shared/ui/Toaster";
 import { httpClient } from "@/core/api/httpClient";
 import CreateTournamentForm from "@/features/tournaments/components/CreateTournamentForm";
 
 const mockPost = vi.mocked(httpClient.post);
+const mockToaster = vi.mocked(toaster);
 
 function renderForm() {
   return render(
-    <ChakraProvider value={defaultSystem}>
-      <CreateTournamentForm />
-    </ChakraProvider>,
+    <BrowserRouter>
+      <ChakraProvider value={defaultSystem}>
+        <CreateTournamentForm />
+      </ChakraProvider>
+    </BrowserRouter>,
   );
 }
 
 describe("CreateTournamentForm", () => {
   beforeEach(() => {
     mockPost.mockReset();
+    mockToaster.success.mockReset();
+    mockToaster.error.mockReset();
   });
 
   it("renders the form fields", () => {
@@ -105,7 +119,10 @@ describe("CreateTournamentForm", () => {
   });
 
   it("calls httpClient.post with form data on submit", async () => {
-    mockPost.mockResolvedValueOnce({ success: true, data: {} });
+    mockPost.mockResolvedValueOnce({
+      success: true,
+      data: { _id: "t1", name: "Test Tournament" },
+    });
 
     renderForm();
 
@@ -128,8 +145,11 @@ describe("CreateTournamentForm", () => {
     });
   });
 
-  it("shows success message after successful submission", async () => {
-    mockPost.mockResolvedValueOnce({ success: true, data: {} });
+  it("shows success message via toaster after successful submission", async () => {
+    mockPost.mockResolvedValueOnce({
+      success: true,
+      data: { _id: "t1", name: "Test Tournament" },
+    });
 
     renderForm();
 
@@ -144,14 +164,20 @@ describe("CreateTournamentForm", () => {
     );
 
     await waitFor(() => {
-      expect(
-        screen.getByText("Tournament created successfully!"),
-      ).toBeInTheDocument();
+      expect(mockToaster.success).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: "Tournament Created",
+          description: expect.stringContaining("successfully"),
+        }),
+      );
     });
   });
 
   it("resets the form after successful submission", async () => {
-    mockPost.mockResolvedValueOnce({ success: true, data: {} });
+    mockPost.mockResolvedValueOnce({
+      success: true,
+      data: { _id: "t1", name: "Test Tournament" },
+    });
 
     renderForm();
 
@@ -168,7 +194,7 @@ describe("CreateTournamentForm", () => {
     });
   });
 
-  it("shows error message on failed submission", async () => {
+  it("shows error message via toaster on failed submission", async () => {
     mockPost.mockRejectedValueOnce(
       new Error("Unauthorized: Not authenticated"),
     );
@@ -186,13 +212,15 @@ describe("CreateTournamentForm", () => {
     );
 
     await waitFor(() => {
-      expect(
-        screen.getByText("Unauthorized: Not authenticated"),
-      ).toBeInTheDocument();
+      expect(mockToaster.error).toHaveBeenCalledWith(
+        expect.objectContaining({
+          description: "Unauthorized: Not authenticated",
+        }),
+      );
     });
   });
 
-  it("shows fallback error message when error is not an Error instance", async () => {
+  it("shows fallback error message via toaster when error is not an Error instance", async () => {
     mockPost.mockRejectedValueOnce("something went wrong");
 
     renderForm();
@@ -208,25 +236,26 @@ describe("CreateTournamentForm", () => {
     );
 
     await waitFor(() => {
-      expect(
-        screen.getByText("Failed to create tournament"),
-      ).toBeInTheDocument();
+      expect(mockToaster.error).toHaveBeenCalledWith(
+        expect.objectContaining({
+          description: "An error occurred",
+        }),
+      );
     });
   });
 
-  it("does not show error or success initially", () => {
+  it("does not show toaster initially", () => {
     renderForm();
-    expect(
-      screen.queryByText("Tournament created successfully!"),
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByText(/Failed to create tournament/i),
-    ).not.toBeInTheDocument();
+    expect(mockToaster.success).not.toHaveBeenCalled();
+    expect(mockToaster.error).not.toHaveBeenCalled();
   });
 
-  it("clears error when form is resubmitted", async () => {
+  it("calls toaster for each attempt when form is resubmitted", async () => {
     mockPost.mockRejectedValueOnce(new Error("Network error"));
-    mockPost.mockResolvedValueOnce({ success: true, data: {} });
+    mockPost.mockResolvedValueOnce({
+      success: true,
+      data: { _id: "t2", name: "Retry" },
+    });
 
     renderForm();
 
@@ -235,17 +264,19 @@ describe("CreateTournamentForm", () => {
       .getByRole("button", { name: /create tournament/i })
       .closest("form")!;
 
-    await userEvent.type(nameInput, "Test Tournament");
+    await userEvent.type(nameInput, "Retry");
     fireEvent.submit(form);
 
     await waitFor(() => {
-      expect(screen.getByText("Network error")).toBeInTheDocument();
+      expect(mockToaster.error).toHaveBeenCalledWith(
+        expect.objectContaining({ description: "Network error" }),
+      );
     });
 
     fireEvent.submit(form);
 
     await waitFor(() => {
-      expect(screen.queryByText("Network error")).not.toBeInTheDocument();
+      expect(mockToaster.success).toHaveBeenCalled();
     });
   });
 });

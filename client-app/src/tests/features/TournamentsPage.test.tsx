@@ -30,7 +30,7 @@ describe("TournamentsPage", () => {
 
   it("renders the tournament code input", () => {
     renderWithProviders(<TournamentsPage />);
-    expect(screen.getByPlaceholderText(/enter tournament code/i)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(/tournament code/i)).toBeInTheDocument();
   });
 
   it("renders the find button", () => {

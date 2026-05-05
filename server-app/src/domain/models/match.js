@@ -64,6 +64,12 @@ const matchSchema = new mongoose.Schema({
     default: "pending",
   },
 
+  bracketSide: {
+    type: String,
+    enum: ["winners", "losers", "grand_final", null],
+    default: null,
+  },
+
   notes: { type: String, default: "" },
 
   resultOverrides: { type: [resultOverrideSchema], default: [] },

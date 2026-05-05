@@ -24,7 +24,7 @@ setInterval(
     }
   },
   15 * 60 * 1000,
-);
+).unref();
 
 /**
  * Authenticates a user and creates a session or authorization code
