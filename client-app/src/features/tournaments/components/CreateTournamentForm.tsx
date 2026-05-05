@@ -244,7 +244,7 @@ const CreateTournamentForm: React.FC = () => {
               </Flex>
             </SimpleGrid>
           </Field.Root>
-        </VStack>
+      </VStack>
       </Card.Body>
       <Card.Footer>
         <Button type="submit" colorPalette="blue" size="md" loading={isLoading}>
