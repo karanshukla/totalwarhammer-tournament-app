@@ -105,10 +105,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
-// Rate limiting middleware
+// Rate limiting middleware (relaxed for local development)
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100,
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 1000, // 1000 requests per hour
   message: "Too many requests from this IP, please try again later.",
 });
 app.use(limiter);

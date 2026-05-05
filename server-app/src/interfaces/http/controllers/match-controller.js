@@ -120,15 +120,19 @@ export const reportResult = async (req, res) => {
     const userName = req.user.username;
     const tournament = match.tournament;
 
+    const lowerUserName = userName?.trim().toLowerCase();
     const isPlayer1 =
       match.player1.participantId?.toString() === userId ||
-      match.player1.name === userName ||
+      (lowerUserName &&
+        match.player1.name.trim().toLowerCase() === lowerUserName) ||
       match.player1.name === userId;
     const isPlayer2 =
       match.player2.participantId?.toString() === userId ||
-      match.player2.name === userName ||
+      (lowerUserName &&
+        match.player2.name.trim().toLowerCase() === lowerUserName) ||
       match.player2.name === userId;
-    const isCreator = tournament.createdBy?.toString() === userId;
+    const createdById = tournament.createdBy?._id ?? tournament.createdBy;
+    const isCreator = createdById?.toString() === userId;
 
     if (!isPlayer1 && !isPlayer2 && !isCreator) {
       return res.status(403).json({
@@ -207,7 +211,9 @@ export const resolveDispute = async (req, res) => {
         .json({ success: false, message: "Match is not disputed" });
     }
 
-    const isCreator = match.tournament.createdBy?.toString() === req.user.id;
+    const createdById =
+      match.tournament.createdBy?._id ?? match.tournament.createdBy;
+    const isCreator = createdById?.toString() === req.user.id;
     if (!isCreator) {
       return res.status(403).json({
         success: false,
@@ -328,7 +334,9 @@ export const overrideResult = async (req, res) => {
         .json({ success: false, message: "Match not found" });
     }
 
-    const isAdmin = match.tournament.createdBy.toString() === req.user.id;
+    const createdById =
+      match.tournament.createdBy?._id ?? match.tournament.createdBy;
+    const isAdmin = createdById?.toString() === req.user.id;
     if (!isAdmin) {
       return res.status(403).json({
         success: false,

@@ -26,6 +26,15 @@ async function ensureCode(tournament) {
 
 export const createTournament = async (req, res) => {
   try {
+    // Only registered users can create tournaments
+    if (req.user.isGuest) {
+      return res.status(403).json({
+        success: false,
+        message:
+          "Guest users cannot create tournaments. Please sign up to create tournaments.",
+      });
+    }
+
     const { name, description, playerCount, tournamentType, bannedFactions } =
       req.body;
 
@@ -61,7 +70,13 @@ export const getTournaments = async (req, res) => {
   try {
     const { status } = req.query;
     const filter = {};
-    if (status) filter.status = status;
+    if (status) {
+      const statuses = status
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean);
+      filter.status = statuses.length === 1 ? statuses[0] : { $in: statuses };
+    }
 
     const tournaments = await Tournament.find(filter)
       .populate("createdBy", "username")
@@ -481,12 +496,12 @@ export const advanceRound = async (req, res) => {
           faction: bye.faction,
         },
         player2: {
-          participantId: bye.participantId,
-          name: `${bye.name} (BYE)`,
-          faction: bye.faction,
+          participantId: null,
+          name: "BYE",
+          faction: "",
         },
         winnerId: bye.participantId,
-        loserId: bye.participantId,
+        loserId: null,
         status: "completed",
         completedAt: new Date(),
       });

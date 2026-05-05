@@ -43,7 +43,11 @@ interface Tournament {
 }
 
 interface Props {
-  statusFilter: "pending" | "active" | "completed";
+  statusFilter:
+    | "pending"
+    | "active"
+    | "completed"
+    | ("pending" | "active" | "completed")[];
   emptyMessage: string;
 }
 
@@ -64,8 +68,11 @@ const TournamentBrowser: React.FC<Props> = ({ statusFilter, emptyMessage }) => {
     setLoading(true);
     setError(null);
     try {
+      const statusParam = Array.isArray(statusFilter)
+        ? statusFilter.join(",")
+        : statusFilter;
       const res = (await httpClient.get(
-        `/tournament?status=${statusFilter}`,
+        `/tournament?status=${statusParam}`,
       )) as { success: boolean; data: Tournament[] };
       setTournaments(res.data ?? []);
     } catch (err) {

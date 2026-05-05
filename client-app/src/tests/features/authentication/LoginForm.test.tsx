@@ -33,13 +33,14 @@ describe("LoginForm", () => {
   it("shows validation errors for empty fields", async () => {
     renderLoginForm();
     const loginButton = screen.getByRole("button", { name: /Login/i });
+    const form = loginButton.closest("form")!;
     
     // Trigger submission
-    fireEvent.click(loginButton);
+    fireEvent.submit(form);
 
     await waitFor(() => {
-      expect(screen.getByText(/Email Address is required/i)).toBeInTheDocument();
-      expect(screen.getByText(/Password is required/i)).toBeInTheDocument();
+      expect(screen.getByText("Email Address is required")).toBeInTheDocument();
+      expect(screen.getByText("Password is required")).toBeInTheDocument();
     }, { timeout: 2000 });
   });
 
@@ -53,7 +54,9 @@ describe("LoginForm", () => {
     fireEvent.change(screen.getByLabelText(/Password/i), {
       target: { value: "password123" },
     });
-    fireEvent.click(screen.getByRole("button", { name: /Login/i }));
+    
+    const loginButton = screen.getByRole("button", { name: /Login/i });
+    fireEvent.submit(loginButton.closest("form")!);
 
     await waitFor(() => {
       expect(authApi.loginUser).toHaveBeenCalledWith({

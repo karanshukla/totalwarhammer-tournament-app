@@ -24,8 +24,12 @@ import CreateTournamentForm from "./CreateTournamentForm";
 import TournamentBrowser from "./TournamentBrowser";
 import { useColorModeValue } from "@/shared/ui/ColorMode";
 import { httpClient } from "@/core/api/httpClient";
+import { useUserStore } from "@/shared/stores/userStore";
 
 const TournamentsPage: React.FC = () => {
+  const { user } = useUserStore();
+  const isGuest = !user || user.isGuest;
+
   const tabs = useMemo(
     () => [
       {
@@ -34,12 +38,17 @@ const TournamentsPage: React.FC = () => {
         label: "Create a Simple Bracket",
         content: "Create a simple bracket tournament",
       },
-      {
-        id: "createTournament",
-        icon: LuTrophy,
-        label: "Create a Tournament",
-        content: "Create a new Tournament",
-      },
+      // Only show create tournament for registered users
+      ...(!isGuest
+        ? [
+            {
+              id: "createTournament",
+              icon: LuTrophy,
+              label: "Create a Tournament",
+              content: "Create a new Tournament",
+            },
+          ]
+        : []),
       {
         id: "currentTournaments",
         icon: LuClock,
@@ -53,7 +62,7 @@ const TournamentsPage: React.FC = () => {
         content: "Check past tournaments",
       },
     ],
-    [],
+    [isGuest],
   );
 
   // Define colors for light and dark modes
@@ -152,7 +161,7 @@ const TournamentsPage: React.FC = () => {
           <VStack alignItems="flex-end" gap={1}>
             <HStack gap={2}>
               <Input
-                placeholder="Enter tournament code..."
+                placeholder="Tournament Code"
                 value={codeInput}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                   setCodeInput(e.target.value)
@@ -238,10 +247,29 @@ const TournamentsPage: React.FC = () => {
         <Card.Root>
           <Card.Body>
             {activeTab === "brackets" && <SimpleBracket />}
-            {activeTab === "createTournament" && <CreateTournamentForm />}
+            {activeTab === "createTournament" &&
+              (!isGuest ? (
+                <CreateTournamentForm />
+              ) : (
+                <VStack gap={4} align="center" py={8}>
+                  <Text fontSize="lg" fontWeight="medium">
+                    Sign up to create tournaments
+                  </Text>
+                  <Text color="fg.muted" textAlign="center">
+                    Guest users can join tournaments, but only registered users
+                    can create them.
+                  </Text>
+                  <Button
+                    colorPalette="blue"
+                    onClick={() => navigate("/register")}
+                  >
+                    Create an Account
+                  </Button>
+                </VStack>
+              ))}
             {activeTab === "currentTournaments" && (
               <TournamentBrowser
-                statusFilter="pending"
+                statusFilter={["pending", "active"]}
                 emptyMessage="No open tournaments right now. Create one!"
               />
             )}

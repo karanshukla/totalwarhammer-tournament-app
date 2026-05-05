@@ -7,6 +7,7 @@ import authRoutes from "./authentication-routes.js";
 import guestRoutes from "./guest-routes.js";
 import matchRoutes from "./match-routes.js";
 import passwordResetRoutes from "./password-reset-routes.js"; // Import password reset routes
+import statsRoutes from "./stats-routes.js";
 import tournamentRoutes from "./tournament-routes.js";
 import userRoutes from "./user-routes.js";
 
@@ -34,5 +35,6 @@ router.use("/guest", guestRoutes);
 router.use("/password-reset", passwordResetRoutes);
 router.use("/tournament", tournamentRoutes);
 router.use("/match", matchRoutes);
+router.use("/stats", statsRoutes);
 
 export default router;
