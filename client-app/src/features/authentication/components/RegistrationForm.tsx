@@ -60,7 +60,11 @@ export function RegistrationForm() {
 
         <Field.Root invalid={!!errors.password}>
           <Field.Label>Password</Field.Label>
-          <PasswordInput type="password" {...register("password")} />
+          <PasswordInput
+            type="password"
+            {...register("password")}
+            autoComplete="new-password"
+          />
           <Field.ErrorText>{errors.password?.message}</Field.ErrorText>
         </Field.Root>
         <Button

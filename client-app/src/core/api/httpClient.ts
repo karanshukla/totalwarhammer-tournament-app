@@ -65,7 +65,7 @@ class HttpClient {
         .then((response) => {
           if (!response.ok) {
             throw new Error(
-              `Failed to fetch CSRF token: ${response.statusText}`
+              `Failed to fetch CSRF token: ${response.statusText}`,
             );
           }
           return response.json();
@@ -111,7 +111,7 @@ class HttpClient {
   async post<T>(
     endpoint: string,
     data?: unknown,
-    options: RequestOptions = {}
+    options: RequestOptions = {},
   ): Promise<T> {
     // Check session status for sensitive operations
     const sensitiveEndpoints = [
@@ -126,7 +126,7 @@ class HttpClient {
 
       if (!sessionStatus.valid) {
         throw new Error(
-          "Session appears to be invalid. Please try logging in again."
+          "Session appears to be invalid. Please try logging in again.",
         );
       }
     }
@@ -212,7 +212,7 @@ class HttpClient {
   async put<T>(
     endpoint: string,
     data?: unknown,
-    options: RequestOptions = {}
+    options: RequestOptions = {},
   ): Promise<T> {
     const { params, skipCsrf = false, ...requestOptions } = options;
 
@@ -255,6 +255,75 @@ class HttpClient {
           if (token) {
             const retryResponse = await fetch(url, {
               method: "PUT",
+              credentials: "include",
+              ...requestOptions,
+              headers: {
+                "Content-Type": "application/json",
+                "X-CSRF-Token": token,
+                ...requestOptions.headers,
+              },
+              body: data ? JSON.stringify(data) : undefined,
+            });
+
+            return this.handleResponse<T>(retryResponse);
+          } else {
+            throw new Error("Could not refresh CSRF token after failure");
+          }
+        }
+      } catch (e) {
+        console.error("Error handling CSRF retry:", e);
+      }
+    }
+
+    return this.handleResponse<T>(response);
+  }
+
+  async patch<T>(
+    endpoint: string,
+    data?: unknown,
+    options: RequestOptions = {},
+  ): Promise<T> {
+    const { params, skipCsrf = false, ...requestOptions } = options;
+
+    let token = null;
+    if (!skipCsrf) {
+      token = await this.ensureCsrfToken();
+      if (!token) {
+        console.warn("Could not fetch CSRF token for PATCH request");
+      }
+    }
+
+    const url = this.buildUrl(endpoint, params);
+
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+      ...(requestOptions.headers as Record<string, string>),
+    };
+
+    if (token && !skipCsrf) {
+      headers["X-CSRF-Token"] = token;
+    }
+
+    const response = await fetch(url, {
+      method: "PATCH",
+      credentials: "include",
+      ...requestOptions,
+      headers,
+      body: data ? JSON.stringify(data) : undefined,
+    });
+
+    if (response.status === 403) {
+      try {
+        const errorData = await response.json();
+
+        if (errorData.error === "CSRF validation failed") {
+          this.csrfToken = null;
+
+          token = await this.ensureCsrfToken();
+
+          if (token) {
+            const retryResponse = await fetch(url, {
+              method: "PATCH",
               credentials: "include",
               ...requestOptions,
               headers: {

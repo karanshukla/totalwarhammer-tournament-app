@@ -5,25 +5,28 @@ import { lazyLoad } from "@/shared/utils/LazyLoad";
 
 const HomePage = lazyLoad(() => import("@/features/home/components/HomePage"));
 const TournamentsPage = lazyLoad(
-  () => import("@/features/tournaments/components/TournamentsPage")
+  () => import("@/features/tournaments/components/TournamentsPage"),
 );
 const StatisticsPage = lazyLoad(
-  () => import("@/features/statistics/components/StatisticsPage")
+  () => import("@/features/statistics/components/StatisticsPage"),
 );
 const AccountPage = lazyLoad(
-  () => import("@/features/account/components/AccountPage")
+  () => import("@/features/account/components/AccountPage"),
 );
 const MatchesPage = lazyLoad(
-  () => import("@/features/matches/components/MatchesPage")
+  () => import("@/features/matches/components/MatchesPage"),
+);
+const TournamentViewPage = lazyLoad(
+  () => import("@/features/tournaments/components/TournamentViewPage"),
 );
 const ContactPage = lazyLoad(
-  () => import("@/features/contact/components/ContactPage")
+  () => import("@/features/contact/components/ContactPage"),
 );
 const TermsPage = lazyLoad(
-  () => import("@/features/terms/components/TermsPage")
+  () => import("@/features/terms/components/TermsPage"),
 );
 const ResetPasswordPage = lazyLoad(
-  () => import("@/features/authentication/components/ResetPasswordPage")
+  () => import("@/features/authentication/components/ResetPasswordPage"),
 );
 
 export function App() {
@@ -33,6 +36,11 @@ export function App() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/tournaments" element={<TournamentsPage />} />
+          <Route
+            path="/matches/spectate/:id"
+            element={<TournamentViewPage />}
+          />
+          <Route path="/tournament/:id" element={<TournamentViewPage />} />
           <Route path="/matches" element={<MatchesPage />} />
           <Route path="/statistics" element={<StatisticsPage />} />
           <Route path="/account" element={<AccountPage />} />

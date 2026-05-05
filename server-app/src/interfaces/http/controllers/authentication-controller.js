@@ -18,13 +18,13 @@ setInterval(
       if (now - data.createdAt > CODE_EXPIRATION_TIME) {
         authorizationCodes.delete(code);
         logger.debug(
-          `Removed expired authorization code: ${code.substring(0, 8)}...`
+          `Removed expired authorization code: ${code.substring(0, 8)}...`,
         );
       }
     }
   },
-  15 * 60 * 1000
-);
+  15 * 60 * 1000,
+).unref();
 
 /**
  * Authenticates a user and creates a session or authorization code
@@ -268,13 +268,13 @@ export const logout = async (req, res) => {
   try {
     // Promisify the session destroy method
     const clearAuth = promisify(
-      authStateService.clearAuthState.bind(authStateService)
+      authStateService.clearAuthState.bind(authStateService),
     );
 
     // Clear the authentication state
     await clearAuth(req);
 
-    res.clearCookie("connect.sid"); // Clear the session cookie
+    res.clearCookie("sid"); // Clear the session cookie
 
     res.status(200).json({
       success: true,

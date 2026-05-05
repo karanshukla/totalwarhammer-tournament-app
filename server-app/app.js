@@ -72,9 +72,9 @@ app.use(
   cors({
     origin: process.env.CLIENT_URL || "http://localhost:3000",
     credentials: true, // IMPORTANT: needed for cookies to work cross-origin
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "X-CSRF-Token"],
-  })
+  }),
 );
 
 // Session configuration - must come after cookieParser and CORS
@@ -88,10 +88,10 @@ if (!SESSION_SECRET) {
 const isProduction = process.env.NODE_ENV === "production";
 
 logger.info(
-  `Starting server in ${process.env.NODE_ENV || "development"} environment`
+  `Starting server in ${process.env.NODE_ENV || "development"} environment`,
 );
 logger.info(
-  `CORS origin: ${process.env.CLIENT_URL || "http://localhost:3000"}`
+  `CORS origin: ${process.env.CLIENT_URL || "http://localhost:3000"}`,
 );
 
 // Configure and use session middleware
@@ -105,10 +105,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
-// Rate limiting middleware
+// Rate limiting middleware (relaxed for local development)
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100,
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 1000, // 1000 requests per hour
   message: "Too many requests from this IP, please try again later.",
 });
 app.use(limiter);
@@ -116,7 +116,7 @@ app.use(limiter);
 // Debug middleware to log session and cookies
 app.use((req, res, next) => {
   logger.http(
-    `${req.method} ${req.url} - Session ID: ${req.session?.id || "none"}`
+    `${req.method} ${req.url} - Session ID: ${req.session?.id || "none"}`,
   );
   next();
 });

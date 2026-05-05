@@ -54,7 +54,7 @@ export function MatchParticipantSlot({
             size="xs"
             onClick={onRemove}
             variant="ghost"
-            colorScheme="red"
+            colorPalette="red"
             height="20px"
             minWidth="auto"
             px={1}

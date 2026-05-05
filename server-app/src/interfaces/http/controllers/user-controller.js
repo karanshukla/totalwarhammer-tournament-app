@@ -120,7 +120,7 @@ export const updateGuestUsername = async (req, res) => {
     const updatedUser = await User.findByIdAndUpdate(
       userId,
       { username },
-      { new: true }
+      { new: true },
     );
 
     if (!updatedUser) {
@@ -155,8 +155,16 @@ export const updateUsername = async (req, res) => {
     const { username } = req.body;
     const userId = req.user.id;
 
+    // Validate username is a string to prevent NoSQL injection
+    if (typeof username !== "string") {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid username format",
+      });
+    }
+
     const existingUsername = await User.findOne({
-      username,
+      username: { $eq: username },
       _id: { $ne: userId },
     });
 
@@ -169,8 +177,8 @@ export const updateUsername = async (req, res) => {
 
     const updatedUser = await User.findByIdAndUpdate(
       userId,
-      { username },
-      { new: true }
+      { $set: { username: { $eq: username } } },
+      { new: true },
     );
 
     if (!updatedUser) {

@@ -25,7 +25,7 @@ export function TournamentBracket() {
     store.updateMatchParticipant(
       matchId,
       position === 1 ? "participant1Id" : "participant2Id",
-      null
+      null,
     );
   };
 
@@ -48,14 +48,13 @@ export function TournamentBracket() {
           Drag participants into the empty slots below
         </Text>
         <Button
-          leftIcon={<LuPlus />}
-          mb={4} // Increased margin bottom for more space before rounds
+          mb={4}
           onClick={onAddRound}
           size="sm"
-          colorScheme="blue"
+          colorPalette="blue"
           variant="outline"
         >
-          Add Round
+          <LuPlus /> Add Round
         </Button>
 
         <Flex
@@ -67,7 +66,7 @@ export function TournamentBracket() {
           {sortedRounds.map((round) => (
             <VStack
               key={round.id}
-              spacing={4} // Increased spacing between matches in a round
+              gap={4}
               align="stretch"
               minW={{ base: "auto", lg: "220px" }} // Slightly reduced minW
               flex="1"
@@ -110,7 +109,7 @@ export function TournamentBracket() {
                         size="xs"
                         onClick={() => onRemoveMatch(match.id)}
                         variant="ghost"
-                        colorScheme="red"
+                        colorPalette="red"
                         px={1.5} // Reduced padding for a smaller button
                       >
                         Remove
@@ -121,7 +120,7 @@ export function TournamentBracket() {
                   <Card.Body py={1.5} px={2.5}>
                     {" "}
                     {/* Reduced padding */}
-                    <VStack spacing={1.5}>
+                    <VStack gap={1.5}>
                       {" "}
                       {/* Reduced spacing */}
                       <MatchParticipantSlot
@@ -160,15 +159,14 @@ export function TournamentBracket() {
               ))}
 
               <Button
-                leftIcon={<Icon as={LuPlus} boxSize={3} />}
-                size="xs" // Made "Add Match" button smaller
+                size="xs"
                 onClick={() => onAddMatchToRound(round.id)}
                 variant="ghost"
-                colorScheme="blue"
+                colorPalette="blue"
                 width="full"
-                mt={2} // Added margin top for spacing
+                mt={2}
               >
-                Add Match
+                <Icon as={LuPlus} boxSize={3} /> Add Match
               </Button>
             </VStack>
           ))}

@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import crypto from "crypto";
 
 import AuthStateService from "../../../infrastructure/services/auth-state-service.js";
@@ -32,7 +33,9 @@ export const createGuestUser = async (req, res) => {
       success: true,
       message: "Guest user created successfully",
       data: {
+        id: guestId,
         username: guestUsername,
+        email: "",
         isGuest: true,
         expiresAt,
       },

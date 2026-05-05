@@ -74,14 +74,14 @@ export function ParticipantList({
 
   return (
     <Card.Root p={4} mb={5}>
-      <VStack align="stretch" spacing={4}>
+      <VStack align="stretch" gap={4}>
         <Text fontSize="xl" fontWeight="bold">
           Tournament Participants
         </Text>
 
         {/* Control panel */}
         <Card.Root variant="outline" p={3}>
-          <VStack align="stretch" spacing={3}>
+          <VStack align="stretch" gap={3}>
             <Text fontWeight="medium">Add New Participants</Text>
             <Flex
               wrap="wrap"
@@ -113,19 +113,19 @@ export function ParticipantList({
               </HStack>
 
               <ButtonGroup size="sm">
-                <Button onClick={handleAddParticipants} colorScheme="blue">
+                <Button onClick={handleAddParticipants} colorPalette="blue">
                   <LuPlus /> Add Participants
                 </Button>
                 <Button
                   onClick={handleResetBracket}
-                  colorScheme="red"
+                  colorPalette="red"
                   variant="outline"
                 >
                   Reset Bracket
                 </Button>
                 <Button
                   onClick={handleResetParticipantsAndBracket}
-                  colorScheme="orange"
+                  colorPalette="orange"
                   variant="outline"
                 >
                   Reset All
@@ -143,7 +143,7 @@ export function ParticipantList({
             items={participants.map((p) => p.id)}
             strategy={verticalListSortingStrategy}
           >
-            <SimpleGrid columns={{ base: 1, sm: 2, md: 3 }} spacing={3}>
+            <SimpleGrid columns={{ base: 1, sm: 2, md: 3 }} gap={3}>
               {participants.map((participant) => (
                 <Flex
                   key={participant.id}
@@ -154,7 +154,7 @@ export function ParticipantList({
                 >
                   <SortableItem id={participant.id} participant={participant} />
                   <Spacer />
-                  <ButtonGroup size="xs" variant="ghost" spacing={1}>
+                  <ButtonGroup size="xs" variant="ghost" gap={1}>
                     <Button
                       onClick={() => onEditParticipant(participant)}
                       color="blue.500"

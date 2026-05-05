@@ -52,7 +52,7 @@ const AccountPage: React.FC = () => {
       </Heading>
 
       {isValidatingSession ? (
-        <VStack spacing={4} mt={8}>
+        <VStack gap={4} mt={8}>
           <Spinner size="xl" />
           <Text>Validating your session...</Text>
         </VStack>

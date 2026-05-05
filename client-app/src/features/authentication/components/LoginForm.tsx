@@ -6,7 +6,10 @@ import { loginUser } from "../api/authenticationApi";
 import { useState, useRef } from "react";
 
 const loginFormSchema = z.object({
-  email: z.string().email({ message: "A valid Email Address is required" }),
+  email: z
+    .string()
+    .min(1, { message: "Email Address is required" })
+    .email({ message: "A valid Email Address is required" }),
   password: z.string().min(1, { message: "Password is required" }),
   rememberMe: z.boolean().optional(),
 });
@@ -30,6 +33,7 @@ export function LoginForm({ defaultEmail = "", onSuccess }: LoginFormProps) {
     resolver: zodResolver(loginFormSchema),
     defaultValues: {
       email: defaultEmail,
+      password: "",
       rememberMe: false,
     },
   });
@@ -58,14 +62,14 @@ export function LoginForm({ defaultEmail = "", onSuccess }: LoginFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
+    <form onSubmit={handleSubmit(onSubmit)} noValidate>
       <Stack gap="4" align="flex-start" maxW="sm">
         <Field.Root invalid={!!errors.email} required>
           <Field.Label>Email Address</Field.Label>
           <Controller
             name="email"
             control={control}
-            render={({ field }) => <Input {...field} />}
+            render={({ field }) => <Input {...field} autoComplete="username" />}
           />
           <Field.ErrorText>{errors.email?.message}</Field.ErrorText>
         </Field.Root>
@@ -75,7 +79,13 @@ export function LoginForm({ defaultEmail = "", onSuccess }: LoginFormProps) {
           <Controller
             name="password"
             control={control}
-            render={({ field }) => <Input type="password" {...field} />}
+            render={({ field }) => (
+              <Input
+                type="password"
+                {...field}
+                autoComplete="current-password"
+              />
+            )}
           />
           <Field.ErrorText>{errors.password?.message}</Field.ErrorText>
         </Field.Root>
