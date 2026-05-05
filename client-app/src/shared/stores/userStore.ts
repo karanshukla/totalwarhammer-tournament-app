@@ -49,12 +49,9 @@ export const useUserStore = create<UserStore>()(
         const user = get().user;
         if (!user.isAuthenticated) return false;
 
-        // Check session expiration
-        if (get().isSessionExpired()) return false;
-
-        // Check for token expiration
-        if (user.expiresAt && user.expiresAt < Date.now()) {
-          // Token expired, clear user and return false
+        // Check session or token expiration
+        if (get().isSessionExpired() || (user.expiresAt && user.expiresAt < Date.now())) {
+          // Session or token expired, clear user and return false
           get().clearUser();
           return false;
         }

@@ -10,17 +10,21 @@ const mockTournamentInstance = {
 const mockTournamentCreate = mock.fn();
 const mockTournamentFind = mock.fn();
 const mockTournamentFindOne = mock.fn();
+const mockTournamentFindOneAndUpdate = mock.fn();
+const mockTournamentFindById = mock.fn();
 
-mock.module("../../../domain/models/tournament.js", {
+mock.module("../domain/models/tournament.js", {
   namedExports: {},
   defaultExport: {
     create: mockTournamentCreate,
     find: mockTournamentFind,
     findOne: mockTournamentFindOne,
+    findOneAndUpdate: mockTournamentFindOneAndUpdate,
+    findById: mockTournamentFindById,
   },
 });
 
-mock.module("../../../infrastructure/utils/logger.js", {
+mock.module("../infrastructure/utils/logger.js", {
   defaultExport: {
     error: mock.fn(),
     info: mock.fn(),
@@ -28,7 +32,7 @@ mock.module("../../../infrastructure/utils/logger.js", {
   },
 });
 
-mock.module("../../../domain/models/match.js", {
+mock.module("../domain/models/match.js", {
   namedExports: {},
   defaultExport: {
     insertMany: mock.fn(async () => []),
@@ -40,7 +44,7 @@ const {
   getTournaments,
   getUserTournaments,
   deleteTournament,
-} = await import("../../interfaces/http/controllers/tournament-controller.js");
+} = await import("../interfaces/http/controllers/tournament-controller.js");
 
 function mockRes() {
   const res = {};
@@ -64,6 +68,8 @@ describe("tournament-controller", () => {
     mockTournamentCreate.mock.resetCalls();
     mockTournamentFind.mock.resetCalls();
     mockTournamentFindOne.mock.resetCalls();
+    mockTournamentFindOneAndUpdate.mock.resetCalls();
+    mockTournamentFindById.mock.resetCalls();
     mockTournamentInstance.deleteOne.mock.resetCalls();
   });
 
@@ -198,13 +204,15 @@ describe("tournament-controller", () => {
 
   describe("getUserTournaments", () => {
     it("should return tournaments belonging to the current user", async () => {
-      const tournaments = [{ name: "Mine" }];
+      const tournaments = [{ name: "Mine", code: "ABCDEF" }];
       const chain = {
         sort: mock.fn(async () => tournaments),
       };
       mockTournamentFind.mock.mockImplementation(() => chain);
 
-      const req = mockReq();
+      const req = mockReq({
+        user: { id: "user123", username: "user123", isGuest: false },
+      });
       const res = mockRes();
 
       await getUserTournaments(req, res);
@@ -214,9 +222,11 @@ describe("tournament-controller", () => {
         res.json.mock.calls[0].arguments[0].data,
         tournaments,
       );
-      assert.deepStrictEqual(mockTournamentFind.mock.calls[0].arguments[0], {
-        createdBy: "user123",
-      });
+
+      // The controller now builds a more complex query: { $or: [{ createdBy: "user123" }, { "participants.name": { $in: ["user123"] } }] }
+      const actualQuery = mockTournamentFind.mock.calls[0].arguments[0];
+      assert.ok(actualQuery.$or);
+      assert.deepStrictEqual(actualQuery.$or[0], { createdBy: "user123" });
     });
 
     it("should return 500 on error", async () => {

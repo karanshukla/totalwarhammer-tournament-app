@@ -4,11 +4,14 @@ import "@testing-library/jest-dom";
 import React from "react";
 import { ChakraProvider, defaultSystem } from "@chakra-ui/react";
 import HomePage from "@/features/home/components/HomePage";
+import { MemoryRouter } from "react-router-dom";
 
 function renderHomePage() {
   return render(
     <ChakraProvider value={defaultSystem}>
-      <HomePage />
+      <MemoryRouter>
+        <HomePage />
+      </MemoryRouter>
     </ChakraProvider>,
   );
 }
@@ -26,10 +29,10 @@ describe("HomePage", () => {
   it("renders the tournament lookup section", () => {
     renderHomePage();
     expect(
-      screen.getByText(/Want to view an ongoing tournament/i),
+      screen.getByText(/Enter a tournament code to view an ongoing tournament/i),
     ).toBeInTheDocument();
     expect(
-      screen.getByPlaceholderText(/Enter Tourney Code/i),
+      screen.getByPlaceholderText(/e.g., ABC123/i),
     ).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: /View Tournament/i }),

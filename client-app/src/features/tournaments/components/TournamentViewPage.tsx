@@ -16,6 +16,7 @@ import {
   For,
   Input,
   Field,
+  chakra,
 } from "@chakra-ui/react";
 import {
   LuChevronLeft,
@@ -69,6 +70,12 @@ interface Participant {
   faction: string;
 }
 
+interface ReportedResult {
+  reportedBy: string;
+  reportedByName: string;
+  winnerId: string;
+}
+
 interface Match {
   _id: string;
   round: number;
@@ -76,7 +83,8 @@ interface Match {
   player1: { participantId: string; name: string; faction: string };
   player2: { participantId: string; name: string; faction: string };
   winnerId: string | null;
-  status: "pending" | "in_progress" | "completed";
+  status: "pending" | "in_progress" | "completed" | "disputed";
+  reportedResults: ReportedResult[];
 }
 
 interface Tournament {
@@ -106,6 +114,9 @@ const TournamentViewPage: React.FC = () => {
   const [joining, setJoining] = useState(false);
   const [joinError, setJoinError] = useState<string | null>(null);
   const [joinSuccess, setJoinSuccess] = useState(false);
+
+  const [reportingMatchId, setReportingMatchId] = useState<string | null>(null);
+  const [reportError, setReportError] = useState<string | null>(null);
 
   const cardBg = useColorModeValue("white", "gray.800");
   const borderColor = useColorModeValue("gray.200", "gray.600");
@@ -153,6 +164,21 @@ const TournamentViewPage: React.FC = () => {
     const interval = setInterval(() => fetchTournament(true), 5000);
     return () => clearInterval(interval);
   }, [fetchTournament, tournamentStatus]);
+
+  const handleReport = async (matchId: string, winnerId: string) => {
+    setReportingMatchId(matchId);
+    setReportError(null);
+    try {
+      await httpClient.patch(`/match/${matchId}/report`, { winnerId });
+      await fetchTournament(true);
+    } catch (err) {
+      setReportError(
+        err instanceof Error ? err.message : "Failed to report result",
+      );
+    } finally {
+      setReportingMatchId(null);
+    }
+  };
 
   const handleJoin = async () => {
     if (!tournament) return;
@@ -324,7 +350,7 @@ const TournamentViewPage: React.FC = () => {
             colorPalette="blue"
             size="sm"
             alignSelf="flex-start"
-            onClick={() => navigate("/matches")}
+            onClick={() => navigate(`/matches#${tournament._id}`)}
           >
             <LuSettings />
             Manage Tournament
@@ -516,21 +542,20 @@ const TournamentViewPage: React.FC = () => {
                         (optional)
                       </Text>
                     </Field.Label>
-                    <select
+                    <chakra.select
                       value={joinFaction}
                       onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
                         setJoinFaction(e.target.value)
                       }
-                      style={{
-                        width: "100%",
-                        padding: "8px 12px",
-                        borderRadius: "6px",
-                        border: "1px solid",
-                        fontSize: "14px",
-                        background: "transparent",
-                      }}
+                      w="full"
+                      borderRadius="md"
+                      borderWidth="1px"
+                      borderColor="border"
+                      fontSize="sm"
+                      color="fg"
+                      p={2}
                     >
-                      <option value="">No faction</option>
+                      <option value="">No Faction</option>
                       {warhammer3Factions
                         .filter((f) => !tournament.bannedFactions.includes(f))
                         .map((f) => (
@@ -538,7 +563,7 @@ const TournamentViewPage: React.FC = () => {
                             {f}
                           </option>
                         ))}
-                    </select>
+                    </chakra.select>
                   </Field.Root>
                   <Button
                     width="full"
@@ -565,6 +590,11 @@ const TournamentViewPage: React.FC = () => {
               </HStack>
             </Card.Header>
             <Card.Body>
+              {reportError && (
+                <Text color="fg.error" fontSize="sm" mb={3}>
+                  {reportError}
+                </Text>
+              )}
               {matches.length === 0 ? (
                 <Text color="fg.muted" textAlign="center" py={4}>
                   No matches yet.
@@ -597,84 +627,239 @@ const TournamentViewPage: React.FC = () => {
                                   p={4}
                                   borderRadius="md"
                                   borderWidth={1}
-                                  borderColor={borderColor}
+                                  borderColor={
+                                    m.status === "disputed"
+                                      ? "orange.400"
+                                      : borderColor
+                                  }
                                   bg={mutedBg}
                                 >
-                                  <HStack
-                                    gap={4}
-                                    justifyContent="space-between"
-                                    wrap="wrap"
-                                  >
-                                    <VStack
-                                      alignItems="flex-start"
-                                      gap={0}
-                                      flex={1}
-                                    >
-                                      <HStack gap={1}>
-                                        {p1Won && (
-                                          <Badge colorPalette="green" size="sm">
-                                            W
-                                          </Badge>
-                                        )}
-                                        {m.winnerId && !p1Won && (
-                                          <Badge colorPalette="red" size="sm">
-                                            L
-                                          </Badge>
-                                        )}
-                                        <Text
-                                          fontWeight={p1Won ? "bold" : "medium"}
+                                  {(() => {
+                                    const userId = user?.id;
+                                    const userName = user?.username;
+                                    const isP1 =
+                                      m.player1.participantId === userId ||
+                                      m.player1.name === userName ||
+                                      m.player1.name === userId;
+                                    const isP2 =
+                                      m.player2.participantId === userId ||
+                                      m.player2.name === userName ||
+                                      m.player2.name === userId;
+                                    const myReport = m.reportedResults?.find(
+                                      (r) =>
+                                        r.reportedBy ===
+                                          (isP1
+                                            ? m.player1.participantId
+                                            : m.player2.participantId) ||
+                                        r.reportedByName === userName,
+                                    );
+                                    const canReport =
+                                      isAuthenticated() &&
+                                      (isP1 || isP2) &&
+                                      m.status !== "completed";
+                                    return (
+                                      <>
+                                        <HStack
+                                          gap={4}
+                                          justifyContent="space-between"
+                                          wrap="wrap"
                                         >
-                                          {m.player1.name}
-                                        </Text>
-                                      </HStack>
-                                      {m.player1.faction && (
-                                        <Text fontSize="xs" color="fg.muted">
-                                          {m.player1.faction}
-                                        </Text>
-                                      )}
-                                    </VStack>
-                                    <Text color="fg.muted" fontWeight="bold">
-                                      vs
-                                    </Text>
-                                    <VStack
-                                      alignItems="flex-end"
-                                      gap={0}
-                                      flex={1}
-                                    >
-                                      <HStack gap={1}>
-                                        {p2Won && (
-                                          <Badge colorPalette="green" size="sm">
-                                            W
-                                          </Badge>
+                                          <VStack
+                                            alignItems="flex-start"
+                                            gap={0}
+                                            flex={1}
+                                          >
+                                            <HStack gap={1}>
+                                              {p1Won && (
+                                                <Badge
+                                                  colorPalette="green"
+                                                  size="sm"
+                                                >
+                                                  W
+                                                </Badge>
+                                              )}
+                                              {m.winnerId && !p1Won && (
+                                                <Badge
+                                                  colorPalette="red"
+                                                  size="sm"
+                                                >
+                                                  L
+                                                </Badge>
+                                              )}
+                                              <Text
+                                                fontWeight={
+                                                  p1Won ? "bold" : "medium"
+                                                }
+                                              >
+                                                {m.player1.name}
+                                              </Text>
+                                            </HStack>
+                                            {m.player1.faction && (
+                                              <Text
+                                                fontSize="xs"
+                                                color="fg.muted"
+                                              >
+                                                {m.player1.faction}
+                                              </Text>
+                                            )}
+                                          </VStack>
+                                          <Text
+                                            color="fg.muted"
+                                            fontWeight="bold"
+                                          >
+                                            vs
+                                          </Text>
+                                          <VStack
+                                            alignItems="flex-end"
+                                            gap={0}
+                                            flex={1}
+                                          >
+                                            <HStack gap={1}>
+                                              {p2Won && (
+                                                <Badge
+                                                  colorPalette="green"
+                                                  size="sm"
+                                                >
+                                                  W
+                                                </Badge>
+                                              )}
+                                              {m.winnerId && !p2Won && (
+                                                <Badge
+                                                  colorPalette="red"
+                                                  size="sm"
+                                                >
+                                                  L
+                                                </Badge>
+                                              )}
+                                              <Text
+                                                fontWeight={
+                                                  p2Won ? "bold" : "medium"
+                                                }
+                                              >
+                                                {m.player2.name}
+                                              </Text>
+                                            </HStack>
+                                            {m.player2.faction && (
+                                              <Text
+                                                fontSize="xs"
+                                                color="fg.muted"
+                                              >
+                                                {m.player2.faction}
+                                              </Text>
+                                            )}
+                                          </VStack>
+                                        </HStack>
+                                        {m.status === "disputed" && (
+                                          <Text
+                                            fontSize="xs"
+                                            color="orange.400"
+                                            mt={2}
+                                            textAlign="center"
+                                            fontWeight="medium"
+                                          >
+                                            Disputed — awaiting creator decision
+                                          </Text>
                                         )}
-                                        {m.winnerId && !p2Won && (
-                                          <Badge colorPalette="red" size="sm">
-                                            L
-                                          </Badge>
-                                        )}
-                                        <Text
-                                          fontWeight={p2Won ? "bold" : "medium"}
-                                        >
-                                          {m.player2.name}
-                                        </Text>
-                                      </HStack>
-                                      {m.player2.faction && (
-                                        <Text fontSize="xs" color="fg.muted">
-                                          {m.player2.faction}
-                                        </Text>
-                                      )}
-                                    </VStack>
-                                  </HStack>
-                                  {m.status !== "completed" && (
-                                    <Text
-                                      fontSize="xs"
-                                      color="fg.muted"
-                                      mt={2}
-                                      textAlign="center"
-                                    >
-                                      Pending
-                                    </Text>
-                                  )}
+                                        {m.status === "in_progress" &&
+                                          myReport && (
+                                            <Text
+                                              fontSize="xs"
+                                              color="blue.400"
+                                              mt={2}
+                                              textAlign="center"
+                                            >
+                                              You reported:{" "}
+                                              {myReport.winnerId ===
+                                              m.player1.participantId
+                                                ? m.player1.name
+                                                : m.player2.name}{" "}
+                                              as winner — waiting for opponent
+                                            </Text>
+                                          )}
+                                        {canReport &&
+                                          m.status !== "disputed" && (
+                                            <VStack mt={3} gap={2}>
+                                              <Text
+                                                fontSize="xs"
+                                                color="fg.muted"
+                                                fontWeight="medium"
+                                              >
+                                                {myReport
+                                                  ? "Change your reported winner:"
+                                                  : "Report result:"}
+                                              </Text>
+                                              <HStack gap={2} width="full">
+                                                <Button
+                                                  size="xs"
+                                                  flex={1}
+                                                  colorPalette={
+                                                    myReport?.winnerId ===
+                                                    m.player1.participantId
+                                                      ? "green"
+                                                      : "gray"
+                                                  }
+                                                  variant={
+                                                    myReport?.winnerId ===
+                                                    m.player1.participantId
+                                                      ? "solid"
+                                                      : "outline"
+                                                  }
+                                                  onClick={() =>
+                                                    handleReport(
+                                                      m._id,
+                                                      m.player1.participantId,
+                                                    )
+                                                  }
+                                                  loading={
+                                                    reportingMatchId === m._id
+                                                  }
+                                                >
+                                                  {m.player1.name} won
+                                                </Button>
+                                                <Button
+                                                  size="xs"
+                                                  flex={1}
+                                                  colorPalette={
+                                                    myReport?.winnerId ===
+                                                    m.player2.participantId
+                                                      ? "green"
+                                                      : "gray"
+                                                  }
+                                                  variant={
+                                                    myReport?.winnerId ===
+                                                    m.player2.participantId
+                                                      ? "solid"
+                                                      : "outline"
+                                                  }
+                                                  onClick={() =>
+                                                    handleReport(
+                                                      m._id,
+                                                      m.player2.participantId,
+                                                    )
+                                                  }
+                                                  loading={
+                                                    reportingMatchId === m._id
+                                                  }
+                                                >
+                                                  {m.player2.name} won
+                                                </Button>
+                                              </HStack>
+                                            </VStack>
+                                          )}
+                                        {m.status === "pending" &&
+                                          !canReport && (
+                                            <Text
+                                              fontSize="xs"
+                                              color="fg.muted"
+                                              mt={2}
+                                              textAlign="center"
+                                            >
+                                              Pending
+                                            </Text>
+                                          )}
+                                      </>
+                                    );
+                                  })()}
                                 </Box>
                               );
                             }}

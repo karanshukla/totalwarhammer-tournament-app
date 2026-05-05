@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   Container,
   Heading,
@@ -15,22 +15,28 @@ import {
   Spinner,
   Separator,
   For,
+  chakra,
+  Dialog,
+  Portal,
 } from "@chakra-ui/react";
 import {
   LuTrophy,
   LuTrash2,
   LuPlay,
   LuUserPlus,
+  LuUsers,
   LuX,
   LuChevronLeft,
   LuSwords,
   LuShieldAlert,
   LuCopy,
   LuEye,
+  LuPencil,
 } from "react-icons/lu";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { httpClient } from "@/core/api/httpClient";
 import { useColorModeValue } from "@/shared/ui/ColorMode";
+import { useUserStore } from "@/shared/stores/userStore";
 
 const warhammer3Factions = [
   "Empire",
@@ -66,8 +72,13 @@ interface Match {
   player2: { participantId: string; name: string; faction: string };
   winnerId: string | null;
   loserId: string | null;
-  status: "pending" | "in_progress" | "completed";
+  status: "pending" | "in_progress" | "completed" | "disputed";
   notes: string;
+  reportedResults: {
+    reportedBy: string;
+    reportedByName: string;
+    winnerId: string;
+  }[];
   resultOverrides: {
     previousWinnerId: string | null;
     newWinnerId: string;
@@ -95,6 +106,7 @@ interface Tournament {
   participants: Participant[];
   status: "pending" | "active" | "completed";
   createdAt: string;
+  createdBy: string;
 }
 
 const statusColorMap: Record<string, string> = {
@@ -111,6 +123,8 @@ const MatchesPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
+  const { user, isAuthenticated } = useUserStore();
+
   const [newName, setNewName] = useState("");
   const [newFaction, setNewFaction] = useState("");
 
@@ -121,7 +135,13 @@ const MatchesPage: React.FC = () => {
   const [overrideReason, setOverrideReason] = useState("");
   const [overrideLoading, setOverrideLoading] = useState(false);
 
+  const [editingParticipant, setEditingParticipant] =
+    useState<Participant | null>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+
   const navigate = useNavigate();
+  const { hash } = useLocation();
+  const initialHashHandled = useRef(false);
   const [codeCopied, setCodeCopied] = useState(false);
 
   const handleCopyCode = (code: string) => {
@@ -135,6 +155,11 @@ const MatchesPage: React.FC = () => {
   const selectedBg = useColorModeValue("blue.50", "blue.900");
 
   const fetchTournaments = useCallback(async () => {
+    if (!isAuthenticated()) {
+      setLoading(false);
+      setTournaments([]);
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -150,7 +175,7 @@ const MatchesPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [isAuthenticated]);
 
   useEffect(() => {
     fetchTournaments();
@@ -283,6 +308,58 @@ const MatchesPage: React.FC = () => {
     }
   };
 
+  const handleUpdateParticipant = async () => {
+    if (!selected || !editingParticipant) return;
+    setActionLoading(true);
+    setActionError(null);
+    try {
+      await httpClient.patch(
+        `/tournament/${selected._id}/participants/${editingParticipant._id}`,
+        { name: editingParticipant.name, faction: editingParticipant.faction },
+      );
+      setEditDialogOpen(false);
+      setEditingParticipant(null);
+      await refreshSelected(selected._id);
+    } catch (err) {
+      setActionError(
+        err instanceof Error ? err.message : "Failed to update participant",
+      );
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleResolveDispute = async (matchId: string, winnerId: string) => {
+    setActionLoading(true);
+    setActionError(null);
+    try {
+      await httpClient.patch(`/match/${matchId}/resolve`, { winnerId });
+      if (selected) await fetchMatches(selected._id);
+    } catch (err) {
+      setActionError(
+        err instanceof Error ? err.message : "Failed to resolve dispute",
+      );
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleAdvanceRound = async () => {
+    if (!selected) return;
+    setActionLoading(true);
+    setActionError(null);
+    try {
+      await httpClient.post(`/tournament/${selected._id}/advance`, {});
+      await refreshSelected(selected._id);
+    } catch (err) {
+      setActionError(
+        err instanceof Error ? err.message : "Failed to advance round",
+      );
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const handleDelete = async () => {
     if (!selected) return;
     setActionLoading(true);
@@ -304,14 +381,35 @@ const MatchesPage: React.FC = () => {
     async (t: Tournament) => {
       setSelected(t);
       setActionError(null);
+      navigate(`#${t._id}`, { replace: true });
       if (t.status === "active" || t.status === "completed") {
         await fetchMatches(t._id);
       } else {
         setMatches([]);
       }
     },
-    [fetchMatches],
+    [fetchMatches, navigate],
   );
+
+  useEffect(() => {
+    if (initialHashHandled.current) return;
+    if (!loading && tournaments.length > 0 && hash) {
+      const id = hash.slice(1);
+      const found = tournaments.find((t) => t._id === id);
+      if (found) {
+        initialHashHandled.current = true;
+        handleSelectTournament(found);
+      }
+    }
+  }, [loading, tournaments, hash, handleSelectTournament]);
+
+  const selectedStatus = selected?.status;
+  const selectedId = selected?._id;
+  useEffect(() => {
+    if (!selectedId || selectedStatus === "completed") return;
+    const interval = setInterval(() => refreshSelected(selectedId), 5000);
+    return () => clearInterval(interval);
+  }, [selectedId, selectedStatus, refreshSelected]);
 
   if (loading) {
     return (
@@ -326,24 +424,35 @@ const MatchesPage: React.FC = () => {
 
   if (selected) {
     const isFull = selected.participants.length >= selected.playerCount;
+    const isAdmin = selected.createdBy === user?.id;
     const canStart =
-      selected.status === "pending" && selected.participants.length >= 2;
+      isAdmin &&
+      selected.status === "pending" &&
+      selected.participants.length >= 2;
+    const canDelete = isAdmin && selected.status === "pending";
     const isPending = selected.status === "pending";
     const isActive = selected.status === "active";
-
     const roundNumbers = [...new Set(matches.map((m) => m.round))].sort(
       (a, b) => a - b,
     );
 
     return (
       <Container maxW="container.xl" py={8}>
-        <HStack mb={6} gap={3}>
-          <Button variant="ghost" size="sm" onClick={() => setSelected(null)}>
-            <LuChevronLeft />
-            Matches
-          </Button>
-        </HStack>
+        {/* Back button */}
+        <Button
+          variant="ghost"
+          size="sm"
+          mb={6}
+          onClick={() => {
+            setSelected(null);
+            navigate("/matches", { replace: true });
+          }}
+        >
+          <LuChevronLeft />
+          Back to Match Management View
+        </Button>
 
+        {/* Header */}
         <HStack mb={6} gap={4} wrap="wrap" alignItems="flex-start">
           <VStack alignItems="flex-start" gap={1} flex={1}>
             <HStack gap={3} wrap="wrap">
@@ -355,49 +464,54 @@ const MatchesPage: React.FC = () => {
                   selected.status.slice(1)}
               </Badge>
             </HStack>
-            <Text color="fg.muted">
-              {selected.tournamentType} · Max {selected.playerCount} players
-            </Text>
-            {selected.code && (
-              <HStack gap={2} mt={1}>
-                <Text fontSize="sm" color="fg.muted">
-                  Code:
-                </Text>
-                <Text
-                  fontSize="sm"
-                  fontFamily="mono"
-                  fontWeight="bold"
-                  letterSpacing="wider"
-                >
-                  {selected.code}
-                </Text>
-                <Button
-                  size="xs"
-                  variant="ghost"
-                  onClick={() => handleCopyCode(selected.code)}
-                  colorPalette={codeCopied ? "green" : "gray"}
-                >
-                  <LuCopy />
-                  {codeCopied ? "Copied!" : "Copy"}
-                </Button>
-                <Button
-                  size="xs"
-                  variant="ghost"
-                  colorPalette="blue"
-                  onClick={() => navigate(`/tournament/${selected._id}`)}
-                >
-                  <LuEye />
-                  Spectator View
-                </Button>
-              </HStack>
+            <HStack gap={3} color="fg.muted" fontSize="sm" wrap="wrap">
+              <Text>{selected.tournamentType}</Text>
+              <Text>·</Text>
+              <Text>
+                {selected.participants.length}/{selected.playerCount} players
+              </Text>
+              {selected.code && (
+                <>
+                  <Text>·</Text>
+                  <Text
+                    fontFamily="mono"
+                    fontWeight="bold"
+                    letterSpacing="wider"
+                  >
+                    Code: {selected.code}
+                  </Text>
+                  <Button
+                    size="xs"
+                    variant="ghost"
+                    onClick={() => handleCopyCode(selected.code)}
+                    colorPalette={codeCopied ? "green" : "gray"}
+                  >
+                    <LuCopy />
+                    {codeCopied ? "Copied!" : "Copy"}
+                  </Button>
+                </>
+              )}
+            </HStack>
+            {selected.description && (
+              <Text color="fg.muted" mt={1}>
+                {selected.description}
+              </Text>
             )}
-            {selected.description && <Text mt={1}>{selected.description}</Text>}
           </VStack>
-
           <HStack gap={2}>
+            <Button
+              size="sm"
+              variant="ghost"
+              colorPalette="blue"
+              onClick={() => navigate(`/matches/spectate/${selected._id}`)}
+            >
+              <LuEye />
+              Spectator View
+            </Button>
             {canStart && (
               <Button
                 colorPalette="green"
+                size="sm"
                 onClick={handleStart}
                 loading={actionLoading}
               >
@@ -405,10 +519,30 @@ const MatchesPage: React.FC = () => {
                 Start Tournament
               </Button>
             )}
-            {isPending && (
+            {isAdmin &&
+              isActive &&
+              matches.length > 0 &&
+              (() => {
+                const maxRound = Math.max(...matches.map((m) => m.round));
+                return matches
+                  .filter((m) => m.round === maxRound)
+                  .every((m) => m.status === "completed");
+              })() && (
+                <Button
+                  colorPalette="blue"
+                  size="sm"
+                  onClick={handleAdvanceRound}
+                  loading={actionLoading}
+                >
+                  <LuPlay />
+                  Advance Round
+                </Button>
+              )}
+            {canDelete && (
               <Button
                 colorPalette="red"
                 variant="outline"
+                size="sm"
                 onClick={handleDelete}
                 loading={actionLoading}
               >
@@ -421,7 +555,7 @@ const MatchesPage: React.FC = () => {
 
         {actionError && (
           <Box
-            mb={4}
+            mb={6}
             p={3}
             bg="red.subtle"
             borderRadius="md"
@@ -433,17 +567,20 @@ const MatchesPage: React.FC = () => {
         )}
 
         <SimpleGrid columns={{ base: 1, lg: 2 }} gap={6}>
-          {/* Participants list */}
-          <Card.Root>
+          {/* Participants */}
+          <Card.Root bg={cardBg}>
             <Card.Header>
-              <Heading size="md">
-                Participants ({selected.participants.length}/
-                {selected.playerCount})
-              </Heading>
+              <HStack gap={2}>
+                <LuUsers />
+                <Heading size="md">
+                  Participants ({selected.participants.length}/
+                  {selected.playerCount})
+                </Heading>
+              </HStack>
             </Card.Header>
             <Card.Body>
               {selected.participants.length === 0 ? (
-                <Text color="fg.muted" py={4} textAlign="center">
+                <Text color="fg.muted" textAlign="center" py={4}>
                   No Participants Yet
                 </Text>
               ) : (
@@ -456,29 +593,45 @@ const MatchesPage: React.FC = () => {
                         borderRadius="md"
                         borderWidth={1}
                         borderColor={borderColor}
-                        bg={cardBg}
+                        bg={selectedBg}
                         justifyContent="space-between"
                       >
                         <VStack alignItems="flex-start" gap={0}>
                           <Text fontWeight="medium">{p.name}</Text>
                           {p.faction && (
-                            <Text fontSize="sm" color="fg.muted">
+                            <Text fontSize="xs" color="fg.muted">
                               {p.faction}
                             </Text>
                           )}
                         </VStack>
-                        {isPending && (
-                          <Button
-                            size="xs"
-                            variant="ghost"
-                            colorPalette="red"
-                            onClick={() => handleRemoveParticipant(p._id)}
-                            loading={actionLoading}
-                            aria-label="Remove participant"
-                          >
-                            <LuX />
-                          </Button>
-                        )}
+                        <HStack gap={1}>
+                          {isAdmin && (
+                            <Button
+                              size="xs"
+                              variant="ghost"
+                              colorPalette="blue"
+                              onClick={() => {
+                                setEditingParticipant(p);
+                                setEditDialogOpen(true);
+                              }}
+                              aria-label="Edit participant"
+                            >
+                              <LuPencil />
+                            </Button>
+                          )}
+                          {isAdmin && isPending && (
+                            <Button
+                              size="xs"
+                              variant="ghost"
+                              colorPalette="red"
+                              onClick={() => handleRemoveParticipant(p._id)}
+                              loading={actionLoading}
+                              aria-label="Remove participant"
+                            >
+                              <LuX />
+                            </Button>
+                          )}
+                        </HStack>
                       </HStack>
                     )}
                   </For>
@@ -487,15 +640,14 @@ const MatchesPage: React.FC = () => {
             </Card.Body>
           </Card.Root>
 
-          {/* Add participant */}
-          {isPending && (
-            <Card.Root>
+          {/* Add Participant (admin only, pending) or Tournament Info (active/completed) */}
+          {isAdmin && isPending ? (
+            <Card.Root bg={cardBg}>
               <Card.Header>
                 <Heading size="md">Add Participant</Heading>
                 {isFull && (
                   <Text fontSize="sm" color="orange.500" mt={1}>
-                    Tournament is full ({selected.playerCount}/
-                    {selected.playerCount})
+                    Tournament is full
                   </Text>
                 )}
               </Card.Header>
@@ -522,18 +674,19 @@ const MatchesPage: React.FC = () => {
                         (optional)
                       </Text>
                     </Field.Label>
-                    <select
+                    <chakra.select
                       value={newFaction}
-                      onChange={(e) => setNewFaction(e.target.value)}
+                      onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                        setNewFaction(e.target.value)
+                      }
                       disabled={isFull}
-                      style={{
-                        width: "100%",
-                        padding: "8px 12px",
-                        borderRadius: "6px",
-                        border: `1px solid`,
-                        fontSize: "14px",
-                        background: "transparent",
-                      }}
+                      w="full"
+                      borderRadius="md"
+                      borderWidth="1px"
+                      borderColor="border"
+                      fontSize="sm"
+                      color="fg"
+                      p={2}
                     >
                       <option value="">No Faction</option>
                       {warhammer3Factions
@@ -543,7 +696,7 @@ const MatchesPage: React.FC = () => {
                             {f}
                           </option>
                         ))}
-                    </select>
+                    </chakra.select>
                   </Field.Root>
                   <Button
                     width="full"
@@ -558,14 +711,88 @@ const MatchesPage: React.FC = () => {
                 </VStack>
               </Card.Body>
             </Card.Root>
+          ) : (
+            <Card.Root bg={cardBg}>
+              <Card.Header>
+                <HStack gap={2}>
+                  <LuTrophy />
+                  <Heading size="md">Tournament Info</Heading>
+                </HStack>
+              </Card.Header>
+              <Card.Body>
+                <VStack gap={3} alignItems="stretch">
+                  <HStack justifyContent="space-between">
+                    <Text color="fg.muted" fontSize="sm">
+                      Format
+                    </Text>
+                    <Text fontWeight="medium">{selected.tournamentType}</Text>
+                  </HStack>
+                  <Separator />
+                  <HStack justifyContent="space-between">
+                    <Text color="fg.muted" fontSize="sm">
+                      Players
+                    </Text>
+                    <Text fontWeight="medium">
+                      {selected.participants.length}/{selected.playerCount}
+                    </Text>
+                  </HStack>
+                  <Separator />
+                  <HStack justifyContent="space-between">
+                    <Text color="fg.muted" fontSize="sm">
+                      Status
+                    </Text>
+                    <Badge colorPalette={statusColorMap[selected.status]}>
+                      {selected.status.charAt(0).toUpperCase() +
+                        selected.status.slice(1)}
+                    </Badge>
+                  </HStack>
+                  <Separator />
+                  <HStack justifyContent="space-between">
+                    <Text color="fg.muted" fontSize="sm">
+                      Created
+                    </Text>
+                    <Text fontSize="sm">
+                      {new Date(selected.createdAt).toLocaleDateString()}
+                    </Text>
+                  </HStack>
+                  {selected.bannedFactions.length > 0 && (
+                    <>
+                      <Separator />
+                      <VStack alignItems="flex-start" gap={1}>
+                        <Text color="fg.muted" fontSize="sm">
+                          Banned Factions
+                        </Text>
+                        <HStack wrap="wrap" gap={1}>
+                          <For each={selected.bannedFactions}>
+                            {(f) => (
+                              <Badge
+                                key={f}
+                                colorPalette="red"
+                                size="sm"
+                                variant="subtle"
+                              >
+                                {f}
+                              </Badge>
+                            )}
+                          </For>
+                        </HStack>
+                      </VStack>
+                    </>
+                  )}
+                </VStack>
+              </Card.Body>
+            </Card.Root>
           )}
 
-          {/* Matches panel */}
+          {/* Matches */}
           {(isActive || selected.status === "completed") && (
-            <Card.Root gridColumn={{ lg: "1 / -1" }}>
+            <Card.Root gridColumn={{ lg: "1 / -1" }} bg={cardBg}>
               <Card.Header>
                 <HStack justifyContent="space-between">
-                  <Heading size="md">Matches</Heading>
+                  <HStack gap={2}>
+                    <LuSwords />
+                    <Heading size="md">Matches</Heading>
+                  </HStack>
                   {matchLoading && <Spinner size="sm" />}
                 </HStack>
               </Card.Header>
@@ -589,7 +816,7 @@ const MatchesPage: React.FC = () => {
                           >
                             Round {round}
                           </Text>
-                          <VStack gap={3} alignItems="stretch">
+                          <SimpleGrid columns={{ base: 1, md: 2 }} gap={3}>
                             <For
                               each={matches.filter((m) => m.round === round)}
                             >
@@ -605,32 +832,35 @@ const MatchesPage: React.FC = () => {
                                     p={4}
                                     borderRadius="md"
                                     borderWidth={1}
-                                    borderColor={borderColor}
-                                    bg={cardBg}
+                                    borderColor={
+                                      m.status === "disputed"
+                                        ? "orange.400"
+                                        : borderColor
+                                    }
+                                    bg={selectedBg}
                                   >
                                     <HStack
                                       gap={4}
-                                      wrap="wrap"
                                       justifyContent="space-between"
+                                      wrap="wrap"
                                     >
-                                      {/* Player 1 */}
                                       <VStack
                                         alignItems="flex-start"
                                         gap={0}
                                         flex={1}
                                       >
-                                        <HStack gap={2}>
+                                        <HStack gap={1}>
                                           {p1Won && (
                                             <Badge
                                               colorPalette="green"
                                               size="sm"
                                             >
-                                              Winner
+                                              W
                                             </Badge>
                                           )}
                                           {m.winnerId && !p1Won && (
                                             <Badge colorPalette="red" size="sm">
-                                              Lost
+                                              L
                                             </Badge>
                                           )}
                                           <Text
@@ -647,33 +877,26 @@ const MatchesPage: React.FC = () => {
                                           </Text>
                                         )}
                                       </VStack>
-
-                                      <Text
-                                        color="fg.muted"
-                                        fontWeight="bold"
-                                        fontSize="lg"
-                                      >
+                                      <Text color="fg.muted" fontWeight="bold">
                                         vs
                                       </Text>
-
-                                      {/* Player 2 */}
                                       <VStack
                                         alignItems="flex-end"
                                         gap={0}
                                         flex={1}
                                       >
-                                        <HStack gap={2}>
+                                        <HStack gap={1}>
                                           {p2Won && (
                                             <Badge
                                               colorPalette="green"
                                               size="sm"
                                             >
-                                              Winner
+                                              W
                                             </Badge>
                                           )}
                                           {m.winnerId && !p2Won && (
                                             <Badge colorPalette="red" size="sm">
-                                              Lost
+                                              L
                                             </Badge>
                                           )}
                                           <Text
@@ -690,63 +913,114 @@ const MatchesPage: React.FC = () => {
                                           </Text>
                                         )}
                                       </VStack>
-
-                                      {/* Controls */}
-                                      {isActive && m.status !== "completed" && (
-                                        <VStack gap={2} flexShrink={0}>
+                                      {isAdmin &&
+                                        isActive &&
+                                        m.status === "disputed" && (
+                                          <VStack gap={1} flexShrink={0}>
+                                            <Text
+                                              fontSize="xs"
+                                              color="orange.400"
+                                              fontWeight="medium"
+                                            >
+                                              Disputed
+                                            </Text>
+                                            <Button
+                                              size="xs"
+                                              colorPalette="orange"
+                                              variant="solid"
+                                              onClick={() =>
+                                                handleResolveDispute(
+                                                  m._id,
+                                                  m.player1.participantId,
+                                                )
+                                              }
+                                              loading={actionLoading}
+                                            >
+                                              {m.player1.name} wins
+                                            </Button>
+                                            <Button
+                                              size="xs"
+                                              colorPalette="orange"
+                                              variant="solid"
+                                              onClick={() =>
+                                                handleResolveDispute(
+                                                  m._id,
+                                                  m.player2.participantId,
+                                                )
+                                              }
+                                              loading={actionLoading}
+                                            >
+                                              {m.player2.name} wins
+                                            </Button>
+                                          </VStack>
+                                        )}
+                                      {isActive &&
+                                        m.status !== "completed" &&
+                                        m.status !== "disputed" && (
+                                          <VStack gap={1} flexShrink={0}>
+                                            <Button
+                                              size="xs"
+                                              colorPalette="green"
+                                              variant="outline"
+                                              onClick={() =>
+                                                handleRecordResult(
+                                                  m._id,
+                                                  m.player1.participantId,
+                                                )
+                                              }
+                                              loading={actionLoading}
+                                            >
+                                              <LuSwords /> {m.player1.name} wins
+                                            </Button>
+                                            <Button
+                                              size="xs"
+                                              colorPalette="green"
+                                              variant="outline"
+                                              onClick={() =>
+                                                handleRecordResult(
+                                                  m._id,
+                                                  m.player2.participantId,
+                                                )
+                                              }
+                                              loading={actionLoading}
+                                            >
+                                              <LuSwords /> {m.player2.name} wins
+                                            </Button>
+                                          </VStack>
+                                        )}
+                                      {isAdmin &&
+                                        isActive &&
+                                        m.status === "completed" && (
                                           <Button
                                             size="xs"
-                                            colorPalette="green"
+                                            colorPalette="orange"
                                             variant="outline"
-                                            onClick={() =>
-                                              handleRecordResult(
-                                                m._id,
-                                                m.player1.participantId,
-                                              )
-                                            }
-                                            loading={actionLoading}
+                                            onClick={() => {
+                                              setOverrideMatchId(m._id);
+                                              setOverrideWinnerId("");
+                                              setOverrideReason("");
+                                            }}
                                           >
-                                            <LuSwords /> {m.player1.name} wins
+                                            <LuShieldAlert /> Override
                                           </Button>
-                                          <Button
-                                            size="xs"
-                                            colorPalette="green"
-                                            variant="outline"
-                                            onClick={() =>
-                                              handleRecordResult(
-                                                m._id,
-                                                m.player2.participantId,
-                                              )
-                                            }
-                                            loading={actionLoading}
-                                          >
-                                            <LuSwords /> {m.player2.name} wins
-                                          </Button>
-                                        </VStack>
-                                      )}
-                                      {isActive && m.status === "completed" && (
-                                        <Button
-                                          size="xs"
-                                          colorPalette="orange"
-                                          variant="outline"
-                                          onClick={() => {
-                                            setOverrideMatchId(m._id);
-                                            setOverrideWinnerId("");
-                                            setOverrideReason("");
-                                          }}
-                                        >
-                                          <LuShieldAlert /> Override
-                                        </Button>
-                                      )}
+                                        )}
                                     </HStack>
-
-                                    {/* Override form */}
+                                    {m.status !== "completed" && !isActive && (
+                                      <Text
+                                        fontSize="xs"
+                                        color="fg.muted"
+                                        mt={2}
+                                        textAlign="center"
+                                      >
+                                        Pending
+                                      </Text>
+                                    )}
                                     {isOverriding && (
                                       <Box
                                         mt={3}
                                         pt={3}
                                         borderTopWidth={1}
-                                        borderColor={borderColor}
+                                        borderColor="border"
                                       >
                                         <VStack gap={2} alignItems="stretch">
                                           <Text
@@ -837,7 +1111,7 @@ const MatchesPage: React.FC = () => {
                                 );
                               }}
                             </For>
-                          </VStack>
+                          </SimpleGrid>
                         </Box>
                       )}
                     </For>
@@ -846,27 +1120,96 @@ const MatchesPage: React.FC = () => {
               </Card.Body>
             </Card.Root>
           )}
-
-          {/* Banned factions info */}
-          {selected.bannedFactions.length > 0 && (
-            <Card.Root>
-              <Card.Header>
-                <Heading size="md">Banned Factions</Heading>
-              </Card.Header>
-              <Card.Body>
-                <HStack gap={2} wrap="wrap">
-                  <For each={selected.bannedFactions}>
-                    {(f) => (
-                      <Badge key={f} colorPalette="red" variant="subtle">
-                        {f}
-                      </Badge>
-                    )}
-                  </For>
-                </HStack>
-              </Card.Body>
-            </Card.Root>
-          )}
         </SimpleGrid>
+
+        {/* Edit participant dialog */}
+        <Dialog.Root
+          open={editDialogOpen}
+          onOpenChange={(e: { open: boolean }) => {
+            if (!e.open) {
+              setEditDialogOpen(false);
+              setEditingParticipant(null);
+            }
+          }}
+        >
+          <Portal>
+            <Dialog.Backdrop />
+            <Dialog.Positioner>
+              <Dialog.Content maxWidth="400px" width="95%">
+                <Dialog.Header
+                  borderBottomWidth="1px"
+                  borderColor={borderColor}
+                >
+                  <Dialog.Title>Edit Participant</Dialog.Title>
+                </Dialog.Header>
+                <Dialog.Body py={4}>
+                  <VStack gap={4} align="stretch">
+                    <Field.Root>
+                      <Field.Label>Name</Field.Label>
+                      <Input
+                        value={editingParticipant?.name ?? ""}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                          setEditingParticipant((prev) =>
+                            prev ? { ...prev, name: e.target.value } : prev,
+                          )
+                        }
+                        autoFocus
+                      />
+                    </Field.Root>
+                    <Field.Root>
+                      <Field.Label>Faction</Field.Label>
+                      <chakra.select
+                        value={editingParticipant?.faction ?? ""}
+                        onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                          setEditingParticipant((prev) =>
+                            prev ? { ...prev, faction: e.target.value } : prev,
+                          )
+                        }
+                        w="full"
+                        borderRadius="md"
+                        borderWidth="1px"
+                        borderColor="border"
+                        fontSize="sm"
+                        color="fg"
+                        p={2}
+                      >
+                        <option value="">No Faction</option>
+                        {warhammer3Factions.map((f) => (
+                          <option key={f} value={f}>
+                            {f}
+                          </option>
+                        ))}
+                      </chakra.select>
+                    </Field.Root>
+                  </VStack>
+                </Dialog.Body>
+                <Dialog.Footer
+                  borderTopWidth="1px"
+                  borderColor={borderColor}
+                  gap={3}
+                >
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setEditDialogOpen(false);
+                      setEditingParticipant(null);
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    colorPalette="blue"
+                    onClick={handleUpdateParticipant}
+                    loading={actionLoading}
+                    disabled={!editingParticipant?.name?.trim()}
+                  >
+                    Save
+                  </Button>
+                </Dialog.Footer>
+              </Dialog.Content>
+            </Dialog.Positioner>
+          </Portal>
+        </Dialog.Root>
       </Container>
     );
   }
@@ -875,7 +1218,7 @@ const MatchesPage: React.FC = () => {
     <Container maxW="container.xl" py={8}>
       <HStack mb={6} justifyContent="space-between">
         <Heading as="h1" size="xl">
-          My Tournaments
+          Match Management
         </Heading>
         <Button variant="outline" size="sm" onClick={fetchTournaments}>
           Refresh
@@ -903,10 +1246,25 @@ const MatchesPage: React.FC = () => {
                 <LuTrophy size={48} />
               </Box>
               <Text color="fg.muted" fontSize="lg">
-                You haven't created any tournaments yet.
+                {isAuthenticated()
+                  ? "You haven't created or joined any tournaments yet."
+                  : "Sign in to view your tournaments."}
               </Text>
               <Text color="fg.muted" fontSize="sm">
-                Go to the <strong>Tournaments</strong> page to create one.
+                {isAuthenticated() ? (
+                  <>
+                    Go to the <strong>Tournaments</strong> page to create or
+                    join one.
+                  </>
+                ) : (
+                  <Button
+                    size="sm"
+                    colorPalette="blue"
+                    onClick={() => navigate("/login")}
+                  >
+                    Sign In
+                  </Button>
+                )}
               </Text>
             </VStack>
           </Card.Body>
@@ -935,7 +1293,7 @@ const MatchesPage: React.FC = () => {
                         size="sm"
                         flexShrink={0}
                       >
-                        {t.status}
+                        {t.status.charAt(0).toUpperCase() + t.status.slice(1)}
                       </Badge>
                     </HStack>
                     <Text fontSize="sm" color="fg.muted">

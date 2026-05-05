@@ -106,8 +106,10 @@ export function ParticipantEditDialog({
                       onChange={handleFactionChange}
                       width="100%"
                       bg={inputBgColor}
+                      borderWidth="1px"
                       borderColor={borderColor}
                       borderRadius="md"
+                      color="fg"
                       p={2}
                     >
                       <option value="">Select Faction</option>

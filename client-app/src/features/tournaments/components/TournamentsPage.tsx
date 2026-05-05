@@ -96,7 +96,7 @@ const TournamentsPage: React.FC = () => {
         success: boolean;
         data: { _id: string };
       };
-      navigate(`/tournament/${res.data._id}`);
+      navigate(`/matches/spectate/${res.data._id}`);
     } catch {
       setCodeError("No tournament found with that code.");
     } finally {

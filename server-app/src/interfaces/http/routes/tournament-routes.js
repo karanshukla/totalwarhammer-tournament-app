@@ -33,6 +33,12 @@ router.post(
   tournamentController.addParticipant,
 );
 
+router.patch(
+  "/:id/participants/:participantId",
+  authenticateSession,
+  tournamentController.updateParticipant,
+);
+
 router.delete(
   "/:id/participants/:participantId",
   authenticateSession,
@@ -49,6 +55,12 @@ router.post(
   "/:id/start",
   authenticateSession,
   tournamentController.startTournament,
+);
+
+router.post(
+  "/:id/advance",
+  authenticateSession,
+  tournamentController.advanceRound,
 );
 
 router.delete(

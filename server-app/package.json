@@ -9,8 +9,8 @@
     "dev": "nodemon app.js",
     "lint": "eslint . --ext .js",
     "lint:fix": "eslint . --ext .js --fix",
-    "test": "node --experimental-vm-modules --test",
-    "test:watch": "node --experimental-vm-modules --test --watch"
+    "test": "node --experimental-vm-modules --experimental-test-module-mocks --test",
+    "test:watch": "node --experimental-vm-modules --experimental-test-module-mocks --test --watch"
   },
   "dependencies": {
     "bcrypt": "^5.1.1",

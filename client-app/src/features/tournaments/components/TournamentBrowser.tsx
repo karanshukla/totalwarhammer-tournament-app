@@ -12,7 +12,7 @@ import {
   Separator,
   For,
 } from "@chakra-ui/react";
-import { LuLogIn, LuEye, LuTrophy } from "react-icons/lu";
+import { LuLogIn, LuEye, LuTrophy, LuSwords } from "react-icons/lu";
 import { useNavigate } from "react-router-dom";
 import { httpClient } from "@/core/api/httpClient";
 import { useUserStore } from "@/shared/stores/userStore";
@@ -165,8 +165,14 @@ const TournamentBrowser: React.FC<Props> = ({ statusFilter, emptyMessage }) => {
                 isAuthenticated() && t.status === "pending" && !joined && !full;
 
               return (
-                <Card.Root key={t._id} bg={cardBg} borderColor={borderColor}>
-                  <Card.Body>
+                <Card.Root
+                  key={t._id}
+                  bg={cardBg}
+                  borderColor={borderColor}
+                  display="flex"
+                  flexDirection="column"
+                >
+                  <Card.Body flex={1}>
                     <VStack alignItems="flex-start" gap={2}>
                       <HStack justifyContent="space-between" width="full">
                         <Text fontWeight="semibold" fontSize="md" truncate>
@@ -203,52 +209,65 @@ const TournamentBrowser: React.FC<Props> = ({ statusFilter, emptyMessage }) => {
                           {new Date(t.createdAt).toLocaleDateString()}
                         </Text>
                       </HStack>
-                      {joined && (
-                        <Badge
-                          colorPalette={
-                            t.status === "completed" ? "gray" : "blue"
-                          }
-                          variant="subtle"
-                          width="full"
-                          justifyContent="center"
-                        >
-                          {t.status === "completed" ? "Participated" : "Joined"}
-                        </Badge>
-                      )}
-                      {full && !joined && t.status === "pending" && (
-                        <Badge
-                          colorPalette="orange"
-                          variant="subtle"
-                          width="full"
-                          justifyContent="center"
-                        >
-                          Full
-                        </Badge>
-                      )}
-                      {canJoin && (
-                        <Button
-                          width="full"
-                          colorPalette="blue"
-                          size="sm"
-                          onClick={() => handleJoin(t)}
-                          loading={joiningId === t._id}
-                        >
-                          <LuLogIn />
-                          Join Tournament
-                        </Button>
-                      )}
-                      {!isAuthenticated() &&
-                        t.status === "pending" &&
-                        !full && (
-                          <Text
-                            fontSize="xs"
-                            color="fg.muted"
-                            textAlign="center"
-                            width="full"
-                          >
-                            Sign In to Join
-                          </Text>
-                        )}
+                    </VStack>
+                  </Card.Body>
+                  <Card.Footer pt={0} flexDirection="column" gap={2}>
+                    {joined && (
+                      <Badge
+                        colorPalette={
+                          t.status === "completed" ? "gray" : "blue"
+                        }
+                        variant="subtle"
+                        width="full"
+                        justifyContent="center"
+                      >
+                        {t.status === "completed" ? "Participated" : "Joined"}
+                      </Badge>
+                    )}
+                    {full && !joined && t.status === "pending" && (
+                      <Badge
+                        colorPalette="orange"
+                        variant="subtle"
+                        width="full"
+                        justifyContent="center"
+                      >
+                        Full
+                      </Badge>
+                    )}
+                    {canJoin && (
+                      <Button
+                        width="full"
+                        colorPalette="blue"
+                        size="sm"
+                        onClick={() => handleJoin(t)}
+                        loading={joiningId === t._id}
+                      >
+                        <LuLogIn />
+                        Join Tournament
+                      </Button>
+                    )}
+                    {!isAuthenticated() && t.status === "pending" && !full && (
+                      <Text
+                        fontSize="xs"
+                        color="fg.muted"
+                        textAlign="center"
+                        width="full"
+                      >
+                        Sign In to Join
+                      </Text>
+                    )}
+                    {joined ? (
+                      <Button
+                        width="full"
+                        variant="outline"
+                        size="sm"
+                        colorPalette="blue"
+                        onClick={() => navigate(`/matches#${t._id}`)}
+                      >
+                        <LuSwords />
+                        Match Management
+                      </Button>
+                    ) : (
                       <Button
                         width="full"
                         variant="outline"
@@ -256,13 +275,13 @@ const TournamentBrowser: React.FC<Props> = ({ statusFilter, emptyMessage }) => {
                         colorPalette={
                           t.status === "completed" ? "gray" : undefined
                         }
-                        onClick={() => navigate(`/tournament/${t._id}`)}
+                        onClick={() => navigate(`/matches/spectate/${t._id}`)}
                       >
                         {t.status === "completed" ? <LuTrophy /> : <LuEye />}
                         {t.status === "completed" ? "View Results" : "Spectate"}
                       </Button>
-                    </VStack>
-                  </Card.Body>
+                    )}
+                  </Card.Footer>
                 </Card.Root>
               );
             }}

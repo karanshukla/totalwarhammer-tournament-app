@@ -127,7 +127,9 @@ const CreateTournamentForm: React.FC = () => {
                 borderRadius="md"
                 borderWidth="1px"
                 borderColor="border"
+                bg="bg.panel"
                 fontSize="md"
+                color="fg"
                 p={2}
               >
                 {tournamentTypes.map((type) => (

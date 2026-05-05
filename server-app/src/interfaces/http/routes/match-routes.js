@@ -11,6 +11,12 @@ router.get("/:id", matchController.getMatchById);
 
 router.post("/", authenticateSession, matchController.createMatch);
 
+router.patch("/:id/report", authenticateSession, matchController.reportResult);
+router.patch(
+  "/:id/resolve",
+  authenticateSession,
+  matchController.resolveDispute,
+);
 router.patch("/:id/result", authenticateSession, matchController.recordResult);
 
 router.patch(

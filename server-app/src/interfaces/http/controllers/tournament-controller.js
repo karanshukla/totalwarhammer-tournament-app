@@ -83,9 +83,31 @@ export const getTournaments = async (req, res) => {
 
 export const getUserTournaments = async (req, res) => {
   try {
-    const tournaments = await Tournament.find({ createdBy: req.user.id }).sort({
-      createdAt: -1,
-    });
+    const userId = req.user.id;
+    const userName = req.user.username;
+    const isGuest = req.user.isGuest;
+
+    // Build list of possible names the user might be stored as
+    const possibleNames = [userId];
+    if (userName && userName !== userId) {
+      possibleNames.push(userName);
+    }
+
+    // Build query conditions
+    const queryConditions = [];
+
+    // Only check createdBy for non-guest users (guest IDs are UUIDs, not ObjectIds)
+    if (!isGuest) {
+      queryConditions.push({ createdBy: userId });
+    }
+
+    // Always check participants (works for both guests and registered users)
+    queryConditions.push({ "participants.name": { $in: possibleNames } });
+
+    const tournaments = await Tournament.find({
+      $or: queryConditions,
+    }).sort({ createdAt: -1 });
+
     const withCodes = await Promise.all(tournaments.map(ensureCode));
     return res.status(200).json({ success: true, data: withCodes });
   } catch (error) {
@@ -217,6 +239,39 @@ export const removeParticipant = async (req, res) => {
   }
 };
 
+export const updateParticipant = async (req, res) => {
+  try {
+    const tournament = await Tournament.findOne({
+      _id: req.params.id,
+      createdBy: req.user.id,
+    });
+    if (!tournament) {
+      return res.status(404).json({
+        success: false,
+        message: "Tournament not found or access denied",
+      });
+    }
+    const participant = tournament.participants.id(req.params.participantId);
+    if (!participant) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Participant not found" });
+    }
+    const { name, faction } = req.body;
+    if (name !== undefined) participant.name = name;
+    if (faction !== undefined) participant.faction = faction;
+    await tournament.save();
+    return res.status(200).json({ success: true, data: tournament });
+  } catch (error) {
+    logger.error(`Update participant error: ${error.message}`, { error });
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update participant",
+      error: error.message,
+    });
+  }
+};
+
 export const joinTournament = async (req, res) => {
   try {
     const tournament = await Tournament.findById(req.params.id);
@@ -323,6 +378,129 @@ export const startTournament = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to start tournament",
+      error: error.message,
+    });
+  }
+};
+
+export const advanceRound = async (req, res) => {
+  try {
+    const tournament = await Tournament.findOne({
+      _id: req.params.id,
+      createdBy: req.user.id,
+    });
+    if (!tournament) {
+      return res.status(404).json({
+        success: false,
+        message: "Tournament not found or access denied",
+      });
+    }
+    if (tournament.status !== "active") {
+      return res
+        .status(400)
+        .json({ success: false, message: "Tournament is not active" });
+    }
+
+    // Find the highest completed round
+    const allMatches = await Match.find({ tournament: tournament._id }).sort({
+      round: 1,
+    });
+    if (!allMatches.length) {
+      return res
+        .status(400)
+        .json({ success: false, message: "No matches found" });
+    }
+
+    const maxRound = Math.max(...allMatches.map((m) => m.round));
+    const currentRoundMatches = allMatches.filter((m) => m.round === maxRound);
+
+    // All matches in current round must be completed
+    const incomplete = currentRoundMatches.filter(
+      (m) => m.status !== "completed",
+    );
+    if (incomplete.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: `${incomplete.length} match(es) in round ${maxRound} are not yet completed`,
+      });
+    }
+
+    // Collect winners from current round
+    const winners = currentRoundMatches.map((m) => {
+      const winnerId = m.winnerId?.toString();
+      const p =
+        winnerId === m.player1.participantId?.toString()
+          ? m.player1
+          : m.player2;
+      return p;
+    });
+
+    // If only one winner → tournament is over
+    if (winners.length === 1) {
+      tournament.status = "completed";
+      await tournament.save();
+      return res
+        .status(200)
+        .json({ success: true, data: tournament, completed: true });
+    }
+
+    // Generate next round matches
+    const nextRound = maxRound + 1;
+    const matchDocs = [];
+    let matchNumber = 1;
+    for (let i = 0; i + 1 < winners.length; i += 2) {
+      const p1 = winners[i];
+      const p2 = winners[i + 1];
+      matchDocs.push({
+        tournament: tournament._id,
+        round: nextRound,
+        matchNumber: matchNumber++,
+        player1: {
+          participantId: p1.participantId,
+          name: p1.name,
+          faction: p1.faction,
+        },
+        player2: {
+          participantId: p2.participantId,
+          name: p2.name,
+          faction: p2.faction,
+        },
+      });
+    }
+
+    // If odd winner count (bye), carry the last winner to next round automatically
+    if (winners.length % 2 !== 0) {
+      const bye = winners[winners.length - 1];
+      matchDocs.push({
+        tournament: tournament._id,
+        round: nextRound,
+        matchNumber: matchNumber++,
+        player1: {
+          participantId: bye.participantId,
+          name: bye.name,
+          faction: bye.faction,
+        },
+        player2: {
+          participantId: bye.participantId,
+          name: `${bye.name} (BYE)`,
+          faction: bye.faction,
+        },
+        winnerId: bye.participantId,
+        loserId: bye.participantId,
+        status: "completed",
+        completedAt: new Date(),
+      });
+    }
+
+    const newMatches = await Match.insertMany(matchDocs);
+    return res
+      .status(200)
+      .json({ success: true, round: nextRound, matches: newMatches });
+  } catch (error) {
+    logger.error(`Advance round error: ${error.message}`, { error });
+    return res.status(500).json({
+      success: false,
+      message: "Failed to advance round",
       error: error.message,
     });
   }

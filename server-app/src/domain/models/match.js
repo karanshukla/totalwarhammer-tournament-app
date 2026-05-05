@@ -1,29 +1,43 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const playerSlotSchema = new mongoose.Schema(
   {
     participantId: { type: mongoose.Schema.Types.ObjectId },
     name: { type: String, required: true, trim: true },
-    faction: { type: String, default: '' },
+    faction: { type: String, default: "" },
   },
-  { _id: false }
+  { _id: false },
 );
 
 const resultOverrideSchema = new mongoose.Schema(
   {
     previousWinnerId: { type: mongoose.Schema.Types.ObjectId, default: null },
     newWinnerId: { type: mongoose.Schema.Types.ObjectId, required: true },
-    overriddenBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    reason: { type: String, default: '' },
+    overriddenBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    reason: { type: String, default: "" },
     overriddenAt: { type: Date, default: Date.now },
   },
-  { _id: false }
+  { _id: false },
+);
+
+const reportedResultSchema = new mongoose.Schema(
+  {
+    reportedBy: { type: mongoose.Schema.Types.ObjectId, required: true },
+    reportedByName: { type: String, required: true },
+    winnerId: { type: mongoose.Schema.Types.ObjectId, required: true },
+    reportedAt: { type: Date, default: Date.now },
+  },
+  { _id: false },
 );
 
 const matchSchema = new mongoose.Schema({
   tournament: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Tournament',
+    ref: "Tournament",
     required: true,
     index: true,
   },
@@ -42,13 +56,15 @@ const matchSchema = new mongoose.Schema({
     default: null,
   },
 
+  reportedResults: { type: [reportedResultSchema], default: [] },
+
   status: {
     type: String,
-    enum: ['pending', 'in_progress', 'completed'],
-    default: 'pending',
+    enum: ["pending", "in_progress", "completed", "disputed"],
+    default: "pending",
   },
 
-  notes: { type: String, default: '' },
+  notes: { type: String, default: "" },
 
   resultOverrides: { type: [resultOverrideSchema], default: [] },
 
@@ -56,8 +72,11 @@ const matchSchema = new mongoose.Schema({
   completedAt: { type: Date, default: null },
 });
 
-matchSchema.index({ tournament: 1, round: 1, matchNumber: 1 }, { unique: true });
+matchSchema.index(
+  { tournament: 1, round: 1, matchNumber: 1 },
+  { unique: true },
+);
 
-const Match = mongoose.model('Match', matchSchema);
+const Match = mongoose.model("Match", matchSchema);
 
 export default Match;
