@@ -173,15 +173,15 @@ export function doubleElimAdvance(tournamentId, allMatches) {
     const lbPlayerWon = gfWinnerId !== gfP1Id;
     const resetCount = gf.filter((m) => m.bracketSide === "grand_final").length;
     if (lbPlayerWon && resetCount === 1) {
-      // Bracket reset — play one more grand final, both players start fresh
+      // Bracket reset — play one more grand final, same matchup, both start fresh
       const nextGFRound = gf.length + 1;
       const docs = [
         {
           tournament: tournamentId,
           round: nextGFRound,
           matchNumber: 1,
-          player1: lastGF.player2, // WB finalist (lost the first GF)
-          player2: lastGF.player1, // LB finalist (won the first GF)
+          player1: lastGF.player1, // WB finalist
+          player2: lastGF.player2, // LB finalist (won the first GF)
           bracketSide: "grand_final",
         },
       ];
@@ -272,7 +272,7 @@ export function doubleElimAdvance(tournamentId, allMatches) {
       : [];
     const lbPool = [...incomingLosers, ...existingLbWinners];
 
-    if (lbPool.length > 1) {
+    if (lbPool.length >= 1) {
       const nextLbRound = lbMaxRound + 1;
       for (let i = 0; i < lbPool.length; i += 2) {
         if (i + 1 < lbPool.length) {

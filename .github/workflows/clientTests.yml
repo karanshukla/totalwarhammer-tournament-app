@@ -27,11 +27,11 @@ jobs:
         with:
           node-version: 18
           cache: "npm"
-          cache-dependency-path: "client-app/package.json"
+          cache-dependency-path: "client-app/package-lock.json"
 
       - name: Install dependencies
         working-directory: ./client-app
-        run: npm install
+        run: npm ci
 
       - name: Run tests
         working-directory: ./client-app
