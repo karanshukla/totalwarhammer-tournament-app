@@ -61,7 +61,7 @@ export function PasswordResetForm({
           Back to Login
         </Button>
         <Heading size="md">Reset Your Password</Heading>
-        <Text fontSize="sm" color="gray.500">
+        <Text fontSize="sm" color="fg.muted">
           Enter your email address and we'll send you a link to reset your
           password.
         </Text>

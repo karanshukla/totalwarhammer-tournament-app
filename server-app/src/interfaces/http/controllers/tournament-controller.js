@@ -318,7 +318,8 @@ export const joinTournament = async (req, res) => {
       });
     }
     const { faction } = req.body;
-    const playerName = req.user.username || req.user.id;
+    const playerName =
+      req.user.username || `Guest_${req.user.id.substring(0, 6)}`;
     const alreadyJoined = tournament.participants.some(
       (p) => p.name === playerName,
     );

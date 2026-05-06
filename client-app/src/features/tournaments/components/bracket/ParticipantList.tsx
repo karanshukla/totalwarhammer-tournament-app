@@ -157,13 +157,13 @@ export function ParticipantList({
                   <ButtonGroup size="xs" variant="ghost" gap={1}>
                     <Button
                       onClick={() => onEditParticipant(participant)}
-                      color="blue.500"
+                      color="blue.fg"
                     >
                       Edit
                     </Button>
                     <Button
                       onClick={() => handleDeleteParticipant(participant.id)}
-                      color="red.500"
+                      color="red.fg"
                     >
                       Delete
                     </Button>

@@ -139,13 +139,14 @@ class AuthStateService {
    * @param {Object} req - Express request object
    * @param {string} guestId - ID for the guest user
    */
-  createGuestAuthState(req, guestId) {
+  createGuestAuthState(req, guestId, guestUsername) {
     if (!guestId || !req) {
       throw new Error("Invalid request or guest ID");
     }
 
     const guestUser = {
       id: guestId,
+      username: guestUsername || `Guest_${guestId.substring(0, 6)}`,
       isGuest: true,
       role: "guest",
     };

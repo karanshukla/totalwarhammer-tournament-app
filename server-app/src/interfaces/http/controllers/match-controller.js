@@ -121,15 +121,32 @@ export const reportResult = async (req, res) => {
     const tournament = match.tournament;
 
     const lowerUserName = userName?.trim().toLowerCase();
+    // For guests, also check the Guest_XXXX fallback name (first 6 chars of id)
+    const guestFallbackName =
+      req.user.isGuest && userId
+        ? `Guest_${userId.substring(0, 6)}`.toLowerCase()
+        : null;
+    const nameMatchP1 = (n) => {
+      const ln = n.trim().toLowerCase();
+      return (
+        (lowerUserName && ln === lowerUserName) ||
+        (guestFallbackName && ln === guestFallbackName)
+      );
+    };
+    const nameMatchP2 = (n) => {
+      const ln = n.trim().toLowerCase();
+      return (
+        (lowerUserName && ln === lowerUserName) ||
+        (guestFallbackName && ln === guestFallbackName)
+      );
+    };
     const isPlayer1 =
       match.player1.participantId?.toString() === userId ||
-      (lowerUserName &&
-        match.player1.name.trim().toLowerCase() === lowerUserName) ||
+      nameMatchP1(match.player1.name) ||
       match.player1.name === userId;
     const isPlayer2 =
       match.player2.participantId?.toString() === userId ||
-      (lowerUserName &&
-        match.player2.name.trim().toLowerCase() === lowerUserName) ||
+      nameMatchP2(match.player2.name) ||
       match.player2.name === userId;
     const createdById = tournament.createdBy?._id ?? tournament.createdBy;
     const isCreator = createdById?.toString() === userId;
@@ -213,7 +230,10 @@ export const resolveDispute = async (req, res) => {
 
     const createdById =
       match.tournament.createdBy?._id ?? match.tournament.createdBy;
-    const isCreator = createdById?.toString() === req.user.id;
+    const isCreator = createdById?.toString() === req.user.id?.toString();
+    logger.debug(
+      `resolveDispute auth: createdById=${createdById?.toString()} req.user.id=${req.user.id} match=${isCreator}`,
+    );
     if (!isCreator) {
       return res.status(403).json({
         success: false,
@@ -336,7 +356,10 @@ export const overrideResult = async (req, res) => {
 
     const createdById =
       match.tournament.createdBy?._id ?? match.tournament.createdBy;
-    const isAdmin = createdById?.toString() === req.user.id;
+    const isAdmin = createdById?.toString() === req.user.id?.toString();
+    logger.debug(
+      `overrideResult auth: createdById=${createdById?.toString()} req.user.id=${req.user.id} match=${isAdmin}`,
+    );
     if (!isAdmin) {
       return res.status(403).json({
         success: false,
@@ -396,7 +419,8 @@ export const updateMatchStatus = async (req, res) => {
         .json({ success: false, message: "Match not found" });
     }
 
-    const isAdmin = match.tournament.createdBy.toString() === req.user.id;
+    const isAdmin =
+      match.tournament.createdBy?.toString() === req.user.id?.toString();
     if (!isAdmin) {
       return res.status(403).json({
         success: false,

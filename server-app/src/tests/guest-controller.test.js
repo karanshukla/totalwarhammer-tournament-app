@@ -2,6 +2,13 @@ import assert from "node:assert";
 import { describe, it, beforeEach, mock } from "node:test";
 
 const mockCreateGuestAuthState = mock.fn();
+const mockTournamentUpdateMany = mock.fn();
+
+mock.module("../domain/models/tournament.js", {
+  defaultExport: {
+    updateMany: mockTournamentUpdateMany,
+  },
+});
 
 mock.module("../infrastructure/services/auth-state-service.js", {
   defaultExport: class {
@@ -44,6 +51,7 @@ function mockReq(overrides = {}) {
 describe("guest-controller", () => {
   beforeEach(() => {
     mockCreateGuestAuthState.mock.resetCalls();
+    mockTournamentUpdateMany.mock.resetCalls();
   });
 
   describe("createGuestUser", () => {
@@ -79,6 +87,9 @@ describe("guest-controller", () => {
     });
 
     it("should update guest username and return 200", async () => {
+      mockTournamentUpdateMany.mock.mockImplementation(async () => ({
+        modifiedCount: 0,
+      }));
       const req = mockReq({
         body: { username: "valid_name" },
         user: { id: "u1", isGuest: true },
@@ -93,6 +104,71 @@ describe("guest-controller", () => {
       assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
       assert.strictEqual(req.user.username, "valid_name");
       assert.strictEqual(req.session.user.username, "valid_name");
+    });
+
+    it("should propagate new username to tournament participants", async () => {
+      mockTournamentUpdateMany.mock.mockImplementation(async () => ({
+        modifiedCount: 2,
+      }));
+      const req = mockReq({
+        body: { username: "new_name" },
+        user: { id: "u1", username: "old_name", isGuest: true },
+        session: {
+          user: { username: "old_name" },
+          save: mock.fn((cb) => cb()),
+          touch: mock.fn(),
+        },
+      });
+      const res = mockRes();
+      await updateGuestUsername(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
+      assert.strictEqual(mockTournamentUpdateMany.mock.calls.length, 1);
+      const [filter, update, options] =
+        mockTournamentUpdateMany.mock.calls[0].arguments;
+      assert.deepStrictEqual(filter, { "participants.name": "old_name" });
+      assert.deepStrictEqual(update, {
+        $set: { "participants.$[elem].name": "new_name" },
+      });
+      assert.deepStrictEqual(options, {
+        arrayFilters: [{ "elem.name": "old_name" }],
+      });
+    });
+
+    it("should not call Tournament.updateMany if no old username", async () => {
+      mockTournamentUpdateMany.mock.mockImplementation(async () => ({}));
+      const req = mockReq({
+        body: { username: "new_name" },
+        user: { id: "u1", username: undefined, isGuest: true },
+        session: {
+          user: {},
+          save: mock.fn((cb) => cb()),
+          touch: mock.fn(),
+        },
+      });
+      const res = mockRes();
+      await updateGuestUsername(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
+      assert.strictEqual(mockTournamentUpdateMany.mock.calls.length, 0);
+    });
+
+    it("should return 400 for username with invalid characters", async () => {
+      const req = mockReq({
+        body: { username: "bad name!" },
+        user: { id: "u1", isGuest: true },
+      });
+      const res = mockRes();
+      await updateGuestUsername(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 400);
+    });
+
+    it("should return 401 if req.user is missing", async () => {
+      const req = mockReq({
+        body: { username: "valid_name" },
+        user: null,
+      });
+      const res = mockRes();
+      await updateGuestUsername(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 401);
     });
   });
 });

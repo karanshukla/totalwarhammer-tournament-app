@@ -8,8 +8,7 @@ import { BrowserRouter } from "react-router-dom";
 
 vi.mock("@/shared/ui/Toaster", () => ({
   toaster: {
-    success: vi.fn(),
-    error: vi.fn(),
+    create: vi.fn(),
   },
 }));
 
@@ -57,8 +56,7 @@ function renderForm() {
 describe("CreateTournamentForm", () => {
   beforeEach(() => {
     mockPost.mockReset();
-    mockToaster.success.mockReset();
-    mockToaster.error.mockReset();
+    mockToaster.create.mockReset();
   });
 
   it("renders the form fields", () => {
@@ -164,10 +162,10 @@ describe("CreateTournamentForm", () => {
     );
 
     await waitFor(() => {
-      expect(mockToaster.success).toHaveBeenCalledWith(
+      expect(mockToaster.create).toHaveBeenCalledWith(
         expect.objectContaining({
           title: "Tournament Created",
-          description: expect.stringContaining("successfully"),
+          type: "success",
         }),
       );
     });
@@ -212,8 +210,9 @@ describe("CreateTournamentForm", () => {
     );
 
     await waitFor(() => {
-      expect(mockToaster.error).toHaveBeenCalledWith(
+      expect(mockToaster.create).toHaveBeenCalledWith(
         expect.objectContaining({
+          type: "error",
           description: "Unauthorized: Not authenticated",
         }),
       );
@@ -236,8 +235,9 @@ describe("CreateTournamentForm", () => {
     );
 
     await waitFor(() => {
-      expect(mockToaster.error).toHaveBeenCalledWith(
+      expect(mockToaster.create).toHaveBeenCalledWith(
         expect.objectContaining({
+          type: "error",
           description: "An error occurred",
         }),
       );
@@ -246,8 +246,7 @@ describe("CreateTournamentForm", () => {
 
   it("does not show toaster initially", () => {
     renderForm();
-    expect(mockToaster.success).not.toHaveBeenCalled();
-    expect(mockToaster.error).not.toHaveBeenCalled();
+    expect(mockToaster.create).not.toHaveBeenCalled();
   });
 
   it("calls toaster for each attempt when form is resubmitted", async () => {
@@ -268,15 +267,20 @@ describe("CreateTournamentForm", () => {
     fireEvent.submit(form);
 
     await waitFor(() => {
-      expect(mockToaster.error).toHaveBeenCalledWith(
-        expect.objectContaining({ description: "Network error" }),
+      expect(mockToaster.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: "error",
+          description: "Network error",
+        }),
       );
     });
 
     fireEvent.submit(form);
 
     await waitFor(() => {
-      expect(mockToaster.success).toHaveBeenCalled();
+      expect(mockToaster.create).toHaveBeenCalledWith(
+        expect.objectContaining({ type: "success" }),
+      );
     });
   });
 });

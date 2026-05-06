@@ -172,6 +172,7 @@ const TournamentViewPage: React.FC = () => {
       });
       setJoinSuccess(true);
       await fetchTournament();
+      navigate(`/matches#${tournament._id}`);
     } catch (err) {
       setJoinError(
         err instanceof Error ? err.message : "Failed to join tournament",
@@ -183,8 +184,13 @@ const TournamentViewPage: React.FC = () => {
 
   const isAlreadyJoined = () => {
     if (!tournament || !user) return false;
-    const name = user.username || user.id;
-    return tournament.participants.some((p) => p.name === name);
+    const lowerName = user.username?.trim().toLowerCase();
+    const uid = user.id;
+    return tournament.participants.some(
+      (p) =>
+        p.name === uid ||
+        (lowerName && p.name.trim().toLowerCase() === lowerName),
+    );
   };
 
   if (loading) {
@@ -218,7 +224,11 @@ const TournamentViewPage: React.FC = () => {
   const isPending = tournament.status === "pending";
   const isActive = tournament.status === "active";
   const alreadyJoined = isAlreadyJoined();
-  const isOwner = !!user && tournament.createdBy === user.id;
+  const isOwner =
+    !!user &&
+    (tournament.createdBy === user.id ||
+      tournament.createdBy?.toString() === user.id?.toString());
+  const isParticipant = alreadyJoined;
   const canJoin =
     isAuthenticated() &&
     isPending &&
@@ -304,6 +314,11 @@ const TournamentViewPage: React.FC = () => {
               <Badge variant="outline" size="sm" colorPalette="blue">
                 <LuSettings />
                 Owner
+              </Badge>
+            ) : isParticipant ? (
+              <Badge variant="outline" size="sm" colorPalette="green">
+                <LuUsers />
+                Participant
               </Badge>
             ) : (
               <Badge variant="outline" size="sm" colorPalette="gray">
@@ -512,7 +527,7 @@ const TournamentViewPage: React.FC = () => {
                       borderColor="red.muted"
                       width="full"
                     >
-                      <Text color="red.600" fontSize="sm">
+                      <Text color="red.fg" fontSize="sm">
                         {joinError}
                       </Text>
                     </Box>

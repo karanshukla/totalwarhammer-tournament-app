@@ -25,7 +25,7 @@ const DefaultLoadingFallback = () => (
 const DefaultErrorFallback = () => (
   <Center h="100%" minH="200px" w="100%">
     <Stack align="center">
-      <Text color="red.500">Failed to load component</Text>
+      <Text color="red.fg">Failed to load component</Text>
       <Text fontSize="sm">Please try refreshing the page</Text>
     </Stack>
   </Center>
@@ -71,7 +71,7 @@ export function lazyLoad<T extends ComponentType<any>>(
   options?: {
     loadingFallback?: React.ReactNode;
     errorFallback?: React.ReactNode;
-  }
+  },
 ) {
   const LazyComponent = lazy(importFunc);
 
