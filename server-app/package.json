@@ -30,7 +30,7 @@
     "hpp": "^0.2.3",
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.16.0",
-    "mongoose": "^8.13.3",
+    "mongoose": "^8.22.1",
     "readable-stream": "^3.6.2",
     "redis": "^5.0.1",
     "resend": "^4.5.0",
