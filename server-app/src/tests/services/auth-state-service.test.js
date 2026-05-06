@@ -51,7 +51,7 @@ describe("AuthStateService", () => {
       });
       assert.strictEqual(
         req.session.cookie.maxAge,
-        authStateService.DEFAULT_AUTH_STATE_TIMEOUT
+        authStateService.DEFAULT_AUTH_STATE_TIMEOUT,
       );
     });
 
@@ -63,14 +63,14 @@ describe("AuthStateService", () => {
 
       assert.strictEqual(
         req.session.cookie.maxAge,
-        authStateService.REMEMBER_ME_TIMEOUT
+        authStateService.REMEMBER_ME_TIMEOUT,
       );
     });
 
     it("should throw an error with invalid input", () => {
       assert.throws(
         () => authStateService.createUserAuthState(null, { id: "123" }),
-        { message: /Invalid request or user data/ }
+        { message: /Invalid request or user data/ },
       );
 
       assert.throws(() => authStateService.createUserAuthState({}, null), {
@@ -230,11 +230,13 @@ describe("AuthStateService", () => {
         },
       });
       const guestId = "guest123";
+      const guestUsername = "Guest_guest1";
 
-      authStateService.createGuestAuthState(req, guestId);
+      authStateService.createGuestAuthState(req, guestId, guestUsername);
 
       assert.deepStrictEqual(req.session.user, {
         id: "guest123",
+        username: "Guest_guest1",
         isGuest: true,
         role: "guest",
       });
@@ -247,7 +249,7 @@ describe("AuthStateService", () => {
       });
       assert.strictEqual(
         req.session.cookie.maxAge,
-        authStateService.GUEST_AUTH_STATE_TIMEOUT
+        authStateService.GUEST_AUTH_STATE_TIMEOUT,
       );
       assert.strictEqual(saveMock.mock.calls.length, 1);
     });
@@ -264,7 +266,7 @@ describe("AuthStateService", () => {
     it("should throw an error with invalid input", () => {
       assert.throws(
         () => authStateService.createGuestAuthState(null, "guest123"),
-        { message: /Invalid request or guest ID/ }
+        { message: /Invalid request or guest ID/ },
       );
 
       assert.throws(() => authStateService.createGuestAuthState({}, null), {

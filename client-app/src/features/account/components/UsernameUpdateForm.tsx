@@ -55,10 +55,10 @@ const UsernameUpdateForm: React.FC<UsernameUpdateFormProps> = ({
           value={username}
           onChange={handleUsernameChange}
         />
-        {error && <Text color="red.500">{error}</Text>}
+        {error && <Text color="red.fg">{error}</Text>}
         <Button
           type="submit"
-          colorScheme="blue"
+          colorPalette="blue"
           loading={isSubmitting}
           loadingText="Updating"
           width="full"

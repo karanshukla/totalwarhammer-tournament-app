@@ -91,7 +91,7 @@ const NavItem: React.FC<NavItemProps> = ({
             <Box
               as="span"
               fontSize="xs"
-              color="gray.500"
+              color="fg.muted"
               ml={2}
               display={{ base: "none", md: "inline" }}
             >
@@ -199,7 +199,7 @@ const NavItems: React.FC<NavItemsProps> = ({
             event.preventDefault();
             window.open(
               "https://github.com/karanshukla/totalwarhammer-tournament-app",
-              "_blank"
+              "_blank",
             );
             break;
           default:
@@ -273,7 +273,7 @@ const NavItems: React.FC<NavItemsProps> = ({
       >
         Account
         {isUserGuest && isPortrait && (
-          <Badge size="sm" colorScheme="blue" ml={1}>
+          <Badge size="sm" colorPalette="blue" ml={1}>
             Guest
           </Badge>
         )}
@@ -312,13 +312,13 @@ const NavItems: React.FC<NavItemsProps> = ({
           </NavItem>
           <Separator />
           <Box mt="auto" pb={4} w="full" textAlign="center">
-            <Text fontSize="xs" color="gray.500">
+            <Text fontSize="xs" color="fg.muted">
               &copy; {new Date().getFullYear()} TW Tournament App. All rights
               reserved.
             </Text>
             <Text
               fontSize="xs"
-              color="gray.500"
+              color="fg.muted"
               mt={1}
               display={{ base: "none", md: "block" }}
             >

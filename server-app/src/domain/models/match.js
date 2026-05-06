@@ -26,9 +26,9 @@ const resultOverrideSchema = new mongoose.Schema(
 
 const reportedResultSchema = new mongoose.Schema(
   {
-    reportedBy: { type: mongoose.Schema.Types.ObjectId, required: true },
+    reportedBy: { type: mongoose.Schema.Types.Mixed, required: true },
     reportedByName: { type: String, required: true },
-    winnerId: { type: mongoose.Schema.Types.ObjectId, required: true },
+    winnerId: { type: mongoose.Schema.Types.Mixed, required: true },
     reportedAt: { type: Date, default: Date.now },
   },
   { _id: false },

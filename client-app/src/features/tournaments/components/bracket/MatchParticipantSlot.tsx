@@ -46,7 +46,7 @@ export function MatchParticipantSlot({
           <Text fontSize="xs" fontWeight="medium" noOfLines={1} flex="1">
             {participant.name}
           </Text>
-          <Text fontSize="2xs" color="gray.500" mx={1} noOfLines={1}>
+          <Text fontSize="2xs" color="fg.muted" mx={1} noOfLines={1}>
             {participant.faction}
           </Text>
           <Button
@@ -65,7 +65,7 @@ export function MatchParticipantSlot({
       ) : (
         <Text
           fontSize="xs"
-          color="gray.500"
+          color="fg.muted"
           textAlign="center"
           height="100%"
           display="flex"

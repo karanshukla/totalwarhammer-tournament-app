@@ -488,7 +488,10 @@ const MatchesPage: React.FC = () => {
 
   if (selected) {
     const isFull = selected.participants.length >= selected.playerCount;
-    const isAdmin = selected.createdBy === user?.id;
+    const isAdmin =
+      !!user &&
+      (selected.createdBy === user.id ||
+        selected.createdBy?.toString() === user.id?.toString());
     const canStart =
       isAdmin &&
       selected.status === "pending" &&
@@ -736,7 +739,7 @@ const MatchesPage: React.FC = () => {
             borderWidth={1}
             borderColor="red.muted"
           >
-            <Text color="red.600">{actionError}</Text>
+            <Text color="red.fg">{actionError}</Text>
           </Box>
         )}
 
@@ -820,7 +823,7 @@ const MatchesPage: React.FC = () => {
               <Card.Header>
                 <Heading size="md">Add Participant</Heading>
                 {isFull && (
-                  <Text fontSize="sm" color="orange.500" mt={1}>
+                  <Text fontSize="sm" color="orange.fg" mt={1}>
                     Tournament is full
                   </Text>
                 )}
@@ -1004,7 +1007,13 @@ const MatchesPage: React.FC = () => {
                     <>
                       <HStack justifyContent="space-between">
                         <HStack gap={1}>
-                          <LuAward size={14} color="yellow.500" />
+                          <Box
+                            as="span"
+                            color="yellow.fg"
+                            display="inline-flex"
+                          >
+                            <LuAward size={14} />
+                          </Box>
                           <Text color="fg.muted" fontSize="sm">
                             Champion
                           </Text>
@@ -1024,7 +1033,7 @@ const MatchesPage: React.FC = () => {
                               ? finalMatch.player1
                               : finalMatch.player2;
                           return (
-                            <Text fontWeight="bold" color="yellow.500">
+                            <Text fontWeight="bold" color="yellow.fg">
                               {champion.name}
                             </Text>
                           );
@@ -1303,19 +1312,25 @@ const MatchesPage: React.FC = () => {
                                           ?.trim()
                                           .toLowerCase();
                                         const uId = user?.id;
+                                        const guestFallback =
+                                          user?.isGuest && uId
+                                            ? `guest_${uId.substring(0, 6)}`
+                                            : null;
+                                        const nameMatchFn = (n: string) => {
+                                          const ln = n.trim().toLowerCase();
+                                          return (
+                                            (uName && ln === uName) ||
+                                            (guestFallback &&
+                                              ln === guestFallback)
+                                          );
+                                        };
                                         const isP1 =
                                           m.player1.participantId === uId ||
-                                          (uName &&
-                                            m.player1.name
-                                              .trim()
-                                              .toLowerCase() === uName) ||
+                                          nameMatchFn(m.player1.name) ||
                                           m.player1.name === uId;
                                         const isP2 =
                                           m.player2.participantId === uId ||
-                                          (uName &&
-                                            m.player2.name
-                                              .trim()
-                                              .toLowerCase() === uName) ||
+                                          nameMatchFn(m.player2.name) ||
                                           m.player2.name === uId;
                                         const myRep = m.reportedResults?.find(
                                           (r) =>
@@ -1435,19 +1450,25 @@ const MatchesPage: React.FC = () => {
                                           ?.trim()
                                           .toLowerCase();
                                         const uId = user?.id;
+                                        const guestFallback =
+                                          user?.isGuest && uId
+                                            ? `guest_${uId.substring(0, 6)}`
+                                            : null;
+                                        const nameMatchFn = (n: string) => {
+                                          const ln = n.trim().toLowerCase();
+                                          return (
+                                            (uName && ln === uName) ||
+                                            (guestFallback &&
+                                              ln === guestFallback)
+                                          );
+                                        };
                                         const isP1 =
                                           m.player1.participantId === uId ||
-                                          (uName &&
-                                            m.player1.name
-                                              .trim()
-                                              .toLowerCase() === uName) ||
+                                          nameMatchFn(m.player1.name) ||
                                           m.player1.name === uId;
                                         const isP2 =
                                           m.player2.participantId === uId ||
-                                          (uName &&
-                                            m.player2.name
-                                              .trim()
-                                              .toLowerCase() === uName) ||
+                                          nameMatchFn(m.player2.name) ||
                                           m.player2.name === uId;
                                         const myRep = m.reportedResults?.find(
                                           (r) =>
@@ -1550,17 +1571,24 @@ const MatchesPage: React.FC = () => {
                                     ?.trim()
                                     .toLowerCase();
                                   const uId = user?.id;
+                                  const guestFallback =
+                                    user?.isGuest && uId
+                                      ? `guest_${uId.substring(0, 6)}`
+                                      : null;
+                                  const nameMatchFn = (n: string) => {
+                                    const ln = n.trim().toLowerCase();
+                                    return (
+                                      (uName && ln === uName) ||
+                                      (guestFallback && ln === guestFallback)
+                                    );
+                                  };
                                   const isP1 =
                                     m.player1.participantId === uId ||
-                                    (uName &&
-                                      m.player1.name.trim().toLowerCase() ===
-                                        uName) ||
+                                    nameMatchFn(m.player1.name) ||
                                     m.player1.name === uId;
                                   const isP2 =
                                     m.player2.participantId === uId ||
-                                    (uName &&
-                                      m.player2.name.trim().toLowerCase() ===
-                                        uName) ||
+                                    nameMatchFn(m.player2.name) ||
                                     m.player2.name === uId;
                                   const myRep = m.reportedResults?.find(
                                     (r) =>
@@ -1681,17 +1709,24 @@ const MatchesPage: React.FC = () => {
                                       ?.trim()
                                       .toLowerCase();
                                     const userId = user?.id;
+                                    const guestFallback =
+                                      user?.isGuest && userId
+                                        ? `guest_${userId.substring(0, 6)}`
+                                        : null;
+                                    const nameMatchFn = (n: string) => {
+                                      const ln = n.trim().toLowerCase();
+                                      return (
+                                        (userName && ln === userName) ||
+                                        (guestFallback && ln === guestFallback)
+                                      );
+                                    };
                                     const isP1 =
                                       m.player1.participantId === userId ||
-                                      (userName &&
-                                        m.player1.name.trim().toLowerCase() ===
-                                          userName) ||
+                                      nameMatchFn(m.player1.name) ||
                                       m.player1.name === userId;
                                     const isP2 =
                                       m.player2.participantId === userId ||
-                                      (userName &&
-                                        m.player2.name.trim().toLowerCase() ===
-                                          userName) ||
+                                      nameMatchFn(m.player2.name) ||
                                       m.player2.name === userId;
                                     const myReport = m.reportedResults?.find(
                                       (r) =>
@@ -1797,7 +1832,11 @@ const MatchesPage: React.FC = () => {
                         ? "Finalize Tournament"
                         : isSwiss &&
                             Math.max(...matches.map((m) => m.round)) >=
-                              roundNumbers.length
+                              Math.ceil(
+                                Math.log2(
+                                  Math.max(selected.participants.length, 2),
+                                ),
+                              )
                           ? "Finalize Tournament"
                           : "Advance Round"}
                     </Button>
@@ -1920,7 +1959,7 @@ const MatchesPage: React.FC = () => {
           borderWidth={1}
           borderColor="red.muted"
         >
-          <Text color="red.600">{error}</Text>
+          <Text color="red.fg">{error}</Text>
         </Box>
       )}
 

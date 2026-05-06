@@ -66,7 +66,7 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
             <Text fontWeight="medium" textAlign="center" flex="1">
               Total Warhammer Tournament App{" "}
               {isUserGuest && (
-                <Badge colorScheme="blue" ml={2}>
+                <Badge colorPalette="blue" ml={2}>
                   Guest Mode
                 </Badge>
               )}

@@ -44,7 +44,7 @@ export function TournamentBracket() {
         <Heading size="md">Tournament Bracket</Heading>
       </Card.Header>
       <Card.Body p={4}>
-        <Text fontSize="sm" mb={3} color="gray.600">
+        <Text fontSize="sm" mb={3} color="fg.muted">
           Drag participants into the empty slots below
         </Text>
         <Button
@@ -76,10 +76,10 @@ export function TournamentBracket() {
                 fontWeight="bold"
                 textAlign="center"
                 fontSize="md" // Kept as is, seems reasonable for round titles
-                color="blue.600"
+                color="blue.fg"
                 pb={2}
                 borderBottom="1px solid"
-                borderColor="gray.200"
+                borderColor="border"
                 mb={2} // Added margin bottom for space below round title
               >
                 {round.title}
@@ -135,8 +135,8 @@ export function TournamentBracket() {
                       <Text
                         fontSize="2xs" // Reduced font size for "VS"
                         fontWeight="medium"
-                        color="gray.500"
-                        bg="gray.50"
+                        color="fg.muted"
+                        bg="bg.subtle"
                         py={0.5} // Reduced padding
                         textAlign="center"
                         width="100%"

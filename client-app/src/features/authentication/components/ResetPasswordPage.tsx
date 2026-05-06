@@ -138,7 +138,7 @@ const ResetPasswordPage: React.FC = () => {
             The password reset link is invalid or has expired. Please request a
             new password reset link.
           </Text>
-          <Button onClick={() => navigate("/")} colorScheme="blue">
+          <Button onClick={() => navigate("/")} colorPalette="blue">
             Back to Home
           </Button>
         </VStack>
@@ -154,9 +154,9 @@ const ResetPasswordPage: React.FC = () => {
             Reset Your Password
           </Heading>
           <Flex direction="column">
-            <Text color="gray.500">Enter your new password below.</Text>
+            <Text color="fg.muted">Enter your new password below.</Text>
             {expiryTime && (
-              <Text fontSize="sm" color="orange.500">
+              <Text fontSize="sm" color="orange.fg">
                 This link will expire at {expiryTime.toLocaleTimeString()}.
               </Text>
             )}
@@ -187,7 +187,7 @@ const ResetPasswordPage: React.FC = () => {
 
             <Button
               type="submit"
-              colorScheme="blue"
+              colorPalette="blue"
               width="full"
               loading={isResetting}
               loadingText="Resetting..."

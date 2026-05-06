@@ -39,7 +39,7 @@ export function AuthenticationForm() {
     document.dispatchEvent(
       new CustomEvent("auth-event", {
         detail: { type: "close-drawer" },
-      })
+      }),
     );
   };
 
@@ -135,7 +135,7 @@ export function AuthenticationForm() {
         <Separator />
 
         <Stack gap={2} align="center">
-          <Text fontSize="sm" color="gray.500">
+          <Text fontSize="sm" color="fg.muted">
             Don't want to create an account?
           </Text>
           <Button
@@ -147,7 +147,7 @@ export function AuthenticationForm() {
           >
             Continue as Guest
           </Button>
-          <Text fontSize="xs" color="gray.400">
+          <Text fontSize="xs" color="fg.subtle">
             Guest accounts last for 48 hours. You may create brackets and
             participate in tournaments, but you cannot create a tournament or
             appear in the site leaderboards.

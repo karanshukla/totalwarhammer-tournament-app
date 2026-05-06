@@ -103,9 +103,25 @@ const TournamentsPage: React.FC = () => {
     try {
       const res = (await httpClient.get(`/tournament/code/${code}`)) as {
         success: boolean;
-        data: { _id: string };
+        data: { _id: string; participants: { name: string }[] };
       };
-      navigate(`/matches/spectate/${res.data._id}`);
+      const t = res.data;
+      const lowerName = user?.username?.trim().toLowerCase();
+      const guestFallback =
+        user?.isGuest && user?.id ? `guest_${user.id.substring(0, 6)}` : null;
+      const isParticipant = t.participants?.some((p) => {
+        const ln = p.name.trim().toLowerCase();
+        return (
+          (lowerName && ln === lowerName) ||
+          (guestFallback && ln === guestFallback) ||
+          p.name === user?.id
+        );
+      });
+      if (isParticipant) {
+        navigate(`/matches#${t._id}`);
+      } else {
+        navigate(`/matches/spectate/${t._id}`);
+      }
     } catch {
       setCodeError("No tournament found with that code.");
     } finally {

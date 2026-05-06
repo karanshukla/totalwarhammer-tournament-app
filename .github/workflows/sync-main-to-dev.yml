@@ -1,0 +1,71 @@
+name: Sync main → dev
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  sync:
+    name: Merge main into dev
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Attempt fast-forward merge of main into dev
+        id: merge
+        run: |
+          git checkout dev
+          git merge origin/main --no-edit
+          git push origin dev
+        continue-on-error: true
+
+      - name: Open PR if merge failed or had conflicts
+        if: steps.merge.outcome == 'failure'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: prs } = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              head: `${context.repo.owner}:main`,
+              base: 'dev',
+              state: 'open',
+            });
+
+            if (prs.length > 0) {
+              core.info(`PR already exists: ${prs[0].html_url}`);
+              return;
+            }
+
+            const { data: pr } = await github.rest.pulls.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: '🔀 Sync main → dev (manual resolution required)',
+              body: [
+                '## Automatic sync failed',
+                '',
+                'The automated merge of `main` into `dev` could not be completed without conflicts.',
+                '',
+                '**Action required:** resolve the conflicts in this PR and merge manually.',
+                '',
+                `> Triggered by commit: ${context.sha}`,
+              ].join('\n'),
+              head: 'main',
+              base: 'dev',
+            });
+
+            core.info(`Created PR: ${pr.html_url}`);

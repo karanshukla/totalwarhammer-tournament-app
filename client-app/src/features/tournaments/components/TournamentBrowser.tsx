@@ -128,7 +128,7 @@ const TournamentBrowser: React.FC<Props> = ({ statusFilter, emptyMessage }) => {
         borderWidth={1}
         borderColor="red.muted"
       >
-        <Text color="red.600">{error}</Text>
+        <Text color="red.fg">{error}</Text>
       </Box>
     );
   }
@@ -143,7 +143,7 @@ const TournamentBrowser: React.FC<Props> = ({ statusFilter, emptyMessage }) => {
           borderWidth={1}
           borderColor="red.muted"
         >
-          <Text color="red.600">{joinError}</Text>
+          <Text color="red.fg">{joinError}</Text>
         </Box>
       )}
       {joinSuccess && (
@@ -154,7 +154,7 @@ const TournamentBrowser: React.FC<Props> = ({ statusFilter, emptyMessage }) => {
           borderWidth={1}
           borderColor="green.muted"
         >
-          <Text color="green.600">{joinSuccess}</Text>
+          <Text color="green.fg">{joinSuccess}</Text>
         </Box>
       )}
 

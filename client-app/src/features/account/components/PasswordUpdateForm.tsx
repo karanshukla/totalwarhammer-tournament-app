@@ -79,10 +79,10 @@ const PasswordUpdateForm: React.FC = () => {
           value={confirmPassword}
           onChange={handlePasswordChange}
         />
-        {passwordError && <Text color="red.500">{passwordError}</Text>}
+        {passwordError && <Text color="red.fg">{passwordError}</Text>}
         <Button
           type="submit"
-          colorScheme="blue"
+          colorPalette="blue"
           loading={isUpdatingPassword}
           loadingText="Updating"
           width="full"

@@ -49,7 +49,7 @@ export function SortableItem({ id, participant }: SortableItemProps) {
         <Text fontWeight="medium" fontSize="sm" noOfLines={1} flex="1">
           {participant.name}
         </Text>
-        <Text fontSize="xs" color="gray.500" noOfLines={1} ml={2}>
+        <Text fontSize="xs" color="fg.muted" noOfLines={1} ml={2}>
           {participant.faction}
         </Text>
       </Flex>
