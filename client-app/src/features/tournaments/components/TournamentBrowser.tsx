@@ -197,8 +197,14 @@ const TournamentBrowser: React.FC<Props> = ({ statusFilter, emptyMessage }) => {
                         {t.tournamentType}
                       </Text>
                       {t.description && (
-                        <Text fontSize="sm" lineClamp={2}>
-                          {t.description}
+                        <Text fontSize="sm" lineClamp={2} color="fg.muted">
+                          {t.description
+                            .replace(/!\[.*?\]\(.*?\)/g, "")
+                            .replace(/\[([^\]]+)\]\(.*?\)/g, "$1")
+                            .replace(/#{1,6}\s/g, "")
+                            .replace(/[*_`~>]/g, "")
+                            .replace(/\n+/g, " ")
+                            .trim()}
                         </Text>
                       )}
                       <Separator />

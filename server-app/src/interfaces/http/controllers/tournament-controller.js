@@ -48,6 +48,13 @@ export const createTournament = async (req, res) => {
     const { name, description, playerCount, tournamentType, bannedFactions } =
       req.body;
 
+    if (description && description.length > 2000) {
+      return res.status(400).json({
+        success: false,
+        message: "Description cannot exceed 2000 characters",
+      });
+    }
+
     const tournament = await Tournament.create({
       name,
       description: description || "",
@@ -565,6 +572,54 @@ export const advanceRound = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to advance round",
+      error: error.message,
+    });
+  }
+};
+
+export const updateDescription = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { description } = req.body;
+
+    if (typeof description !== "string") {
+      return res
+        .status(400)
+        .json({ success: false, message: "Description must be a string" });
+    }
+
+    if (description.length > 2000) {
+      return res.status(400).json({
+        success: false,
+        message: "Description cannot exceed 2000 characters",
+      });
+    }
+
+    const tournament = await Tournament.findOne({
+      _id: id,
+      createdBy: req.user.id,
+    });
+    if (!tournament) {
+      return res.status(404).json({
+        success: false,
+        message:
+          "Tournament not found or you do not have permission to edit it",
+      });
+    }
+
+    tournament.description = description;
+    await tournament.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Description updated",
+      data: tournament,
+    });
+  } catch (error) {
+    logger.error(`Update description error: ${error.message}`, { error });
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update description",
       error: error.message,
     });
   }

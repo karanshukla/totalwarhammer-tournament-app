@@ -63,6 +63,12 @@ router.post(
   tournamentController.advanceRound,
 );
 
+router.patch(
+  "/:id/description",
+  authenticateSession,
+  tournamentController.updateDescription,
+);
+
 router.delete(
   "/:id",
   authenticateSession,

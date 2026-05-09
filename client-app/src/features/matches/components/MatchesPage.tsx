@@ -1,5 +1,6 @@
 // REWRITTEN - clean version
 import React, { useState, useEffect, useCallback, useRef } from "react";
+import ReactMarkdown from "react-markdown";
 import {
   Container,
   Heading,
@@ -21,6 +22,7 @@ import {
   Portal,
   Table,
   Flex,
+  Textarea,
 } from "@chakra-ui/react";
 import {
   LuTrophy,
@@ -42,6 +44,8 @@ import {
   LuTrendingUp,
   LuAward,
   LuHash,
+  LuFilePen,
+  LuCheck,
 } from "react-icons/lu";
 import { useNavigate, useLocation } from "react-router-dom";
 import { httpClient } from "@/core/api/httpClient";
@@ -156,6 +160,14 @@ const MatchesPage: React.FC = () => {
   const { hash } = useLocation();
   const initialHashHandled = useRef(false);
   const [codeCopied, setCodeCopied] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<
+    "all" | "pending" | "active" | "completed"
+  >("all");
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 9;
+  const [editingDescription, setEditingDescription] = useState(false);
+  const [descriptionDraft, setDescriptionDraft] = useState("");
+  const [descriptionLoading, setDescriptionLoading] = useState(false);
 
   const handleCopyCode = (code: string) => {
     navigator.clipboard.writeText(code);
@@ -422,6 +434,27 @@ const MatchesPage: React.FC = () => {
     }
   };
 
+  const handleUpdateDescription = async () => {
+    if (!selected) return;
+    setDescriptionLoading(true);
+    setActionError(null);
+    try {
+      await httpClient.patch(`/tournament/${selected._id}/description`, {
+        description: descriptionDraft,
+      });
+      await refreshSelected(selected._id);
+      setEditingDescription(false);
+      toaster.create({ title: "Description updated", type: "success" });
+    } catch (err) {
+      const msg =
+        err instanceof Error ? err.message : "Failed to update description";
+      setActionError(msg);
+      toaster.create({ title: "Error", description: msg, type: "error" });
+    } finally {
+      setDescriptionLoading(false);
+    }
+  };
+
   const handleDelete = async () => {
     if (!selected) return;
     setActionLoading(true);
@@ -632,10 +665,122 @@ const MatchesPage: React.FC = () => {
                 </>
               )}
             </HStack>
-            {selected.description && (
-              <Text color="fg.muted" mt={1}>
-                {selected.description}
-              </Text>
+            {isAdmin && editingDescription ? (
+              <VStack mt={2} gap={2} alignItems="stretch" w="full">
+                <Textarea
+                  value={descriptionDraft}
+                  onChange={(e) =>
+                    setDescriptionDraft(e.target.value.slice(0, 2000))
+                  }
+                  placeholder="Tournament description (Markdown supported)"
+                  minH="240px"
+                  h="240px"
+                  resize="vertical"
+                  fontSize="sm"
+                  maxLength={2000}
+                />
+                <Text
+                  fontSize="xs"
+                  color={
+                    descriptionDraft.length >= 2000 ? "red.fg" : "fg.muted"
+                  }
+                  textAlign="right"
+                >
+                  {descriptionDraft.length}/2000
+                </Text>
+                <HStack gap={2}>
+                  <Button
+                    size="xs"
+                    colorPalette="blue"
+                    onClick={handleUpdateDescription}
+                    loading={descriptionLoading}
+                  >
+                    <LuCheck />
+                    Save
+                  </Button>
+                  <Button
+                    size="xs"
+                    variant="ghost"
+                    onClick={() => setEditingDescription(false)}
+                  >
+                    Cancel
+                  </Button>
+                </HStack>
+              </VStack>
+            ) : (
+              <VStack mt={1} gap={2} alignItems="flex-start">
+                {selected.description ? (
+                  <Box
+                    w="full"
+                    fontSize="sm"
+                    color="fg.muted"
+                    css={{
+                      "& h1,& h2,& h3,& h4,& h5,& h6": {
+                        fontWeight: "bold",
+                        lineHeight: 1.3,
+                        marginTop: "0.75rem",
+                        marginBottom: "0.25rem",
+                      },
+                      "& h1": { fontSize: "1.25rem" },
+                      "& h2": { fontSize: "1.125rem" },
+                      "& h3": { fontSize: "1rem" },
+                      "& p": { marginBottom: "0.5rem", lineHeight: 1.6 },
+                      "& ul,& ol": {
+                        paddingLeft: "1.25rem",
+                        marginBottom: "0.5rem",
+                      },
+                      "& li": { marginBottom: "0.25rem" },
+                      "& strong": { fontWeight: "bold" },
+                      "& em": { fontStyle: "italic" },
+                      "& code": {
+                        fontFamily: "monospace",
+                        background: "var(--chakra-colors-bg-muted)",
+                        padding: "0 4px",
+                        borderRadius: "3px",
+                        fontSize: "0.8em",
+                      },
+                      "& pre": {
+                        background: "var(--chakra-colors-bg-muted)",
+                        padding: "0.75rem",
+                        borderRadius: "6px",
+                        overflowX: "auto",
+                        marginBottom: "0.5rem",
+                        fontSize: "0.8em",
+                      },
+                      "& blockquote": {
+                        borderLeft: "3px solid var(--chakra-colors-border)",
+                        paddingLeft: "0.75rem",
+                        color: "var(--chakra-colors-fg-muted)",
+                        margin: "0.5rem 0",
+                      },
+                      "& a": {
+                        color: "var(--chakra-colors-blue-fg)",
+                        textDecoration: "underline",
+                      },
+                    }}
+                  >
+                    <ReactMarkdown>{selected.description}</ReactMarkdown>
+                  </Box>
+                ) : isAdmin && selected.status !== "completed" ? (
+                  <Text color="fg.subtle" fontSize="sm" fontStyle="italic">
+                    No description — click Edit Description to add one.
+                  </Text>
+                ) : null}
+                {isAdmin && selected.status !== "completed" && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    alignSelf="flex-start"
+                    onClick={() => {
+                      setDescriptionDraft(selected.description ?? "");
+                      setEditingDescription(true);
+                    }}
+                  >
+                    <LuFilePen />
+                    Edit Description
+                  </Button>
+                )}
+              </VStack>
             )}
           </VStack>
           <HStack gap={2}>
@@ -1939,9 +2084,27 @@ const MatchesPage: React.FC = () => {
     );
   }
 
+  const filteredTournaments =
+    statusFilter === "all"
+      ? tournaments
+      : tournaments.filter((t) => t.status === statusFilter);
+
+  const totalPages = Math.ceil(filteredTournaments.length / PAGE_SIZE);
+  const pagedTournaments = filteredTournaments.slice(
+    (page - 1) * PAGE_SIZE,
+    page * PAGE_SIZE,
+  );
+
+  const filterCounts = {
+    all: tournaments.length,
+    pending: tournaments.filter((t) => t.status === "pending").length,
+    active: tournaments.filter((t) => t.status === "active").length,
+    completed: tournaments.filter((t) => t.status === "completed").length,
+  };
+
   return (
     <Container maxW="container.xl" py={8}>
-      <HStack mb={6} justifyContent="space-between">
+      <HStack mb={4} justifyContent="space-between">
         <Heading as="h1" size="xl">
           Match Management
         </Heading>
@@ -1961,6 +2124,41 @@ const MatchesPage: React.FC = () => {
         >
           <Text color="red.fg">{error}</Text>
         </Box>
+      )}
+
+      {tournaments.length > 0 && (
+        <HStack mb={4} gap={2} wrap="wrap">
+          {(["all", "pending", "active", "completed"] as const).map((s) => (
+            <Button
+              key={s}
+              size="sm"
+              variant={statusFilter === s ? "solid" : "outline"}
+              colorPalette={
+                s === "all"
+                  ? "gray"
+                  : s === "pending"
+                    ? "yellow"
+                    : s === "active"
+                      ? "green"
+                      : "gray"
+              }
+              onClick={() => {
+                setStatusFilter(s);
+                setPage(1);
+              }}
+            >
+              {s.charAt(0).toUpperCase() + s.slice(1)}
+              <Badge
+                ml={1}
+                size="sm"
+                variant="subtle"
+                colorPalette={statusFilter === s ? "white" : "gray"}
+              >
+                {filterCounts[s]}
+              </Badge>
+            </Button>
+          ))}
+        </HStack>
       )}
 
       {tournaments.length === 0 ? (
@@ -1994,51 +2192,91 @@ const MatchesPage: React.FC = () => {
             </VStack>
           </Card.Body>
         </Card.Root>
-      ) : (
-        <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} gap={4}>
-          <For each={tournaments}>
-            {(t) => (
-              <Card.Root
-                key={t._id}
-                cursor="pointer"
-                onClick={() => handleSelectTournament(t)}
-                bg={cardBg}
-                borderColor={borderColor}
-                _hover={{ shadow: "md", bg: selectedBg }}
-                transition="all 0.15s ease"
+      ) : filteredTournaments.length === 0 ? (
+        <Card.Root>
+          <Card.Body py={12}>
+            <VStack gap={2}>
+              <Text color="fg.muted">No {statusFilter} tournaments.</Text>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setStatusFilter("all")}
               >
-                <Card.Body>
-                  <VStack alignItems="flex-start" gap={2}>
-                    <HStack justifyContent="space-between" width="full">
-                      <Text fontWeight="semibold" fontSize="md" truncate>
-                        {t.name}
-                      </Text>
-                      <Badge
-                        colorPalette={statusColorMap[t.status]}
-                        size="sm"
-                        flexShrink={0}
-                      >
-                        {t.status.charAt(0).toUpperCase() + t.status.slice(1)}
-                      </Badge>
-                    </HStack>
-                    <Text fontSize="sm" color="fg.muted">
-                      {t.tournamentType}
-                    </Text>
-                    <Separator />
-                    <HStack gap={4} fontSize="sm" color="fg.muted">
-                      <HStack gap={1}>
-                        <LuUsers />
-                        <Text>
-                          {t.participants.length}/{t.playerCount}
+                Show all
+              </Button>
+            </VStack>
+          </Card.Body>
+        </Card.Root>
+      ) : (
+        <VStack gap={4} alignItems="stretch">
+          <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} gap={4}>
+            <For each={pagedTournaments}>
+              {(t) => (
+                <Card.Root
+                  key={t._id}
+                  cursor="pointer"
+                  onClick={() => handleSelectTournament(t)}
+                  bg={cardBg}
+                  borderColor={borderColor}
+                  _hover={{ shadow: "md", bg: selectedBg }}
+                  transition="all 0.15s ease"
+                >
+                  <Card.Body>
+                    <VStack alignItems="flex-start" gap={2}>
+                      <HStack justifyContent="space-between" width="full">
+                        <Text fontWeight="semibold" fontSize="md" truncate>
+                          {t.name}
                         </Text>
+                        <Badge
+                          colorPalette={statusColorMap[t.status]}
+                          size="sm"
+                          flexShrink={0}
+                        >
+                          {t.status.charAt(0).toUpperCase() + t.status.slice(1)}
+                        </Badge>
                       </HStack>
-                    </HStack>
-                  </VStack>
-                </Card.Body>
-              </Card.Root>
-            )}
-          </For>
-        </SimpleGrid>
+                      <Text fontSize="sm" color="fg.muted">
+                        {t.tournamentType}
+                      </Text>
+                      <Separator />
+                      <HStack gap={4} fontSize="sm" color="fg.muted">
+                        <HStack gap={1}>
+                          <LuUsers />
+                          <Text>
+                            {t.participants.length}/{t.playerCount}
+                          </Text>
+                        </HStack>
+                      </HStack>
+                    </VStack>
+                  </Card.Body>
+                </Card.Root>
+              )}
+            </For>
+          </SimpleGrid>
+          {totalPages > 1 && (
+            <HStack justifyContent="center" gap={3} pt={2}>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
+              >
+                Previous
+              </Button>
+              <Text fontSize="sm" color="fg.muted">
+                Page {page} of {totalPages}
+              </Text>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages}
+              >
+                Next
+              </Button>
+            </HStack>
+          )}
+        </VStack>
       )}
     </Container>
   );
