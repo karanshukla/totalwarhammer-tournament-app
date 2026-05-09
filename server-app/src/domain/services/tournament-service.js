@@ -198,7 +198,8 @@ export function doubleElimAdvance(tournamentId, allMatches) {
       m.winnerId?.toString() === m.player1.participantId?.toString()
         ? m.player1
         : m.player2,
-    );
+    )
+    .filter((p) => p.name !== "BYE");
   const wbLosers = wbCurrent
     .filter((m) => m.status === "completed")
     .map((m) =>
@@ -218,6 +219,7 @@ export function doubleElimAdvance(tournamentId, allMatches) {
               ? m.player1
               : m.player2,
           )
+          .filter((p) => p.name !== "BYE")
       : [];
 
     if (wbWinners.length === 1 && lbWinners.length === 1) {
@@ -236,24 +238,30 @@ export function doubleElimAdvance(tournamentId, allMatches) {
 
     // Otherwise advance both brackets simultaneously
     const docs = [];
-    let mn = 1;
 
     // Advance WB
     if (wbWinners.length > 1) {
       const nextWbRound = wbMaxRound + 1;
+      let wbMn = 1;
       for (let i = 0; i < wbWinners.length; i += 2) {
         if (i + 1 < wbWinners.length) {
           docs.push({
             tournament: tournamentId,
             round: nextWbRound,
-            matchNumber: mn++,
+            matchNumber: wbMn++,
             player1: wbWinners[i],
             player2: wbWinners[i + 1],
             bracketSide: "winners",
           });
         } else {
           docs.push(
-            byeMatch(tournamentId, nextWbRound, mn++, wbWinners[i], "winners"),
+            byeMatch(
+              tournamentId,
+              nextWbRound,
+              wbMn++,
+              wbWinners[i],
+              "winners",
+            ),
           );
         }
       }
@@ -269,24 +277,26 @@ export function doubleElimAdvance(tournamentId, allMatches) {
               ? m.player1
               : m.player2,
           )
+          .filter((p) => p.name !== "BYE")
       : [];
     const lbPool = [...incomingLosers, ...existingLbWinners];
 
     if (lbPool.length >= 1) {
       const nextLbRound = lbMaxRound + 1;
+      let lbMn = 1;
       for (let i = 0; i < lbPool.length; i += 2) {
         if (i + 1 < lbPool.length) {
           docs.push({
             tournament: tournamentId,
             round: nextLbRound,
-            matchNumber: mn++,
+            matchNumber: lbMn++,
             player1: lbPool[i],
             player2: lbPool[i + 1],
             bracketSide: "losers",
           });
         } else {
           docs.push(
-            byeMatch(tournamentId, nextLbRound, mn++, lbPool[i], "losers"),
+            byeMatch(tournamentId, nextLbRound, lbMn++, lbPool[i], "losers"),
           );
         }
       }
