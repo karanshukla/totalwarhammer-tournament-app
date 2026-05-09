@@ -123,7 +123,7 @@ describe("AuthStateService", () => {
       assert.strictEqual(authStateService.isAuthenticated(req), false);
     });
 
-    it("should return false when IP address does not match", () => {
+    it("should return true when IP address does not match but user agent matches", () => {
       const req = createMockRequest({
         session: {
           isAuthenticated: true,
@@ -133,7 +133,7 @@ describe("AuthStateService", () => {
         ip: "127.0.0.1",
       });
 
-      assert.strictEqual(authStateService.isAuthenticated(req), false);
+      assert.strictEqual(authStateService.isAuthenticated(req), true);
     });
 
     it("should return false when user agent does not match", () => {

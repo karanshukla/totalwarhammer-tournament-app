@@ -66,7 +66,7 @@ class AuthStateService {
   isAuthenticated(req) {
     if (!req.session || !req.session.isAuthenticated) {
       logger.debug(
-        "Authentication state invalid: missing session or isAuthenticated flag"
+        "Authentication state invalid: missing session or isAuthenticated flag",
       );
       return false;
     }
@@ -76,11 +76,11 @@ class AuthStateService {
 
     if (isGuest) {
       logger.debug(
-        "Guest authentication detected, using relaxed authentication rules"
+        "Guest authentication detected, using relaxed authentication rules",
       );
       if (!req.session.user || !req.session.user.id) {
         logger.warn(
-          "Guest authentication rejected: missing or invalid user data"
+          "Guest authentication rejected: missing or invalid user data",
         );
         return false;
       }
@@ -96,19 +96,11 @@ class AuthStateService {
       return true;
     }
 
-    if (req.session.fingerprint) {
-      const currentIp = req.ip;
+    if (req.session.fingerprint && req.session.fingerprint.userAgent) {
       const currentUserAgent = req.get("user-agent");
 
-      // For regular users, keep the full validation
-      if (
-        req.session.fingerprint.ip !== currentIp ||
-        req.session.fingerprint.userAgent !== currentUserAgent
-      ) {
-        logger.warn("Authentication rejected: IP or user agent mismatch");
-        logger.warn(
-          `Original IP: ${req.session.fingerprint.ip}, Current IP: ${currentIp}`
-        );
+      if (req.session.fingerprint.userAgent !== currentUserAgent) {
+        logger.warn("Authentication rejected: user agent mismatch");
         return false;
       }
     }
