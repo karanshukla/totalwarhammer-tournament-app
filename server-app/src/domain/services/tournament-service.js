@@ -198,7 +198,8 @@ export function doubleElimAdvance(tournamentId, allMatches) {
       m.winnerId?.toString() === m.player1.participantId?.toString()
         ? m.player1
         : m.player2,
-    );
+    )
+    .filter((p) => p.name !== "BYE");
   const wbLosers = wbCurrent
     .filter((m) => m.status === "completed")
     .map((m) =>
@@ -218,6 +219,7 @@ export function doubleElimAdvance(tournamentId, allMatches) {
               ? m.player1
               : m.player2,
           )
+          .filter((p) => p.name !== "BYE")
       : [];
 
     if (wbWinners.length === 1 && lbWinners.length === 1) {
@@ -275,6 +277,7 @@ export function doubleElimAdvance(tournamentId, allMatches) {
               ? m.player1
               : m.player2,
           )
+          .filter((p) => p.name !== "BYE")
       : [];
     const lbPool = [...incomingLosers, ...existingLbWinners];
 
