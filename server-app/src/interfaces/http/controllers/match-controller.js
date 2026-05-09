@@ -1,3 +1,5 @@
+import mongoose from "mongoose";
+
 import Match from "../../../domain/models/match.js";
 import Tournament from "../../../domain/models/tournament.js";
 import logger from "../../../infrastructure/utils/logger.js";
@@ -44,8 +46,14 @@ export const createMatch = async (req, res) => {
   try {
     const { tournamentId, round, matchNumber, player1, player2 } = req.body;
 
+    if (!mongoose.Types.ObjectId.isValid(tournamentId)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid tournament ID" });
+    }
+
     const tournament = await Tournament.findOne({
-      _id: tournamentId,
+      _id: new mongoose.Types.ObjectId(tournamentId),
       createdBy: req.user.id,
     });
     if (!tournament) {

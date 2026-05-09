@@ -4,3 +4,5 @@ engines:
     enabled: false
   stylelint:
     enabled: false
+  jshint:
+    enabled: false
