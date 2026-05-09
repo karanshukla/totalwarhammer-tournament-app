@@ -53,7 +53,7 @@ export const createMatch = async (req, res) => {
     }
 
     const tournament = await Tournament.findOne({
-      _id: tournamentId,
+      _id: { $eq: tournamentId },
       createdBy: req.user.id,
     });
     if (!tournament) {
