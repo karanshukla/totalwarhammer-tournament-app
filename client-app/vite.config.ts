@@ -5,7 +5,7 @@ import type { UserConfig } from "vitest/config";
 
 export default defineConfig({
   test: {
-    environment: "jsdom",
+    environment: "happy-dom",
     globals: true,
     setupFiles: ["./src/tests/setup.ts"],
   } as UserConfig["test"],
