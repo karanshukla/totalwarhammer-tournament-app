@@ -158,7 +158,7 @@ const CreateTournamentForm: React.FC = () => {
               <Field.Root required>
                 <Field.Label>Number of Players</Field.Label>
                 <NumberInputRoot
-                  value={formData.playerCount}
+                  value={String(formData.playerCount)}
                   min={2}
                   max={128}
                   onValueChange={handleNumberChange}
@@ -173,12 +173,27 @@ const CreateTournamentForm: React.FC = () => {
               <Textarea
                 name="description"
                 value={formData.description}
-                onChange={handleInputChange}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    description: e.target.value.slice(0, 2000),
+                  }))
+                }
                 placeholder="Enter tournament description (Markdown supported)"
-                minH="100px"
+                minH="200px"
+                resize="vertical"
+                maxLength={2000}
               />
               <Field.HelperText>
-                You can use Markdown formatting in the description.
+                <Text as="span">Markdown supported. </Text>
+                <Text
+                  as="span"
+                  color={
+                    formData.description.length >= 2000 ? "red.fg" : "fg.muted"
+                  }
+                >
+                  {formData.description.length}/2000
+                </Text>
               </Field.HelperText>
             </Field.Root>
 
@@ -245,6 +260,7 @@ const CreateTournamentForm: React.FC = () => {
                   display={{ base: "none", md: "flex" }}
                   direction="column"
                   gap={3}
+                  flex={1}
                 >
                   {(() => {
                     const n = formData.playerCount;
@@ -298,7 +314,7 @@ const CreateTournamentForm: React.FC = () => {
                     }
 
                     return (
-                      <VStack gap={2} alignItems="stretch">
+                      <VStack gap={2} alignItems="stretch" flex={1}>
                         {warnings.map((w, i) => (
                           <Box
                             key={i}
@@ -337,13 +353,94 @@ const CreateTournamentForm: React.FC = () => {
                             </HStack>
                           </Box>
                         ))}
-                        {warnings.length === 0 && infos.length === 0 && (
-                          <Text color="fg.muted" fontSize="sm">
-                            Once you create your tournament, head over to the
-                            "Matches" page to manage it, invite users and
-                            advance the rounds.
-                          </Text>
-                        )}
+                        <Box mt="auto">
+                          <Box
+                            p={3}
+                            borderRadius="md"
+                            bg="bg.subtle"
+                            borderWidth={1}
+                            borderColor="border"
+                          >
+                            <VStack gap={2} alignItems="flex-start">
+                              <Text
+                                fontSize="xs"
+                                fontWeight="semibold"
+                                color="fg.muted"
+                                textTransform="uppercase"
+                                letterSpacing="wider"
+                              >
+                                Next Steps
+                              </Text>
+                              <VStack gap={1} alignItems="flex-start">
+                                <HStack gap={2} alignItems="flex-start">
+                                  <Text fontSize="xs" color="fg.muted">
+                                    1.
+                                  </Text>
+                                  <Text fontSize="xs" color="fg.muted">
+                                    Create the tournament, then go to the{" "}
+                                    <Text
+                                      as="span"
+                                      fontWeight="semibold"
+                                      color="fg"
+                                    >
+                                      Matches
+                                    </Text>{" "}
+                                    page to manage it.
+                                  </Text>
+                                </HStack>
+                                <HStack gap={2} alignItems="flex-start">
+                                  <Text fontSize="xs" color="fg.muted">
+                                    2.
+                                  </Text>
+                                  <Text fontSize="xs" color="fg.muted">
+                                    Add participants manually, or share the{" "}
+                                    <Text
+                                      as="span"
+                                      fontWeight="semibold"
+                                      color="fg"
+                                    >
+                                      join code
+                                    </Text>{" "}
+                                    so players can join themselves.
+                                  </Text>
+                                </HStack>
+                                <HStack gap={2} alignItems="flex-start">
+                                  <Text fontSize="xs" color="fg.muted">
+                                    3.
+                                  </Text>
+                                  <Text fontSize="xs" color="fg.muted">
+                                    Once everyone is in, hit{" "}
+                                    <Text
+                                      as="span"
+                                      fontWeight="semibold"
+                                      color="fg"
+                                    >
+                                      Start Tournament
+                                    </Text>{" "}
+                                    to generate round 1 matches.
+                                  </Text>
+                                </HStack>
+                                <HStack gap={2} alignItems="flex-start">
+                                  <Text fontSize="xs" color="fg.muted">
+                                    4.
+                                  </Text>
+                                  <Text fontSize="xs" color="fg.muted">
+                                    After all matches in a round are complete,
+                                    use{" "}
+                                    <Text
+                                      as="span"
+                                      fontWeight="semibold"
+                                      color="fg"
+                                    >
+                                      Advance Round
+                                    </Text>{" "}
+                                    to progress.
+                                  </Text>
+                                </HStack>
+                              </VStack>
+                            </VStack>
+                          </Box>
+                        </Box>
                       </VStack>
                     );
                   })()}

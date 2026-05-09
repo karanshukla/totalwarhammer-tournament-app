@@ -1,0 +1,6 @@
+---
+engines:
+  csslint:
+    enabled: false
+  stylelint:
+    enabled: false

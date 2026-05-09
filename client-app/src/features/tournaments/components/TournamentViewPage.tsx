@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import ReactMarkdown from "react-markdown";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   Container,
@@ -339,7 +340,29 @@ const TournamentViewPage: React.FC = () => {
             </Text>
           </HStack>
           {tournament.description && (
-            <Text mt={1}>{tournament.description}</Text>
+            <Box
+              mt={1}
+              fontSize="sm"
+              color="fg"
+              css={{
+                "& h1,& h2,& h3,& h4,& h5,& h6": { fontWeight: "bold", lineHeight: 1.3, marginTop: "0.75rem", marginBottom: "0.25rem" },
+                "& h1": { fontSize: "1.25rem" },
+                "& h2": { fontSize: "1.125rem" },
+                "& h3": { fontSize: "1rem" },
+                "& p": { marginBottom: "0.5rem", lineHeight: 1.6 },
+                "& ul,& ol": { paddingLeft: "1.25rem", marginBottom: "0.5rem" },
+                "& li": { marginBottom: "0.25rem" },
+                "& strong": { fontWeight: "bold" },
+                "& em": { fontStyle: "italic" },
+                "& code": { fontFamily: "monospace", background: "var(--chakra-colors-bg-muted)", padding: "0 4px", borderRadius: "3px", fontSize: "0.8em" },
+                "& pre": { background: "var(--chakra-colors-bg-muted)", padding: "0.75rem", borderRadius: "6px", overflowX: "auto", marginBottom: "0.5rem", fontSize: "0.8em" },
+                "& blockquote": { borderLeft: "3px solid var(--chakra-colors-border)", paddingLeft: "0.75rem", color: "var(--chakra-colors-fg-muted)", margin: "0.5rem 0" },
+                "& a": { color: "var(--chakra-colors-blue-fg)", textDecoration: "underline" },
+                "& hr": { borderColor: "var(--chakra-colors-border)", margin: "0.75rem 0" },
+              }}
+            >
+              <ReactMarkdown>{tournament.description}</ReactMarkdown>
+            </Box>
           )}
         </VStack>
         {isOwner && (

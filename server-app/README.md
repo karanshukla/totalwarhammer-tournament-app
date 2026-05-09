@@ -1,49 +1,106 @@
-# Total War: Warhammer Tournament Server Application
+# TW Tournament — Server App
 
-## Overview
-This server application powers the backend for the Total War: Warhammer tournament platform. It handles user authentication, tournament management, match data, and provides APIs for the client applications.
+The Node.js/Express backend for the Total War: Warhammer Tournament App.
 
-## Features
-- User registration and authentication
-- Tournament creation and management
-- Match scheduling and results tracking
-- Faction and roster validation
-- Leaderboards and statistics
-- API endpoints for client applications
+## Tech Stack
+
+- **Node.js** (ESM, v18+) + **Express 4**
+- **MongoDB** via **Mongoose 8**
+- **express-session** + **connect-mongodb-session** — server-side sessions
+- **bcrypt** — password hashing
+- **helmet**, **hpp**, **express-mongo-sanitize**, **express-rate-limit** — security hardening
+- **csrf-csrf** — CSRF protection
+- **Winston** — structured logging
+- **Resend** — transactional email (password reset)
+- **Redis** (optional) — session store via `connect-redis`
+- **Node built-in test runner** — server-side tests
 
 ## Getting Started
 
 ### Prerequisites
-- Node.js (v16+)
-- MongoDB
-- npm or yarn
+
+- Node.js v18+
+- MongoDB (local or [MongoDB Atlas](https://www.mongodb.com/atlas))
+- Redis (optional)
 
 ### Installation
-1. Clone the repository
+
+From the repo root (recommended):
+
 ```bash
-git clone https://github.com/yourusername/totalwarhammer-tournament-app.git
-cd totalwarhammer-tournament-app/server-app
+npm install          # installs all workspaces
+npm run dev:server
 ```
 
-2. Install dependencies
+Or directly from this directory:
+
 ```bash
 npm install
+npm run dev
 ```
 
-3. Configure environment variables
-```bash
-cp .env.example .env
-# Edit .env with your configuration
+The API runs at `http://localhost:3000`.
+
+### Environment Variables
+
+Create a `.env` file in this directory. Required variables:
+
+```env
+PORT=3000
+MONGODB_URI=mongodb+srv://<user>:<pass>@cluster.mongodb.net/twt
+SESSION_SECRET=your-long-random-secret
+
+# Optional — Redis session store
+REDIS_URL=redis://localhost:6379
+
+# Optional — Resend email for password resets
+RESEND_API_KEY=re_xxxxxxxxxxxx
+EMAIL_FROM=noreply@yourdomain.com
+
+# Client URL for CORS
+CLIENT_URL=http://localhost:5173
 ```
 
-4. Start the server
-```bash
-npm start
-```
-5. Access the API
-- Open your browser and navigate to `http://localhost:3000/`
-- Use Postman or similar tools to interact with the API endpoints.
+## Scripts
 
-## Acknowledgments
-- Creative Assembly for the Total War: Warhammer game series
-- Contributors and community members
+| Command | Description |
+|---|---|
+| `npm run dev` | Start with nodemon (auto-restart on changes) |
+| `npm start` | Start without nodemon (production) |
+| `npm test` | Run all tests with Node test runner |
+| `npm run test:watch` | Run tests in watch mode |
+| `npm run lint` | Run ESLint |
+| `npm run lint:fix` | Run ESLint with auto-fix |
+
+## API Overview
+
+| Resource | Base path |
+|---|---|
+| Users | `/user` |
+| Auth | `/auth` |
+| Guest | `/guest` |
+| Tournaments | `/tournament` |
+| Matches | `/match` |
+
+Key match endpoints:
+- `POST /match/:id/report` — report a match result (participant or creator)
+- `POST /match/:id/resolve` — resolve a disputed match (creator only)
+- `POST /match/:id/override` — override a completed match result (creator only)
+- `PATCH /tournament/:id/description` — update tournament description (creator only, max 2000 chars)
+
+## Project Structure
+
+```
+src/
+├── domain/
+│   └── models/          # Mongoose schemas (User, Tournament, Match)
+├── infrastructure/
+│   ├── services/        # AuthStateService, etc.
+│   └── utils/           # logger, helpers
+├── interfaces/
+│   └── http/
+│       ├── controllers/ # Route handlers
+│       ├── middleware/  # Auth, rate limiting, validation
+│       └── routes/      # Express routers
+└── tests/               # Unit tests per controller/service
+```
