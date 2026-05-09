@@ -79,7 +79,7 @@ const matchSchema = new mongoose.Schema({
 });
 
 matchSchema.index(
-  { tournament: 1, round: 1, matchNumber: 1 },
+  { tournament: 1, bracketSide: 1, round: 1, matchNumber: 1 },
   { unique: true },
 );
 
