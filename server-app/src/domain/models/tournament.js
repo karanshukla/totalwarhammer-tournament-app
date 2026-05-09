@@ -44,6 +44,9 @@ const tournamentSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
 });
 
+tournamentSchema.index({ createdBy: 1, status: 1 });
+tournamentSchema.index({ status: 1, createdAt: -1 });
+
 const Tournament = mongoose.model("Tournament", tournamentSchema);
 
 export default Tournament;
