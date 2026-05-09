@@ -97,9 +97,18 @@ describe("match-controller", () => {
   });
 
   describe("createMatch", () => {
+    const validTournamentId = "aaaaaaaaaaaaaaaaaaaaaaaa";
+
+    it("should return 400 for invalid tournament ID", async () => {
+      const req = mockReq({ body: { tournamentId: "invalid" } });
+      const res = mockRes();
+      await createMatch(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 400);
+    });
+
     it("should return 404 if tournament not found", async () => {
       mockTournamentFindOne.mock.mockImplementation(async () => null);
-      const req = mockReq({ body: { tournamentId: "t1" } });
+      const req = mockReq({ body: { tournamentId: validTournamentId } });
       const res = mockRes();
       await createMatch(req, res);
       assert.strictEqual(res.status.mock.calls[0].arguments[0], 404);
@@ -112,7 +121,7 @@ describe("match-controller", () => {
       mockMatchCreate.mock.mockImplementation(async (data) => data);
       const req = mockReq({
         body: {
-          tournamentId: "t1",
+          tournamentId: validTournamentId,
           round: 1,
           matchNumber: 1,
           player1: { name: "p1" },
