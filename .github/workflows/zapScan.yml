@@ -9,7 +9,7 @@ on:
       - "docker-compose.yml"
       - "server-app/local-dev.Dockerfile"
       - "client-app/local-dev.Dockerfile"
-      - "client-app/Caddyfile.local"
+      - "client-app/local-dev.Caddyfile"
   pull_request:
     branches: ["main"]
     paths:
@@ -18,7 +18,7 @@ on:
       - "docker-compose.yml"
       - "server-app/local-dev.Dockerfile"
       - "client-app/local-dev.Dockerfile"
-      - "client-app/Caddyfile.local"
+      - "client-app/local-dev.Caddyfile"
 
 permissions:
   contents: read
