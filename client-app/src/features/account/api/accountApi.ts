@@ -27,6 +27,25 @@ export interface AccountUpdateResponse {
  * Refreshes the user's session by making a request to fetch CSRF token
  * This keeps the session active and helps prevent authentication issues
  */
+export interface UserStatsData {
+  tournamentsCreated: number;
+  matchesPlayed: number;
+  wins: number;
+  losses: number;
+  factions: { name: string; count: number }[];
+}
+
+export const fetchUserStats = async (): Promise<UserStatsData | null> => {
+  try {
+    const res = await httpClient.get<{ success: boolean; data: UserStatsData }>(
+      apiConfig.endpoints.userStats,
+    );
+    return res.success ? res.data : null;
+  } catch {
+    return null;
+  }
+};
+
 export const refreshSession = async (): Promise<boolean> => {
   try {
     // This will make a request to the server which keeps the session active
@@ -44,13 +63,13 @@ export const refreshSession = async (): Promise<boolean> => {
  * @returns Promise with response from the server
  */
 export const updateUsername = async (
-  username: string
+  username: string,
 ): Promise<AccountUpdateResponse> => {
   try {
     // Note: httpClient.post() will internally validate the session for sensitive endpoints.
     const responseData = await httpClient.post<AccountUpdateResponse>(
       apiConfig.endpoints.updateUsername,
-      { username }
+      { username },
     );
 
     if (responseData.success) {
@@ -85,14 +104,43 @@ export const updateUsername = async (
  * @param data Object containing current password, new password, and confirmation
  * @returns Promise with response from the server
  */
+export const deleteAccount = async (): Promise<AccountUpdateResponse> => {
+  try {
+    const responseData = await httpClient.delete<AccountUpdateResponse>(
+      apiConfig.endpoints.deleteAccount,
+    );
+
+    if (responseData.success) {
+      const { clearUser } = useUserStore.getState();
+      clearUser();
+      toaster.create({
+        title: "Account Deleted",
+        description: "Your account has been permanently deleted.",
+        type: "success",
+      });
+    } else {
+      throw new Error(responseData.message || "Failed to delete account");
+    }
+
+    return responseData;
+  } catch (error) {
+    toaster.create({
+      title: "Failed to Delete Account",
+      description: error instanceof Error ? error.message : "An error occurred",
+      type: "error",
+    });
+    throw error;
+  }
+};
+
 export const updatePassword = async (
-  data: UpdatePasswordRequest
+  data: UpdatePasswordRequest,
 ): Promise<AccountUpdateResponse> => {
   try {
     // Note: httpClient.post() will internally validate the session for sensitive endpoints.
     const responseData = await httpClient.post<AccountUpdateResponse>(
       apiConfig.endpoints.updatePassword,
-      data
+      data,
     );
 
     if (responseData.success) {

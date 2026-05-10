@@ -16,6 +16,7 @@ import {
   FiGithub,
   FiHelpCircle,
   FiLock,
+  FiShield,
 } from "react-icons/fi";
 import { Link, useNavigate } from "react-router-dom";
 import { LuSword } from "react-icons/lu";
@@ -29,7 +30,8 @@ const KEYBOARD_SHORTCUTS = {
   account: "Alt+5",
   help: "Alt+6",
   terms: "Alt+7",
-  source: "Alt+8",
+  privacy: "Alt+8",
+  source: "Alt+9",
 };
 
 type NavItemProps = {
@@ -112,15 +114,13 @@ const NavItem: React.FC<NavItemProps> = ({
     cursor: "pointer",
     flexDirection: isPortrait ? "column" : "row",
     width: "full",
-    bg: isActive ? "gray.100" : "transparent",
-    _dark: { bg: isActive ? "whiteAlpha.200" : "transparent" },
+    bg: isActive ? "bg.muted" : "transparent",
     borderRadius: "md",
     role: "button",
     tabIndex: 0,
     "aria-current": isActive ? ("page" as const) : undefined,
     _hover: {
-      bg: "gray.100",
-      _dark: { bg: "whiteAlpha.200" },
+      bg: "bg.muted",
     },
     transition: "all 0.2s",
     onKeyDown: handleKeyDown,
@@ -300,6 +300,16 @@ const NavItems: React.FC<NavItemsProps> = ({
             shortcut={KEYBOARD_SHORTCUTS.terms}
           >
             Terms of Use
+          </NavItem>
+          <NavItem
+            icon={FiShield}
+            to="/privacy"
+            isActive={currentPath === "/privacy"}
+            isPortrait={isPortrait}
+            isMobile={isMobile}
+            shortcut={KEYBOARD_SHORTCUTS.privacy}
+          >
+            Privacy Policy
           </NavItem>
           <NavItem
             icon={FiGithub}

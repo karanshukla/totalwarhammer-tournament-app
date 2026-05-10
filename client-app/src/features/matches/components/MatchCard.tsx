@@ -1,4 +1,5 @@
 import React from "react";
+import { displayName as dn } from "@/shared/utils/displayName";
 import {
   Box,
   HStack,
@@ -157,7 +158,9 @@ const MatchCard: React.FC<MatchCardProps> = ({
                 L
               </Badge>
             )}
-            <Text fontWeight={p1Won ? "bold" : "medium"}>{m.player1.name}</Text>
+            <Text fontWeight={p1Won ? "bold" : "medium"}>
+              {dn(m.player1.name)}
+            </Text>
           </HStack>
           {m.player1.faction && (
             <Text fontSize="xs" color="fg.muted">
@@ -187,7 +190,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
               color={m.player2.name === "BYE" ? "fg.subtle" : undefined}
               fontStyle={m.player2.name === "BYE" ? "italic" : undefined}
             >
-              {m.player2.name}
+              {dn(m.player2.name)}
             </Text>
           </HStack>
           {m.player2.faction && m.player2.name !== "BYE" && (
@@ -199,7 +202,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
         {isAdmin && isActive && m.status === "disputed" && (
           <VStack gap={2} flexShrink={0} alignItems="flex-start">
             <Text fontSize="xs" color="orange.fg" fontWeight="bold">
-              ⚠ Disputed — resolve:
+              ⚠ Disputed - resolve:
             </Text>
             {(m.reportedResults ?? []).map((r) => {
               const rBy = r.reportedBy?.toString();
@@ -207,16 +210,16 @@ const MatchCard: React.FC<MatchCardProps> = ({
                 rBy === m.player1.participantId?.toString()
                   ? m.player1.name
                   : rBy === m.player2.participantId?.toString()
-                    ? m.player2.name
+                    ? dn(m.player2.name)
                     : r.reportedByName;
               const votedForName =
                 r.winnerId?.toString() === m.player1.participantId?.toString()
-                  ? m.player1.name
-                  : m.player2.name;
+                  ? dn(m.player1.name)
+                  : dn(m.player2.name);
               return (
                 <Text key={r.reportedBy} fontSize="xs" color="fg.muted">
-                  <strong>{reporterName}</strong> says{" "}
-                  <strong>{votedForName}</strong> won
+                  <strong>{dn(reporterName)}</strong> says{" "}
+                  <strong>{dn(votedForName)}</strong> won
                 </Text>
               );
             })}
@@ -227,7 +230,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
               onClick={() => onResolveDispute(m._id, m.player1.participantId)}
               loading={actionLoading}
             >
-              {m.player1.name} wins
+              {dn(m.player1.name)} wins
             </Button>
             <Button
               size="xs"
@@ -236,7 +239,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
               onClick={() => onResolveDispute(m._id, m.player2.participantId)}
               loading={actionLoading}
             >
-              {m.player2.name} wins
+              {dn(m.player2.name)} wins
             </Button>
           </VStack>
         )}
@@ -253,18 +256,18 @@ const MatchCard: React.FC<MatchCardProps> = ({
                 const rBy = r.reportedBy?.toString();
                 const reporterName =
                   rBy === m.player1.participantId?.toString()
-                    ? m.player1.name
+                    ? dn(m.player1.name)
                     : rBy === m.player2.participantId?.toString()
-                      ? m.player2.name
+                      ? dn(m.player2.name)
                       : r.reportedByName;
                 const votedForName =
                   r.winnerId?.toString() === m.player1.participantId?.toString()
-                    ? m.player1.name
-                    : m.player2.name;
+                    ? dn(m.player1.name)
+                    : dn(m.player2.name);
                 return (
                   <Text key={r.reportedBy} fontSize="xs" color="fg.muted">
-                    <strong>{reporterName}</strong> says{" "}
-                    <strong>{votedForName}</strong> won
+                    <strong>{dn(reporterName)}</strong> says{" "}
+                    <strong>{dn(votedForName)}</strong> won
                   </Text>
                 );
               })}
@@ -286,7 +289,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
                 onClick={() => onRecordResult(m._id, m.player1.participantId)}
                 loading={actionLoading}
               >
-                <LuSwords /> {m.player1.name} wins
+                <LuSwords /> {dn(m.player1.name)} wins
               </Button>
               <Button
                 size="xs"
@@ -295,7 +298,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
                 onClick={() => onRecordResult(m._id, m.player2.participantId)}
                 loading={actionLoading}
               >
-                <LuSwords /> {m.player2.name} wins
+                <LuSwords /> {dn(m.player2.name)} wins
               </Button>
             </VStack>
           )}
@@ -344,7 +347,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
                 fontWeight="bold"
               >
                 {myReport?.winnerId === m.player1.participantId && <LuTrophy />}
-                {m.player1.name} won
+                {dn(m.player1.name)} won
               </Button>
               <Button
                 size="lg"
@@ -364,7 +367,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
                 fontWeight="bold"
               >
                 {myReport?.winnerId === m.player2.participantId && <LuTrophy />}
-                {m.player2.name} won
+                {dn(m.player2.name)} won
               </Button>
             </VStack>
           </VStack>
@@ -375,10 +378,10 @@ const MatchCard: React.FC<MatchCardProps> = ({
           You reported{" "}
           <strong>
             {myReport.winnerId === m.player1.participantId
-              ? m.player1.name
-              : m.player2.name}
+              ? dn(m.player1.name)
+              : dn(m.player2.name)}
           </strong>{" "}
-          as winner — waiting for opponent
+          as winner - waiting for opponent
         </Text>
       )}
       {!isAdmin && (isP1 || isP2) && m.status === "disputed" && (
@@ -389,7 +392,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
           textAlign="center"
           fontWeight="medium"
         >
-          Result disputed — awaiting organiser decision
+          Result disputed - awaiting organiser decision
         </Text>
       )}
 
@@ -401,8 +404,8 @@ const MatchCard: React.FC<MatchCardProps> = ({
               Winner:{" "}
               <strong>
                 {m.winnerId === m.player1.participantId
-                  ? m.player1.name
-                  : m.player2.name}
+                  ? dn(m.player1.name)
+                  : dn(m.player2.name)}
               </strong>
             </Text>
           </HStack>
@@ -428,7 +431,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
                 colorPalette="blue"
                 onClick={() => onSetOverrideWinner(m.player1.participantId)}
               >
-                {m.player1.name}
+                {dn(m.player1.name)}
               </Button>
               <Button
                 size="xs"
@@ -441,7 +444,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
                 colorPalette="blue"
                 onClick={() => onSetOverrideWinner(m.player2.participantId)}
               >
-                {m.player2.name}
+                {dn(m.player2.name)}
               </Button>
             </HStack>
             <Input

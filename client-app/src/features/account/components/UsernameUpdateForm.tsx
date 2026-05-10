@@ -24,8 +24,8 @@ const UsernameUpdateForm: React.FC<UsernameUpdateFormProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!username || username.length < 5) {
-      setError("Usernames must be at least 5 characters long");
+    if (!username || username.length < 3) {
+      setError("Usernames must be at least 3 characters long");
       return;
     }
     setIsSubmitting(true);

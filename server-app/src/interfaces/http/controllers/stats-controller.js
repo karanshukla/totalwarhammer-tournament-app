@@ -12,6 +12,7 @@ export const getStats = async (_req, res) => {
       topCreators,
       matchStats,
       recentTournaments,
+      recentWinners,
     ] = await Promise.all([
       // Tournament counts by status
       Tournament.aggregate([
@@ -132,6 +133,66 @@ export const getStats = async (_req, res) => {
         .limit(5)
         .select("name tournamentType participants playerCount createdAt")
         .lean(),
+
+      // Tournament winners in the last 7 days — final match of each completed tournament
+      Match.aggregate([
+        {
+          $match: {
+            status: "completed",
+            winnerId: { $ne: null },
+            completedAt: {
+              $gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+            },
+          },
+        },
+        { $sort: { completedAt: -1 } },
+        {
+          $group: {
+            _id: "$tournament",
+            lastMatchId: { $first: "$_id" },
+            completedAt: { $first: "$completedAt" },
+            winnerId: { $first: "$winnerId" },
+            player1: { $first: "$player1" },
+            player2: { $first: "$player2" },
+          },
+        },
+        {
+          $lookup: {
+            from: "tournaments",
+            localField: "_id",
+            foreignField: "_id",
+            as: "tournamentDoc",
+          },
+        },
+        {
+          $unwind: { path: "$tournamentDoc", preserveNullAndEmptyArrays: true },
+        },
+        { $match: { "tournamentDoc.status": "completed" } },
+        {
+          $project: {
+            tournamentName: { $ifNull: ["$tournamentDoc.name", "Unknown"] },
+            tournamentType: { $ifNull: ["$tournamentDoc.tournamentType", ""] },
+            completedAt: 1,
+            winnerName: {
+              $cond: [
+                { $eq: ["$winnerId", "$player1.participantId"] },
+                "$player1.name",
+                "$player2.name",
+              ],
+            },
+            winnerFaction: {
+              $cond: [
+                { $eq: ["$winnerId", "$player1.participantId"] },
+                "$player1.faction",
+                "$player2.faction",
+              ],
+            },
+            _id: 0,
+          },
+        },
+        { $sort: { completedAt: -1 } },
+        { $limit: 10 },
+      ]),
     ]);
 
     // Shape tournament counts
@@ -167,6 +228,7 @@ export const getStats = async (_req, res) => {
         topFactions,
         topCreators,
         recentTournaments,
+        recentWinners,
       },
     });
   } catch (error) {

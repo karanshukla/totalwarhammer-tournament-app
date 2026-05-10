@@ -17,7 +17,6 @@ import {
 } from "@dnd-kit/sortable";
 import { DragOverlay } from "@dnd-kit/core";
 import { LuPlus, LuMinus } from "react-icons/lu";
-import { useColorModeValue } from "@/shared/ui/ColorMode";
 import { SortableItem } from "./SortableItem";
 import { Participant } from "./types";
 import { useTournamentStore } from "@/shared/stores/tournamentStore";
@@ -36,7 +35,7 @@ export function ParticipantList({
   onSetNewParticipantCount,
   onEditParticipant,
 }: ParticipantListProps) {
-  const overlayBgColor = useColorModeValue("white", "gray.700");
+  const overlayBgColor = "bg.panel";
 
   const store = useTournamentStore();
   const participants = useTournamentStore((state) => state.participants);

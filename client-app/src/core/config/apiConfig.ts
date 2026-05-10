@@ -12,5 +12,7 @@ export const apiConfig = {
     passwordReset: "/password-reset",
     updateUsername: "/user/update-username",
     updatePassword: "/user/update-password",
+    deleteAccount: "/user/account",
+    userStats: "/user/stats",
   },
 };

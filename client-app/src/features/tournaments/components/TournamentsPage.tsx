@@ -22,13 +22,12 @@ import { useNavigate } from "react-router-dom";
 import SimpleBracket from "./SimpleBracket";
 import CreateTournamentForm from "./CreateTournamentForm";
 import TournamentBrowser from "./TournamentBrowser";
-import { useColorModeValue } from "@/shared/ui/ColorMode";
 import { httpClient } from "@/core/api/httpClient";
 import { useUserStore } from "@/shared/stores/userStore";
 
 const TournamentsPage: React.FC = () => {
   const { user } = useUserStore();
-  const isGuest = !user || user.isGuest;
+  const isGuest = !user.isAuthenticated || user.isGuest;
 
   const tabs = useMemo(
     () => [
@@ -38,17 +37,12 @@ const TournamentsPage: React.FC = () => {
         label: "Create a Simple Bracket",
         content: "Create a simple bracket tournament",
       },
-      // Only show create tournament for registered users
-      ...(!isGuest
-        ? [
-            {
-              id: "createTournament",
-              icon: LuTrophy,
-              label: "Create a Tournament",
-              content: "Create a new Tournament",
-            },
-          ]
-        : []),
+      {
+        id: "createTournament",
+        icon: LuTrophy,
+        label: "Create a Tournament",
+        content: "Create a new Tournament",
+      },
       {
         id: "currentTournaments",
         icon: LuClock,
@@ -62,24 +56,23 @@ const TournamentsPage: React.FC = () => {
         content: "Check past tournaments",
       },
     ],
-    [isGuest],
+    [], // eslint-disable-line react-hooks/exhaustive-deps
   );
 
-  // Define colors for light and dark modes
-  const activeBg = useColorModeValue("blue.50", "gray.700");
-  const inactiveBg = useColorModeValue("white", "gray.800"); // Adjusted for dark mode
-  const activeBorderColor = useColorModeValue("blue.400", "blue.300");
-  const inactiveBorderColor = useColorModeValue("gray.200", "gray.600"); // Adjusted for dark mode
+  const activeBg = "blue.subtle";
+  const inactiveBg = "bg.panel";
+  const activeBorderColor = "blue.muted";
+  const inactiveBorderColor = "border";
 
-  const activeIconColor = useColorModeValue("blue.600", "blue.200");
-  const inactiveIconColor = useColorModeValue("gray.500", "gray.400");
+  const activeIconColor = "blue.fg";
+  const inactiveIconColor = "fg.muted";
 
-  const activeTextColor = useColorModeValue("blue.700", "blue.200");
-  const inactiveTextColor = useColorModeValue("gray.700", "gray.300");
+  const activeTextColor = "blue.fg";
+  const inactiveTextColor = "fg.muted";
 
-  const hoverActiveBorderColor = useColorModeValue("blue.500", "blue.200");
-  const hoverInactiveBorderColor = useColorModeValue("gray.300", "gray.500"); // Adjusted for dark mode
-  const hoverInactiveBg = useColorModeValue("gray.50", "gray.700"); // Added for hover on inactive cards
+  const hoverActiveBorderColor = "blue.emphasized";
+  const hoverInactiveBorderColor = "border.emphasized";
+  const hoverInactiveBg = "bg.subtle";
 
   const getInitialTab = useCallback(() => {
     const hash = window.location.hash.replace("#", "");
@@ -262,26 +255,9 @@ const TournamentsPage: React.FC = () => {
         <Card.Root>
           <Card.Body>
             {activeTab === "brackets" && <SimpleBracket />}
-            {activeTab === "createTournament" &&
-              (!isGuest ? (
-                <CreateTournamentForm />
-              ) : (
-                <VStack gap={4} align="center" py={8}>
-                  <Text fontSize="lg" fontWeight="medium">
-                    Sign up to create tournaments
-                  </Text>
-                  <Text color="fg.muted" textAlign="center">
-                    Guest users can join tournaments, but only registered users
-                    can create them.
-                  </Text>
-                  <Button
-                    colorPalette="blue"
-                    onClick={() => navigate("/register")}
-                  >
-                    Create an Account
-                  </Button>
-                </VStack>
-              ))}
+            {activeTab === "createTournament" && (
+              <CreateTournamentForm isGuest={isGuest} />
+            )}
             {activeTab === "currentTournaments" && (
               <TournamentBrowser
                 statusFilter={["pending", "active"]}

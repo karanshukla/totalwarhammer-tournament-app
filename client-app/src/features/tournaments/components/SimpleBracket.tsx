@@ -9,16 +9,15 @@ import {
   DragEndEvent,
   DragStartEvent,
 } from "@dnd-kit/core";
-import { sortableKeyboardCoordinates } from "@dnd-kit/sortable"; // Removed arrayMove
+import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { Box, Button, Dialog, Portal, useDisclosure } from "@chakra-ui/react";
 import {
   Participant,
-  // Round, // Round type might not be directly needed here if rounds are only from store
-  FACTIONS, // FACTIONS needed for new participant default
+  FACTIONS,
   ParticipantList,
   TournamentBracket,
   ParticipantEditDialog,
-  Match, // Match type is used for finding match details
+  Match,
 } from "./bracket";
 import { toaster } from "@/shared/ui/Toaster";
 import { useTournamentStore } from "@/shared/stores/tournamentStore";
@@ -46,13 +45,13 @@ const SimpleBracket = () => {
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
-    })
+    }),
   );
 
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
     const draggedParticipant = storeParticipants.find(
-      (p) => p.id === active.id
+      (p) => p.id === active.id,
     );
     if (draggedParticipant) {
       setActiveParticipant(draggedParticipant);
@@ -89,12 +88,12 @@ const SimpleBracket = () => {
         }
       } else {
         console.error(
-          `Could not find match with id: ${matchId} from slotId: ${overId}`
+          `Could not find match with id: ${matchId} from slotId: ${overId}`,
         );
       }
     } else if (activeId !== overId) {
       const isActiveParticipant = storeParticipants.some(
-        (p) => p.id === activeId
+        (p) => p.id === activeId,
       );
       const isOverParticipant = storeParticipants.some((p) => p.id === overId);
       if (isActiveParticipant && isOverParticipant) {

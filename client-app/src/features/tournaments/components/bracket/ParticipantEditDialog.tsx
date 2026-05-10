@@ -8,7 +8,6 @@ import {
   chakra,
   Portal,
 } from "@chakra-ui/react";
-import { useColorModeValue } from "@/shared/ui/ColorMode";
 import { Participant, FACTIONS } from "./types";
 
 interface ParticipantEditDialogProps {
@@ -31,9 +30,9 @@ export function ParticipantEditDialog({
   onSave,
 }: ParticipantEditDialogProps) {
   const cancelRef = React.useRef<HTMLButtonElement>(null);
-  const bgColor = useColorModeValue("white", "gray.800");
-  const borderColor = useColorModeValue("gray.200", "gray.600");
-  const inputBgColor = useColorModeValue("white", "gray.900");
+  const bgColor = "bg.panel";
+  const borderColor = "border";
+  const inputBgColor = "bg";
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (participant) {
@@ -54,7 +53,7 @@ export function ParticipantEditDialog({
   };
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault(); // Prevent default form submission (page reload)
+    e.preventDefault();
     onSave();
   };
 

@@ -66,6 +66,8 @@ export const RegisterLogin = () => {
       const customEvent = event as CustomEvent;
       if (customEvent.detail?.type === "close-drawer") {
         drawer.close(overlayId);
+      } else if (customEvent.detail?.type === "open-drawer") {
+        handleClick();
       }
     };
 

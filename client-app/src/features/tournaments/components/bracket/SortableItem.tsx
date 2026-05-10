@@ -2,7 +2,6 @@ import React from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Box, Flex, Text } from "@chakra-ui/react";
-import { useColorModeValue } from "@/shared/ui/ColorMode";
 import { Participant } from "./types";
 
 interface SortableItemProps {
@@ -20,7 +19,7 @@ export function SortableItem({ id, participant }: SortableItemProps) {
     isDragging,
   } = useSortable({ id });
 
-  const hoverBg = useColorModeValue("gray.50", "gray.700");
+  const hoverBg = "bg.subtle";
 
   const style = {
     transform: CSS.Transform.toString(transform),

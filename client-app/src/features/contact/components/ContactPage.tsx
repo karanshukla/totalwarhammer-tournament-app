@@ -221,7 +221,7 @@ const ContactPage: React.FC = () => {
                   <Badge colorPalette="teal">Round Robin</Badge>
                 </HStack>
                 <Text fontSize="sm" color="fg.muted" mb={2}>
-                  Everyone plays everyone. Most comprehensive format — the
+                  Everyone plays everyone. Most comprehensive format - the
                   player with the best overall record wins.
                 </Text>
                 <VStack gap={1} alignItems="flex-start">
@@ -453,19 +453,19 @@ const ContactPage: React.FC = () => {
         <Section icon={<LuTrophy />} title="Frequently Asked Questions">
           <VStack gap={1} align="stretch">
             <FaqItem question="Can I change a result after it's been recorded?">
-              Yes — organisers can override any match result using the Override
+              Yes - organisers can override any match result using the Override
               button on a completed match card. An optional reason can be logged
               for transparency.
             </FaqItem>
             <Separator />
             <FaqItem question="What happens if a player doesn't report their result?">
               The organiser can record the result directly on behalf of both
-              players at any time. Players reporting results is optional — the
+              players at any time. Players reporting results is optional - the
               organiser always has full control.
             </FaqItem>
             <Separator />
             <FaqItem question="Can I add more players after the tournament starts?">
-              No — the participant roster is locked once a tournament is
+              No - the participant roster is locked once a tournament is
               started. Make sure all players are added before clicking Start.
             </FaqItem>
             <Separator />
@@ -484,7 +484,7 @@ const ContactPage: React.FC = () => {
             <FaqItem question="What does the Grand Final bracket reset mean in Double Elimination?">
               In Double Elimination, the Winners bracket finalist enters the
               Grand Final undefeated. If the Losers bracket finalist wins, both
-              players now have one loss each — so a reset match is played to
+              players now have one loss each - so a reset match is played to
               determine the true champion.
             </FaqItem>
             <Separator />

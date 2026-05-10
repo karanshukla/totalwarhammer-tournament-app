@@ -30,13 +30,9 @@ export function MatchParticipantSlot({
       ref={setNodeRef}
       borderWidth="1px"
       borderRadius="md"
-      borderColor={isOver ? "blue.300" : "gray.200"}
+      borderColor={isOver ? "blue.emphasized" : "border"}
       p={1}
-      bg={isOver ? "blue.50" : "white"}
-      _dark={{
-        borderColor: isOver ? "blue.500" : "gray.600",
-        bg: isOver ? "blue.900" : "gray.800",
-      }}
+      bg={isOver ? "blue.subtle" : "bg.panel"}
       width="100%"
       height="32px"
       transition="all 0.2s"

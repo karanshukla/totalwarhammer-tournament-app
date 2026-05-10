@@ -18,12 +18,11 @@ import {
   LuSwords,
   LuShield,
   LuUsers,
-  LuChartBar,
   LuClock,
   LuCircleCheck,
 } from "react-icons/lu";
 import { httpClient } from "@/core/api/httpClient";
-import { useColorModeValue } from "@/shared/ui/ColorMode";
+import { displayName as dn } from "@/shared/utils/displayName";
 
 interface TopPlayer {
   name: string;
@@ -40,6 +39,14 @@ interface TopCreator {
   username: string;
   tournamentsCreated: number;
   completed: number;
+}
+
+interface RecentWinner {
+  tournamentName: string;
+  tournamentType: string;
+  winnerName: string;
+  winnerFaction: string;
+  completedAt: string;
 }
 
 interface RecentTournament {
@@ -70,6 +77,7 @@ interface Stats {
   topFactions: TopFaction[];
   topCreators: TopCreator[];
   recentTournaments: RecentTournament[];
+  recentWinners: RecentWinner[];
 }
 
 interface StatCardProps {
@@ -87,7 +95,7 @@ const StatCard: React.FC<StatCardProps> = ({
   colorPalette = "blue",
   sub,
 }) => {
-  const bg = useColorModeValue("white", "gray.800");
+  const bg = "bg.panel";
   return (
     <Card.Root bg={bg}>
       <Card.Body>
@@ -125,8 +133,8 @@ const StatisticsPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const cardBg = useColorModeValue("white", "gray.800");
-  const barBg = useColorModeValue("gray.100", "gray.700");
+  const cardBg = "bg.panel";
+  const barBg = "bg.muted";
 
   useEffect(() => {
     const load = async () => {
@@ -346,60 +354,73 @@ const StatisticsPage: React.FC = () => {
             </Card.Body>
           </Card.Root>
 
-          {/* Tournament Breakdown */}
+          {/* Recent Tournament Winners */}
           <Card.Root bg={cardBg}>
             <Card.Header>
               <HStack gap={2}>
-                <Box color="purple.fg">
-                  <LuChartBar />
+                <Box color="yellow.fg">
+                  <LuTrophy />
                 </Box>
-                <Heading size="md">Tournament Breakdown</Heading>
+                <Heading size="md">Recent Tournament Winners</Heading>
               </HStack>
+              <Text fontSize="xs" color="fg.muted">
+                Last 7 days
+              </Text>
             </Card.Header>
             <Card.Body>
-              <VStack gap={3} alignItems="stretch">
-                {(
-                  [
-                    {
-                      label: "Pending (open)",
-                      value: stats.tournaments.pending,
-                      color: "yellow",
-                    },
-                    {
-                      label: "Active (ongoing)",
-                      value: stats.tournaments.active,
-                      color: "green",
-                    },
-                    {
-                      label: "Completed",
-                      value: stats.tournaments.completed,
-                      color: "gray",
-                    },
-                  ] as const
-                ).map(({ label, value, color }) => (
-                  <HStack key={label} justifyContent="space-between">
-                    <HStack gap={2}>
-                      <Box
-                        w={3}
-                        h={3}
-                        borderRadius="full"
-                        bg={`${color}.solid`}
-                      />
-                      <Text fontSize="sm">{label}</Text>
-                    </HStack>
-                    <Badge colorPalette={color} variant="subtle">
-                      {value}
-                    </Badge>
-                  </HStack>
-                ))}
-                <Separator />
-                <HStack justifyContent="space-between">
-                  <Text fontSize="sm" fontWeight="medium">
-                    Total
-                  </Text>
-                  <Badge variant="subtle">{stats.tournaments.total}</Badge>
-                </HStack>
-              </VStack>
+              {stats.recentWinners.length === 0 ? (
+                <Text fontSize="sm" color="fg.muted" fontStyle="italic">
+                  No tournaments completed in the last 7 days.
+                </Text>
+              ) : (
+                <VStack gap={3} alignItems="stretch">
+                  <For each={stats.recentWinners}>
+                    {(w, i) => (
+                      <Box key={i}>
+                        {i > 0 && <Separator mb={3} />}
+                        <HStack
+                          justifyContent="space-between"
+                          wrap="wrap"
+                          gap={2}
+                        >
+                          <VStack align="start" gap={0}>
+                            <Text
+                              fontSize="sm"
+                              fontWeight="semibold"
+                              lineClamp={1}
+                            >
+                              {w.tournamentName}
+                            </Text>
+                            <Text fontSize="xs" color="fg.muted">
+                              {w.tournamentType}
+                            </Text>
+                          </VStack>
+                          <VStack align="end" gap={0}>
+                            <HStack gap={1}>
+                              <LuTrophy
+                                size={12}
+                                color="var(--chakra-colors-yellow-500)"
+                              />
+                              <Text fontSize="sm" fontWeight="bold">
+                                {dn(w.winnerName)}
+                              </Text>
+                            </HStack>
+                            {w.winnerFaction && (
+                              <Badge
+                                size="sm"
+                                variant="subtle"
+                                colorPalette="gray"
+                              >
+                                {w.winnerFaction}
+                              </Badge>
+                            )}
+                          </VStack>
+                        </HStack>
+                      </Box>
+                    )}
+                  </For>
+                </VStack>
+              )}
             </Card.Body>
           </Card.Root>
 
