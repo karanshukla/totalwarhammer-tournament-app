@@ -68,7 +68,9 @@ describe("match-controller", () => {
       mockMatchFind.mock.mockImplementation(() => ({
         sort: mock.fn(async () => matches),
       }));
-      const req = mockReq({ params: { tournamentId: "t1" } });
+      const req = mockReq({
+        params: { tournamentId: "aaaaaaaaaaaaaaaaaaaaaaaa" },
+      });
       const res = mockRes();
       await getMatchesByTournament(req, res);
       assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
