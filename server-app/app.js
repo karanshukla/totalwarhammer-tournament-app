@@ -29,6 +29,9 @@ const app = express();
 // Trust proxy if running behind one (common in staging/production)
 app.set("trust proxy", 1);
 
+// Health check — must be before all middleware so it always responds
+app.get("/health", (_req, res) => res.status(200).send("OK"));
+
 // Connect to database
 connectToDatabase();
 
