@@ -1,7 +1,6 @@
 :80 {
-    # Backend API routes — handled exclusively, no fallthrough to file_server
     handle /user* {
-        reverse_proxy {$SERVER_URL:server:3000} {
+        reverse_proxy {$SERVER_URL} {
             header_up Host {upstream_hostport}
             header_up X-Real-IP {remote_host}
             header_up X-Forwarded-For {remote_host}
@@ -9,7 +8,7 @@
         }
     }
     handle /auth* {
-        reverse_proxy {$SERVER_URL:server:3000} {
+        reverse_proxy {$SERVER_URL} {
             header_up Host {upstream_hostport}
             header_up X-Real-IP {remote_host}
             header_up X-Forwarded-For {remote_host}
@@ -17,7 +16,7 @@
         }
     }
     handle /guest* {
-        reverse_proxy {$SERVER_URL:server:3000} {
+        reverse_proxy {$SERVER_URL} {
             header_up Host {upstream_hostport}
             header_up X-Real-IP {remote_host}
             header_up X-Forwarded-For {remote_host}
@@ -25,7 +24,7 @@
         }
     }
     handle /password-reset* {
-        reverse_proxy {$SERVER_URL:server:3000} {
+        reverse_proxy {$SERVER_URL} {
             header_up Host {upstream_hostport}
             header_up X-Real-IP {remote_host}
             header_up X-Forwarded-For {remote_host}
@@ -33,7 +32,7 @@
         }
     }
     handle /tournament* {
-        reverse_proxy {$SERVER_URL:server:3000} {
+        reverse_proxy {$SERVER_URL} {
             header_up Host {upstream_hostport}
             header_up X-Real-IP {remote_host}
             header_up X-Forwarded-For {remote_host}
@@ -41,7 +40,7 @@
         }
     }
     handle /match* {
-        reverse_proxy {$SERVER_URL:server:3000} {
+        reverse_proxy {$SERVER_URL} {
             header_up Host {upstream_hostport}
             header_up X-Real-IP {remote_host}
             header_up X-Forwarded-For {remote_host}
@@ -49,7 +48,7 @@
         }
     }
     handle /stats* {
-        reverse_proxy {$SERVER_URL:server:3000} {
+        reverse_proxy {$SERVER_URL} {
             header_up Host {upstream_hostport}
             header_up X-Real-IP {remote_host}
             header_up X-Forwarded-For {remote_host}
@@ -57,10 +56,12 @@
         }
     }
 
-    # Everything else — serve static files with SPA fallback
     handle {
-        root * /srv
-        try_files {path} /index.html
-        file_server
+        reverse_proxy {$CLIENT_URL} {
+            header_up Host {upstream_hostport}
+            header_up X-Real-IP {remote_host}
+            header_up X-Forwarded-For {remote_host}
+            header_up X-Forwarded-Proto {scheme}
+        }
     }
 }
