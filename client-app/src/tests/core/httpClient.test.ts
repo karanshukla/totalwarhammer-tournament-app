@@ -7,7 +7,7 @@ const mockFetch = vi.fn();
 vi.stubGlobal("fetch", mockFetch);
 
 describe("HttpClient", () => {
-  const baseUrl = apiConfig.baseUrl;
+  const baseUrl = apiConfig.baseUrl || "http://localhost:3000";
 
   beforeEach(() => {
     // Reset mocks before each test
