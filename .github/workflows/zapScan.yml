@@ -6,13 +6,13 @@ on:
     paths:
       - "server-app/**"
       - "docker-compose.yml"
-      - "server-app/Dockerfile"
+      - "server-app/local-dev.Dockerfile"
   pull_request:
     branches: ["main"]
     paths:
       - "server-app/**"
       - "docker-compose.yml"
-      - "server-app/Dockerfile"
+      - "server-app/local-dev.Dockerfile"
 
 permissions:
   contents: read
