@@ -28,7 +28,6 @@ import {
   LuUserPlus,
   LuPlay,
   LuChevronsRight,
-  LuLogIn,
   LuEye,
 } from "react-icons/lu";
 import { useNavigate, Link } from "react-router-dom";
@@ -104,23 +103,24 @@ const HomePage: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useUserStore();
 
-  interface PendingTournament {
+  interface ActiveTournament {
     _id: string;
     name: string;
     tournamentType: string;
     playerCount: number;
     participants: { _id: string; name: string; faction: string }[];
   }
-  const [pendingTournaments, setPendingTournaments] = useState<
-    PendingTournament[]
+
+  const [activeTournaments, setActiveTournaments] = useState<
+    ActiveTournament[]
   >([]);
 
   useEffect(() => {
     httpClient
-      .get<{ success: boolean; data: PendingTournament[] }>(
-        "/tournament?status=pending",
+      .get<{ success: boolean; data: ActiveTournament[] }>(
+        "/tournament?status=active",
       )
-      .then((res) => setPendingTournaments(res.data ?? []))
+      .then((res) => setActiveTournaments(res.data ?? []))
       .catch(() => {});
   }, []);
 
@@ -260,119 +260,117 @@ const HomePage: React.FC = () => {
               </HStack>
             </Card.Title>
             <Card.Description>
-              Enter a tournament code to view an ongoing tournament
+              Enter a tournament code or select an ongoing tournament below
             </Card.Description>
           </Card.Header>
           <Card.Body>
-            <Field.Root invalid={!!codeError}>
-              <Field.Label>Tournament Code</Field.Label>
-              <Input
-                placeholder="e.g., ABC123"
-                value={code}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  setCode(e.target.value)
-                }
-                onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
-                  e.key === "Enter" && handleFindByCode()
-                }
-                fontFamily="mono"
-                textTransform="uppercase"
-                maxW="xs"
-              />
-              {codeError ? (
-                <Field.ErrorText>{codeError}</Field.ErrorText>
-              ) : (
-                <Field.HelperText>
-                  Enter the code provided by the tournament organizer
-                </Field.HelperText>
-              )}
-            </Field.Root>
-          </Card.Body>
-          <Card.Footer>
-            <Button
-              colorPalette="blue"
-              onClick={handleFindByCode}
-              loading={codeLoading}
-            >
-              View Tournament
-            </Button>
-          </Card.Footer>
-        </Card.Root>
+            <HStack align="start" gap={8}>
+              {/* Left: code input */}
+              <VStack align="stretch" gap={4} flexShrink={0}>
+                <Field.Root invalid={!!codeError}>
+                  <Field.Label>Tournament Code</Field.Label>
+                  <Input
+                    placeholder="e.g., ABC123"
+                    value={code}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setCode(e.target.value)
+                    }
+                    onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
+                      e.key === "Enter" && handleFindByCode()
+                    }
+                    fontFamily="mono"
+                    textTransform="uppercase"
+                    w="2xs"
+                  />
+                  {codeError ? (
+                    <Field.ErrorText>{codeError}</Field.ErrorText>
+                  ) : (
+                    <Field.HelperText>
+                      Enter the code provided by the tournament organizer
+                    </Field.HelperText>
+                  )}
+                </Field.Root>
+                <Button
+                  colorPalette="blue"
+                  onClick={handleFindByCode}
+                  loading={codeLoading}
+                  alignSelf="start"
+                >
+                  View Tournament
+                </Button>
+              </VStack>
 
-        {/* ── Open Tournaments ── */}
-        {pendingTournaments.length > 0 && (
-          <Box>
-            <HStack justify="space-between" align="baseline" mb={6}>
-              <Box>
-                <Heading as="h2" size="xl" mb={1}>
-                  Open Tournaments
-                </Heading>
-                <Text color="fg.muted">
-                  Tournaments currently accepting players
-                </Text>
-              </Box>
-              <Button variant="ghost" size="sm" asChild>
-                <Link to="/tournaments">
-                  View all <LuChevronsRight />
-                </Link>
-              </Button>
-            </HStack>
-            <SimpleGrid columns={{ base: 1, sm: 2, lg: 3 }} gap={4}>
-              {pendingTournaments.slice(0, 6).map((t) => {
-                const spotsLeft = t.playerCount - t.participants.length;
-                const isFull = spotsLeft <= 0;
-                return (
-                  <Card.Root key={t._id} variant="outline" bg="bg.panel">
-                    <Card.Body>
-                      <VStack align="start" gap={2}>
-                        <HStack justify="space-between" w="full">
-                          <Badge colorPalette="yellow" size="sm">
-                            Open
-                          </Badge>
-                          <Badge variant="outline" size="sm">
-                            {t.tournamentType}
-                          </Badge>
+              {/* Right: ongoing tournaments */}
+              {activeTournaments.length > 0 && (
+                <>
+                  <Separator
+                    orientation="vertical"
+                    h="auto"
+                    alignSelf="stretch"
+                  />
+                  <Box flex={1} minW={0}>
+                    <Text fontWeight="semibold" mb={3} fontSize="sm">
+                      Ongoing Tournaments
+                    </Text>
+                    <VStack align="stretch" gap={2}>
+                      {activeTournaments.slice(0, 6).map((t) => (
+                        <HStack
+                          key={t._id}
+                          justify="space-between"
+                          p={2}
+                          borderRadius="md"
+                          borderWidth="1px"
+                          borderColor="border.subtle"
+                          bg="bg.subtle"
+                        >
+                          <HStack gap={2} minW={0}>
+                            <Box
+                              p={1}
+                              borderRadius="sm"
+                              bg="blue.subtle"
+                              color="blue.fg"
+                              flexShrink={0}
+                            >
+                              <LuSwords size={12} />
+                            </Box>
+                            <VStack align="start" gap={0} minW={0}>
+                              <Text
+                                fontWeight="medium"
+                                fontSize="sm"
+                                lineClamp={1}
+                              >
+                                {t.name}
+                              </Text>
+                              <Text fontSize="xs" color="fg.muted">
+                                {t.tournamentType} &middot;{" "}
+                                {t.participants.length}/{t.playerCount} players
+                              </Text>
+                            </VStack>
+                          </HStack>
+                          <Button
+                            size="xs"
+                            variant="outline"
+                            flexShrink={0}
+                            onClick={() =>
+                              navigate(`/matches/spectate/${t._id}`)
+                            }
+                          >
+                            <LuEye /> View
+                          </Button>
                         </HStack>
-                        <Text fontWeight="semibold" fontSize="md" lineClamp={1}>
-                          {t.name}
-                        </Text>
-                        <Text
-                          fontSize="sm"
-                          color={isFull ? "red.fg" : "fg.muted"}
-                        >
-                          {isFull
-                            ? "Full"
-                            : `${spotsLeft} spot${spotsLeft !== 1 ? "s" : ""} remaining`}{" "}
-                          &middot; {t.participants.length}/{t.playerCount}{" "}
-                          joined
-                        </Text>
-                      </VStack>
-                    </Card.Body>
-                    <Card.Footer pt={0}>
-                      <HStack gap={2}>
-                        <Button
-                          size="sm"
-                          colorPalette="blue"
-                          disabled={isFull}
-                          onClick={() => navigate(`/tournament/${t._id}`)}
-                        >
-                          <LuLogIn /> Join
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => navigate(`/matches/spectate/${t._id}`)}
-                        >
-                          <LuEye /> View
-                        </Button>
-                      </HStack>
-                    </Card.Footer>
-                  </Card.Root>
-                );
-              })}
-            </SimpleGrid>
-          </Box>
-        )}
+                      ))}
+                    </VStack>
+                    {activeTournaments.length > 6 && (
+                      <Button variant="ghost" size="sm" mt={2} asChild>
+                        <Link to="/tournaments">View all tournaments</Link>
+                      </Button>
+                    )}
+                  </Box>
+                </>
+              )}
+            </HStack>
+          </Card.Body>
+        </Card.Root>
 
         {/* ── Tournament Formats ── */}
         <Box>

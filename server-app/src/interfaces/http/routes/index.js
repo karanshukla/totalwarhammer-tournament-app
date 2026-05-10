@@ -22,7 +22,6 @@ const corsOptions = {
 };
 
 router.use(cors(corsOptions));
-router.use(express.json());
 
 router.get("/", (req, res) => {
   res.redirect(clientUrl);

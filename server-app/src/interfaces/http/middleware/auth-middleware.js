@@ -28,7 +28,7 @@ const authenticateSession = (req, res, next) => {
 
     next();
   } catch (error) {
-    console.error("Session authentication failed:", error.message);
+    logger.error(`Session authentication failed: ${error.message}`);
     return res.status(500).json({
       success: false,
       message: "Internal server error during authentication",
@@ -53,13 +53,11 @@ const authenticateGuestSession = (req, res, next) => {
       headers: req.headers ? Object.keys(req.headers) : [],
     });
 
-    // Check if session exists
     if (!req.session) {
       logger.warn("Guest auth failed: No session object");
       return res.status(401).json({
         success: false,
         message: "Unauthorized: No session found",
-        debug: { cookies: req.headers.cookie ? "Present" : "None" },
       });
     }
 
@@ -76,7 +74,7 @@ const authenticateGuestSession = (req, res, next) => {
     // Fallback: Attempt to recover session if it might exist but user data is missing
     else if (req.session.id) {
       logger.warn(
-        "Attempting session recovery: Session exists but user data is missing"
+        "Attempting session recovery: Session exists but user data is missing",
       );
 
       // Create minimal user object based on session data
@@ -112,7 +110,6 @@ const authenticateGuestSession = (req, res, next) => {
       return res.status(401).json({
         success: false,
         message: "Unauthorized: No user data in session",
-        debug: { sessionId: req.session.id },
       });
     }
 
@@ -122,7 +119,6 @@ const authenticateGuestSession = (req, res, next) => {
     return res.status(500).json({
       success: false,
       message: "Error during guest authentication",
-      error: error.message,
     });
   }
 };
