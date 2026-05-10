@@ -54,9 +54,6 @@ const TournamentBrowser: React.FC<Props> = ({ statusFilter, emptyMessage }) => {
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [joiningId, setJoiningId] = useState<string | null>(null);
-  const [joinError, setJoinError] = useState<string | null>(null);
-  const [joinSuccess, setJoinSuccess] = useState<string | null>(null);
 
   const { user, isAuthenticated } = useUserStore();
   const navigate = useNavigate();
@@ -86,23 +83,6 @@ const TournamentBrowser: React.FC<Props> = ({ statusFilter, emptyMessage }) => {
   useEffect(() => {
     fetchTournaments();
   }, [fetchTournaments]);
-
-  const handleJoin = async (tournament: Tournament) => {
-    setJoiningId(tournament._id);
-    setJoinError(null);
-    setJoinSuccess(null);
-    try {
-      await httpClient.post(`/tournament/${tournament._id}/join`, {});
-      setJoinSuccess(`You have joined "${tournament.name}"!`);
-      await fetchTournaments();
-    } catch (err) {
-      setJoinError(
-        err instanceof Error ? err.message : "Failed to join tournament",
-      );
-    } finally {
-      setJoiningId(null);
-    }
-  };
 
   const isAlreadyJoined = (tournament: Tournament) => {
     const name = user?.username || user?.id;
@@ -134,29 +114,6 @@ const TournamentBrowser: React.FC<Props> = ({ statusFilter, emptyMessage }) => {
 
   return (
     <VStack gap={4} alignItems="stretch">
-      {joinError && (
-        <Box
-          p={3}
-          bg="red.subtle"
-          borderRadius="md"
-          borderWidth={1}
-          borderColor="red.muted"
-        >
-          <Text color="red.fg">{joinError}</Text>
-        </Box>
-      )}
-      {joinSuccess && (
-        <Box
-          p={3}
-          bg="green.subtle"
-          borderRadius="md"
-          borderWidth={1}
-          borderColor="green.muted"
-        >
-          <Text color="green.fg">{joinSuccess}</Text>
-        </Box>
-      )}
-
       {tournaments.length === 0 ? (
         <Text color="fg.muted" py={8} textAlign="center">
           {emptyMessage}
@@ -169,6 +126,7 @@ const TournamentBrowser: React.FC<Props> = ({ statusFilter, emptyMessage }) => {
               const full = t.participants.length >= t.playerCount;
               const canJoin =
                 isAuthenticated() && t.status === "pending" && !joined && !full;
+              const canView = t.status === "pending" && canJoin;
 
               return (
                 <Card.Root
@@ -246,13 +204,12 @@ const TournamentBrowser: React.FC<Props> = ({ statusFilter, emptyMessage }) => {
                         Full
                       </Badge>
                     )}
-                    {canJoin && (
+                    {canView && (
                       <Button
                         width="full"
                         colorPalette="blue"
                         size="sm"
-                        onClick={() => handleJoin(t)}
-                        loading={joiningId === t._id}
+                        onClick={() => navigate(`/tournament/${t._id}`)}
                       >
                         <LuLogIn />
                         Join Tournament
