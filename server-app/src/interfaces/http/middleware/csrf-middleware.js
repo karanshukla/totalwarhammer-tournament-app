@@ -1,6 +1,12 @@
 import { doubleCsrf } from "csrf-csrf";
 
-// Use a fixed secret in development for consistency
+import logger from "../../../infrastructure/utils/logger.js";
+
+if (process.env.NODE_ENV === "production" && !process.env.CSRF_SECRET) {
+  logger.error("CSRF_SECRET is not set in production environment");
+  process.exit(1);
+}
+
 const CSRF_SECRET =
   process.env.CSRF_SECRET ||
   "development-csrf-secret-key-for-testing-purposes-only";
@@ -11,7 +17,7 @@ const { doubleCsrfProtection, generateCsrfToken, invalidCsrfTokenError } =
     getSessionIdentifier: (req) => {
       const sessionId = req.session?.id;
       if (!sessionId) {
-        console.warn("CSRF Warning: No session ID found in request");
+        logger.warn("CSRF: No session ID found in request");
       }
       return sessionId;
     },
@@ -29,11 +35,7 @@ const { doubleCsrfProtection, generateCsrfToken, invalidCsrfTokenError } =
 
     // Get the CSRF token from request headers
     getCsrfTokenFromRequest: (req) => {
-      const token = req.headers["x-csrf-token"];
-      if (!token) {
-        console.warn("CSRF Warning: No X-CSRF-Token header found in request");
-      }
-      return token;
+      return req.headers["x-csrf-token"];
     },
 
     // Ignore specific methods that don't need CSRF protection
@@ -44,44 +46,29 @@ const { doubleCsrfProtection, generateCsrfToken, invalidCsrfTokenError } =
     ignoreCsrfSizeCheck: true,
   });
 
-// Middleware to check for missing CSRF prerequisites
 const csrfPrerequisiteCheck = (req, res, next) => {
-  // Ensure session is established
   if (!req.session) {
-    console.warn("CSRF Warning: No session object found in request");
+    logger.warn("CSRF: No session object found in request");
   }
-
   next();
 };
 
 // Enhanced error handling middleware for CSRF errors
 const csrfErrorHandler = (err, req, res, next) => {
   // Skip CSRF validation for preflight OPTIONS requests
-  if (req.method === 'OPTIONS') {
+  if (req.method === "OPTIONS") {
     return next();
   }
-  
-  if (err === invalidCsrfTokenError) {
-    console.error("CSRF Error:", {
-      method: req.method,
-      path: req.path,
-      origin: req.headers.origin,
-      sessionId: req.session?.id,
-      tokenHeader: req.headers["x-csrf-token"],
-      cookies: req.cookies,
-    });
 
+  if (err === invalidCsrfTokenError) {
+    logger.warn(`CSRF validation failed: ${req.method} ${req.path}`, {
+      origin: req.headers.origin,
+      hasSession: !!req.session?.id,
+      hasToken: !!req.headers["x-csrf-token"],
+    });
     return res.status(403).json({
-      error: "CSRF validation failed",
+      success: false,
       message: "Invalid or missing CSRF token",
-      debug:
-        process.env.NODE_ENV !== "production"
-          ? {
-              hasSession: !!req.session,
-              hasSessionId: !!req.session?.id,
-              hasToken: !!req.headers["x-csrf-token"],
-            }
-          : undefined,
     });
   }
   next(err);

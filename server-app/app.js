@@ -100,18 +100,52 @@ app.use(configureSessionMiddleware(SESSION_SECRET, isProduction));
 // Add CSRF prerequisite check to debug session issues
 app.use(csrfPrerequisiteCheck);
 
-// JSON and URL encoded middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// JSON and URL encoded middleware — limit body size to prevent payload flooding
+app.use(express.json({ limit: "50kb" }));
+app.use(express.urlencoded({ extended: true, limit: "50kb" }));
 app.use(express.static("public"));
 
-// Rate limiting middleware (relaxed for local development)
-const limiter = rateLimit({
-  windowMs: 60 * 60 * 1000, // 1 hour
-  max: 1000, // 1000 requests per hour
-  message: "Too many requests from this IP, please try again later.",
+// Global rate limiter — wide safety net
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 300,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: "Too many requests, please try again later.",
+  },
 });
-app.use(limiter);
+app.use(globalLimiter);
+
+// Tight limiter for authentication endpoints (login, register, token)
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: "Too many authentication attempts, please try again later.",
+  },
+});
+app.use("/user/login", authLimiter);
+app.use("/auth/login", authLimiter);
+app.use("/user/register", authLimiter);
+app.use("/auth/token", authLimiter);
+
+// Tight limiter for password reset (prevents email bombing)
+const passwordResetLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: "Too many password reset requests, please try again in an hour.",
+  },
+});
+app.use("/password-reset", passwordResetLimiter);
 
 // Debug middleware to log session and cookies
 app.use((req, res, next) => {

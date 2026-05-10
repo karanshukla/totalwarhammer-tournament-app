@@ -3,6 +3,7 @@ import bcrypt from "bcrypt";
 import Match from "../../../domain/models/match.js";
 import Tournament from "../../../domain/models/tournament.js";
 import User from "../../../domain/models/user.js";
+import logger from "../../../infrastructure/utils/logger.js";
 
 export const userExists = async (req, res) => {
   try {
@@ -143,7 +144,7 @@ export const updateGuestUsername = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Error updating guest username:", error);
+    logger.error(`Error updating guest username: ${error.message}`);
     res.status(500).json({
       success: false,
       message: "Failed to update username",
@@ -210,7 +211,7 @@ export const updateUsername = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Error updating username:", error);
+    logger.error(`Error updating username: ${error.message}`);
     res.status(500).json({
       success: false,
       message: "Failed to update username",
@@ -252,7 +253,7 @@ export const deleteAccount = async (req, res) => {
       .status(200)
       .json({ success: true, message: "Account deleted successfully" });
   } catch (error) {
-    console.error("Error deleting account:", error);
+    logger.error(`Error deleting account: ${error.message}`);
     return res.status(500).json({
       success: false,
       message: "Failed to delete account",
@@ -352,7 +353,7 @@ export const updatePassword = async (req, res) => {
       message: "Password updated successfully",
     });
   } catch (error) {
-    console.error("Error updating password:", error);
+    logger.error(`Error updating password: ${error.message}`);
     res.status(500).json({
       success: false,
       message: "Failed to update password",
