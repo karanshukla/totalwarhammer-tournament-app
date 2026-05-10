@@ -5,14 +5,20 @@ on:
     branches: ["main"]
     paths:
       - "server-app/**"
+      - "client-app/**"
       - "docker-compose.yml"
       - "server-app/local-dev.Dockerfile"
+      - "client-app/local-dev.Dockerfile"
+      - "client-app/Caddyfile.local"
   pull_request:
     branches: ["main"]
     paths:
       - "server-app/**"
+      - "client-app/**"
       - "docker-compose.yml"
       - "server-app/local-dev.Dockerfile"
+      - "client-app/local-dev.Dockerfile"
+      - "client-app/Caddyfile.local"
 
 permissions:
   contents: read
