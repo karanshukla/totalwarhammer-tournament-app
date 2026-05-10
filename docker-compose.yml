@@ -19,7 +19,7 @@ services:
   server:
     build:
       context: ./server-app
-      dockerfile: Dockerfile.local
+      dockerfile: local-dev.Dockerfile
     restart: unless-stopped
     depends_on:
       - mongo
@@ -45,7 +45,7 @@ services:
   client:
     build:
       context: ./client-app
-      dockerfile: Dockerfile.local
+      dockerfile: local-dev.Dockerfile
       args:
         VITE_API_URL: ""
     restart: unless-stopped
