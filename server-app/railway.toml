@@ -1,0 +1,10 @@
+# Railway Configuration for Server
+# This file tells Railway to use Railpack (the new native builder) instead of the Dockerfile.
+
+[build]
+builder = "RAILPACK"
+
+[deploy]
+startCommand = "npm run start"
+healthcheckPath = "/"
+healthcheckTimeout = 100
