@@ -44,8 +44,8 @@ services:
 
   client:
     build:
-      context: ./client-app
-      dockerfile: Dockerfile.local
+      context: .
+      dockerfile: client-app/Dockerfile.local
       args:
         VITE_API_URL: ""
     restart: unless-stopped
