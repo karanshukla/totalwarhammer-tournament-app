@@ -12,4 +12,4 @@ builder = "RAILPACK"
 # startCommand = "npm run start --workspace=server-app"
 #
 # For the Client service:
-# startCommand = "npm run build --workspace=client-app && npm run preview --workspace=client-app"
+# startCommand = "npm run preview --workspace=client-app"
