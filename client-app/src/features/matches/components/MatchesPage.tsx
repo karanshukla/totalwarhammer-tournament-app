@@ -1009,6 +1009,7 @@ const MatchesPage: React.FC = () => {
                       color="fg"
                       p={2}
                     >
+                      <option value="">No Faction</option>
                       {warhammer3Factions
                         .filter((f) => !selected.bannedFactions.includes(f))
                         .map((f) => (
