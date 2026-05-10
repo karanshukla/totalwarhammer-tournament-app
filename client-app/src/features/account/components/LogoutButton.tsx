@@ -2,11 +2,10 @@ import React from "react";
 import { Button } from "@chakra-ui/react";
 import { logoutUser } from "@/features/authentication/api/authenticationApi";
 import { useNavigate } from "react-router-dom";
-import { set } from "react-hook-form";
 
 interface LogoutButtonProps {
-  variant?: string;
-  size?: string;
+  variant?: "outline" | "solid" | "subtle" | "surface" | "ghost" | "plain";
+  size?: "sm" | "md" | "lg" | "xl" | "2xl" | "2xs" | "xs";
 }
 
 const LogoutButton: React.FC<LogoutButtonProps> = ({ variant, size }) => {

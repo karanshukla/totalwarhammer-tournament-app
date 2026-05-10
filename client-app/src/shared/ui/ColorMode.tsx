@@ -8,7 +8,7 @@ import { LuMoon, LuSun } from "react-icons/lu";
 import { JSX } from "react/jsx-runtime";
 
 export function ColorModeProvider(
-  props: JSX.IntrinsicAttributes & ThemeProviderProps
+  props: JSX.IntrinsicAttributes & ThemeProviderProps,
 ) {
   return (
     <ThemeProvider attribute="class" disableTransitionOnChange {...props} />
@@ -39,7 +39,7 @@ export function ColorModeIcon() {
 
 export const ColorModeButton = React.forwardRef(function ColorModeButton(
   props: React.ComponentPropsWithoutRef<typeof IconButton>,
-  ref: React.Ref<HTMLButtonElement>
+  ref: React.Ref<HTMLButtonElement>,
 ) {
   const { toggleColorMode } = useColorMode();
   return (
@@ -66,7 +66,7 @@ export const ColorModeButton = React.forwardRef(function ColorModeButton(
 
 export const LightMode = React.forwardRef(function LightMode(
   props: React.ComponentPropsWithoutRef<typeof Span>,
-  ref: React.Ref<HTMLSpanElement>
+  ref: React.Ref<HTMLSpanElement>,
 ) {
   return (
     <Span
@@ -83,7 +83,7 @@ export const LightMode = React.forwardRef(function LightMode(
 
 export const DarkMode = React.forwardRef(function DarkMode(
   props: React.ComponentPropsWithoutRef<typeof Span>,
-  ref: React.Ref<HTMLSpanElement>
+  ref: React.Ref<HTMLSpanElement>,
 ) {
   return (
     <Span

@@ -27,7 +27,7 @@ class JwtService {
     const expiresIn = this.tokenExpiration[tokenType] || this.defaultExpiresIn;
     if (!expiresIn) {
       throw new Error(
-        `No expiration time defined for token type: ${tokenType}`
+        `No expiration time defined for token type: ${tokenType}`,
       );
     }
     const enhancedPayload = {

@@ -2,6 +2,7 @@ import js from "@eslint/js";
 import prettier from "eslint-config-prettier";
 import * as importPlugin from "eslint-plugin-import";
 import node from "eslint-plugin-node";
+import prettierPlugin from "eslint-plugin-prettier";
 
 export default [
   js.configs.recommended,
@@ -16,8 +17,10 @@ export default [
     plugins: {
       node,
       import: importPlugin,
+      prettier: prettierPlugin,
     },
     rules: {
+      "prettier/prettier": "warn",
       "node/file-extension-in-import": ["error", "always"],
       "no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
       "import/order": [

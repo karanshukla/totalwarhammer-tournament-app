@@ -108,6 +108,7 @@ const HomePage: React.FC = () => {
     name: string;
     tournamentType: string;
     playerCount: number;
+    status: "pending" | "active";
     participants: { _id: string; name: string; faction: string }[];
   }
 
@@ -118,7 +119,7 @@ const HomePage: React.FC = () => {
   useEffect(() => {
     httpClient
       .get<{ success: boolean; data: ActiveTournament[] }>(
-        "/tournament?status=active",
+        "/tournament?status=active,pending",
       )
       .then((res) => setActiveTournaments(res.data ?? []))
       .catch(() => {});
@@ -310,7 +311,7 @@ const HomePage: React.FC = () => {
                   />
                   <Box flex={1} minW={0}>
                     <Text fontWeight="semibold" mb={3} fontSize="sm">
-                      Ongoing Tournaments
+                      Tournaments
                     </Text>
                     <VStack align="stretch" gap={2}>
                       {activeTournaments.slice(0, 6).map((t) => (
@@ -334,13 +335,26 @@ const HomePage: React.FC = () => {
                               <LuSwords size={12} />
                             </Box>
                             <VStack align="start" gap={0} minW={0}>
-                              <Text
-                                fontWeight="medium"
-                                fontSize="sm"
-                                lineClamp={1}
-                              >
-                                {t.name}
-                              </Text>
+                              <HStack gap={1.5}>
+                                <Text
+                                  fontWeight="medium"
+                                  fontSize="sm"
+                                  lineClamp={1}
+                                >
+                                  {t.name}
+                                </Text>
+                                <Badge
+                                  size="xs"
+                                  colorPalette={
+                                    t.status === "pending" ? "yellow" : "green"
+                                  }
+                                  flexShrink={0}
+                                >
+                                  {t.status === "pending"
+                                    ? "Pending"
+                                    : "Active"}
+                                </Badge>
+                              </HStack>
                               <Text fontSize="xs" color="fg.muted">
                                 {t.tournamentType} &middot;{" "}
                                 {t.participants.length}/{t.playerCount} players

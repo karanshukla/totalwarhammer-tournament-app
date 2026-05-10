@@ -56,7 +56,7 @@ const TournamentsPage: React.FC = () => {
         content: "Check past tournaments",
       },
     ],
-    [], // eslint-disable-line react-hooks/exhaustive-deps
+    [],
   );
 
   const activeBg = "blue.subtle";

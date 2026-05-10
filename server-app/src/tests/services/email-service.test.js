@@ -55,7 +55,7 @@ describe("EmailService", () => {
   it("should throw when subject is missing", async () => {
     await assert.rejects(
       async () => await emailService.sendEmail({ html: "<p>Test</p>" }),
-      { message: "Email subject is required" }
+      { message: "Email subject is required" },
     );
 
     assert.equal(mockSendFn.mock.callCount(), 0);
@@ -64,7 +64,7 @@ describe("EmailService", () => {
   it("should throw when html content is missing", async () => {
     await assert.rejects(
       async () => await emailService.sendEmail({ subject: "Test" }),
-      { message: "Email must have text or HTML content" }
+      { message: "Email must have text or HTML content" },
     );
 
     assert.equal(mockSendFn.mock.callCount(), 0);

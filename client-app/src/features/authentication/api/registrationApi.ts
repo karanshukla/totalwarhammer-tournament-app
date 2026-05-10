@@ -21,12 +21,12 @@ export interface RegistrationResponse {
 }
 
 export const registerUser = async (
-  data: RegistrationData
+  data: RegistrationData,
 ): Promise<RegistrationResponse> => {
   try {
     const responseData = await httpClient.post<RegistrationResponse>(
       apiConfig.endpoints.register,
-      data
+      data,
     );
 
     toaster.create({

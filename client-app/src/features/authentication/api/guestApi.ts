@@ -19,7 +19,7 @@ export const createGuestUser = async (): Promise<GuestUserResponse> => {
   try {
     const responseData = await httpClient.post<GuestUserResponse>(
       apiConfig.endpoints.guest,
-      {}
+      {},
     );
 
     if (responseData.success && responseData.data) {
@@ -62,12 +62,12 @@ export const createGuestUser = async (): Promise<GuestUserResponse> => {
 };
 
 export const updateGuestUsername = async (
-  username: string
+  username: string,
 ): Promise<GuestUserResponse> => {
   try {
     const responseData = await httpClient.post<GuestUserResponse>(
       apiConfig.endpoints.guestUpdateUsername,
-      { username }
+      { username },
     );
 
     if (responseData.success && responseData.data) {

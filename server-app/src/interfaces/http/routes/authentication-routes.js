@@ -41,7 +41,7 @@ router.post(
   "/login",
   validateLogin,
   validationHandler,
-  authenticationController.login
+  authenticationController.login,
 );
 
 router.post("/logout", authenticationController.logout);
@@ -51,7 +51,7 @@ router.post(
   "/token",
   validateToken,
   validationHandler,
-  authenticationController.token
+  authenticationController.token,
 );
 
 export default router;

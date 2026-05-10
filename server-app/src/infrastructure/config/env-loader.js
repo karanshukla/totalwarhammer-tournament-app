@@ -19,12 +19,12 @@ const isProduction = process.env.NODE_ENV === "production";
 if (result.error) {
   if (isProduction) {
     console.log(
-      "Running in production mode. No .env file found, but this is expected if environment variables are set directly by the platform."
+      "Running in production mode. No .env file found, but this is expected if environment variables are set directly by the platform.",
     );
   } else {
     console.warn("Warning: .env file not found at path:", envPath);
     console.log(
-      "This is fine if you've set environment variables another way."
+      "This is fine if you've set environment variables another way.",
     );
     console.log("Current working directory:", process.cwd());
   }

@@ -50,7 +50,7 @@ export const loginUser = async (data: LoginData): Promise<LoginResponse> => {
         codeChallenge,
         codeChallengeMethod: "S256",
         state,
-      }
+      },
     );
 
     if (responseData.success) {
@@ -69,7 +69,7 @@ export const loginUser = async (data: LoginData): Promise<LoginResponse> => {
 
         const tokenResponse = await exchangeCodeForToken(
           responseData.data.authorizationCode,
-          codeVerifier
+          codeVerifier,
         );
 
         responseData.data = {

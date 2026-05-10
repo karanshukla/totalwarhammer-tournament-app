@@ -13,7 +13,11 @@
     "install:server": "npm install --workspace=server-app",
     "dev:client": "npm run dev --workspace=client-app",
     "dev:server": "npm run dev --workspace=server-app",
-    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\""
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "lint": "npm run lint --workspace=client-app && npm run lint --workspace=server-app",
+    "lint:fix": "npm run lint:fix --workspace=client-app && npm run lint:fix --workspace=server-app",
+    "format": "npm run format --workspace=client-app && npm run format --workspace=server-app",
+    "format:check": "npm run format:check --workspace=client-app && npm run format:check --workspace=server-app"
   },
   "devDependencies": {
     "concurrently": "^9.1.2",

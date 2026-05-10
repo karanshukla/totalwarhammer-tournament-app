@@ -134,7 +134,7 @@ const getRoundSortKey = (title: string): number => {
 
 const sortRounds = (rounds: Round[]): Round[] => {
   return [...rounds].sort(
-    (a, b) => getRoundSortKey(a.title) - getRoundSortKey(b.title)
+    (a, b) => getRoundSortKey(a.title) - getRoundSortKey(b.title),
   );
 };
 
@@ -172,7 +172,7 @@ interface TournamentState {
   updateMatchParticipant: (
     matchId: string,
     position: "participant1Id" | "participant2Id",
-    participantId: string | null
+    participantId: string | null,
   ) => void;
 
   resetBracket: () => void;
@@ -212,7 +212,7 @@ export const useTournamentStore = create<TournamentState>()(
       updateParticipant: (updatedParticipant) =>
         set((state) => ({
           participants: state.participants.map((p) =>
-            p.id === updatedParticipant.id ? updatedParticipant : p
+            p.id === updatedParticipant.id ? updatedParticipant : p,
           ),
           lastUpdated: new Date().toISOString(),
         })),
@@ -220,7 +220,7 @@ export const useTournamentStore = create<TournamentState>()(
       deleteParticipant: (participantId) =>
         set((state) => {
           const newParticipants = state.participants.filter(
-            (p) => p.id !== participantId
+            (p) => p.id !== participantId,
           );
           const newRounds = state.rounds.map((round) => ({
             ...round,
@@ -248,7 +248,7 @@ export const useTournamentStore = create<TournamentState>()(
       reorderParticipants: (activeId, overId) =>
         set((state) => {
           const oldIndex = state.participants.findIndex(
-            (p) => p.id === activeId
+            (p) => p.id === activeId,
           );
           const newIndex = state.participants.findIndex((p) => p.id === overId);
           if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
@@ -329,7 +329,7 @@ export const useTournamentStore = create<TournamentState>()(
           // or further logic could be added to remove empty non-essential rounds.
           // state.rounds is already sorted
           const renumberedRounds = renumberAllMatchTitlesGlobally(
-            roundsWithMatchRemoved
+            roundsWithMatchRemoved,
           );
           return {
             rounds: renumberedRounds,
@@ -379,6 +379,6 @@ export const useTournamentStore = create<TournamentState>()(
       name: "tournament-storage",
       storage: createJSONStorage(() => localStorage),
       // Consider partializing if some state shouldn't be persisted or needs migration
-    }
-  )
+    },
+  ),
 );

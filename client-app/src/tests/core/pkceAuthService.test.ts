@@ -55,7 +55,7 @@ describe("PKCEAuthService", () => {
         code_challenge: "test_challenge",
       };
       (pkceChallenge as unknown as ReturnType<typeof vi.fn>).mockResolvedValue(
-        mockPkceResult
+        mockPkceResult,
       );
 
       // Call the method
@@ -68,11 +68,11 @@ describe("PKCEAuthService", () => {
       expect(sessionStorageMock.setItem).toHaveBeenCalledTimes(2);
       expect(sessionStorageMock.setItem).toHaveBeenCalledWith(
         "pkce_code_verifier",
-        "test_verifier"
+        "test_verifier",
       );
       expect(sessionStorageMock.setItem).toHaveBeenCalledWith(
         "pkce_auth_state",
-        expect.any(String)
+        expect.any(String),
       );
 
       // Verify correct values returned
@@ -93,10 +93,10 @@ describe("PKCEAuthService", () => {
 
       // Verify session storage interactions
       expect(sessionStorageMock.getItem).toHaveBeenCalledWith(
-        "pkce_code_verifier"
+        "pkce_code_verifier",
       );
       expect(sessionStorageMock.removeItem).toHaveBeenCalledWith(
-        "pkce_code_verifier"
+        "pkce_code_verifier",
       );
       expect(result).toBe("stored_verifier");
     });
@@ -120,10 +120,10 @@ describe("PKCEAuthService", () => {
 
       // Verify
       expect(sessionStorageMock.getItem).toHaveBeenCalledWith(
-        "pkce_auth_state"
+        "pkce_auth_state",
       );
       expect(sessionStorageMock.removeItem).toHaveBeenCalledWith(
-        "pkce_auth_state"
+        "pkce_auth_state",
       );
       expect(result).toBe(true);
     });
@@ -161,12 +161,12 @@ describe("PKCEAuthService", () => {
 
       // Verify crypto.getRandomValues was called with a Uint8Array
       expect(mockCrypto.getRandomValues).toHaveBeenCalledWith(
-        expect.any(Uint8Array)
+        expect.any(Uint8Array),
       );
 
       // With our mock implementation, we should be able to predict the state value
       const expectedStateArray = Array.from(new Uint8Array(32), (_, i) =>
-        (i % 256).toString(16).padStart(2, "0")
+        (i % 256).toString(16).padStart(2, "0"),
       ).join("");
       expect(result.state).toBe(expectedStateArray);
     });

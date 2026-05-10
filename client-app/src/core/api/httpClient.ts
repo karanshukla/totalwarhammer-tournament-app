@@ -25,7 +25,8 @@ class HttpClient {
     sessionId: string | null;
   }> {
     try {
-      const response = await fetch(`${this.baseUrl}/auth/csrf-token`, {
+      const base = this.baseUrl || window.location.origin;
+      const response = await fetch(`${base}/auth/csrf-token`, {
         method: "GET",
         credentials: "include",
         cache: "no-cache",
@@ -57,7 +58,8 @@ class HttpClient {
       return this.tokenPromise;
     }
     this.tokenPromise = new Promise<string | null>((resolve) => {
-      fetch(`${this.baseUrl}/auth/csrf-token`, {
+      const base = this.baseUrl || window.location.origin;
+      fetch(`${base}/auth/csrf-token`, {
         method: "GET",
         credentials: "include",
         cache: "no-cache",
@@ -393,7 +395,8 @@ class HttpClient {
   }
 
   private buildUrl(endpoint: string, params?: Record<string, string>): string {
-    const url = new URL(`${this.baseUrl}${endpoint}`);
+    const base = this.baseUrl || window.location.origin;
+    const url = new URL(`${base}${endpoint}`);
 
     if (params) {
       Object.entries(params).forEach(([key, value]) => {

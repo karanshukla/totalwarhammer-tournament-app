@@ -9,6 +9,8 @@
     "dev": "nodemon app.js",
     "lint": "eslint . --ext .js",
     "lint:fix": "eslint . --ext .js --fix",
+    "format": "prettier --write \"src/**/*.js\" \"app.js\"",
+    "format:check": "prettier --check \"src/**/*.js\" \"app.js\"",
     "test": "node --experimental-vm-modules --experimental-test-module-mocks --test",
     "test:watch": "node --experimental-vm-modules --experimental-test-module-mocks --test --watch"
   },
@@ -43,6 +45,7 @@
     "eslint": "^9.26.0",
     "eslint-config-prettier": "^10.1.2",
     "eslint-plugin-import": "^2.31.0",
+    "eslint-plugin-prettier": "^5.4.0",
     "eslint-plugin-node": "^11.1.0",
     "globals": "^16.0.0",
     "nodemon": "^3.1.10",

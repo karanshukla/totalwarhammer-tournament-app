@@ -14,7 +14,7 @@ function renderLoginForm() {
   return render(
     <ChakraProvider value={defaultSystem}>
       <LoginForm />
-    </ChakraProvider>
+    </ChakraProvider>,
   );
 }
 
@@ -34,18 +34,25 @@ describe("LoginForm", () => {
     renderLoginForm();
     const loginButton = screen.getByRole("button", { name: /Login/i });
     const form = loginButton.closest("form")!;
-    
+
     // Trigger submission
     fireEvent.submit(form);
 
-    await waitFor(() => {
-      expect(screen.getByText("Email Address is required")).toBeInTheDocument();
-      expect(screen.getByText("Password is required")).toBeInTheDocument();
-    }, { timeout: 2000 });
+    await waitFor(
+      () => {
+        expect(
+          screen.getByText("Email Address is required"),
+        ).toBeInTheDocument();
+        expect(screen.getByText("Password is required")).toBeInTheDocument();
+      },
+      { timeout: 2000 },
+    );
   });
 
   it("calls loginUser with form data on successful submit", async () => {
-    vi.mocked(authApi.loginUser).mockResolvedValue({} as any);
+    vi.mocked(authApi.loginUser).mockResolvedValue(
+      {} as unknown as Awaited<ReturnType<typeof authApi.loginUser>>,
+    );
     renderLoginForm();
 
     fireEvent.change(screen.getByLabelText(/Email Address/i), {
@@ -54,7 +61,7 @@ describe("LoginForm", () => {
     fireEvent.change(screen.getByLabelText(/Password/i), {
       target: { value: "password123" },
     });
-    
+
     const loginButton = screen.getByRole("button", { name: /Login/i });
     fireEvent.submit(loginButton.closest("form")!);
 

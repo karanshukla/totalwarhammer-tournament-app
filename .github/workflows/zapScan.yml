@@ -1,0 +1,75 @@
+name: OWASP ZAP Security Scan
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "server-app/**"
+      - "docker-compose.yml"
+      - "server-app/Dockerfile"
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "server-app/**"
+      - "docker-compose.yml"
+      - "server-app/Dockerfile"
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  zap-scan:
+    name: OWASP ZAP API Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create .env for Docker Compose
+        env:
+          SESSION_SECRET: ${{ secrets.SESSION_SECRET != '' && secrets.SESSION_SECRET || 'ci-session-secret-zap' }}
+          CSRF_SECRET: ${{ secrets.CSRF_SECRET != '' && secrets.CSRF_SECRET || 'ci-csrf-secret-zap' }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET != '' && secrets.JWT_SECRET || 'ci-jwt-secret-zap' }}
+        run: |
+          cat > .env <<EOF
+          SESSION_SECRET=${SESSION_SECRET}
+          CSRF_SECRET=${CSRF_SECRET}
+          JWT_SECRET=${JWT_SECRET}
+          RESEND_API_KEY=re_placeholder_not_used_in_scan
+          CLIENT_URL=http://localhost
+          BASE_URL=http://localhost
+          EOF
+
+      - name: Build and start containers
+        run: docker compose up -d --build
+
+      - name: Wait for app to be ready
+        run: |
+          echo "Waiting for Caddy + server..."
+          for i in $(seq 1 40); do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost/ 2>/dev/null || echo "000")
+            if [ "$STATUS" = "200" ] || [ "$STATUS" = "304" ]; then
+              echo "App is up (HTTP $STATUS)"
+              break
+            fi
+            echo "Attempt $i/40 - HTTP $STATUS, waiting..."
+            sleep 3
+          done
+          # Also verify backend is reachable through Caddy
+          curl -sf http://localhost/auth/csrf-token && echo "Backend reachable" || echo "Backend not yet ready"
+
+      - name: Run OWASP ZAP Baseline Scan
+        uses: zaproxy/action-baseline@v0.14.0
+        with:
+          target: "http://localhost"
+          rules_file_name: ".github/zap-rules.tsv"
+          fail_action: false
+          allow_issue_writing: true
+          artifact_name: zap-baseline-report
+          cmd_options: "-a"
+
+      - name: Stop containers
+        if: always()
+        run: docker compose down
