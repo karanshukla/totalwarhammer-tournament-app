@@ -1,0 +1,8 @@
+[build]
+builder = "RAILPACK"
+buildCommand = "if echo $RAILWAY_SERVICE_NAME | grep -qi client; then npm run build --workspace=client-app; fi"
+
+[deploy]
+startCommand = "if echo $RAILWAY_SERVICE_NAME | grep -qi client; then npm run start --workspace=client-app; else npm run start --workspace=server-app; fi"
+healthcheckPath = "/"
+healthcheckTimeout = 100
