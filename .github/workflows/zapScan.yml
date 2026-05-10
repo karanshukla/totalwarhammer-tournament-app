@@ -7,18 +7,18 @@ on:
       - "server-app/**"
       - "client-app/**"
       - "docker-compose.yml"
-      - "server-app/local-dev.Dockerfile"
-      - "client-app/local-dev.Dockerfile"
-      - "client-app/local-dev.Caddyfile"
+      - "docker/server/Dockerfile"
+      - "docker/client/Dockerfile"
+      - "docker/client/Caddyfile"
   pull_request:
     branches: ["main"]
     paths:
       - "server-app/**"
       - "client-app/**"
       - "docker-compose.yml"
-      - "server-app/local-dev.Dockerfile"
-      - "client-app/local-dev.Dockerfile"
-      - "client-app/local-dev.Caddyfile"
+      - "docker/server/Dockerfile"
+      - "docker/client/Dockerfile"
+      - "docker/client/Caddyfile"
 
 permissions:
   contents: read
