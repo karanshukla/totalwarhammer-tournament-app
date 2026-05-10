@@ -1,8 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(Get-ChildItem -Path \"f:\\\\Development\\\\totalwarhammer-tournament-app\" -Recurse -Force)",
-      "Bash(Select-Object FullName)"
-    ]
-  }
-}
