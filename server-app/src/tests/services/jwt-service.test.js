@@ -1,4 +1,3 @@
-// filepath: f:\Development\totalwarhammer-tournament-app\server-app\src\tests\services\jwt-service.test.js
 // Tests for jwt-service.js using Node.js built-in test runner
 import assert from "node:assert";
 import { describe, it, beforeEach, mock, afterEach } from "node:test";

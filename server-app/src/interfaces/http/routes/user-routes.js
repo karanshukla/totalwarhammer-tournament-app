@@ -19,7 +19,7 @@ router.post(
   "/register",
   validateUserRegistration,
   validationHandler,
-  userController.register
+  userController.register,
 );
 router.post("/login", authenticationController.login);
 router.post("/logout", doubleCsrfProtection, authenticationController.logout);
@@ -27,7 +27,7 @@ router.get(
   "/exists",
   validateUserExists,
   validationHandler,
-  userController.userExists
+  userController.userExists,
 );
 // Guest routes have been removed as they are now handled in guest-routes.js
 
@@ -37,7 +37,7 @@ router.post(
   authenticateSession,
   validateUpdateUsername,
   validationHandler,
-  userController.updateUsername
+  userController.updateUsername,
 );
 
 router.post(
@@ -45,7 +45,16 @@ router.post(
   authenticateSession,
   validateUpdatePassword,
   validationHandler,
-  userController.updatePassword
+  userController.updatePassword,
 );
+
+router.delete(
+  "/account",
+  authenticateSession,
+  doubleCsrfProtection,
+  userController.deleteAccount,
+);
+
+router.get("/stats", authenticateSession, userController.getUserStats);
 
 export default router;

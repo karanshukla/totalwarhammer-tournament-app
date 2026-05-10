@@ -39,7 +39,6 @@ export function LoginForm({ defaultEmail = "", onSuccess }: LoginFormProps) {
   });
 
   const onSubmit = async (data: LoginFormValues) => {
-    // Prevent duplicate submissions
     if (isSubmittingRef.current) {
       return;
     }
@@ -54,7 +53,6 @@ export function LoginForm({ defaultEmail = "", onSuccess }: LoginFormProps) {
       console.error("Login failed:", error);
     } finally {
       setIsLoading(false);
-      // Add a small delay before allowing another submission
       setTimeout(() => {
         isSubmittingRef.current = false;
       }, 1000);

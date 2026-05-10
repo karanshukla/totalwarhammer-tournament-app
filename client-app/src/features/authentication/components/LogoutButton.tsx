@@ -18,7 +18,6 @@ export const LogoutButton: React.FC<LogoutButtonProps> = ({
   const navigate = useNavigate();
 
   const handleLogout = async () => {
-    // Prevent duplicate logout requests
     if (isLoggingOutRef.current) {
       return;
     }

@@ -16,7 +16,6 @@ import { LuLogIn, LuEye, LuTrophy, LuSwords } from "react-icons/lu";
 import { useNavigate } from "react-router-dom";
 import { httpClient } from "@/core/api/httpClient";
 import { useUserStore } from "@/shared/stores/userStore";
-import { useColorModeValue } from "@/shared/ui/ColorMode";
 
 const statusColorMap: Record<string, string> = {
   pending: "yellow",
@@ -61,8 +60,8 @@ const TournamentBrowser: React.FC<Props> = ({ statusFilter, emptyMessage }) => {
 
   const { user, isAuthenticated } = useUserStore();
   const navigate = useNavigate();
-  const cardBg = useColorModeValue("white", "gray.800");
-  const borderColor = useColorModeValue("gray.200", "gray.600");
+  const cardBg = "bg.panel";
+  const borderColor = "border";
 
   const fetchTournaments = useCallback(async () => {
     setLoading(true);

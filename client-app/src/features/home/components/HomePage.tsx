@@ -1,18 +1,101 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Container,
   VStack,
+  HStack,
+  SimpleGrid,
   Button,
   Input,
   Card,
   Field,
   Text,
-  Stack,
+  Box,
+  Heading,
+  Badge,
+  Separator,
 } from "@chakra-ui/react";
-import { LuSearch, LuUsers } from "react-icons/lu";
-import { useNavigate } from "react-router-dom";
+import {
+  LuSearch,
+  LuUsers,
+  LuTrophy,
+  LuSwords,
+  LuChartBar,
+  LuShield,
+  LuGitBranch,
+  LuRepeat,
+  LuCircleDot,
+  LuHash,
+  LuUserPlus,
+  LuPlay,
+  LuChevronsRight,
+  LuLogIn,
+  LuEye,
+} from "react-icons/lu";
+import { useNavigate, Link } from "react-router-dom";
 import { httpClient } from "@/core/api/httpClient";
 import { useUserStore } from "@/shared/stores/userStore";
+
+const tournamentTypes = [
+  {
+    icon: LuGitBranch,
+    name: "Single Elimination",
+    color: "blue",
+    desc: "Classic knockout format. Lose once and you're out - fast-paced and decisive.",
+  },
+  {
+    icon: LuRepeat,
+    name: "Double Elimination",
+    color: "purple",
+    desc: "Two chances to prove yourself. Losers drop to a second bracket before being eliminated.",
+  },
+  {
+    icon: LuCircleDot,
+    name: "Round Robin",
+    color: "green",
+    desc: "Everyone plays everyone. The player with the most wins takes the crown.",
+  },
+  {
+    icon: LuHash,
+    name: "Swiss System",
+    color: "orange",
+    desc: "Paired by performance each round. No eliminations - the best record wins.",
+  },
+];
+
+const features = [
+  {
+    icon: LuTrophy,
+    title: "Run Tournaments",
+    color: "yellow",
+    desc: "Create and manage brackets for your community with full control over format and participants.",
+  },
+  {
+    icon: LuSwords,
+    title: "Track Matches",
+    color: "red",
+    desc: "Record results, advance rounds, and follow live progress across all active tournaments.",
+  },
+  {
+    icon: LuChartBar,
+    title: "View Statistics",
+    color: "blue",
+    desc: "Explore win rates, top players, and faction performance across all recorded tournaments.",
+  },
+  {
+    icon: LuShield,
+    title: "Guest Friendly",
+    color: "green",
+    desc: "No account required to participate. Jump in as a guest and join tournaments instantly.",
+  },
+];
+
+const steps = [
+  { icon: LuUserPlus, label: "Register or join as a guest" },
+  { icon: LuTrophy, label: "Create a tournament or get a join code" },
+  { icon: LuUsers, label: "Invite participants and fill the bracket" },
+  { icon: LuPlay, label: "Start the tournament and record results" },
+  { icon: LuChevronsRight, label: "Advance rounds until a winner is crowned" },
+];
 
 const HomePage: React.FC = () => {
   const [code, setCode] = useState("");
@@ -20,6 +103,26 @@ const HomePage: React.FC = () => {
   const [codeLoading, setCodeLoading] = useState(false);
   const navigate = useNavigate();
   const { user } = useUserStore();
+
+  interface PendingTournament {
+    _id: string;
+    name: string;
+    tournamentType: string;
+    playerCount: number;
+    participants: { _id: string; name: string; faction: string }[];
+  }
+  const [pendingTournaments, setPendingTournaments] = useState<
+    PendingTournament[]
+  >([]);
+
+  useEffect(() => {
+    httpClient
+      .get<{ success: boolean; data: PendingTournament[] }>(
+        "/tournament?status=pending",
+      )
+      .then((res) => setPendingTournaments(res.data ?? []))
+      .catch(() => {});
+  }, []);
 
   const handleFindByCode = async () => {
     const trimmed = code.trim().toUpperCase();
@@ -56,27 +159,105 @@ const HomePage: React.FC = () => {
   };
 
   return (
-    <Container maxW="container.xl" py={8}>
-      <VStack gap={8} align="stretch">
-        {/* Hero Section */}
-        <Card.Root variant="outline">
-          <Card.Body py={8}>
-            <Text fontSize="xl" textAlign="center" lineHeight="relaxed">
-              Create custom brackets, participate in Total War Warhammer 3
-              tournaments within the multiplayer community, and view statistics
-              for recorded matchups.
-            </Text>
-          </Card.Body>
-        </Card.Root>
+    <Container maxW="7xl" py={10} px={{ base: 4, md: 8, lg: 12 }}>
+      <VStack gap={12} align="stretch">
+        {/* ── Hero ── */}
+        <Box textAlign="center" py={8}>
+          <Badge
+            colorPalette="red"
+            mb={4}
+            px={3}
+            py={1}
+            fontSize="xs"
+            textTransform="uppercase"
+            letterSpacing="wider"
+          >
+            Total War: Warhammer
+          </Badge>
+          <Heading
+            as="h1"
+            size="4xl"
+            fontWeight="bold"
+            lineHeight="tight"
+            mb={4}
+          >
+            TW Tournament App
+          </Heading>
+          <Text
+            fontSize="lg"
+            color="fg.muted"
+            maxW="2xl"
+            mx="auto"
+            lineHeight="relaxed"
+            mb={8}
+          >
+            Create custom brackets, participate in Total War Warhammer
+            tournaments within the multiplayer community, and view statistics
+            for recorded matchups.
+          </Text>
+          <HStack gap={3} justify="center">
+            <Button colorPalette="blue" size="lg" asChild>
+              <Link to="/tournaments">View Ongoing Tournaments</Link>
+            </Button>
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={() =>
+                document.dispatchEvent(
+                  new CustomEvent("auth-event", {
+                    detail: { type: "open-drawer" },
+                  }),
+                )
+              }
+            >
+              Create Account
+            </Button>
+          </HStack>
+        </Box>
 
-        {/* Tournament Lookup Section - Card with outline variant */}
-        <Card.Root variant="outline">
+        <Separator />
+
+        {/* ── Features ── */}
+        <Box>
+          <Heading as="h2" size="xl" mb={2}>
+            What you can do
+          </Heading>
+          <Text color="fg.muted" mb={6}>
+            Everything you need to run a community tournament.
+          </Text>
+          <SimpleGrid columns={{ base: 1, sm: 2, lg: 4 }} gap={4}>
+            {features.map((f) => (
+              <Card.Root key={f.title} variant="outline" bg="bg.panel">
+                <Card.Body>
+                  <VStack align="start" gap={3}>
+                    <Box
+                      p={2}
+                      borderRadius="md"
+                      bg={`${f.color}.subtle`}
+                      color={`${f.color}.fg`}
+                      fontSize="xl"
+                    >
+                      <f.icon />
+                    </Box>
+                    <Text fontWeight="semibold">{f.title}</Text>
+                    <Text fontSize="sm" color="fg.muted">
+                      {f.desc}
+                    </Text>
+                  </VStack>
+                </Card.Body>
+              </Card.Root>
+            ))}
+          </SimpleGrid>
+        </Box>
+
+        {/* ── Tournament Lookup ── */}
+        <Card.Root variant="outline" bg="bg.panel">
           <Card.Header>
             <Card.Title>
-              <Stack direction="row" gap={2} align="center">
+              <HStack gap={2}>
                 <LuSearch />
-                View Tournament
-              </Stack>
+                View a Tournament
+              </HStack>
             </Card.Title>
             <Card.Description>
               Enter a tournament code to view an ongoing tournament
@@ -96,6 +277,7 @@ const HomePage: React.FC = () => {
                 }
                 fontFamily="mono"
                 textTransform="uppercase"
+                maxW="xs"
               />
               {codeError ? (
                 <Field.ErrorText>{codeError}</Field.ErrorText>
@@ -109,7 +291,6 @@ const HomePage: React.FC = () => {
           <Card.Footer>
             <Button
               colorPalette="blue"
-              size="lg"
               onClick={handleFindByCode}
               loading={codeLoading}
             >
@@ -118,33 +299,186 @@ const HomePage: React.FC = () => {
           </Card.Footer>
         </Card.Root>
 
-        {/* Account Info Section - Subtle variant card */}
+        {/* ── Open Tournaments ── */}
+        {pendingTournaments.length > 0 && (
+          <Box>
+            <HStack justify="space-between" align="baseline" mb={6}>
+              <Box>
+                <Heading as="h2" size="xl" mb={1}>
+                  Open Tournaments
+                </Heading>
+                <Text color="fg.muted">
+                  Tournaments currently accepting players
+                </Text>
+              </Box>
+              <Button variant="ghost" size="sm" asChild>
+                <Link to="/tournaments">
+                  View all <LuChevronsRight />
+                </Link>
+              </Button>
+            </HStack>
+            <SimpleGrid columns={{ base: 1, sm: 2, lg: 3 }} gap={4}>
+              {pendingTournaments.slice(0, 6).map((t) => {
+                const spotsLeft = t.playerCount - t.participants.length;
+                const isFull = spotsLeft <= 0;
+                return (
+                  <Card.Root key={t._id} variant="outline" bg="bg.panel">
+                    <Card.Body>
+                      <VStack align="start" gap={2}>
+                        <HStack justify="space-between" w="full">
+                          <Badge colorPalette="yellow" size="sm">
+                            Open
+                          </Badge>
+                          <Badge variant="outline" size="sm">
+                            {t.tournamentType}
+                          </Badge>
+                        </HStack>
+                        <Text fontWeight="semibold" fontSize="md" lineClamp={1}>
+                          {t.name}
+                        </Text>
+                        <Text
+                          fontSize="sm"
+                          color={isFull ? "red.fg" : "fg.muted"}
+                        >
+                          {isFull
+                            ? "Full"
+                            : `${spotsLeft} spot${spotsLeft !== 1 ? "s" : ""} remaining`}{" "}
+                          &middot; {t.participants.length}/{t.playerCount}{" "}
+                          joined
+                        </Text>
+                      </VStack>
+                    </Card.Body>
+                    <Card.Footer pt={0}>
+                      <HStack gap={2}>
+                        <Button
+                          size="sm"
+                          colorPalette="blue"
+                          disabled={isFull}
+                          onClick={() => navigate(`/tournament/${t._id}`)}
+                        >
+                          <LuLogIn /> Join
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => navigate(`/matches/spectate/${t._id}`)}
+                        >
+                          <LuEye /> View
+                        </Button>
+                      </HStack>
+                    </Card.Footer>
+                  </Card.Root>
+                );
+              })}
+            </SimpleGrid>
+          </Box>
+        )}
+
+        {/* ── Tournament Formats ── */}
+        <Box>
+          <Heading as="h2" size="xl" mb={2}>
+            Tournament formats
+          </Heading>
+          <Text color="fg.muted" mb={6}>
+            Choose the format that fits your community.
+          </Text>
+          <SimpleGrid columns={{ base: 1, sm: 2, lg: 4 }} gap={4}>
+            {tournamentTypes.map((t) => (
+              <Card.Root key={t.name} variant="outline" bg="bg.panel">
+                <Card.Body>
+                  <VStack align="start" gap={3}>
+                    <HStack gap={2}>
+                      <Box
+                        p={2}
+                        borderRadius="md"
+                        bg={`${t.color}.subtle`}
+                        color={`${t.color}.fg`}
+                        fontSize="lg"
+                      >
+                        <t.icon />
+                      </Box>
+                      <Text fontWeight="semibold" fontSize="sm">
+                        {t.name}
+                      </Text>
+                    </HStack>
+                    <Text fontSize="sm" color="fg.muted">
+                      {t.desc}
+                    </Text>
+                  </VStack>
+                </Card.Body>
+              </Card.Root>
+            ))}
+          </SimpleGrid>
+        </Box>
+
+        {/* ── How it works ── */}
         <Card.Root variant="subtle">
           <Card.Header>
             <Card.Title>
-              <Stack direction="row" gap={2} align="center">
+              <HStack gap={2}>
                 <LuUsers />
-                Getting Started
-              </Stack>
+                How it works
+              </HStack>
             </Card.Title>
           </Card.Header>
           <Card.Body>
-            <VStack gap={4} align="stretch">
-              <Text>
-                <strong>Create a tournament:</strong> Register an account and
-                login to access the tournament creation page.
-              </Text>
-              <Text>
-                <strong>Participate in a tournament:</strong> Create a guest
-                account and customize your username.
-              </Text>
-              <Text color="fg.muted" fontSize="sm">
-                Guest accounts are limited to viewing tournaments and
-                participating in matches. To create a tournament, you must
-                register a full account.
-              </Text>
-            </VStack>
+            <SimpleGrid columns={{ base: 1, sm: 2, md: 5 }} gap={4}>
+              {steps.map((s, i) => (
+                <VStack key={i} align="center" gap={2} textAlign="center">
+                  <Box
+                    w={10}
+                    h={10}
+                    borderRadius="full"
+                    bg="blue.subtle"
+                    color="blue.fg"
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="center"
+                    fontSize="lg"
+                    flexShrink={0}
+                  >
+                    <s.icon />
+                  </Box>
+                  <Box
+                    w={5}
+                    h={5}
+                    borderRadius="full"
+                    bg="blue.muted"
+                    color="blue.fg"
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="center"
+                    fontSize="xs"
+                    fontWeight="bold"
+                  >
+                    {i + 1}
+                  </Box>
+                  <Text fontSize="sm" color="fg.muted">
+                    {s.label}
+                  </Text>
+                </VStack>
+              ))}
+            </SimpleGrid>
           </Card.Body>
+          <Card.Footer>
+            <HStack gap={3}>
+              <Button colorPalette="blue" asChild>
+                <Link to="/tournaments">View Ongoing Tournaments</Link>
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() =>
+                  document.dispatchEvent(
+                    new CustomEvent("auth-event", {
+                      detail: { type: "open-drawer" },
+                    }),
+                  )
+                }
+              >
+                Create Account
+              </Button>
+            </HStack>
+          </Card.Footer>
         </Card.Root>
       </VStack>
     </Container>

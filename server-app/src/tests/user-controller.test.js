@@ -6,6 +6,9 @@ const mockUserCreate = mock.fn();
 const mockUserFindByIdAndUpdate = mock.fn();
 const mockUserFindById = mock.fn();
 
+const mockMatchFind = mock.fn();
+const mockTournamentCountDocuments = mock.fn();
+
 mock.module("../domain/models/user.js", {
   defaultExport: {
     findOne: mockUserFindOne,
@@ -15,20 +18,38 @@ mock.module("../domain/models/user.js", {
   },
 });
 
+mock.module("../domain/models/match.js", {
+  defaultExport: {
+    find: mockMatchFind,
+  },
+});
+
+mock.module("../domain/models/tournament.js", {
+  defaultExport: {
+    countDocuments: mockTournamentCountDocuments,
+  },
+});
+
 mock.module("bcrypt", {
   defaultExport: {
     hash: mock.fn(async (pw) => "hashed_" + pw),
   },
 });
 
-const { userExists, register, updateUsername, updatePassword } = await import(
-  "../interfaces/http/controllers/user-controller.js"
-);
+const {
+  userExists,
+  register,
+  updateUsername,
+  updatePassword,
+  deleteAccount,
+  getUserStats,
+} = await import("../interfaces/http/controllers/user-controller.js");
 
 function mockRes() {
   const res = {};
   res.status = mock.fn(() => res);
   res.json = mock.fn(() => res);
+  res.clearCookie = mock.fn(() => res);
   return res;
 }
 
@@ -48,6 +69,8 @@ describe("user-controller", () => {
     mockUserCreate.mock.resetCalls();
     mockUserFindByIdAndUpdate.mock.resetCalls();
     mockUserFindById.mock.resetCalls();
+    mockMatchFind.mock.resetCalls();
+    mockTournamentCountDocuments.mock.resetCalls();
   });
 
   describe("userExists", () => {
@@ -72,13 +95,18 @@ describe("user-controller", () => {
       const req = mockReq({ query: { identifier: "missing" } });
       const res = mockRes();
       await userExists(req, res);
-      assert.strictEqual(res.json.mock.calls[0].arguments[0].data.exists, false);
+      assert.strictEqual(
+        res.json.mock.calls[0].arguments[0].data.exists,
+        false,
+      );
     });
   });
 
   describe("register", () => {
     it("should return 400 if email already in use", async () => {
-      mockUserFindOne.mock.mockImplementation(() => ({ email: "exists@test.com" }));
+      mockUserFindOne.mock.mockImplementation(() => ({
+        email: "exists@test.com",
+      }));
       const req = mockReq({
         body: { username: "new", email: "exists@test.com", password: "pw" },
       });
@@ -89,7 +117,10 @@ describe("user-controller", () => {
 
     it("should create user and return 201", async () => {
       mockUserFindOne.mock.mockImplementation(() => null);
-      mockUserCreate.mock.mockImplementation(async (data) => ({ ...data, id: "u1" }));
+      mockUserCreate.mock.mockImplementation(async (data) => ({
+        ...data,
+        id: "u1",
+      }));
       const req = mockReq({
         body: { username: "new", email: "new@test.com", password: "pw" },
       });
@@ -111,7 +142,7 @@ describe("user-controller", () => {
 
     it("should update and return 200", async () => {
       mockUserFindOne.mock.mockImplementation(() => null);
-      mockUserFindByIdAndUpdate.mock.mockImplementation(async (id, data) => ({
+      mockUserFindByIdAndUpdate.mock.mockImplementation(async (id, _data) => ({
         id,
         username: "new",
         email: "e@t.com",
@@ -123,7 +154,154 @@ describe("user-controller", () => {
       const res = mockRes();
       await updateUsername(req, res);
       assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
-      assert.strictEqual(res.json.mock.calls[0].arguments[0].data.username, "new");
+      assert.strictEqual(
+        res.json.mock.calls[0].arguments[0].data.username,
+        "new",
+      );
+    });
+  });
+
+  describe("updatePassword", () => {
+    it("should return 404 if user not found", async () => {
+      mockUserFindById.mock.mockImplementation(() => ({
+        select: mock.fn(async () => null),
+      }));
+      const req = mockReq({
+        body: { currentPassword: "old", newPassword: "new" },
+      });
+      const res = mockRes();
+      await updatePassword(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 404);
+    });
+
+    it("should return 401 if current password is wrong", async () => {
+      const user = {
+        validatePassword: mock.fn(async () => false),
+        save: mock.fn(),
+      };
+      mockUserFindById.mock.mockImplementation(() => ({
+        select: mock.fn(async () => user),
+      }));
+      const req = mockReq({
+        body: { currentPassword: "wrong", newPassword: "new" },
+      });
+      const res = mockRes();
+      await updatePassword(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 401);
+    });
+
+    it("should update password and return 200", async () => {
+      const user = {
+        password: "oldhash",
+        validatePassword: mock.fn(async () => true),
+        save: mock.fn(async () => {}),
+      };
+      mockUserFindById.mock.mockImplementation(() => ({
+        select: mock.fn(async () => user),
+      }));
+      const req = mockReq({
+        body: { currentPassword: "old", newPassword: "newpass" },
+      });
+      const res = mockRes();
+      await updatePassword(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
+      assert.strictEqual(res.json.mock.calls[0].arguments[0].success, true);
+      assert.strictEqual(user.password, "hashed_newpass");
+      assert.strictEqual(user.save.mock.calls.length, 1);
+    });
+  });
+
+  describe("deleteAccount", () => {
+    it("should return 404 if user not found", async () => {
+      mockUserFindByIdAndUpdate.mock.mockImplementation(async () => null);
+      const req = mockReq({
+        session: { destroy: mock.fn((cb) => cb()) },
+      });
+      const res = mockRes();
+      await deleteAccount(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 404);
+    });
+
+    it("should anonymise user, destroy session and return 200", async () => {
+      mockUserFindByIdAndUpdate.mock.mockImplementation(async () => ({
+        id: "u1",
+      }));
+      const req = mockReq({
+        session: { destroy: mock.fn((cb) => cb()) },
+      });
+      const res = mockRes();
+      await deleteAccount(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
+      assert.strictEqual(res.json.mock.calls[0].arguments[0].success, true);
+    });
+  });
+
+  describe("getUserStats", () => {
+    it("should return 404 if user not found", async () => {
+      mockUserFindById.mock.mockImplementation(() => ({
+        select: mock.fn(() => ({ lean: mock.fn(async () => null) })),
+      }));
+      const req = mockReq();
+      const res = mockRes();
+      await getUserStats(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 404);
+    });
+
+    it("should return stats with wins and losses", async () => {
+      mockUserFindById.mock.mockImplementation(() => ({
+        select: mock.fn(() => ({
+          lean: mock.fn(async () => ({ username: "testuser" })),
+        })),
+      }));
+      mockTournamentCountDocuments.mock.mockImplementation(async () => 3);
+      let matchFindCallCount = 0;
+      mockMatchFind.mock.mockImplementation(() => ({
+        select: mock.fn(() => ({
+          lean: mock.fn(async () => {
+            matchFindCallCount++;
+            if (matchFindCallCount === 1) {
+              return [
+                {
+                  player1: {
+                    name: "testuser",
+                    faction: "Empire",
+                    participantId: "p1",
+                  },
+                  player2: {
+                    name: "other",
+                    faction: "Skaven",
+                    participantId: "p2",
+                  },
+                  winnerId: "p1",
+                },
+              ];
+            }
+            return [
+              {
+                player1: {
+                  name: "other",
+                  faction: "Skaven",
+                  participantId: "p2",
+                },
+                player2: {
+                  name: "testuser",
+                  faction: "Empire",
+                  participantId: "p1",
+                },
+                winnerId: "p2",
+              },
+            ];
+          }),
+        })),
+      }));
+      const req = mockReq();
+      const res = mockRes();
+      await getUserStats(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
+      const data = res.json.mock.calls[0].arguments[0].data;
+      assert.strictEqual(data.tournamentsCreated, 3);
+      assert.strictEqual(data.matchesPlayed, 2);
+      assert.strictEqual(data.wins, 1);
     });
   });
 });

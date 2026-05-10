@@ -49,7 +49,6 @@ import {
 } from "react-icons/lu";
 import { useNavigate, useLocation } from "react-router-dom";
 import { httpClient } from "@/core/api/httpClient";
-import { useColorModeValue } from "@/shared/ui/ColorMode";
 import { useUserStore } from "@/shared/stores/userStore";
 import { toaster } from "@/shared/ui/Toaster";
 import MatchCard from "./MatchCard";
@@ -175,10 +174,10 @@ const MatchesPage: React.FC = () => {
     setTimeout(() => setCodeCopied(false), 2000);
   };
 
-  const cardBg = useColorModeValue("white", "gray.800");
-  const borderColor = useColorModeValue("gray.200", "gray.600");
-  const selectedBg = useColorModeValue("blue.50", "blue.900");
-  const mutedBg = useColorModeValue("gray.50", "gray.900");
+  const cardBg = "bg.panel";
+  const borderColor = "border";
+  const selectedBg = "blue.subtle";
+  const mutedBg = "bg.subtle";
 
   const fetchTournaments = useCallback(async () => {
     if (!isAuthenticated()) {
@@ -763,7 +762,7 @@ const MatchesPage: React.FC = () => {
                   </Box>
                 ) : isAdmin && selected.status !== "completed" ? (
                   <Text color="fg.subtle" fontSize="sm" fontStyle="italic">
-                    No description — click Edit Description to add one.
+                    No description - click Edit Description to add one.
                   </Text>
                 ) : null}
                 {isAdmin && selected.status !== "completed" && (
@@ -1171,7 +1170,7 @@ const MatchesPage: React.FC = () => {
                                 Math.max(...matches.map((x) => x.round)),
                           );
                           if (!finalMatch)
-                            return <Text fontWeight="medium">—</Text>;
+                            return <Text fontWeight="medium">-</Text>;
                           const champion =
                             finalMatch.winnerId ===
                             finalMatch.player1.participantId
@@ -1382,7 +1381,7 @@ const MatchesPage: React.FC = () => {
                                   {s.name}
                                 </Table.Cell>
                                 <Table.Cell color="fg.muted">
-                                  {s.faction || "—"}
+                                  {s.faction || "-"}
                                 </Table.Cell>
                                 <Table.Cell textAlign="center" color="green.fg">
                                   {s.wins}

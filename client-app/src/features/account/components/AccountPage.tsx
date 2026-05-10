@@ -16,7 +16,6 @@ const AccountPage: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Only validate session if the user is authenticated
     if (user.isAuthenticated) {
       setIsValidatingSession(true);
 
@@ -24,7 +23,6 @@ const AccountPage: React.FC = () => {
         .then((valid) => {
           setSessionValid(valid);
           if (!valid && user.isAuthenticated) {
-            // Session is invalid but user thinks they're logged in
             toaster.create({
               title: "Session Expired",
               description: "Your session has expired. Please login again.",
@@ -46,7 +44,7 @@ const AccountPage: React.FC = () => {
     }
   }, [user.isAuthenticated, clearUser, navigate]);
   return (
-    <Container maxW="container.xl" py={8}>
+    <Container maxW="5xl" py={10} px={{ base: 4, md: 8, lg: 12 }}>
       <Heading as="h1" size="xl" mb={4}>
         Account
       </Heading>

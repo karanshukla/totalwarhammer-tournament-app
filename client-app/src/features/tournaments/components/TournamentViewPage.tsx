@@ -30,7 +30,7 @@ import {
 } from "react-icons/lu";
 import { httpClient } from "@/core/api/httpClient";
 import { useUserStore } from "@/shared/stores/userStore";
-import { useColorModeValue } from "@/shared/ui/ColorMode";
+import { displayName as dn } from "@/shared/utils/displayName";
 
 const warhammer3Factions = [
   "Empire",
@@ -116,9 +116,9 @@ const TournamentViewPage: React.FC = () => {
   const [joinError, setJoinError] = useState<string | null>(null);
   const [joinSuccess, setJoinSuccess] = useState(false);
 
-  const cardBg = useColorModeValue("white", "gray.800");
-  const borderColor = useColorModeValue("gray.200", "gray.600");
-  const mutedBg = useColorModeValue("gray.50", "gray.900");
+  const cardBg = "bg.panel";
+  const borderColor = "border";
+  const mutedBg = "bg.subtle";
 
   const fetchTournament = useCallback(
     async (silent = false) => {
@@ -287,7 +287,7 @@ const TournamentViewPage: React.FC = () => {
                 Tournament Champion
               </Text>
               <Text fontSize="2xl" fontWeight="bold">
-                {champion.name}
+                {dn(champion.name)}
               </Text>
               {champion.faction && (
                 <Text fontSize="sm" color="fg.muted">
@@ -345,7 +345,12 @@ const TournamentViewPage: React.FC = () => {
               fontSize="sm"
               color="fg"
               css={{
-                "& h1,& h2,& h3,& h4,& h5,& h6": { fontWeight: "bold", lineHeight: 1.3, marginTop: "0.75rem", marginBottom: "0.25rem" },
+                "& h1,& h2,& h3,& h4,& h5,& h6": {
+                  fontWeight: "bold",
+                  lineHeight: 1.3,
+                  marginTop: "0.75rem",
+                  marginBottom: "0.25rem",
+                },
                 "& h1": { fontSize: "1.25rem" },
                 "& h2": { fontSize: "1.125rem" },
                 "& h3": { fontSize: "1rem" },
@@ -354,11 +359,35 @@ const TournamentViewPage: React.FC = () => {
                 "& li": { marginBottom: "0.25rem" },
                 "& strong": { fontWeight: "bold" },
                 "& em": { fontStyle: "italic" },
-                "& code": { fontFamily: "monospace", background: "var(--chakra-colors-bg-muted)", padding: "0 4px", borderRadius: "3px", fontSize: "0.8em" },
-                "& pre": { background: "var(--chakra-colors-bg-muted)", padding: "0.75rem", borderRadius: "6px", overflowX: "auto", marginBottom: "0.5rem", fontSize: "0.8em" },
-                "& blockquote": { borderLeft: "3px solid var(--chakra-colors-border)", paddingLeft: "0.75rem", color: "var(--chakra-colors-fg-muted)", margin: "0.5rem 0" },
-                "& a": { color: "var(--chakra-colors-blue-fg)", textDecoration: "underline" },
-                "& hr": { borderColor: "var(--chakra-colors-border)", margin: "0.75rem 0" },
+                "& code": {
+                  fontFamily: "monospace",
+                  background: "var(--chakra-colors-bg-muted)",
+                  padding: "0 4px",
+                  borderRadius: "3px",
+                  fontSize: "0.8em",
+                },
+                "& pre": {
+                  background: "var(--chakra-colors-bg-muted)",
+                  padding: "0.75rem",
+                  borderRadius: "6px",
+                  overflowX: "auto",
+                  marginBottom: "0.5rem",
+                  fontSize: "0.8em",
+                },
+                "& blockquote": {
+                  borderLeft: "3px solid var(--chakra-colors-border)",
+                  paddingLeft: "0.75rem",
+                  color: "var(--chakra-colors-fg-muted)",
+                  margin: "0.5rem 0",
+                },
+                "& a": {
+                  color: "var(--chakra-colors-blue-fg)",
+                  textDecoration: "underline",
+                },
+                "& hr": {
+                  borderColor: "var(--chakra-colors-border)",
+                  margin: "0.75rem 0",
+                },
               }}
             >
               <ReactMarkdown>{tournament.description}</ReactMarkdown>
@@ -415,7 +444,7 @@ const TournamentViewPage: React.FC = () => {
                       justifyContent="space-between"
                     >
                       <VStack alignItems="flex-start" gap={0}>
-                        <Text fontWeight="medium">{p.name}</Text>
+                        <Text fontWeight="medium">{dn(p.name)}</Text>
                         {p.faction && (
                           <Text fontSize="xs" color="fg.muted">
                             {p.faction}
@@ -722,7 +751,7 @@ const TournamentViewPage: React.FC = () => {
                                         <Text
                                           fontWeight={p1Won ? "bold" : "medium"}
                                         >
-                                          {m.player1.name}
+                                          {dn(m.player1.name)}
                                         </Text>
                                       </HStack>
                                       {m.player1.faction && (
@@ -753,7 +782,7 @@ const TournamentViewPage: React.FC = () => {
                                         <Text
                                           fontWeight={p2Won ? "bold" : "medium"}
                                         >
-                                          {m.player2.name}
+                                          {dn(m.player2.name)}
                                         </Text>
                                       </HStack>
                                       {m.player2.faction && (
@@ -779,8 +808,8 @@ const TournamentViewPage: React.FC = () => {
                                         <strong>
                                           {m.winnerId ===
                                           m.player1.participantId
-                                            ? m.player1.name
-                                            : m.player2.name}
+                                            ? dn(m.player1.name)
+                                            : dn(m.player2.name)}
                                         </strong>
                                       </Text>
                                     </Box>
@@ -793,7 +822,7 @@ const TournamentViewPage: React.FC = () => {
                                       textAlign="center"
                                       fontWeight="medium"
                                     >
-                                      Result disputed — awaiting organiser
+                                      Result disputed - awaiting organiser
                                       decision
                                     </Text>
                                   )}

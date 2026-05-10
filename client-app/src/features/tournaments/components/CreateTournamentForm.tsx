@@ -13,7 +13,7 @@ import {
   Box,
   HStack,
 } from "@chakra-ui/react";
-import { LuTriangleAlert, LuInfo } from "react-icons/lu";
+import { LuTriangleAlert, LuInfo, LuLock } from "react-icons/lu";
 import { NumberInputRoot, NumberInputField } from "@/shared/ui/NumberInput";
 import { httpClient } from "@/core/api/httpClient";
 import { useNavigate } from "react-router-dom";
@@ -53,7 +53,13 @@ const tournamentTypes = [
   "Swiss System",
 ];
 
-const CreateTournamentForm: React.FC = () => {
+interface CreateTournamentFormProps {
+  isGuest?: boolean;
+}
+
+const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
+  isGuest = false,
+}) => {
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -273,7 +279,7 @@ const CreateTournamentForm: React.FC = () => {
                       const isPowerOf2 = n > 0 && (n & (n - 1)) === 0;
                       if (!isPowerOf2)
                         warnings.push(
-                          `${n} players is not a power of 2 — ${n - Math.pow(2, Math.floor(Math.log2(n)))} player(s) will receive a bye in round 1.`,
+                          `${n} players is not a power of 2 - ${n - Math.pow(2, Math.floor(Math.log2(n)))} player(s) will receive a bye in round 1.`,
                         );
                     }
                     if (type === "Double Elimination") {
@@ -284,13 +290,13 @@ const CreateTournamentForm: React.FC = () => {
                       const isPowerOf2 = n > 0 && (n & (n - 1)) === 0;
                       if (!isPowerOf2)
                         infos.push(
-                          `${n} players is not a power of 2 — some round 1 matches will have byes.`,
+                          `${n} players is not a power of 2 - some round 1 matches will have byes.`,
                         );
                     }
                     if (type === "Swiss System") {
                       if (n % 2 !== 0)
                         warnings.push(
-                          `Odd number of players (${n}) — one player will receive a bye each round.`,
+                          `Odd number of players (${n}) - one player will receive a bye each round.`,
                         );
                       const rounds = Math.ceil(Math.log2(Math.max(n, 2)));
                       infos.push(
@@ -305,11 +311,11 @@ const CreateTournamentForm: React.FC = () => {
                       const rounds = n % 2 === 0 ? n - 1 : n;
                       const matchesPerRound = Math.floor(n / 2);
                       infos.push(
-                        `${rounds} round${rounds !== 1 ? "s" : ""}, ${matchesPerRound} match${matchesPerRound !== 1 ? "es" : ""}/round — ${n % 2 !== 0 ? "1 bye per round" : "no byes"}.`,
+                        `${rounds} round${rounds !== 1 ? "s" : ""}, ${matchesPerRound} match${matchesPerRound !== 1 ? "es" : ""}/round - ${n % 2 !== 0 ? "1 bye per round" : "no byes"}.`,
                       );
                       if (n > 16)
                         warnings.push(
-                          `${n} players means ${rounds * matchesPerRound} total matches — consider Swiss instead.`,
+                          `${n} players means ${rounds * matchesPerRound} total matches - consider Swiss instead.`,
                         );
                     }
 
@@ -354,6 +360,36 @@ const CreateTournamentForm: React.FC = () => {
                           </Box>
                         ))}
                         <Box mt="auto">
+                          {isGuest && (
+                            <Box
+                              p={3}
+                              borderRadius="md"
+                              bg="orange.subtle"
+                              borderWidth={1}
+                              borderColor="orange.muted"
+                              mb={3}
+                            >
+                              <HStack gap={2} alignItems="flex-start">
+                                <Box color="orange.fg" flexShrink={0} mt="1px">
+                                  <LuLock size={14} />
+                                </Box>
+                                <VStack gap={1} alignItems="flex-start">
+                                  <Text
+                                    fontSize="sm"
+                                    fontWeight="semibold"
+                                    color="orange.fg"
+                                  >
+                                    Registration Required
+                                  </Text>
+                                  <Text fontSize="sm" color="orange.fg">
+                                    Only registered users can create
+                                    tournaments. Guest users can join and
+                                    participate.
+                                  </Text>
+                                </VStack>
+                              </HStack>
+                            </Box>
+                          )}
                           <Box
                             p={3}
                             borderRadius="md"
@@ -373,10 +409,10 @@ const CreateTournamentForm: React.FC = () => {
                               </Text>
                               <VStack gap={1} alignItems="flex-start">
                                 <HStack gap={2} alignItems="flex-start">
-                                  <Text fontSize="xs" color="fg.muted">
+                                  <Text fontSize="sm" color="fg.muted">
                                     1.
                                   </Text>
-                                  <Text fontSize="xs" color="fg.muted">
+                                  <Text fontSize="sm" color="fg.muted">
                                     Create the tournament, then go to the{" "}
                                     <Text
                                       as="span"
@@ -389,10 +425,10 @@ const CreateTournamentForm: React.FC = () => {
                                   </Text>
                                 </HStack>
                                 <HStack gap={2} alignItems="flex-start">
-                                  <Text fontSize="xs" color="fg.muted">
+                                  <Text fontSize="sm" color="fg.muted">
                                     2.
                                   </Text>
-                                  <Text fontSize="xs" color="fg.muted">
+                                  <Text fontSize="sm" color="fg.muted">
                                     Add participants manually, or share the{" "}
                                     <Text
                                       as="span"
@@ -405,10 +441,10 @@ const CreateTournamentForm: React.FC = () => {
                                   </Text>
                                 </HStack>
                                 <HStack gap={2} alignItems="flex-start">
-                                  <Text fontSize="xs" color="fg.muted">
+                                  <Text fontSize="sm" color="fg.muted">
                                     3.
                                   </Text>
-                                  <Text fontSize="xs" color="fg.muted">
+                                  <Text fontSize="sm" color="fg.muted">
                                     Once everyone is in, hit{" "}
                                     <Text
                                       as="span"
@@ -421,10 +457,10 @@ const CreateTournamentForm: React.FC = () => {
                                   </Text>
                                 </HStack>
                                 <HStack gap={2} alignItems="flex-start">
-                                  <Text fontSize="xs" color="fg.muted">
+                                  <Text fontSize="sm" color="fg.muted">
                                     4.
                                   </Text>
-                                  <Text fontSize="xs" color="fg.muted">
+                                  <Text fontSize="sm" color="fg.muted">
                                     After all matches in a round are complete,
                                     use{" "}
                                     <Text
@@ -455,6 +491,7 @@ const CreateTournamentForm: React.FC = () => {
             colorPalette="blue"
             size="md"
             loading={isLoading}
+            disabled={isGuest}
           >
             Create Tournament
           </Button>

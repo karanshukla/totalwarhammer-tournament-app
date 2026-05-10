@@ -1,10 +1,28 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import React from "react";
 import { ChakraProvider, defaultSystem } from "@chakra-ui/react";
 import HomePage from "@/features/home/components/HomePage";
 import { MemoryRouter } from "react-router-dom";
+
+vi.mock("@/core/api/httpClient", () => ({
+  httpClient: {
+    get: vi.fn().mockResolvedValue({ success: true, data: [] }),
+  },
+}));
+
+vi.mock("@/shared/stores/userStore", () => ({
+  useUserStore: vi.fn(() => ({
+    user: {
+      isAuthenticated: false,
+      isGuest: false,
+      id: "",
+      username: "",
+      email: "",
+    },
+  })),
+}));
 
 function renderHomePage() {
   return render(
@@ -21,7 +39,7 @@ describe("HomePage", () => {
     renderHomePage();
     expect(
       screen.getByText(
-        /Create custom brackets, participate in Total War Warhammer 3/i,
+        /Create custom brackets, participate in Total War Warhammer/i,
       ),
     ).toBeInTheDocument();
   });
@@ -29,23 +47,27 @@ describe("HomePage", () => {
   it("renders the tournament lookup section", () => {
     renderHomePage();
     expect(
-      screen.getByText(/Enter a tournament code to view an ongoing tournament/i),
+      screen.getByText(
+        /Enter a tournament code to view an ongoing tournament/i,
+      ),
     ).toBeInTheDocument();
-    expect(
-      screen.getByPlaceholderText(/e.g., ABC123/i),
-    ).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(/e.g., ABC123/i)).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: /View Tournament/i }),
     ).toBeInTheDocument();
   });
 
-  it("renders the account info section", () => {
+  it("renders the how it works section", () => {
     renderHomePage();
-    expect(screen.getByText(/Create a tournament:/i)).toBeInTheDocument();
     expect(
-      screen.getByText(/Participate in a tournament:/i),
+      screen.getByText(/Create a tournament or get a join code/i),
     ).toBeInTheDocument();
-    expect(screen.getByText(/Guest accounts are limited/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Register or join as a guest/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/Start the tournament and record results/i),
+    ).toBeInTheDocument();
   });
 
   it("renders within a container layout", () => {

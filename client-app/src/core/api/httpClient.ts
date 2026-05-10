@@ -113,24 +113,6 @@ class HttpClient {
     data?: unknown,
     options: RequestOptions = {},
   ): Promise<T> {
-    // Check session status for sensitive operations
-    const sensitiveEndpoints = [
-      "/user/update-username",
-      "/user/update-password",
-      "/guest/username",
-    ];
-
-    if (sensitiveEndpoints.some((e) => endpoint.includes(e))) {
-      // Check session status before proceeding
-      const sessionStatus = await this.checkSessionStatus();
-
-      if (!sessionStatus.valid) {
-        throw new Error(
-          "Session appears to be invalid. Please try logging in again.",
-        );
-      }
-    }
-
     const shouldSkipCsrf =
       endpoint.includes("/auth/login") ||
       endpoint.includes("/auth/logout") ||

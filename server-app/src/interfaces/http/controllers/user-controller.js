@@ -1,5 +1,7 @@
 import bcrypt from "bcrypt";
 
+import Match from "../../../domain/models/match.js";
+import Tournament from "../../../domain/models/tournament.js";
 import User from "../../../domain/models/user.js";
 
 export const userExists = async (req, res) => {
@@ -212,6 +214,110 @@ export const updateUsername = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to update username",
+      error: error.message,
+    });
+  }
+};
+
+export const deleteAccount = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const suffix = userId.toString().slice(-8);
+    const anonymised = await User.findByIdAndUpdate(
+      userId,
+      {
+        username: `deleted_${suffix}`,
+        email: `deleted_${suffix}@deleted.invalid`,
+        password: null,
+      },
+      { new: true },
+    );
+
+    if (!anonymised) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    await new Promise((resolve, reject) => {
+      req.session.destroy((err) => {
+        if (err) reject(err);
+        else resolve();
+      });
+    });
+
+    res.clearCookie("connect.sid");
+    return res
+      .status(200)
+      .json({ success: true, message: "Account deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting account:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to delete account",
+      error: error.message,
+    });
+  }
+};
+
+export const getUserStats = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const user = await User.findById(userId).select("username").lean();
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    const username = user.username;
+
+    const [tournamentsCreatedCount, matchesAsP1, matchesAsP2] =
+      await Promise.all([
+        Tournament.countDocuments({ createdBy: userId }),
+
+        Match.find({ "player1.name": username, status: "completed" })
+          .select("player1 player2 winnerId tournament")
+          .lean(),
+
+        Match.find({ "player2.name": username, status: "completed" })
+          .select("player1 player2 winnerId tournament")
+          .lean(),
+      ]);
+
+    const allMatches = [...matchesAsP1, ...matchesAsP2];
+    const wins = allMatches.filter((m) => {
+      if (m.player1.name === username)
+        return m.winnerId === m.player1.participantId;
+      return m.winnerId === m.player2.participantId;
+    }).length;
+    const losses = allMatches.length - wins;
+
+    const factionCounts = {};
+    for (const m of allMatches) {
+      const faction =
+        m.player1.name === username ? m.player1.faction : m.player2.faction;
+      if (faction) factionCounts[faction] = (factionCounts[faction] || 0) + 1;
+    }
+    const factions = Object.entries(factionCounts)
+      .sort((a, b) => b[1] - a[1])
+      .map(([name, count]) => ({ name, count }));
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        tournamentsCreated: tournamentsCreatedCount,
+        matchesPlayed: allMatches.length,
+        wins,
+        losses,
+        factions,
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch user stats",
       error: error.message,
     });
   }

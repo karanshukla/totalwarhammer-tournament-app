@@ -25,6 +25,9 @@ const ContactPage = lazyLoad(
 const TermsPage = lazyLoad(
   () => import("@/features/terms/components/TermsPage"),
 );
+const PrivacyPolicyPage = lazyLoad(
+  () => import("@/features/terms/components/PrivacyPolicyPage"),
+);
 const ResetPasswordPage = lazyLoad(
   () => import("@/features/authentication/components/ResetPasswordPage"),
 );
@@ -46,8 +49,8 @@ export function App() {
           <Route path="/account" element={<AccountPage />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/terms" element={<TermsPage />} />
+          <Route path="/privacy" element={<PrivacyPolicyPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
-          //default 404 page
           <Route
             path="*"
             element={

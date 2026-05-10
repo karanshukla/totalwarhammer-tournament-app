@@ -49,9 +49,10 @@ export const useUserStore = create<UserStore>()(
         const user = get().user;
         if (!user.isAuthenticated) return false;
 
-        // Check session or token expiration
-        if (get().isSessionExpired() || (user.expiresAt && user.expiresAt < Date.now())) {
-          // Session or token expired, clear user and return false
+        if (
+          get().isSessionExpired() ||
+          (user.expiresAt && user.expiresAt < Date.now())
+        ) {
           get().clearUser();
           return false;
         }
@@ -68,6 +69,6 @@ export const useUserStore = create<UserStore>()(
     }),
     {
       name: "user-storage",
-    }
-  )
+    },
+  ),
 );
