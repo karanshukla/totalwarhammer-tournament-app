@@ -15,10 +15,8 @@ vi.mock("@/core/api/httpClient", () => ({
 function renderWithProviders(ui: React.ReactElement) {
   return render(
     <BrowserRouter>
-      <ChakraProvider value={defaultSystem}>
-        {ui}
-      </ChakraProvider>
-    </BrowserRouter>
+      <ChakraProvider value={defaultSystem}>{ui}</ChakraProvider>
+    </BrowserRouter>,
   );
 }
 

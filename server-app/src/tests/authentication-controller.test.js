@@ -4,7 +4,6 @@ import { describe, it, beforeEach, mock } from "node:test";
 const mockUserFindOne = mock.fn();
 const mockUserFindById = mock.fn();
 const mockValidatePassword = mock.fn();
-const mockUserToObject = mock.fn();
 
 mock.module("../domain/models/user.js", {
   defaultExport: {
@@ -34,7 +33,7 @@ mock.module("../infrastructure/utils/logger.js", {
   },
 });
 
-const { login, token, logout } = await import(
+const { login, logout } = await import(
   "../interfaces/http/controllers/authentication-controller.js"
 );
 

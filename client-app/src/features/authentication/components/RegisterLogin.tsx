@@ -9,7 +9,7 @@ import {
   createOverlay,
 } from "@chakra-ui/react";
 import { AuthenticationForm } from "./AuthenticationForm";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { LuSearch } from "react-icons/lu";
 import { BiArrowBack } from "react-icons/bi";
 import { FiX } from "react-icons/fi";
@@ -61,6 +61,14 @@ export const RegisterLogin = () => {
     );
   });
 
+  const handleClick = useCallback(() => {
+    drawer.open(overlayId, {
+      title: "Authentication",
+      description: "Register, login or reset your password",
+      placement: "end",
+    });
+  }, [drawer, overlayId]);
+
   useEffect(() => {
     const handleAuthEvent = (event: Event) => {
       const customEvent = event as CustomEvent;
@@ -75,15 +83,7 @@ export const RegisterLogin = () => {
     return () => {
       document.removeEventListener("auth-event", handleAuthEvent);
     };
-  }, [drawer, overlayId]);
-
-  const handleClick = () => {
-    drawer.open(overlayId, {
-      title: "Authentication",
-      description: "Register, login or reset your password",
-      placement: "end",
-    });
-  };
+  }, [drawer, overlayId, handleClick]);
 
   return (
     <>

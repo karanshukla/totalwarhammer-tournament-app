@@ -15,19 +15,19 @@ router.post(
   "/request",
   validatePasswordResetEmail,
   validationHandler,
-  passwordResetController.sendPasswordResetEmail
+  passwordResetController.sendPasswordResetEmail,
 );
 router.post(
   "/verify",
   validateResetToken,
   validationHandler,
-  passwordResetController.verifyResetToken
+  passwordResetController.verifyResetToken,
 );
 router.post(
   "/reset",
   validateResetPassword,
   validationHandler,
-  passwordResetController.resetPassword
+  passwordResetController.resetPassword,
 );
 
 export default router;

@@ -14,7 +14,7 @@ router.post(
   authenticateGuestSession,
   validateGuestUsername,
   validationHandler,
-  guestController.updateGuestUsername
+  guestController.updateGuestUsername,
 );
 
 export default router;

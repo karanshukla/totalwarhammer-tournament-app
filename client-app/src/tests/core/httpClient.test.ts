@@ -77,7 +77,7 @@ describe("HttpClient", () => {
       });
 
       await expect(httpClient.get("/test-endpoint")).rejects.toThrow(
-        errorMessage
+        errorMessage,
       );
     });
 
@@ -124,7 +124,7 @@ describe("HttpClient", () => {
           method: "GET",
           credentials: "include",
           cache: "no-cache",
-        })
+        }),
       );
 
       // Verify POST request was made with correct data and CSRF token
@@ -139,7 +139,7 @@ describe("HttpClient", () => {
             "X-CSRF-Token": "test-token",
           }),
           body: JSON.stringify(requestData),
-        })
+        }),
       );
 
       expect(result).toEqual({ success: true });
@@ -170,11 +170,11 @@ describe("HttpClient", () => {
             "Content-Type": "application/json",
           }),
           body: JSON.stringify(loginData),
-        })
+        }),
       );
 
       expect(mockFetch.mock.calls[0][1].headers).not.toHaveProperty(
-        "X-CSRF-Token"
+        "X-CSRF-Token",
       );
     });
 
@@ -217,7 +217,7 @@ describe("HttpClient", () => {
 
       // Verify last call used new token
       expect(mockFetch.mock.calls[3][1].headers["X-CSRF-Token"]).toBe(
-        "new-token"
+        "new-token",
       );
       expect(result).toEqual({ success: true });
     });
@@ -248,7 +248,7 @@ describe("HttpClient", () => {
       expect(mockFetch).toHaveBeenNthCalledWith(
         1,
         `${baseUrl}/auth/csrf-token`,
-        expect.anything()
+        expect.anything(),
       );
 
       // Verify PUT request was made with correct data and CSRF token
@@ -263,7 +263,7 @@ describe("HttpClient", () => {
             "X-CSRF-Token": "test-token",
           }),
           body: JSON.stringify(requestData),
-        })
+        }),
       );
 
       expect(result).toEqual({ success: true });
@@ -293,7 +293,7 @@ describe("HttpClient", () => {
       expect(mockFetch).toHaveBeenNthCalledWith(
         1,
         `${baseUrl}/auth/csrf-token`,
-        expect.anything()
+        expect.anything(),
       );
 
       // Verify DELETE request was made with correct CSRF token
@@ -307,7 +307,7 @@ describe("HttpClient", () => {
             "Content-Type": "application/json",
             "X-CSRF-Token": "test-token",
           }),
-        })
+        }),
       );
 
       expect(result).toEqual({ success: true });

@@ -19,7 +19,7 @@ export const validateUserRegistration = [
     .withMessage("Username must be between 3 and 30 characters")
     .matches(/^[a-zA-Z0-9_-]+$/)
     .withMessage(
-      "Username can only contain letters, numbers, underscores, and hyphens"
+      "Username can only contain letters, numbers, underscores, and hyphens",
     )
     .escape(),
 
@@ -47,7 +47,7 @@ export const validateGuestUsername = [
     .withMessage("Username must be between 3 and 30 characters")
     .matches(/^[a-zA-Z0-9_-]+$/)
     .withMessage(
-      "Username can only contain letters, numbers, underscores, and hyphens"
+      "Username can only contain letters, numbers, underscores, and hyphens",
     )
     .escape(),
 ];
@@ -61,7 +61,7 @@ export const validateUpdateUsername = [
     .withMessage("Username must be between 3 and 30 characters")
     .matches(/^[a-zA-Z0-9_-]+$/)
     .withMessage(
-      "Username can only contain letters, numbers, underscores, and hyphens"
+      "Username can only contain letters, numbers, underscores, and hyphens",
     )
     .escape(),
 ];

@@ -24,12 +24,12 @@ export interface TokenVerificationResponse {
  * @param email User's email address
  */
 export const requestPasswordReset = async (
-  email: string
+  email: string,
 ): Promise<PasswordResetResponse> => {
   try {
     const response = await httpClient.post<PasswordResetResponse>(
       `${apiConfig.endpoints.passwordReset}/request`,
-      { email }
+      { email },
     );
 
     if (response.success) {
@@ -41,7 +41,7 @@ export const requestPasswordReset = async (
       });
     } else {
       throw new Error(
-        response.message || "Failed to send password reset email"
+        response.message || "Failed to send password reset email",
       );
     }
 
@@ -64,12 +64,12 @@ export const requestPasswordReset = async (
  * @param token The reset token to verify
  */
 export const verifyResetToken = async (
-  token: string
+  token: string,
 ): Promise<TokenVerificationResponse> => {
   try {
     const response = await httpClient.post<TokenVerificationResponse>(
       `${apiConfig.endpoints.passwordReset}/verify`,
-      { token }
+      { token },
     );
 
     return response;
@@ -91,12 +91,12 @@ export const verifyResetToken = async (
  */
 export const resetPassword = async (
   token: string,
-  newPassword: string
+  newPassword: string,
 ): Promise<PasswordResetResponse> => {
   try {
     const response = await httpClient.post<PasswordResetResponse>(
       `${apiConfig.endpoints.passwordReset}/reset`,
-      { token, newPassword }
+      { token, newPassword },
     );
 
     if (response.success) {

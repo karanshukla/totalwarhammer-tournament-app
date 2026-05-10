@@ -22,7 +22,6 @@ switch (environment) {
 export const port = config.port;
 export const mongoUri = config.mongoUri;
 export const jwtSecret = config.jwtSecret;
-export const jwtRefreshSecret = config.jwtRefreshSecret;
 export const sessionSecret = config.sessionSecret;
 export const baseUrl = config.baseUrl;
 export const clientUrl = config.clientUrl;

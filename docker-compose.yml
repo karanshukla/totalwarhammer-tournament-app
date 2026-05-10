@@ -1,0 +1,65 @@
+services:
+  mongo:
+    image: mongo:6
+    restart: unless-stopped
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - backend
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --save 60 1 --loglevel warning
+    volumes:
+      - redis_data:/data
+    networks:
+      - backend
+
+  server:
+    build:
+      context: .
+      dockerfile: server-app/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      - mongo
+      - redis
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      MONGO_URI: mongodb://mongo:27017/twt-app
+      REDIS_URL: redis://redis:6379
+      USE_MONGO_SESSION: "false"
+      CLIENT_URL: ${CLIENT_URL:-http://localhost}
+      BASE_URL: ${BASE_URL:-http://localhost}
+      SESSION_SECRET: ${SESSION_SECRET}
+      CSRF_SECRET: ${CSRF_SECRET}
+      JWT_SECRET: ${JWT_SECRET}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+    networks:
+      - backend
+      - frontend
+    expose:
+      - "3000"
+
+  client:
+    build:
+      context: .
+      dockerfile: client-app/Dockerfile
+      args:
+        VITE_API_URL: ""
+    restart: unless-stopped
+    depends_on:
+      - server
+    ports:
+      - "80:80"
+    networks:
+      - frontend
+
+networks:
+  backend:
+  frontend:
+
+volumes:
+  mongo_data:
+  redis_data:

@@ -17,7 +17,9 @@ describe("tournamentStore", () => {
     const { addParticipants } = useTournamentStore.getState();
     addParticipants(2);
 
-    expect(useTournamentStore.getState().participants.length).toBe(initialCount + 2);
+    expect(useTournamentStore.getState().participants.length).toBe(
+      initialCount + 2,
+    );
   });
 
   it("updateParticipant should update a participant's details", () => {
@@ -37,11 +39,11 @@ describe("tournamentStore", () => {
     deleteParticipant(idToDelete);
 
     const state = useTournamentStore.getState();
-    expect(state.participants.find(p => p.id === idToDelete)).toBeUndefined();
-    
+    expect(state.participants.find((p) => p.id === idToDelete)).toBeUndefined();
+
     // Check if removed from matches
-    state.rounds.forEach(round => {
-      round.matches.forEach(match => {
+    state.rounds.forEach((round) => {
+      round.matches.forEach((match) => {
         expect(match.participant1Id).not.toBe(idToDelete);
         expect(match.participant2Id).not.toBe(idToDelete);
       });

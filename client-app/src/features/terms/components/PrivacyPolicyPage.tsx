@@ -1,12 +1,5 @@
 import React from "react";
-import {
-  Heading,
-  Container,
-  Box,
-  Text,
-  VStack,
-  Link,
-} from "@chakra-ui/react";
+import { Heading, Container, Box, Text, VStack, Link } from "@chakra-ui/react";
 import { Prose } from "@/shared/ui/Prose";
 
 const tocItems = [
@@ -35,11 +28,7 @@ const PrivacyPolicyPage: React.FC = () => {
         alignItems="start"
       >
         {/* Sticky TOC sidebar - desktop only */}
-        <Box
-          display={{ base: "none", lg: "block" }}
-          position="sticky"
-          top={6}
-        >
+        <Box display={{ base: "none", lg: "block" }} position="sticky" top={6}>
           <Text
             fontSize="xs"
             fontWeight="semibold"
@@ -73,16 +62,14 @@ const PrivacyPolicyPage: React.FC = () => {
             <h2 id="controller">Data Controller</h2>
             <p>
               This application ("TW Tournament App") is operated as an
-              independent community project. The data controller responsible
-              for your personal data is the project maintainer, reachable at{" "}
+              independent community project. The data controller responsible for
+              your personal data is the project maintainer, reachable at{" "}
               <a href="mailto:dev@twtournament.app">dev@twtournament.app</a> or
               via Discord: <strong>@anchorstandard</strong>.
             </p>
 
             <h2 id="what-we-collect">What We Collect</h2>
-            <p>
-              We collect only what is necessary to operate the service:
-            </p>
+            <p>We collect only what is necessary to operate the service:</p>
             <ul>
               <li>
                 <strong>Registered users:</strong> username, email address, and
@@ -90,8 +77,8 @@ const PrivacyPolicyPage: React.FC = () => {
                 account recovery and is never shared with third parties.
               </li>
               <li>
-                <strong>Guest users:</strong> a temporary session identifier
-                and an optional display name. No email or password is required.
+                <strong>Guest users:</strong> a temporary session identifier and
+                an optional display name. No email or password is required.
                 Guest sessions expire after 48 hours.
               </li>
               <li>
@@ -100,9 +87,9 @@ const PrivacyPolicyPage: React.FC = () => {
                 associated with tournaments you create or join.
               </li>
               <li>
-                <strong>Server logs:</strong> standard web server logs
-                (IP address, request path, timestamp) retained for up to 30
-                days for security and debugging purposes.
+                <strong>Server logs:</strong> standard web server logs (IP
+                address, request path, timestamp) retained for up to 30 days for
+                security and debugging purposes.
               </li>
             </ul>
             <p>
@@ -113,14 +100,13 @@ const PrivacyPolicyPage: React.FC = () => {
 
             <h2 id="lawful-basis">Lawful Basis for Processing</h2>
             <p>
-              Under GDPR Article 6, we process your data on the following
-              bases:
+              Under GDPR Article 6, we process your data on the following bases:
             </p>
             <ul>
               <li>
                 <strong>Contract (Article 6(1)(b)):</strong> processing your
-                account credentials and session data is necessary to provide
-                the service you signed up for.
+                account credentials and session data is necessary to provide the
+                service you signed up for.
               </li>
               <li>
                 <strong>Legitimate interest (Article 6(1)(f)):</strong>{" "}
@@ -141,10 +127,9 @@ const PrivacyPolicyPage: React.FC = () => {
             <ul>
               <li>
                 <strong>Account data</strong> (username, email, password) is
-                retained for as long as your account is active. When you
-                delete your account, your email and password are permanently
-                erased and your username is replaced with an anonymous
-                identifier.
+                retained for as long as your account is active. When you delete
+                your account, your email and password are permanently erased and
+                your username is replaced with an anonymous identifier.
               </li>
               <li>
                 <strong>Tournament and match records</strong> are retained
@@ -167,8 +152,8 @@ const PrivacyPolicyPage: React.FC = () => {
             </p>
             <ul>
               <li>
-                <strong>Right of access (Article 15):</strong> request a copy
-                of the personal data we hold about you.
+                <strong>Right of access (Article 15):</strong> request a copy of
+                the personal data we hold about you.
               </li>
               <li>
                 <strong>Right to rectification (Article 16):</strong> correct
@@ -182,18 +167,17 @@ const PrivacyPolicyPage: React.FC = () => {
                 deleted (see Lawful Basis above).
               </li>
               <li>
-                <strong>Right to data portability (Article 20):</strong>{" "}
-                request an export of your personal data in a machine-readable
-                format.
+                <strong>Right to data portability (Article 20):</strong> request
+                an export of your personal data in a machine-readable format.
               </li>
               <li>
                 <strong>Right to object (Article 21):</strong> object to
                 processing based on legitimate interest.
               </li>
               <li>
-                <strong>Right to lodge a complaint:</strong> you have the
-                right to lodge a complaint with your local supervisory
-                authority. In the EU, a list of authorities is available at{" "}
+                <strong>Right to lodge a complaint:</strong> you have the right
+                to lodge a complaint with your local supervisory authority. In
+                the EU, a list of authorities is available at{" "}
                 <a
                   href="https://edpb.europa.eu/about-edpb/about-edpb/members_en"
                   target="_blank"
@@ -213,8 +197,8 @@ const PrivacyPolicyPage: React.FC = () => {
             </p>
             <p>
               Infrastructure providers (hosting, database) process data on our
-              behalf as data processors under appropriate agreements. No data
-              is transferred outside the EU/EEA.
+              behalf as data processors under appropriate agreements. No data is
+              transferred outside the EU/EEA.
             </p>
 
             <h2 id="contact">Contact</h2>

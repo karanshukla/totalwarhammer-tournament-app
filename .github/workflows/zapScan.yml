@@ -1,0 +1,81 @@
+name: OWASP ZAP Security Scan
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "server-app/**"
+      - "docker-compose.yml"
+      - "server-app/Dockerfile"
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "server-app/**"
+      - "docker-compose.yml"
+      - "server-app/Dockerfile"
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  zap-scan:
+    name: OWASP ZAP API Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create .env for Docker Compose
+        env:
+          SESSION_SECRET: ${{ secrets.SESSION_SECRET != '' && secrets.SESSION_SECRET || 'ci-session-secret-zap' }}
+          CSRF_SECRET: ${{ secrets.CSRF_SECRET != '' && secrets.CSRF_SECRET || 'ci-csrf-secret-zap' }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET != '' && secrets.JWT_SECRET || 'ci-jwt-secret-zap' }}
+        run: |
+          cat > .env <<EOF
+          SESSION_SECRET=${SESSION_SECRET}
+          CSRF_SECRET=${CSRF_SECRET}
+          JWT_SECRET=${JWT_SECRET}
+          RESEND_API_KEY=re_placeholder_not_used_in_scan
+          CLIENT_URL=http://localhost
+          BASE_URL=http://localhost
+          EOF
+
+      - name: Build and start containers
+        run: docker compose up -d --build
+
+      - name: Wait for server to be ready
+        run: |
+          echo "Waiting for server..."
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost/auth/status > /dev/null 2>&1 || \
+               curl -sf http://localhost > /dev/null 2>&1; then
+              echo "Server is up"
+              break
+            fi
+            echo "Attempt $i/30 - waiting..."
+            sleep 3
+          done
+
+      - name: Run OWASP ZAP Baseline Scan
+        uses: zaproxy/action-baseline@v0.14.0
+        with:
+          target: "http://localhost"
+          rules_file_name: ".github/zap-rules.tsv"
+          fail_action: false
+          allow_issue_writing: true
+          artifact_name: zap-baseline-report
+
+      - name: Run OWASP ZAP API Scan
+        uses: zaproxy/action-api-scan@v0.9.0
+        with:
+          target: "http://localhost"
+          format: openapi
+          fail_action: false
+          allow_issue_writing: true
+          artifact_name: zap-api-report
+
+      - name: Stop containers
+        if: always()
+        run: docker compose down
