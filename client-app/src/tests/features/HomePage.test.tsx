@@ -48,7 +48,7 @@ describe("HomePage", () => {
     renderHomePage();
     expect(
       screen.getByText(
-        /Enter a tournament code to view an ongoing tournament/i,
+        /Enter a tournament code or select an ongoing tournament below/i,
       ),
     ).toBeInTheDocument();
     expect(screen.getByPlaceholderText(/e.g., ABC123/i)).toBeInTheDocument();
