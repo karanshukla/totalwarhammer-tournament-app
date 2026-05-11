@@ -38,7 +38,7 @@ export const registerUser = async (
     try {
       if (data.password) {
         await loginUser({
-          email: data.email,
+          identifier: data.email,
           password: data.password,
         });
       } else {

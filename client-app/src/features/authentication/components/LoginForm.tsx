@@ -6,10 +6,9 @@ import { loginUser } from "../api/authenticationApi";
 import { useState, useRef } from "react";
 
 const loginFormSchema = z.object({
-  email: z
+  identifier: z
     .string()
-    .min(1, { message: "Email Address is required" })
-    .email({ message: "A valid Email Address is required" }),
+    .min(3, { message: "Username or email is required" }),
   password: z.string().min(1, { message: "Password is required" }),
   rememberMe: z.boolean().optional(),
 });
@@ -17,11 +16,11 @@ const loginFormSchema = z.object({
 export type LoginFormValues = z.infer<typeof loginFormSchema>;
 
 interface LoginFormProps {
-  defaultEmail?: string;
+  defaultIdentifier?: string;
   onSuccess?: () => void;
 }
 
-export function LoginForm({ defaultEmail = "", onSuccess }: LoginFormProps) {
+export function LoginForm({ defaultIdentifier = "", onSuccess }: LoginFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const isSubmittingRef = useRef(false);
 
@@ -32,7 +31,7 @@ export function LoginForm({ defaultEmail = "", onSuccess }: LoginFormProps) {
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginFormSchema),
     defaultValues: {
-      email: defaultEmail,
+      identifier: defaultIdentifier,
       password: "",
       rememberMe: false,
     },
@@ -62,14 +61,14 @@ export function LoginForm({ defaultEmail = "", onSuccess }: LoginFormProps) {
   return (
     <form onSubmit={handleSubmit(onSubmit)} noValidate>
       <Stack gap="4" align="flex-start" maxW="sm">
-        <Field.Root invalid={!!errors.email} required>
-          <Field.Label>Email Address</Field.Label>
+        <Field.Root invalid={!!errors.identifier} required>
+          <Field.Label>Email or Username</Field.Label>
           <Controller
-            name="email"
+            name="identifier"
             control={control}
             render={({ field }) => <Input {...field} autoComplete="username" />}
           />
-          <Field.ErrorText>{errors.email?.message}</Field.ErrorText>
+          <Field.ErrorText>{errors.identifier?.message}</Field.ErrorText>
         </Field.Root>
 
         <Field.Root invalid={!!errors.password} required>
