@@ -596,6 +596,7 @@ const TournamentViewPage: React.FC = () => {
                       borderRadius="md"
                       borderWidth="1px"
                       borderColor="border"
+                      bg="bg.panel"
                       fontSize="sm"
                       color="fg"
                       p={2}

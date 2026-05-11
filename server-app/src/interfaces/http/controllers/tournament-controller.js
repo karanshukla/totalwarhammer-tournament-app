@@ -124,29 +124,54 @@ export const getUserTournaments = async (req, res) => {
     const userName = req.user.username;
     const isGuest = req.user.isGuest;
 
-    // Build list of possible names the user might be stored as
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(50, Math.max(1, parseInt(req.query.limit) || 9));
+    const status = req.query.status;
+    const skip = (page - 1) * limit;
+
     const possibleNames = [userId];
     if (userName && userName !== userId) {
       possibleNames.push(userName);
     }
 
-    // Build query conditions
     const queryConditions = [];
-
-    // Only check createdBy for non-guest users (guest IDs are UUIDs, not ObjectIds)
     if (!isGuest) {
       queryConditions.push({ createdBy: userId });
     }
-
-    // Always check participants (works for both guests and registered users)
     queryConditions.push({ "participants.name": { $in: possibleNames } });
 
-    const tournaments = await Tournament.find({
-      $or: queryConditions,
-    }).sort({ createdAt: -1 });
+    const baseQuery = { $or: queryConditions };
+    const filter =
+      status && status !== "all" ? { ...baseQuery, status } : baseQuery;
+
+    const [tournaments, statusAgg] = await Promise.all([
+      Tournament.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit),
+      Tournament.aggregate([
+        { $match: baseQuery },
+        { $group: { _id: "$status", count: { $sum: 1 } } },
+      ]),
+    ]);
+
+    const statusCounts = { all: 0, pending: 0, active: 0, completed: 0 };
+    for (const { _id, count } of statusAgg) {
+      if (_id in statusCounts) statusCounts[_id] = count;
+      statusCounts.all += count;
+    }
+
+    const total =
+      status && status !== "all"
+        ? (statusCounts[status] ?? 0)
+        : statusCounts.all;
 
     const withCodes = await Promise.all(tournaments.map(ensureCode));
-    return res.status(200).json({ success: true, data: withCodes });
+    return res.status(200).json({
+      success: true,
+      data: withCodes,
+      total,
+      page,
+      limit,
+      statusCounts,
+    });
   } catch (error) {
     logger.error(`Get user tournaments error: ${error.message}`, { error });
     return res.status(500).json({

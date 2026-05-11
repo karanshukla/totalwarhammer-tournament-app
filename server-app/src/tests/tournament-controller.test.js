@@ -54,6 +54,7 @@ const mockTournamentFindOne = mock.fn();
 const mockTournamentFindOneAndUpdate = mock.fn();
 const mockTournamentFindById = mock.fn();
 const mockTournamentFindByIdAndUpdate = mock.fn();
+const mockTournamentAggregate = mock.fn(async () => []);
 
 mock.module("../domain/models/tournament.js", {
   namedExports: {},
@@ -64,6 +65,7 @@ mock.module("../domain/models/tournament.js", {
     findOneAndUpdate: mockTournamentFindOneAndUpdate,
     findById: mockTournamentFindById,
     findByIdAndUpdate: mockTournamentFindByIdAndUpdate,
+    aggregate: mockTournamentAggregate,
   },
 });
 
@@ -128,6 +130,7 @@ describe("tournament-controller", () => {
     mockTournamentFindOneAndUpdate.mock.resetCalls();
     mockTournamentFindById.mock.resetCalls();
     mockTournamentFindByIdAndUpdate.mock.resetCalls();
+    mockTournamentAggregate.mock.resetCalls();
     mockTournamentInstance.deleteOne.mock.resetCalls();
     mockMatchInsertMany.mock.resetCalls();
     mockEmitTournamentUpdated.mock.resetCalls();
@@ -324,12 +327,20 @@ describe("tournament-controller", () => {
     it("should return tournaments belonging to the current user", async () => {
       const tournaments = [{ name: "Mine", code: "ABCDEF" }];
       const chain = {
-        sort: mock.fn(async () => tournaments),
+        sort: mock.fn(function () {
+          return this;
+        }),
+        skip: mock.fn(function () {
+          return this;
+        }),
+        limit: mock.fn(async () => tournaments),
       };
       mockTournamentFind.mock.mockImplementation(() => chain);
+      mockTournamentAggregate.mock.mockImplementation(async () => []);
 
       const req = mockReq({
         user: { id: "user123", username: "user123", isGuest: false },
+        query: { page: "1", limit: "9" },
       });
       const res = mockRes();
 
@@ -341,7 +352,6 @@ describe("tournament-controller", () => {
         tournaments,
       );
 
-      // The controller now builds a more complex query: { $or: [{ createdBy: "user123" }, { "participants.name": { $in: ["user123"] } }] }
       const actualQuery = mockTournamentFind.mock.calls[0].arguments[0];
       assert.ok(actualQuery.$or);
       assert.deepStrictEqual(actualQuery.$or[0], { createdBy: "user123" });

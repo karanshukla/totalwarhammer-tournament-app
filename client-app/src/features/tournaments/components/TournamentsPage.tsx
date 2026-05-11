@@ -170,7 +170,7 @@ const TournamentsPage: React.FC = () => {
           <VStack alignItems="flex-end" gap={1}>
             <HStack gap={2}>
               <Input
-                placeholder="Tournament Code"
+                placeholder="e.g., ABC123"
                 value={codeInput}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                   setCodeInput(e.target.value)
