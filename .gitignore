@@ -40,6 +40,9 @@ Thumbs.db
 *.sublime-project
 *.sublime-workspace
 
+# Claude Code
+.claude/
+
 # Optional npm cache & test coverage
 .npm/
 .nyc_output

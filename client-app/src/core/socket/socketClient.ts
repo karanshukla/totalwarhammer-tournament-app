@@ -22,6 +22,29 @@ export function getSocket(): Socket {
       autoConnect: true,
       transports: ["websocket", "polling"],
     });
+
+    console.debug("[socket] init — url:", socketUrl);
+
+    socket.on("connect", () => {
+      console.debug(
+        "[socket] connected — id:",
+        socket?.id,
+        "transport:",
+        socket?.io.engine.transport.name,
+      );
+    });
+    socket.on("connect_error", (err) => {
+      console.error("[socket] connect_error —", err.message, err);
+    });
+    socket.on("disconnect", (reason, details) => {
+      console.warn("[socket] disconnect —", reason, details);
+    });
+    socket.io.on("reconnect_attempt", (n) => {
+      console.debug("[socket] reconnect attempt #" + n);
+    });
+    socket.io.engine.on("upgrade", (transport) => {
+      console.debug("[socket] transport upgraded to:", transport.name);
+    });
   }
   return socket;
 }

@@ -11,12 +11,20 @@ const eventLimiter = createRateLimiter({ windowMs: 60_000, max: 60 });
 let io = null;
 
 export function initSocketIO(httpServer, corsOrigin) {
+  logger.info(`[socket] initializing — corsOrigin: ${corsOrigin}`);
+
   io = new Server(httpServer, {
     cors: {
       origin: corsOrigin,
       credentials: true,
       methods: ["GET", "POST"],
     },
+  });
+
+  io.engine.on("connection_error", (err) => {
+    logger.error(
+      `[socket] engine connection_error — code: ${err.code} message: ${err.message} context: ${JSON.stringify(err.context)}`,
+    );
   });
 
   io.use((socket, next) => {
