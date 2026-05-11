@@ -1,0 +1,78 @@
+import React from "react";
+import {
+  SimpleGrid,
+  Card,
+  VStack,
+  HStack,
+  Text,
+  Box,
+  Heading,
+} from "@chakra-ui/react";
+import { LuGitBranch, LuRepeat, LuCircleDot, LuHash } from "react-icons/lu";
+
+const tournamentTypes = [
+  {
+    icon: LuGitBranch,
+    name: "Single Elimination",
+    color: "blue",
+    desc: "Classic knockout format. Lose once and you're out - fast-paced and decisive.",
+  },
+  {
+    icon: LuRepeat,
+    name: "Double Elimination",
+    color: "purple",
+    desc: "Two chances to prove yourself. Losers drop to a second bracket before being eliminated.",
+  },
+  {
+    icon: LuCircleDot,
+    name: "Round Robin",
+    color: "green",
+    desc: "Everyone plays everyone. The player with the most wins takes the crown.",
+  },
+  {
+    icon: LuHash,
+    name: "Swiss System",
+    color: "orange",
+    desc: "Paired by performance each round. No eliminations - the best record wins.",
+  },
+];
+
+const TournamentFormatsSection: React.FC = () => (
+  <Box>
+    <Heading as="h2" size="xl" mb={2}>
+      Tournament formats
+    </Heading>
+    <Text color="fg.muted" mb={6}>
+      Choose the format that fits your community.
+    </Text>
+    <SimpleGrid columns={{ base: 1, sm: 2, lg: 4 }} gap={4}>
+      {tournamentTypes.map((t) => (
+        <Card.Root key={t.name} variant="outline" bg="bg.panel">
+          <Card.Body>
+            <VStack align="start" gap={3}>
+              <HStack gap={2}>
+                <Box
+                  p={2}
+                  borderRadius="md"
+                  bg={`${t.color}.subtle`}
+                  color={`${t.color}.fg`}
+                  fontSize="lg"
+                >
+                  <t.icon />
+                </Box>
+                <Text fontWeight="semibold" fontSize="sm">
+                  {t.name}
+                </Text>
+              </HStack>
+              <Text fontSize="sm" color="fg.muted">
+                {t.desc}
+              </Text>
+            </VStack>
+          </Card.Body>
+        </Card.Root>
+      ))}
+    </SimpleGrid>
+  </Box>
+);
+
+export default TournamentFormatsSection;

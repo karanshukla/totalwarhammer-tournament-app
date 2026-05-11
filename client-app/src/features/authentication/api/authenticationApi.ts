@@ -38,11 +38,6 @@ export const loginUser = async (data: LoginData): Promise<LoginResponse> => {
     // We can still use PKCE for enhanced security, even with sessions
     const { codeChallenge, state } = await PKCEAuthService.initiatePKCEFlow();
 
-    // Store rememberMe preference in session storage to retrieve later
-    if (data.rememberMe) {
-      sessionStorage.setItem("pkce_remember_me", "true");
-    }
-
     const responseData = await httpClient.post<LoginResponse>(
       apiConfig.endpoints.login,
       {
@@ -96,7 +91,7 @@ export const loginUser = async (data: LoginData): Promise<LoginResponse> => {
           data.identifier
         }`,
         description: data.rememberMe
-          ? "Welcome back! You'll stay signed in for 7 days."
+          ? "Welcome back! You'll stay signed in for 30 days."
           : "Welcome back!",
         type: "success",
       });

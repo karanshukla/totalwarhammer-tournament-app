@@ -10,7 +10,7 @@ class JwtService {
     // Define token expiration times for different user types
     this.tokenExpiration = {
       standard: this.defaultExpiresIn,
-      rememberMe: process.env.JWT_REMEMBER_ME_EXPIRES_IN || "7d",
+      rememberMe: process.env.JWT_REMEMBER_ME_EXPIRES_IN || "30d",
       guest: process.env.JWT_GUEST_EXPIRES_IN || "48h",
     };
 

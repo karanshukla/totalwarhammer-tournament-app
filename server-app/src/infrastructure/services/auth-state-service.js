@@ -6,7 +6,7 @@ import logger from "../utils/logger.js";
 class AuthStateService {
   constructor() {
     this.DEFAULT_AUTH_STATE_TIMEOUT = 2 * 60 * 60 * 1000; // 2 hours
-    this.REMEMBER_ME_TIMEOUT = 7 * 24 * 60 * 60 * 1000; // 7 days
+    this.REMEMBER_ME_TIMEOUT = 30 * 24 * 60 * 60 * 1000; // 30 days
     this.GUEST_AUTH_STATE_TIMEOUT = 2 * 24 * 60 * 60 * 1000; // 48 hours
   }
 
