@@ -267,8 +267,20 @@ export function doubleElimAdvance(tournamentId, allMatches) {
       }
     }
 
-    // Feed WB losers into new LB round + advance existing LB winners
-    const incomingLosers = wbLosers;
+    // Feed WB losers into new LB round + advance existing LB winners.
+    // Only include WB losers not already in the LB (prevents re-injection when
+    // the WB final round stays as wbCurrent across multiple advance calls).
+    const lbParticipantIds = new Set(
+      lb
+        .flatMap((m) => [
+          m.player1.participantId?.toString(),
+          m.player2.participantId?.toString(),
+        ])
+        .filter((id) => id && id !== "null"),
+    );
+    const incomingLosers = wbLosers.filter(
+      (p) => !lbParticipantIds.has(p.participantId?.toString()),
+    );
     const existingLbWinners = lbCurrent.length
       ? lbCurrent
           .filter((m) => m.status === "completed")
@@ -279,7 +291,15 @@ export function doubleElimAdvance(tournamentId, allMatches) {
           )
           .filter((p) => p.name !== "BYE")
       : [];
-    const lbPool = [...incomingLosers, ...existingLbWinners];
+
+    // Interleave incoming WB losers with existing LB survivors so each WB
+    // loser faces an LB survivor (not another WB loser).
+    const lbPool = [];
+    const maxLen = Math.max(incomingLosers.length, existingLbWinners.length);
+    for (let i = 0; i < maxLen; i++) {
+      if (i < incomingLosers.length) lbPool.push(incomingLosers[i]);
+      if (i < existingLbWinners.length) lbPool.push(existingLbWinners[i]);
+    }
 
     if (lbPool.length >= 1) {
       const nextLbRound = lbMaxRound + 1;
