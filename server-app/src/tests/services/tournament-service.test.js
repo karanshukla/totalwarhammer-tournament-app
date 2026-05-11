@@ -131,56 +131,38 @@ describe("doubleElimAdvance", () => {
     const participants = makeParticipants(8);
     const allMatches = runDoubleElim(tid, participants);
 
-    // Find WB participants by round
-    const wbRounds = new Map();
-    for (const m of allMatches.filter((m) => m.bracketSide === "winners")) {
-      if (!wbRounds.has(m.round)) wbRounds.set(m.round, []);
-      wbRounds.get(m.round).push(m);
-    }
-
-    // Collect all WB losers per WB round
-    const wbLosersByRound = new Map();
-    for (const [round, matches] of wbRounds) {
-      const losers = new Set(
-        matches
-          .filter((m) => m.status === "completed")
-          .map((m) =>
-            m.winnerId?.toString() === m.player1.participantId?.toString()
-              ? m.player2.participantId?.toString()
-              : m.player1.participantId?.toString(),
-          )
-          .filter((id) => id && id !== "null"),
-      );
-      wbLosersByRound.set(round, losers);
-    }
-
-    // For each LB round, if it contains WB losers, verify they face LB survivors
     const lbRounds = new Map();
     for (const m of allMatches.filter((m) => m.bracketSide === "losers")) {
       if (!lbRounds.has(m.round)) lbRounds.set(m.round, []);
       lbRounds.get(m.round).push(m);
     }
 
-    // Collect all WB loser IDs across all rounds
-    const allWbLoserIds = new Set(
-      [...wbLosersByRound.values()].flatMap((s) => [...s]),
-    );
+    // Track which LB round each player first appeared in (their LB debut).
+    // A player who won LB R1 is an "LB survivor" in R2, not a fresh drop-in,
+    // even though they originally lost in WB.
+    const lbDebut = new Map();
+    const sortedRounds = [...lbRounds.keys()].sort((a, b) => a - b);
+    for (const round of sortedRounds) {
+      for (const m of lbRounds.get(round)) {
+        const p1Id = m.player1.participantId?.toString();
+        const p2Id = m.player2.participantId?.toString();
+        if (p1Id && p1Id !== "null" && !lbDebut.has(p1Id)) lbDebut.set(p1Id, round);
+        if (p2Id && p2Id !== "null" && !lbDebut.has(p2Id)) lbDebut.set(p2Id, round);
+      }
+    }
 
-    for (const [, lbMatches] of lbRounds) {
+    for (const [lbRound, lbMatches] of lbRounds) {
       for (const m of lbMatches) {
         if (m.player2.name === "BYE") continue;
         const p1Id = m.player1.participantId?.toString();
         const p2Id = m.player2.participantId?.toString();
-        const p1IsWbLoser = allWbLoserIds.has(p1Id);
-        const p2IsWbLoser = allWbLoserIds.has(p2Id);
-        // Both players being WB losers in the same LB match would be wrong
-        // (should only happen in LB R1 consolidation — but with 8 players LB R1
-        // IS purely WB losers facing off, so this only applies to later rounds)
-        if (p1IsWbLoser && p2IsWbLoser) {
-          // This is only acceptable in LB round 1 (initial consolidation)
+        const p1IsDebut = lbDebut.get(p1Id) === lbRound;
+        const p2IsDebut = lbDebut.get(p2Id) === lbRound;
+        // Two fresh LB entrants facing each other is only acceptable in LB R1
+        if (p1IsDebut && p2IsDebut) {
           assert.ok(
-            m.round === 1,
-            `LB round ${m.round}: two WB losers (${m.player1.name} vs ${m.player2.name}) face each other — expected WB loser vs LB survivor`,
+            lbRound === 1,
+            `LB round ${lbRound}: two fresh LB entrants (${m.player1.name} vs ${m.player2.name}) face each other — expected fresh entrant vs LB survivor`,
           );
         }
       }
