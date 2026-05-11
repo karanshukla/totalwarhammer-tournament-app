@@ -298,7 +298,7 @@ export const resolveDispute = async (req, res) => {
   }
 };
 
-// PATCH /match/:id/result  (record match result — any participant in the match)
+// PATCH /match/:id/result  (record match result — tournament admin only)
 export const recordResult = async (req, res) => {
   try {
     const match = await Match.findById(req.params.id).populate(
@@ -310,6 +310,17 @@ export const recordResult = async (req, res) => {
         .status(404)
         .json({ success: false, message: "Match not found" });
     }
+
+    const createdById =
+      match.tournament.createdBy?._id ?? match.tournament.createdBy;
+    const isCreator = createdById?.toString() === req.user.id?.toString();
+    if (!isCreator) {
+      return res.status(403).json({
+        success: false,
+        message: "Only the tournament admin can record results directly",
+      });
+    }
+
     if (match.status === "completed") {
       return res.status(400).json({
         success: false,

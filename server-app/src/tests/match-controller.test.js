@@ -545,7 +545,7 @@ describe("match-controller", () => {
         tournament: {
           _id: { toString: () => "tttttttttttttttttttttttt" },
           status: "active",
-          createdBy: "cccccccccccccccccccccccc",
+          createdBy: "u1",
         },
         save: mock.fn(async () => {}),
         ...overrides,
@@ -560,6 +560,20 @@ describe("match-controller", () => {
       const res = mockRes();
       await recordResult(req, res);
       assert.strictEqual(res.status.mock.calls[0].arguments[0], 404);
+    });
+
+    it("should return 403 if user is not the tournament admin", async () => {
+      const match = makeActiveMatch({ tournament: { _id: { toString: () => "tttttttttttttttttttttttt" }, status: "active", createdBy: "someone-else" } });
+      mockMatchFindById.mock.mockImplementation(() => ({
+        populate: async () => match,
+      }));
+      const req = mockReq({
+        params: { id: "m1" },
+        body: { winnerId: match.player1.participantId },
+      });
+      const res = mockRes();
+      await recordResult(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 403);
     });
 
     it("should return 400 if match is already completed", async () => {
@@ -595,7 +609,7 @@ describe("match-controller", () => {
         tournament: {
           _id: { toString: () => "tttttttttttttttttttttttt" },
           status: "pending",
-          createdBy: "cccccccccccccccccccccccc",
+          createdBy: "u1",
         },
       });
       mockMatchFindById.mock.mockImplementation(() => ({

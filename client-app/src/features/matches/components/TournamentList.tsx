@@ -35,7 +35,6 @@ interface Props {
   onCodeInputChange: (v: string) => void;
   onStatusFilterChange: (s: "all" | "pending" | "active" | "completed") => void;
   onPageChange: (p: number) => void;
-  onNavigateLogin: () => void;
 }
 
 const cardBg = "bg.panel";
@@ -60,7 +59,6 @@ const TournamentList: React.FC<Props> = ({
   onCodeInputChange,
   onStatusFilterChange,
   onPageChange,
-  onNavigateLogin,
 }) => {
   const totalPages = Math.ceil(total / pageSize);
 
@@ -173,7 +171,13 @@ const TournamentList: React.FC<Props> = ({
                   <Button
                     size="sm"
                     colorPalette="blue"
-                    onClick={onNavigateLogin}
+                    onClick={() =>
+                      document.dispatchEvent(
+                        new CustomEvent("auth-event", {
+                          detail: { type: "open-drawer" },
+                        }),
+                      )
+                    }
                   >
                     Sign In
                   </Button>

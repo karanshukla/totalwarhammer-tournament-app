@@ -22,7 +22,7 @@ export function configureSessionStore() {
       databaseName: "twt-app-sessions",
       uri: mongoUri,
       collection: "sessions",
-      expires: 7 * 24 * 60 * 60 * 1000, // 7 days
+      expires: 30 * 24 * 60 * 60 * 1000, // 30 days (max remember-me lifetime)
     });
 
     sessionStore.on("error", function (error) {
@@ -44,7 +44,7 @@ export function configureSessionStore() {
     sessionStore = new RedisStore({
       client: redisClient,
       prefix: "twt-app-session:",
-      ttl: 7 * 24 * 60 * 60, // 7 days
+      ttl: 30 * 24 * 60 * 60, // 30 days (max remember-me lifetime)
     });
   }
 
@@ -71,7 +71,7 @@ export function configureSessionMiddleware(sessionSecret, isProduction) {
     cookie: {
       secure: "auto",
       httpOnly: true,
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      maxAge: 2 * 60 * 60 * 1000, // 2 hours default; overridden per-session by auth-state-service
       sameSite: isProduction ? "strict" : "lax",
       path: "/",
     },

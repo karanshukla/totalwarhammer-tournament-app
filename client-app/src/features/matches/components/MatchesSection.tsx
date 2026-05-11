@@ -66,7 +66,6 @@ function resolveMatchUser(
       r.reportedByName === uName,
   );
   const canPR =
-    !isAdmin &&
     (isP1 || isP2) &&
     isActive &&
     m.status !== "completed" &&

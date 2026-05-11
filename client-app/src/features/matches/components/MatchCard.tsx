@@ -274,6 +274,8 @@ const MatchCard: React.FC<MatchCardProps> = ({
             </VStack>
           )}
         {isAdmin &&
+          !isP1 &&
+          !isP2 &&
           isActive &&
           m.status !== "completed" &&
           m.status !== "disputed" &&

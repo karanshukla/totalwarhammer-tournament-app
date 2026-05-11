@@ -509,7 +509,6 @@ const MatchesPage: React.FC = () => {
         setPage(1);
       }}
       onPageChange={setPage}
-      onNavigateLogin={() => navigate("/login")}
     />
   );
 };
