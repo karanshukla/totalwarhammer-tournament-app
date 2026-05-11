@@ -364,6 +364,7 @@ describe("tournament-controller", () => {
   describe("addParticipant", () => {
     function makePendingTournament(overrides = {}) {
       return {
+        _id: { toString: () => "t1" },
         status: "pending",
         playerCount: 8,
         participants: [],
@@ -442,6 +443,7 @@ describe("tournament-controller", () => {
 
     it("should remove participant and return 200", async () => {
       const t = {
+        _id: { toString: () => "t1" },
         status: "pending",
         participants: [{ _id: { toString: () => "p1" }, name: "Alice" }],
         save: mock.fn(async () => {}),
@@ -494,6 +496,7 @@ describe("tournament-controller", () => {
 
     it("should join tournament and return 200", async () => {
       const t = {
+        _id: { toString: () => "t1" },
         status: "pending",
         playerCount: 8,
         participants: [],
@@ -514,6 +517,7 @@ describe("tournament-controller", () => {
 
     it("should use Guest_XXXX name when no username", async () => {
       const t = {
+        _id: { toString: () => "t1" },
         status: "pending",
         playerCount: 8,
         participants: [],

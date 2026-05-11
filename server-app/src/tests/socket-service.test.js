@@ -11,7 +11,17 @@ const mockIoInstance = {
     ioHandlers[event] = handler;
   }),
 };
-const MockServer = mock.fn(() => mockIoInstance);
+
+// Track calls manually since we need a constructor that works with 'new'
+const mockServerCalls = [];
+function MockServer(httpServer, options) {
+  mockServerCalls.push({ arguments: [httpServer, options] });
+  return mockIoInstance;
+}
+// Add mock property for test assertions
+MockServer.mock = {
+  calls: mockServerCalls,
+};
 
 mock.module("socket.io", {
   namedExports: { Server: MockServer },
