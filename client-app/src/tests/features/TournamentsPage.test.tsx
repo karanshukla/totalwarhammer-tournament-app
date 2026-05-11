@@ -28,7 +28,7 @@ describe("TournamentsPage", () => {
 
   it("renders the tournament code input", () => {
     renderWithProviders(<TournamentsPage />);
-    expect(screen.getByPlaceholderText(/tournament code/i)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(/abc123/i)).toBeInTheDocument();
   });
 
   it("renders the find button", () => {

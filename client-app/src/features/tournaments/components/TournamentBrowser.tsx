@@ -234,7 +234,7 @@ const TournamentBrowser: React.FC<Props> = ({ statusFilter, emptyMessage }) => {
                         onClick={() => navigate(`/matches#${t._id}`)}
                       >
                         <LuSwords />
-                        Match Management
+                        Matches
                       </Button>
                     ) : (
                       <Button
