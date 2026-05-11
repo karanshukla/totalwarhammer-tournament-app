@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   DndContext,
   closestCenter,
@@ -10,14 +10,12 @@ import {
   DragStartEvent,
 } from "@dnd-kit/core";
 import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
-import { Box, Button, Dialog, Portal, useDisclosure } from "@chakra-ui/react";
+import { useDisclosure } from "@chakra-ui/react";
 import {
   Participant,
-  FACTIONS,
   ParticipantList,
   TournamentBracket,
   ParticipantEditDialog,
-  Match,
 } from "./bracket";
 import { toaster } from "@/shared/ui/Toaster";
 import { useTournamentStore } from "@/shared/stores/tournamentStore";

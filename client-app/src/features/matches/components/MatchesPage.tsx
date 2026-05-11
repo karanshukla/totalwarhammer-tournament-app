@@ -53,32 +53,7 @@ import { getSocket } from "@/core/socket/socketClient";
 import { useUserStore } from "@/shared/stores/userStore";
 import { toaster } from "@/shared/ui/Toaster";
 import MatchCard from "./MatchCard";
-
-const warhammer3Factions = [
-  "Empire",
-  "Dwarfs",
-  "Greenskins",
-  "Vampire Counts",
-  "Chaos Warriors",
-  "Bretonnia",
-  "Wood Elves",
-  "Beastmen",
-  "Skaven",
-  "Lizardmen",
-  "High Elves",
-  "Dark Elves",
-  "Tomb Kings",
-  "Ogre Kingdoms",
-  "Norsca",
-  "Nurgle",
-  "Tzeentch",
-  "Slaanesh",
-  "Khorne",
-  "Grand Cathay",
-  "Kislev",
-  "Ogres",
-  "Chaos Dwarfs",
-];
+import { warhammer3Factions } from "@/shared/constants/warhammer3Factions";
 
 interface Match {
   _id: string;
@@ -508,7 +483,9 @@ const MatchesPage: React.FC = () => {
 
     const onTournamentUpdated = (data: Tournament) => {
       setSelected(data);
-      setTournaments((prev) => prev.map((t) => (t._id === data._id ? data : t)));
+      setTournaments((prev) =>
+        prev.map((t) => (t._id === data._id ? data : t)),
+      );
     };
     const onMatchesUpdated = (data: Match[]) => setMatches(data);
     const onMatchesAppended = (newMatches: Match[]) =>

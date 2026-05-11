@@ -8,7 +8,8 @@ import {
   chakra,
   Portal,
 } from "@chakra-ui/react";
-import { Participant, FACTIONS } from "./types";
+import { Participant } from "./types";
+import { warhammer3Factions } from "@/shared/constants/warhammer3Factions";
 
 interface ParticipantEditDialogProps {
   isOpen: boolean;
@@ -112,7 +113,7 @@ export function ParticipantEditDialog({
                       p={2}
                     >
                       <option value="">Select Faction</option>
-                      {FACTIONS.map((faction) => (
+                      {warhammer3Factions.map((faction) => (
                         <option key={faction} value={faction}>
                           {faction}
                         </option>

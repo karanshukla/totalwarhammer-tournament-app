@@ -91,7 +91,9 @@ export const loginUser = async (data: LoginData): Promise<LoginResponse> => {
 
       toaster.create({
         title: `Successfully logged in as ${
-          responseData.data?.username || responseData.data?.email || data.identifier
+          responseData.data?.username ||
+          responseData.data?.email ||
+          data.identifier
         }`,
         description: data.rememberMe
           ? "Welcome back! You'll stay signed in for 7 days."

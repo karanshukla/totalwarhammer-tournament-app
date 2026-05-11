@@ -4,8 +4,8 @@ import { arrayMove } from "@dnd-kit/sortable";
 import {
   Participant,
   Round,
-  FACTIONS,
 } from "@/features/tournaments/components/bracket/types";
+import { warhammer3Factions } from "../constants/warhammer3Factions";
 
 // Helper to create default participants
 const createDefaultParticipants = (): Participant[] => [
@@ -200,7 +200,10 @@ export const useTournamentStore = create<TournamentState>()(
             newParticipants.push({
               id: `p${currentCount + i + Date.now()}`, // Unique ID
               name: `Player ${currentCount + i + 1}`,
-              faction: FACTIONS[Math.floor(Math.random() * FACTIONS.length)],
+              faction:
+                warhammer3Factions[
+                  Math.floor(Math.random() * warhammer3Factions.length)
+                ],
             });
           }
           return {
