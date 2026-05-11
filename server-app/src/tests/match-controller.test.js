@@ -30,9 +30,10 @@ mock.module("../infrastructure/utils/logger.js", {
 });
 
 // ── Socket service mocks ──────────────────────────────────────────────────────
+const mockEmitMatchUpdated = mock.fn();
 mock.module("../infrastructure/socket/socket-service.js", {
   namedExports: {
-    emitMatchUpdated: mock.fn(),
+    emitMatchUpdated: mockEmitMatchUpdated,
     emitTournamentUpdated: mock.fn(),
     emitMatchesUpdated: mock.fn(),
     emitMatchesAppended: mock.fn(),
@@ -45,7 +46,9 @@ const {
   createMatch,
   reportResult,
   resolveDispute,
+  recordResult,
   overrideResult,
+  updateMatchStatus,
 } = await import("../interfaces/http/controllers/match-controller.js");
 
 function mockRes() {
@@ -70,6 +73,7 @@ describe("match-controller", () => {
     mockMatchFindById.mock.resetCalls();
     mockMatchCreate.mock.resetCalls();
     mockTournamentFindOne.mock.resetCalls();
+    mockEmitMatchUpdated.mock.resetCalls();
   });
 
   describe("getMatchesByTournament", () => {
@@ -292,6 +296,7 @@ describe("match-controller", () => {
       const res = mockRes();
       await reportResult(req, res);
       assert.strictEqual(match.status, "in_progress");
+      assert.strictEqual(mockEmitMatchUpdated.mock.calls.length, 1);
     });
 
     it("should set status to completed when both players agree", async () => {
@@ -319,6 +324,7 @@ describe("match-controller", () => {
       await reportResult(req, res);
       assert.strictEqual(match.status, "completed");
       assert.strictEqual(match.winnerId, p1Id);
+      assert.strictEqual(mockEmitMatchUpdated.mock.calls.length, 1);
     });
 
     it("should set status to disputed when players disagree", async () => {
@@ -345,6 +351,7 @@ describe("match-controller", () => {
       const res = mockRes();
       await reportResult(req, res);
       assert.strictEqual(match.status, "disputed");
+      assert.strictEqual(mockEmitMatchUpdated.mock.calls.length, 1);
     });
   });
 
@@ -434,6 +441,7 @@ describe("match-controller", () => {
       assert.strictEqual(match.status, "completed");
       assert.strictEqual(match.winnerId, p1Id);
       assert.strictEqual(match.resultOverrides.length, 1);
+      assert.strictEqual(mockEmitMatchUpdated.mock.calls.length, 1);
     });
   });
 
@@ -504,6 +512,7 @@ describe("match-controller", () => {
       assert.strictEqual(match.winnerId, p2Id);
       assert.strictEqual(match.resultOverrides.length, 1);
       assert.strictEqual(match.resultOverrides[0].reason, "Correcting error");
+      assert.strictEqual(mockEmitMatchUpdated.mock.calls.length, 1);
     });
 
     it("should return 400 if winnerId is not a player in the match", async () => {
@@ -520,6 +529,216 @@ describe("match-controller", () => {
       const res = mockRes();
       await overrideResult(req, res);
       assert.strictEqual(res.status.mock.calls[0].arguments[0], 400);
+    });
+  });
+
+  // ─── recordResult ──────────────────────────────────────────────────────────
+
+  describe("recordResult", () => {
+    function makeActiveMatch(overrides = {}) {
+      const p1Id = "aaaaaaaaaaaaaaaaaaaaaaaa";
+      const p2Id = "bbbbbbbbbbbbbbbbbbbbbbbb";
+      return {
+        status: "in_progress",
+        player1: { participantId: p1Id, name: "Alice", faction: "" },
+        player2: { participantId: p2Id, name: "Bob", faction: "" },
+        tournament: {
+          _id: { toString: () => "tttttttttttttttttttttttt" },
+          status: "active",
+          createdBy: "cccccccccccccccccccccccc",
+        },
+        save: mock.fn(async () => {}),
+        ...overrides,
+      };
+    }
+
+    it("should return 404 if match not found", async () => {
+      mockMatchFindById.mock.mockImplementation(() => ({
+        populate: async () => null,
+      }));
+      const req = mockReq({ params: { id: "m1" }, body: { winnerId: "aaa" } });
+      const res = mockRes();
+      await recordResult(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 404);
+    });
+
+    it("should return 400 if match is already completed", async () => {
+      const match = makeActiveMatch({ status: "completed" });
+      mockMatchFindById.mock.mockImplementation(() => ({
+        populate: async () => match,
+      }));
+      const req = mockReq({
+        params: { id: "m1" },
+        body: { winnerId: match.player1.participantId },
+      });
+      const res = mockRes();
+      await recordResult(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 400);
+    });
+
+    it("should return 400 if match is disputed", async () => {
+      const match = makeActiveMatch({ status: "disputed" });
+      mockMatchFindById.mock.mockImplementation(() => ({
+        populate: async () => match,
+      }));
+      const req = mockReq({
+        params: { id: "m1" },
+        body: { winnerId: match.player1.participantId },
+      });
+      const res = mockRes();
+      await recordResult(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 400);
+    });
+
+    it("should return 400 if tournament is not active", async () => {
+      const match = makeActiveMatch({
+        tournament: {
+          _id: { toString: () => "tttttttttttttttttttttttt" },
+          status: "pending",
+          createdBy: "cccccccccccccccccccccccc",
+        },
+      });
+      mockMatchFindById.mock.mockImplementation(() => ({
+        populate: async () => match,
+      }));
+      const req = mockReq({
+        params: { id: "m1" },
+        body: { winnerId: match.player1.participantId },
+      });
+      const res = mockRes();
+      await recordResult(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 400);
+    });
+
+    it("should return 400 if winnerId is not a player", async () => {
+      const match = makeActiveMatch();
+      mockMatchFindById.mock.mockImplementation(() => ({
+        populate: async () => match,
+      }));
+      const req = mockReq({
+        params: { id: "m1" },
+        body: { winnerId: "dddddddddddddddddddddddd" },
+      });
+      const res = mockRes();
+      await recordResult(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 400);
+    });
+
+    it("should record result, mark completed, and emit", async () => {
+      const match = makeActiveMatch();
+      const p1Id = match.player1.participantId;
+      mockMatchFindById.mock.mockImplementation(() => ({
+        populate: async () => match,
+      }));
+      const req = mockReq({
+        params: { id: "m1" },
+        body: { winnerId: p1Id },
+      });
+      const res = mockRes();
+      await recordResult(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
+      assert.strictEqual(match.status, "completed");
+      assert.strictEqual(match.winnerId, p1Id);
+      assert.strictEqual(mockEmitMatchUpdated.mock.calls.length, 1);
+    });
+  });
+
+  // ─── updateMatchStatus ─────────────────────────────────────────────────────
+
+  describe("updateMatchStatus", () => {
+    function makeMatchForStatusUpdate(creatorId = "cccccccccccccccccccccccc") {
+      return {
+        status: "pending",
+        player1: { participantId: "aaaaaaaaaaaaaaaaaaaaaaaa", name: "Alice" },
+        player2: { participantId: "bbbbbbbbbbbbbbbbbbbbbbbb", name: "Bob" },
+        tournament: {
+          _id: { toString: () => "tttttttttttttttttttttttt" },
+          status: "active",
+          createdBy: creatorId,
+        },
+        save: mock.fn(async () => {}),
+      };
+    }
+
+    it("should return 404 if match not found", async () => {
+      mockMatchFindById.mock.mockImplementation(() => ({
+        populate: async () => null,
+      }));
+      const req = mockReq({
+        params: { id: "m1" },
+        body: { status: "in_progress" },
+      });
+      const res = mockRes();
+      await updateMatchStatus(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 404);
+    });
+
+    it("should return 403 if user is not the tournament admin", async () => {
+      const match = makeMatchForStatusUpdate("cccccccccccccccccccccccc");
+      mockMatchFindById.mock.mockImplementation(() => ({
+        populate: async () => match,
+      }));
+      const req = mockReq({
+        params: { id: "m1" },
+        body: { status: "in_progress" },
+        user: { id: "eeeeeeeeeeeeeeeeeeeeeeee" },
+      });
+      const res = mockRes();
+      await updateMatchStatus(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 403);
+    });
+
+    it("should return 400 for an invalid status value", async () => {
+      const creatorId = "cccccccccccccccccccccccc";
+      const match = makeMatchForStatusUpdate(creatorId);
+      mockMatchFindById.mock.mockImplementation(() => ({
+        populate: async () => match,
+      }));
+      const req = mockReq({
+        params: { id: "m1" },
+        body: { status: "completed" },
+        user: { id: creatorId },
+      });
+      const res = mockRes();
+      await updateMatchStatus(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 400);
+    });
+
+    it("should update status and emit when admin sets in_progress", async () => {
+      const creatorId = "cccccccccccccccccccccccc";
+      const match = makeMatchForStatusUpdate(creatorId);
+      mockMatchFindById.mock.mockImplementation(() => ({
+        populate: async () => match,
+      }));
+      const req = mockReq({
+        params: { id: "m1" },
+        body: { status: "in_progress" },
+        user: { id: creatorId },
+      });
+      const res = mockRes();
+      await updateMatchStatus(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
+      assert.strictEqual(match.status, "in_progress");
+      assert.strictEqual(mockEmitMatchUpdated.mock.calls.length, 1);
+    });
+
+    it("should update status and emit when admin resets to pending", async () => {
+      const creatorId = "cccccccccccccccccccccccc";
+      const match = makeMatchForStatusUpdate(creatorId);
+      match.status = "in_progress";
+      mockMatchFindById.mock.mockImplementation(() => ({
+        populate: async () => match,
+      }));
+      const req = mockReq({
+        params: { id: "m1" },
+        body: { status: "pending" },
+        user: { id: creatorId },
+      });
+      const res = mockRes();
+      await updateMatchStatus(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
+      assert.strictEqual(match.status, "pending");
+      assert.strictEqual(mockEmitMatchUpdated.mock.calls.length, 1);
     });
   });
 });

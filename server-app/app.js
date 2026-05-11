@@ -1,7 +1,8 @@
+import { createServer } from "http";
+
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import express from "express";
-import { createServer } from "http";
 import mongoSanitize from "express-mongo-sanitize";
 import { rateLimit } from "express-rate-limit";
 import helmet from "helmet";
@@ -14,8 +15,8 @@ import "./src/infrastructure/config/env-loader.js";
 import { port, clientUrl } from "./src/infrastructure/config/env.js";
 import { connectToDatabase } from "./src/infrastructure/db/connection.js";
 import { configureSessionMiddleware } from "./src/infrastructure/services/session-store-service.js";
-import logger from "./src/infrastructure/utils/logger.js";
 import { initSocketIO } from "./src/infrastructure/socket/socket-service.js";
+import logger from "./src/infrastructure/utils/logger.js";
 import {
   csrfErrorHandler,
   csrfPrerequisiteCheck,
