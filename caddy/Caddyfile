@@ -30,7 +30,7 @@
         format json
     }
 
-    handle /socket.io/* {
+    handle /socket.io* {
         reverse_proxy {
             dynamic a {
                 name {$BACKEND_DOMAIN}
@@ -43,6 +43,9 @@
             header_up Connection {>Connection}
             header_up Upgrade {>Upgrade}
             flush_interval -1
+            transport http {
+                versions 1.1
+            }
         }
     }
 

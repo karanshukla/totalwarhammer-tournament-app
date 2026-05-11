@@ -13,6 +13,6 @@ RUN npm run build
 
 FROM caddy:2-alpine AS final
 COPY --from=builder /app/dist /srv
-COPY docker/client/Caddyfile /etc/caddy/Caddyfile
+RUN printf ':80 {\n    root * /srv\n    try_files {path} /index.html\n    file_server\n}' > /etc/caddy/Caddyfile
 
 EXPOSE 80

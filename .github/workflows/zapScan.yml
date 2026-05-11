@@ -9,7 +9,7 @@ on:
       - "docker-compose.yml"
       - "docker/server/Dockerfile"
       - "docker/client/Dockerfile"
-      - "docker/client/Caddyfile"
+      - "caddy/**"
   pull_request:
     branches: ["main"]
     paths:
@@ -18,7 +18,7 @@ on:
       - "docker-compose.yml"
       - "docker/server/Dockerfile"
       - "docker/client/Dockerfile"
-      - "docker/client/Caddyfile"
+      - "caddy/**"
 
 permissions:
   contents: read

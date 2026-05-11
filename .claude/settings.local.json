@@ -8,7 +8,9 @@
       "Bash(Get-ChildItem -Path \"f:\\\\Development\\\\totalwarhammer-tournament-app\\\\server-app\\\\src\" -Filter \"*.js\" -Depth 0)",
       "Bash(npm install *)",
       "Bash(Get-ChildItem -Path 'f:\\\\Development\\\\totalwarhammer-tournament-app' -Recurse -Include '*jest*', '*vitest*' -Exclude 'node_modules' -Depth 2)",
-      "Bash(Select-Object -Property FullName)"
+      "Bash(Select-Object -Property FullName)",
+      "Bash(node --experimental-vm-modules --test src/tests/rate-limiter.test.js src/tests/socket-service.test.js src/tests/match-controller.test.js)",
+      "Bash(npm test *)"
     ]
   }
 }
