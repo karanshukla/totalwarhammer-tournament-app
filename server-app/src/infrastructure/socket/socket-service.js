@@ -23,7 +23,7 @@ export function initSocketIO(httpServer, corsOrigin) {
 
   io.engine.on("connection_error", (err) => {
     logger.error(
-      `[socket] engine connection_error — code: ${err.code} message: ${err.message} context: ${JSON.stringify(err.context)}`,
+      `[socket] engine connection_error — code: ${err.code} message: ${err.message} context: ${JSON.stringify(err.context)} headers: ${JSON.stringify(err.req?.headers)}`,
     );
   });
 

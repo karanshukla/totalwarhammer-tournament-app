@@ -40,8 +40,6 @@
                 versions ipv4 ipv6
             }
             header_up Host {upstream_hostport}
-            header_up Connection {>Connection}
-            header_up Upgrade {>Upgrade}
             flush_interval -1
             transport http {
                 versions 1.1

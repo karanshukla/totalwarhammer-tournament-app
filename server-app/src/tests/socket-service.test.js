@@ -14,6 +14,9 @@ const mockIoInstance = {
   use: mock.fn((fn) => {
     ioMiddlewares.push(fn);
   }),
+  engine: {
+    on: mock.fn(),
+  },
 };
 
 // Track calls manually since we need a constructor that works with 'new'
