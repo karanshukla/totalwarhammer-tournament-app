@@ -29,6 +29,7 @@ import {
   LuSettings,
 } from "react-icons/lu";
 import { httpClient } from "@/core/api/httpClient";
+import { getSocket } from "@/core/socket/socketClient";
 import { useUserStore } from "@/shared/stores/userStore";
 import { displayName as dn } from "@/shared/utils/displayName";
 
@@ -156,12 +157,33 @@ const TournamentViewPage: React.FC = () => {
     fetchTournament();
   }, [fetchTournament]);
 
-  const tournamentStatus = tournament?.status;
   useEffect(() => {
-    if (!tournamentStatus || tournamentStatus === "completed") return;
-    const interval = setInterval(() => fetchTournament(true), 5000);
-    return () => clearInterval(interval);
-  }, [fetchTournament, tournamentStatus]);
+    if (!id) return;
+    const socket = getSocket();
+    socket.emit("tournament:join", id);
+
+    const onTournamentUpdated = (data: Tournament) => setTournament(data);
+    const onMatchesUpdated = (data: Match[]) => setMatches(data);
+    const onMatchesAppended = (newMatches: Match[]) =>
+      setMatches((prev) => [...prev, ...newMatches]);
+    const onMatchUpdated = (updated: Match) =>
+      setMatches((prev) =>
+        prev.map((m) => (m._id === updated._id ? updated : m)),
+      );
+
+    socket.on("tournament:updated", onTournamentUpdated);
+    socket.on("matches:updated", onMatchesUpdated);
+    socket.on("matches:appended", onMatchesAppended);
+    socket.on("match:updated", onMatchUpdated);
+
+    return () => {
+      socket.emit("tournament:leave", id);
+      socket.off("tournament:updated", onTournamentUpdated);
+      socket.off("matches:updated", onMatchesUpdated);
+      socket.off("matches:appended", onMatchesAppended);
+      socket.off("match:updated", onMatchUpdated);
+    };
+  }, [id]);
 
   const handleJoin = async () => {
     if (!tournament) return;

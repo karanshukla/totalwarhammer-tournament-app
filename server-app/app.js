@@ -1,6 +1,7 @@
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import express from "express";
+import { createServer } from "http";
 import mongoSanitize from "express-mongo-sanitize";
 import { rateLimit } from "express-rate-limit";
 import helmet from "helmet";
@@ -14,6 +15,7 @@ import { port, clientUrl } from "./src/infrastructure/config/env.js";
 import { connectToDatabase } from "./src/infrastructure/db/connection.js";
 import { configureSessionMiddleware } from "./src/infrastructure/services/session-store-service.js";
 import logger from "./src/infrastructure/utils/logger.js";
+import { initSocketIO } from "./src/infrastructure/socket/socket-service.js";
 import {
   csrfErrorHandler,
   csrfPrerequisiteCheck,
@@ -25,6 +27,7 @@ const xssFilter = new FilterXSS({});
 
 // Create Express application
 const app = express();
+const httpServer = createServer(app);
 
 // Trust proxy if running behind one (common in staging/production)
 app.set("trust proxy", 1);
@@ -175,8 +178,11 @@ app.use((err, _req, res, _next) => {
   res.status(500).json({ error: "Server error occurred" });
 });
 
+// Attach socket.io to the HTTP server
+initSocketIO(httpServer, process.env.CLIENT_URL || "http://localhost:3001");
+
 // Start server
-app.listen(port, "::", () => {
+httpServer.listen(port, "::", () => {
   logger.info(`Server listening on [::]${port}`);
 });
 

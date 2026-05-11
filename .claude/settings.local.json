@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Recurse -Include \"*.ts\" -o \"*.tsx\" -o \"*.js\" -o \"*.jsx\")",
+      "Bash(Select-Object -First 50)",
+      "Bash(xargs grep -l \"setInterval\\\\|useEffect.*interval\\\\|polling\")",
+      "Bash(xargs grep -l \"route\\\\|controller\\\\|/tournament\\\\|/match\")",
+      "Bash(Get-ChildItem -Path \"f:\\\\Development\\\\totalwarhammer-tournament-app\\\\server-app\\\\src\" -Filter \"*.js\" -Depth 0)",
+      "Bash(npm install *)",
+      "Bash(Get-ChildItem -Path 'f:\\\\Development\\\\totalwarhammer-tournament-app' -Recurse -Include '*jest*', '*vitest*' -Exclude 'node_modules' -Depth 2)",
+      "Bash(Select-Object -Property FullName)"
+    ]
+  }
+}

@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import Match from "../../../domain/models/match.js";
 import Tournament from "../../../domain/models/tournament.js";
 import logger from "../../../infrastructure/utils/logger.js";
+import { emitMatchUpdated } from "../../../infrastructure/socket/socket-service.js";
 
 const isValidObjectId = (id) => /^[a-f\d]{24}$/i.test(id);
 const toObjectId = (id) => new mongoose.Types.ObjectId(id);
@@ -215,6 +216,7 @@ export const reportResult = async (req, res) => {
     }
 
     await match.save();
+    emitMatchUpdated(match.tournament._id.toString(), match);
     return res.status(200).json({ success: true, data: match });
   } catch (error) {
     logger.error(`Report result error: ${error.message}`, { error });
@@ -283,6 +285,7 @@ export const resolveDispute = async (req, res) => {
     match.status = "completed";
     match.completedAt = new Date();
     await match.save();
+    emitMatchUpdated(match.tournament._id.toString(), match);
 
     return res.status(200).json({ success: true, data: match });
   } catch (error) {
@@ -345,6 +348,7 @@ export const recordResult = async (req, res) => {
     match.status = "completed";
     match.completedAt = new Date();
     await match.save();
+    emitMatchUpdated(match.tournament._id.toString(), match);
 
     return res.status(200).json({ success: true, data: match });
   } catch (error) {
@@ -410,6 +414,7 @@ export const overrideResult = async (req, res) => {
     match.status = "completed";
     match.completedAt = match.completedAt ?? new Date();
     await match.save();
+    emitMatchUpdated(match.tournament._id.toString(), match);
 
     return res.status(200).json({ success: true, data: match });
   } catch (error) {
@@ -454,6 +459,7 @@ export const updateMatchStatus = async (req, res) => {
 
     match.status = status;
     await match.save();
+    emitMatchUpdated(match.tournament._id.toString(), match);
 
     return res.status(200).json({ success: true, data: match });
   } catch (error) {

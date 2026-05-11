@@ -49,6 +49,7 @@ import {
 } from "react-icons/lu";
 import { useNavigate, useLocation } from "react-router-dom";
 import { httpClient } from "@/core/api/httpClient";
+import { getSocket } from "@/core/socket/socketClient";
 import { useUserStore } from "@/shared/stores/userStore";
 import { toaster } from "@/shared/ui/Toaster";
 import MatchCard from "./MatchCard";
@@ -499,13 +500,37 @@ const MatchesPage: React.FC = () => {
     }
   }, [loading, tournaments, hash, handleSelectTournament]);
 
-  const selectedStatus = selected?.status;
   const selectedId = selected?._id;
   useEffect(() => {
-    if (!selectedId || selectedStatus === "completed") return;
-    const interval = setInterval(() => refreshSelected(selectedId), 5000);
-    return () => clearInterval(interval);
-  }, [selectedId, selectedStatus, refreshSelected]);
+    if (!selectedId) return;
+    const socket = getSocket();
+    socket.emit("tournament:join", selectedId);
+
+    const onTournamentUpdated = (data: Tournament) => {
+      setSelected(data);
+      setTournaments((prev) => prev.map((t) => (t._id === data._id ? data : t)));
+    };
+    const onMatchesUpdated = (data: Match[]) => setMatches(data);
+    const onMatchesAppended = (newMatches: Match[]) =>
+      setMatches((prev) => [...prev, ...newMatches]);
+    const onMatchUpdated = (updated: Match) =>
+      setMatches((prev) =>
+        prev.map((m) => (m._id === updated._id ? updated : m)),
+      );
+
+    socket.on("tournament:updated", onTournamentUpdated);
+    socket.on("matches:updated", onMatchesUpdated);
+    socket.on("matches:appended", onMatchesAppended);
+    socket.on("match:updated", onMatchUpdated);
+
+    return () => {
+      socket.emit("tournament:leave", selectedId);
+      socket.off("tournament:updated", onTournamentUpdated);
+      socket.off("matches:updated", onMatchesUpdated);
+      socket.off("matches:appended", onMatchesAppended);
+      socket.off("match:updated", onMatchUpdated);
+    };
+  }, [selectedId]);
 
   if (loading) {
     return (
