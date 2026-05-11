@@ -1,13 +1,12 @@
 import { body } from "express-validator";
 
 export const validateLogin = [
-  body("email")
+  body("identifier")
     .trim()
     .notEmpty()
-    .withMessage("Email is required")
-    .isEmail()
-    .withMessage("Email is not valid")
-    .normalizeEmail(),
+    .withMessage("Username or email is required")
+    .isLength({ min: 3, max: 100 })
+    .withMessage("Username or email must be between 3 and 100 characters"),
 
   body("password").notEmpty().withMessage("Password is required"),
 

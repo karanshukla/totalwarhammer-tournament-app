@@ -25,7 +25,7 @@ describe("LoginForm", () => {
 
   it("renders email and password fields", () => {
     renderLoginForm();
-    expect(screen.getByLabelText(/Email Address/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Email or Username/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Password/i)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Login/i })).toBeInTheDocument();
   });
@@ -41,7 +41,7 @@ describe("LoginForm", () => {
     await waitFor(
       () => {
         expect(
-          screen.getByText("Email Address is required"),
+          screen.getByText("Username or email is required"),
         ).toBeInTheDocument();
         expect(screen.getByText("Password is required")).toBeInTheDocument();
       },
@@ -55,7 +55,7 @@ describe("LoginForm", () => {
     );
     renderLoginForm();
 
-    fireEvent.change(screen.getByLabelText(/Email Address/i), {
+    fireEvent.change(screen.getByLabelText(/Email or Username/i), {
       target: { value: "test@test.com" },
     });
     fireEvent.change(screen.getByLabelText(/Password/i), {
@@ -67,7 +67,7 @@ describe("LoginForm", () => {
 
     await waitFor(() => {
       expect(authApi.loginUser).toHaveBeenCalledWith({
-        email: "test@test.com",
+        identifier: "test@test.com",
         password: "password123",
         rememberMe: false,
       });

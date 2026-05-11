@@ -84,7 +84,7 @@ export function AuthenticationForm() {
         <Toaster />
         <LoginForm
           key="login-form"
-          defaultEmail={formState.usernameOrEmail}
+          defaultIdentifier={formState.usernameOrEmail}
           onSuccess={closeDrawer}
         />
       </>

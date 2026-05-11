@@ -34,7 +34,7 @@ setInterval(
 export const login = async (req, res) => {
   try {
     const {
-      email,
+      identifier,
       password,
       rememberMe = false,
       codeChallenge,
@@ -42,18 +42,42 @@ export const login = async (req, res) => {
       state,
     } = req.body;
 
-    if (!email || !password) {
+    if (
+      typeof identifier !== "string" ||
+      typeof password !== "string" ||
+      !identifier.trim() ||
+      !password
+    ) {
       return res.status(400).json({
         success: false,
-        message: "Email and password are required",
+        message: "Username/email and password are required",
       });
     }
 
-    const user = await User.findOne({ email }).select("+password");
+    const normalizedIdentifier = identifier.trim();
+
+    let user;
+    if (normalizedIdentifier.includes("@")) {
+      // Email-based login: try lowercase first (handles normalizeEmail stored values),
+      // then fall back to exact match (for accounts registered before normalization)
+      user = await User.findOne({
+        email: { $eq: normalizedIdentifier.toLowerCase() },
+      }).select("+password");
+      if (!user) {
+        user = await User.findOne({
+          email: { $eq: normalizedIdentifier },
+        }).select("+password");
+      }
+    } else {
+      user = await User.findOne({
+        username: { $eq: normalizedIdentifier },
+      }).select("+password");
+    }
+
     if (!user) {
       return res.status(401).json({
         success: false,
-        message: "Invalid email or password",
+        message: "Invalid credentials",
       });
     }
 
@@ -61,7 +85,7 @@ export const login = async (req, res) => {
     if (!isPasswordValid) {
       return res.status(401).json({
         success: false,
-        message: "Invalid email or password",
+        message: "Invalid credentials",
       });
     }
 
