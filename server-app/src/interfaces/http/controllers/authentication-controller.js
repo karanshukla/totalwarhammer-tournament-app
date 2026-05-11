@@ -42,25 +42,36 @@ export const login = async (req, res) => {
       state,
     } = req.body;
 
-    if (!identifier || !password) {
+    if (
+      typeof identifier !== "string" ||
+      typeof password !== "string" ||
+      !identifier.trim() ||
+      !password
+    ) {
       return res.status(400).json({
         success: false,
         message: "Username/email and password are required",
       });
     }
 
+    const normalizedIdentifier = identifier.trim();
+
     let user;
-    if (identifier.includes("@")) {
+    if (normalizedIdentifier.includes("@")) {
       // Email-based login: try lowercase first (handles normalizeEmail stored values),
       // then fall back to exact match (for accounts registered before normalization)
       user = await User.findOne({
-        email: identifier.toLowerCase(),
+        email: { $eq: normalizedIdentifier.toLowerCase() },
       }).select("+password");
       if (!user) {
-        user = await User.findOne({ email: identifier }).select("+password");
+        user = await User.findOne({
+          email: { $eq: normalizedIdentifier },
+        }).select("+password");
       }
     } else {
-      user = await User.findOne({ username: identifier }).select("+password");
+      user = await User.findOne({
+        username: { $eq: normalizedIdentifier },
+      }).select("+password");
     }
 
     if (!user) {
