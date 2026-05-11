@@ -75,7 +75,9 @@ const TournamentList: React.FC<Props> = ({
             <Input
               placeholder="e.g., ABC123"
               value={codeInput}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => onCodeInputChange(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                onCodeInputChange(e.target.value)
+              }
               onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
                 e.key === "Enter" && onFindByCode()
               }
@@ -83,7 +85,13 @@ const TournamentList: React.FC<Props> = ({
               size="sm"
               fontFamily="mono"
             />
-            <Button size="sm" colorPalette="blue" onClick={onFindByCode} loading={codeLoading} gap={2}>
+            <Button
+              size="sm"
+              colorPalette="blue"
+              onClick={onFindByCode}
+              loading={codeLoading}
+              gap={2}
+            >
               <LuSearch /> Find Tournament
             </Button>
           </HStack>
@@ -96,7 +104,14 @@ const TournamentList: React.FC<Props> = ({
       </HStack>
 
       {error && (
-        <Box mb={4} p={3} bg="red.subtle" borderRadius="md" borderWidth={1} borderColor="red.muted">
+        <Box
+          mb={4}
+          p={3}
+          bg="red.subtle"
+          borderRadius="md"
+          borderWidth={1}
+          borderColor="red.muted"
+        >
           <Text color="red.fg">{error}</Text>
         </Box>
       )}
@@ -109,7 +124,13 @@ const TournamentList: React.FC<Props> = ({
               size="sm"
               variant={statusFilter === s ? "solid" : "outline"}
               colorPalette={
-                s === "all" ? "gray" : s === "pending" ? "yellow" : s === "active" ? "green" : "gray"
+                s === "all"
+                  ? "gray"
+                  : s === "pending"
+                    ? "yellow"
+                    : s === "active"
+                      ? "green"
+                      : "gray"
               }
               onClick={() => {
                 onStatusFilterChange(s);
@@ -117,7 +138,12 @@ const TournamentList: React.FC<Props> = ({
               }}
             >
               {s.charAt(0).toUpperCase() + s.slice(1)}
-              <Badge ml={1} size="sm" variant="subtle" colorPalette={statusFilter === s ? "white" : "gray"}>
+              <Badge
+                ml={1}
+                size="sm"
+                variant="subtle"
+                colorPalette={statusFilter === s ? "white" : "gray"}
+              >
                 {statusCounts[s]}
               </Badge>
             </Button>
@@ -140,10 +166,15 @@ const TournamentList: React.FC<Props> = ({
               <Text color="fg.muted" fontSize="sm">
                 {isAuthenticated ? (
                   <>
-                    Go to the <strong>Tournaments</strong> page to create or join one.
+                    Go to the <strong>Tournaments</strong> page to create or
+                    join one.
                   </>
                 ) : (
-                  <Button size="sm" colorPalette="blue" onClick={onNavigateLogin}>
+                  <Button
+                    size="sm"
+                    colorPalette="blue"
+                    onClick={onNavigateLogin}
+                  >
                     Sign In
                   </Button>
                 )}
@@ -156,7 +187,11 @@ const TournamentList: React.FC<Props> = ({
           <Card.Body py={12}>
             <VStack gap={2}>
               <Text color="fg.muted">No {statusFilter} tournaments.</Text>
-              <Button size="sm" variant="ghost" onClick={() => onStatusFilterChange("all")}>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => onStatusFilterChange("all")}
+              >
                 Show all
               </Button>
             </VStack>
@@ -186,7 +221,11 @@ const TournamentList: React.FC<Props> = ({
                         <Text fontWeight="semibold" fontSize="md" truncate>
                           {t.name}
                         </Text>
-                        <Badge colorPalette={statusColorMap[t.status]} size="sm" flexShrink={0}>
+                        <Badge
+                          colorPalette={statusColorMap[t.status]}
+                          size="sm"
+                          flexShrink={0}
+                        >
                           {t.status.charAt(0).toUpperCase() + t.status.slice(1)}
                         </Badge>
                       </HStack>

@@ -53,7 +53,11 @@ const EditParticipantDialog: React.FC<Props> = ({
                   <Input
                     value={participant?.name ?? ""}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                      participant && onParticipantChange({ ...participant, name: e.target.value })
+                      participant &&
+                      onParticipantChange({
+                        ...participant,
+                        name: e.target.value,
+                      })
                     }
                     autoFocus
                   />
@@ -63,7 +67,11 @@ const EditParticipantDialog: React.FC<Props> = ({
                   <chakra.select
                     value={participant?.faction ?? ""}
                     onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-                      participant && onParticipantChange({ ...participant, faction: e.target.value })
+                      participant &&
+                      onParticipantChange({
+                        ...participant,
+                        faction: e.target.value,
+                      })
                     }
                     w="full"
                     borderRadius="md"
@@ -84,7 +92,11 @@ const EditParticipantDialog: React.FC<Props> = ({
                 </Field.Root>
               </VStack>
             </Dialog.Body>
-            <Dialog.Footer borderTopWidth="1px" borderColor={borderColor} gap={3}>
+            <Dialog.Footer
+              borderTopWidth="1px"
+              borderColor={borderColor}
+              gap={3}
+            >
               <Button variant="outline" onClick={onClose}>
                 Cancel
               </Button>

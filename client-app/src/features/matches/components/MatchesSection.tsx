@@ -28,25 +28,49 @@ interface Props {
   matchLoading: boolean;
   onRecordResult: (matchId: string, winnerId: string) => void;
   onReportResult: (matchId: string, winnerId: string) => void;
-  onOverrideResult: (matchId: string, winnerId: string, reason: string) => Promise<void>;
+  onOverrideResult: (
+    matchId: string,
+    winnerId: string,
+    reason: string,
+  ) => Promise<void>;
   onResolveDispute: (matchId: string, winnerId: string) => void;
   onAdvanceRound: () => void;
 }
 
-function resolveMatchUser(m: Match, user: Props["user"], isAdmin: boolean, isActive: boolean) {
+function resolveMatchUser(
+  m: Match,
+  user: Props["user"],
+  isAdmin: boolean,
+  isActive: boolean,
+) {
   const uName = user?.username?.trim().toLowerCase();
   const uId = user?.id;
-  const guestFallback = user?.isGuest && uId ? `guest_${uId.substring(0, 6)}` : null;
+  const guestFallback =
+    user?.isGuest && uId ? `guest_${uId.substring(0, 6)}` : null;
   const nameMatch = (n: string) => {
     const ln = n.trim().toLowerCase();
     return (uName && ln === uName) || (guestFallback && ln === guestFallback);
   };
-  const isP1 = m.player1.participantId === uId || !!nameMatch(m.player1.name) || m.player1.name === uId;
-  const isP2 = m.player2.participantId === uId || !!nameMatch(m.player2.name) || m.player2.name === uId;
+  const isP1 =
+    m.player1.participantId === uId ||
+    !!nameMatch(m.player1.name) ||
+    m.player1.name === uId;
+  const isP2 =
+    m.player2.participantId === uId ||
+    !!nameMatch(m.player2.name) ||
+    m.player2.name === uId;
   const myReport = m.reportedResults?.find(
-    (r) => r.reportedBy === (isP1 ? m.player1.participantId : m.player2.participantId) || r.reportedByName === uName,
+    (r) =>
+      r.reportedBy ===
+        (isP1 ? m.player1.participantId : m.player2.participantId) ||
+      r.reportedByName === uName,
   );
-  const canPR = !isAdmin && (isP1 || isP2) && isActive && m.status !== "completed" && m.status !== "disputed";
+  const canPR =
+    !isAdmin &&
+    (isP1 || isP2) &&
+    isActive &&
+    m.status !== "completed" &&
+    m.status !== "disputed";
   return { isP1, isP2, myReport, canPR };
 }
 
@@ -92,21 +116,43 @@ const MatchesSection: React.FC<Props> = ({
   const isSwiss = tournamentType === "Swiss System";
   const isRROrSwiss = isRoundRobin || isSwiss;
 
-  const roundNumbers = [...new Set(matches.map((m) => m.round))].sort((a, b) => a - b);
+  const roundNumbers = [...new Set(matches.map((m) => m.round))].sort(
+    (a, b) => a - b,
+  );
 
   const standings = isRROrSwiss
     ? (() => {
         const map = new Map<
           string,
-          { name: string; faction: string; wins: number; losses: number; played: number }
+          {
+            name: string;
+            faction: string;
+            wins: number;
+            losses: number;
+            played: number;
+          }
         >();
         for (const p of selected.participants) {
-          map.set(p._id, { name: p.name, faction: p.faction, wins: 0, losses: 0, played: 0 });
+          map.set(p._id, {
+            name: p.name,
+            faction: p.faction,
+            wins: 0,
+            losses: 0,
+            played: 0,
+          });
         }
         for (const m of matches) {
-          if (m.status !== "completed" || !m.winnerId || m.player2.name === "BYE") continue;
+          if (
+            m.status !== "completed" ||
+            !m.winnerId ||
+            m.player2.name === "BYE"
+          )
+            continue;
           const wId = m.winnerId;
-          const lId = wId === m.player1.participantId ? m.player2.participantId : m.player1.participantId;
+          const lId =
+            wId === m.player1.participantId
+              ? m.player2.participantId
+              : m.player1.participantId;
           if (map.has(wId)) {
             const e = map.get(wId)!;
             e.wins++;
@@ -118,15 +164,27 @@ const MatchesSection: React.FC<Props> = ({
             e.played++;
           }
         }
-        return [...map.values()].sort((a, b) => b.wins - a.wins || a.losses - b.losses);
+        return [...map.values()].sort(
+          (a, b) => b.wins - a.wins || a.losses - b.losses,
+        );
       })()
     : [];
 
-  const wbMatches = isDoubleElim ? matches.filter((m) => m.bracketSide === "winners") : [];
-  const lbMatches = isDoubleElim ? matches.filter((m) => m.bracketSide === "losers") : [];
-  const gfMatches = isDoubleElim ? matches.filter((m) => m.bracketSide === "grand_final") : [];
-  const wbRounds = [...new Set(wbMatches.map((m) => m.round))].sort((a, b) => a - b);
-  const lbRounds = [...new Set(lbMatches.map((m) => m.round))].sort((a, b) => a - b);
+  const wbMatches = isDoubleElim
+    ? matches.filter((m) => m.bracketSide === "winners")
+    : [];
+  const lbMatches = isDoubleElim
+    ? matches.filter((m) => m.bracketSide === "losers")
+    : [];
+  const gfMatches = isDoubleElim
+    ? matches.filter((m) => m.bracketSide === "grand_final")
+    : [];
+  const wbRounds = [...new Set(wbMatches.map((m) => m.round))].sort(
+    (a, b) => a - b,
+  );
+  const lbRounds = [...new Set(lbMatches.map((m) => m.round))].sort(
+    (a, b) => a - b,
+  );
 
   return (
     <Card.Root gridColumn={{ lg: "1 / -1" }} bg={cardBg}>
@@ -134,10 +192,13 @@ const MatchesSection: React.FC<Props> = ({
         <HStack justifyContent="space-between">
           <HStack gap={2}>
             <LuSwords />
-            <Text fontWeight="semibold" fontSize="lg">Matches</Text>
+            <Text fontWeight="semibold" fontSize="lg">
+              Matches
+            </Text>
             {matches.length > 0 && !isDoubleElim && !isRROrSwiss && (
               <Badge colorPalette="gray" variant="subtle">
-                Round {Math.max(...matches.map((m) => m.round))} of {roundNumbers.length}
+                Round {Math.max(...matches.map((m) => m.round))} of{" "}
+                {roundNumbers.length}
               </Badge>
             )}
             {isRoundRobin && (
@@ -184,19 +245,33 @@ const MatchesSection: React.FC<Props> = ({
                       <Table.ColumnHeader>#</Table.ColumnHeader>
                       <Table.ColumnHeader>Player</Table.ColumnHeader>
                       <Table.ColumnHeader>Faction</Table.ColumnHeader>
-                      <Table.ColumnHeader textAlign="center">W</Table.ColumnHeader>
-                      <Table.ColumnHeader textAlign="center">L</Table.ColumnHeader>
-                      <Table.ColumnHeader textAlign="center">Played</Table.ColumnHeader>
+                      <Table.ColumnHeader textAlign="center">
+                        W
+                      </Table.ColumnHeader>
+                      <Table.ColumnHeader textAlign="center">
+                        L
+                      </Table.ColumnHeader>
+                      <Table.ColumnHeader textAlign="center">
+                        Played
+                      </Table.ColumnHeader>
                     </Table.Row>
                   </Table.Header>
                   <Table.Body>
                     {standings.map((s, i) => (
                       <Table.Row key={s.name}>
                         <Table.Cell color="fg.muted">{i + 1}</Table.Cell>
-                        <Table.Cell fontWeight={i === 0 ? "bold" : "normal"}>{s.name}</Table.Cell>
-                        <Table.Cell color="fg.muted">{s.faction || "-"}</Table.Cell>
-                        <Table.Cell textAlign="center" color="green.fg">{s.wins}</Table.Cell>
-                        <Table.Cell textAlign="center" color="red.fg">{s.losses}</Table.Cell>
+                        <Table.Cell fontWeight={i === 0 ? "bold" : "normal"}>
+                          {s.name}
+                        </Table.Cell>
+                        <Table.Cell color="fg.muted">
+                          {s.faction || "-"}
+                        </Table.Cell>
+                        <Table.Cell textAlign="center" color="green.fg">
+                          {s.wins}
+                        </Table.Cell>
+                        <Table.Cell textAlign="center" color="red.fg">
+                          {s.losses}
+                        </Table.Cell>
                         <Table.Cell textAlign="center">{s.played}</Table.Cell>
                       </Table.Row>
                     ))}
@@ -227,16 +302,26 @@ const MatchesSection: React.FC<Props> = ({
                     <VStack gap={4} alignItems="stretch">
                       {wbRounds.map((round) => (
                         <Box key={`wb-${round}`}>
-                          <Text fontSize="xs" color="fg.muted" fontWeight="medium" mb={2}>
+                          <Text
+                            fontSize="xs"
+                            color="fg.muted"
+                            fontWeight="medium"
+                            mb={2}
+                          >
                             Round {round}
                           </Text>
                           <SimpleGrid columns={{ base: 1, md: 2 }} gap={3}>
-                            <For each={wbMatches.filter((m) => m.round === round)}>
+                            <For
+                              each={wbMatches.filter((m) => m.round === round)}
+                            >
                               {(m) => {
-                                const p1Won = m.winnerId === m.player1.participantId;
-                                const p2Won = m.winnerId === m.player2.participantId;
+                                const p1Won =
+                                  m.winnerId === m.player1.participantId;
+                                const p2Won =
+                                  m.winnerId === m.player2.participantId;
                                 const isOverriding = overrideMatchId === m._id;
-                                const { isP1, isP2, myReport, canPR } = resolveMatchUser(m, user, isAdmin, isActive);
+                                const { isP1, isP2, myReport, canPR } =
+                                  resolveMatchUser(m, user, isAdmin, isActive);
                                 return (
                                   <MatchCard
                                     key={m._id}
@@ -264,7 +349,9 @@ const MatchesSection: React.FC<Props> = ({
                                       setOverrideWinnerId("");
                                       setOverrideReason("");
                                     }}
-                                    onCancelOverride={() => setOverrideMatchId(null)}
+                                    onCancelOverride={() =>
+                                      setOverrideMatchId(null)
+                                    }
                                     onSetOverrideWinner={setOverrideWinnerId}
                                     onSetOverrideReason={setOverrideReason}
                                     onConfirmOverride={handleOverrideConfirm}
@@ -297,16 +384,26 @@ const MatchesSection: React.FC<Props> = ({
                     <VStack gap={4} alignItems="stretch">
                       {lbRounds.map((round) => (
                         <Box key={`lb-${round}`}>
-                          <Text fontSize="xs" color="fg.muted" fontWeight="medium" mb={2}>
+                          <Text
+                            fontSize="xs"
+                            color="fg.muted"
+                            fontWeight="medium"
+                            mb={2}
+                          >
                             Round {round}
                           </Text>
                           <SimpleGrid columns={{ base: 1, md: 2 }} gap={3}>
-                            <For each={lbMatches.filter((m) => m.round === round)}>
+                            <For
+                              each={lbMatches.filter((m) => m.round === round)}
+                            >
                               {(m) => {
-                                const p1Won = m.winnerId === m.player1.participantId;
-                                const p2Won = m.winnerId === m.player2.participantId;
+                                const p1Won =
+                                  m.winnerId === m.player1.participantId;
+                                const p2Won =
+                                  m.winnerId === m.player2.participantId;
                                 const isOverriding = overrideMatchId === m._id;
-                                const { isP1, isP2, myReport, canPR } = resolveMatchUser(m, user, isAdmin, isActive);
+                                const { isP1, isP2, myReport, canPR } =
+                                  resolveMatchUser(m, user, isAdmin, isActive);
                                 return (
                                   <MatchCard
                                     key={m._id}
@@ -334,7 +431,9 @@ const MatchesSection: React.FC<Props> = ({
                                       setOverrideWinnerId("");
                                       setOverrideReason("");
                                     }}
-                                    onCancelOverride={() => setOverrideMatchId(null)}
+                                    onCancelOverride={() =>
+                                      setOverrideMatchId(null)
+                                    }
                                     onSetOverrideWinner={setOverrideWinnerId}
                                     onSetOverrideReason={setOverrideReason}
                                     onConfirmOverride={handleOverrideConfirm}
@@ -373,7 +472,8 @@ const MatchesSection: React.FC<Props> = ({
                           const p1Won = m.winnerId === m.player1.participantId;
                           const p2Won = m.winnerId === m.player2.participantId;
                           const isOverriding = overrideMatchId === m._id;
-                          const { isP1, isP2, myReport, canPR } = resolveMatchUser(m, user, isAdmin, isActive);
+                          const { isP1, isP2, myReport, canPR } =
+                            resolveMatchUser(m, user, isAdmin, isActive);
                           return (
                             <MatchCard
                               key={m._id}
@@ -430,26 +530,37 @@ const MatchesSection: React.FC<Props> = ({
                           textTransform="uppercase"
                           letterSpacing="wider"
                         >
-                          {isRROrSwiss ? `Round ${round} of ${roundNumbers.length}` : `Round ${round}`}
+                          {isRROrSwiss
+                            ? `Round ${round} of ${roundNumbers.length}`
+                            : `Round ${round}`}
                         </Text>
                         {isCurrentRound && !isRROrSwiss && (
                           <Badge colorPalette="blue" size="sm" variant="subtle">
                             Current
                           </Badge>
                         )}
-                        {!isCurrentRound && round < maxRound && !isRROrSwiss && (
-                          <Badge colorPalette="gray" size="sm" variant="subtle">
-                            Completed
-                          </Badge>
-                        )}
+                        {!isCurrentRound &&
+                          round < maxRound &&
+                          !isRROrSwiss && (
+                            <Badge
+                              colorPalette="gray"
+                              size="sm"
+                              variant="subtle"
+                            >
+                              Completed
+                            </Badge>
+                          )}
                       </HStack>
                       <SimpleGrid columns={{ base: 1, md: 2 }} gap={3}>
                         <For each={matches.filter((m) => m.round === round)}>
                           {(m) => {
-                            const p1Won = m.winnerId === m.player1.participantId;
-                            const p2Won = m.winnerId === m.player2.participantId;
+                            const p1Won =
+                              m.winnerId === m.player1.participantId;
+                            const p2Won =
+                              m.winnerId === m.player2.participantId;
                             const isOverriding = overrideMatchId === m._id;
-                            const { isP1, isP2, myReport, canPR } = resolveMatchUser(m, user, isAdmin, isActive);
+                            const { isP1, isP2, myReport, canPR } =
+                              resolveMatchUser(m, user, isAdmin, isActive);
                             return (
                               <MatchCard
                                 key={m._id}
@@ -477,7 +588,9 @@ const MatchesSection: React.FC<Props> = ({
                                   setOverrideWinnerId("");
                                   setOverrideReason("");
                                 }}
-                                onCancelOverride={() => setOverrideMatchId(null)}
+                                onCancelOverride={() =>
+                                  setOverrideMatchId(null)
+                                }
                                 onSetOverrideWinner={setOverrideWinnerId}
                                 onSetOverrideReason={setOverrideReason}
                                 onConfirmOverride={handleOverrideConfirm}
@@ -514,16 +627,24 @@ const MatchesSection: React.FC<Props> = ({
                   : `Round ${Math.max(...matches.filter((m) => m.bracketSide !== "losers" && m.bracketSide !== "grand_final").map((m) => m.round))} of ${roundNumbers.length}`}
               </Text>
               <Badge colorPalette="blue" variant="subtle" size="sm">
-                {matches.filter((m) => m.status === "completed").length}/ {matches.length} matches done
+                {matches.filter((m) => m.status === "completed").length}/{" "}
+                {matches.length} matches done
               </Badge>
             </HStack>
-            <Button colorPalette="blue" size="sm" onClick={onAdvanceRound} loading={actionLoading}>
+            <Button
+              colorPalette="blue"
+              size="sm"
+              onClick={onAdvanceRound}
+              loading={actionLoading}
+            >
               <LuChevronsRight />
               {isRoundRobin
                 ? "Finalize Tournament"
                 : isSwiss &&
                     Math.max(...matches.map((m) => m.round)) >=
-                      Math.ceil(Math.log2(Math.max(selected.participants.length, 2)))
+                      Math.ceil(
+                        Math.log2(Math.max(selected.participants.length, 2)),
+                      )
                   ? "Finalize Tournament"
                   : "Advance Round"}
             </Button>

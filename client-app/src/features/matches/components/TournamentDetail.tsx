@@ -63,7 +63,11 @@ interface Props {
   onRemoveParticipant: (id: string) => void;
   onRecordResult: (matchId: string, winnerId: string) => void;
   onReportResult: (matchId: string, winnerId: string) => void;
-  onOverrideResult: (matchId: string, winnerId: string, reason: string) => Promise<void>;
+  onOverrideResult: (
+    matchId: string,
+    winnerId: string,
+    reason: string,
+  ) => Promise<void>;
   onResolveDispute: (matchId: string, winnerId: string) => void;
   onAdvanceRound: () => void;
   onSaveDescription: (draft: string) => Promise<void>;
@@ -102,7 +106,8 @@ const TournamentDetail: React.FC<Props> = ({
 }) => {
   const navigate = useNavigate();
 
-  const [editingParticipant, setEditingParticipant] = useState<Participant | null>(null);
+  const [editingParticipant, setEditingParticipant] =
+    useState<Participant | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [codeCopied, setCodeCopied] = useState(false);
   const [editingDescription, setEditingDescription] = useState(false);
@@ -111,9 +116,13 @@ const TournamentDetail: React.FC<Props> = ({
 
   const isAdmin =
     !!user &&
-    (selected.createdBy === user.id || selected.createdBy?.toString() === user.id?.toString());
+    (selected.createdBy === user.id ||
+      selected.createdBy?.toString() === user.id?.toString());
   const isFull = selected.participants.length >= selected.playerCount;
-  const canStart = isAdmin && selected.status === "pending" && selected.participants.length >= 2;
+  const canStart =
+    isAdmin &&
+    selected.status === "pending" &&
+    selected.participants.length >= 2;
   const canDelete = isAdmin && selected.status === "pending";
   const isPending = selected.status === "pending";
   const isActive = selected.status === "active";
@@ -122,7 +131,9 @@ const TournamentDetail: React.FC<Props> = ({
   const isDoubleElim = tournamentType === "Double Elimination";
   const isRoundRobin = tournamentType === "Round Robin";
   const isSwiss = tournamentType === "Swiss System";
-  const roundNumbers = [...new Set(matches.map((m) => m.round))].sort((a, b) => a - b);
+  const roundNumbers = [...new Set(matches.map((m) => m.round))].sort(
+    (a, b) => a - b,
+  );
 
   const canAdvance =
     isAdmin &&
@@ -131,14 +142,20 @@ const TournamentDetail: React.FC<Props> = ({
     (() => {
       if (isDoubleElim) {
         const wbMax = Math.max(
-          ...matches.filter((m) => m.bracketSide === "winners").map((m) => m.round),
+          ...matches
+            .filter((m) => m.bracketSide === "winners")
+            .map((m) => m.round),
           0,
         );
         const lbMax = Math.max(
-          ...matches.filter((m) => m.bracketSide === "losers").map((m) => m.round),
+          ...matches
+            .filter((m) => m.bracketSide === "losers")
+            .map((m) => m.round),
           0,
         );
-        const gfLast = matches.filter((m) => m.bracketSide === "grand_final").slice(-1)[0];
+        const gfLast = matches
+          .filter((m) => m.bracketSide === "grand_final")
+          .slice(-1)[0];
         const wbDone = matches
           .filter((m) => m.bracketSide === "winners" && m.round === wbMax)
           .every((m) => m.status === "completed");
@@ -151,7 +168,9 @@ const TournamentDetail: React.FC<Props> = ({
         return wbDone && lbDone && gfDone;
       }
       const maxRound = Math.max(...matches.map((m) => m.round));
-      return matches.filter((m) => m.round === maxRound).every((m) => m.status === "completed");
+      return matches
+        .filter((m) => m.round === maxRound)
+        .every((m) => m.status === "completed");
     })();
 
   const handleCopyCode = (code: string) => {
@@ -195,7 +214,8 @@ const TournamentDetail: React.FC<Props> = ({
               {selected.name}
             </Heading>
             <Badge colorPalette={statusColorMap[selected.status]} size="lg">
-              {selected.status.charAt(0).toUpperCase() + selected.status.slice(1)}
+              {selected.status.charAt(0).toUpperCase() +
+                selected.status.slice(1)}
             </Badge>
           </HStack>
           <HStack gap={3} color="fg.muted" fontSize="sm" wrap="wrap">
@@ -226,7 +246,9 @@ const TournamentDetail: React.FC<Props> = ({
             <VStack mt={2} gap={2} alignItems="stretch" w="full">
               <Textarea
                 value={descriptionDraft}
-                onChange={(e) => setDescriptionDraft(e.target.value.slice(0, 2000))}
+                onChange={(e) =>
+                  setDescriptionDraft(e.target.value.slice(0, 2000))
+                }
                 placeholder="Tournament description (Markdown supported)"
                 minH="240px"
                 h="240px"
@@ -251,7 +273,11 @@ const TournamentDetail: React.FC<Props> = ({
                   <LuCheck />
                   Save
                 </Button>
-                <Button size="xs" variant="ghost" onClick={() => setEditingDescription(false)}>
+                <Button
+                  size="xs"
+                  variant="ghost"
+                  onClick={() => setEditingDescription(false)}
+                >
                   Cancel
                 </Button>
               </HStack>
@@ -274,7 +300,10 @@ const TournamentDetail: React.FC<Props> = ({
                     "& h2": { fontSize: "1.125rem" },
                     "& h3": { fontSize: "1rem" },
                     "& p": { marginBottom: "0.5rem", lineHeight: 1.6 },
-                    "& ul,& ol": { paddingLeft: "1.25rem", marginBottom: "0.5rem" },
+                    "& ul,& ol": {
+                      paddingLeft: "1.25rem",
+                      marginBottom: "0.5rem",
+                    },
                     "& li": { marginBottom: "0.25rem" },
                     "& strong": { fontWeight: "bold" },
                     "& em": { fontStyle: "italic" },
@@ -340,18 +369,29 @@ const TournamentDetail: React.FC<Props> = ({
             Spectator View
           </Button>
           {canStart && (
-            <Button colorPalette="green" size="sm" onClick={onStart} loading={actionLoading}>
+            <Button
+              colorPalette="green"
+              size="sm"
+              onClick={onStart}
+              loading={actionLoading}
+            >
               <LuPlay />
               Start Tournament
             </Button>
           )}
           {canAdvance && (
-            <Button colorPalette="blue" size="sm" onClick={onAdvanceRound} loading={actionLoading}>
+            <Button
+              colorPalette="blue"
+              size="sm"
+              onClick={onAdvanceRound}
+              loading={actionLoading}
+            >
               <LuChevronsRight />
               {isRoundRobin
                 ? "Finalize Tournament"
                 : isSwiss &&
-                    Math.max(...matches.map((m) => m.round)) >= roundNumbers.length
+                    Math.max(...matches.map((m) => m.round)) >=
+                      roundNumbers.length
                   ? "Finalize Tournament"
                   : "Advance Round"}
             </Button>
@@ -390,7 +430,8 @@ const TournamentDetail: React.FC<Props> = ({
             <HStack gap={2}>
               <LuUsers />
               <Heading size="md">
-                Participants ({selected.participants.length}/{selected.playerCount})
+                Participants ({selected.participants.length}/
+                {selected.playerCount})
               </Heading>
             </HStack>
           </Card.Header>
@@ -473,7 +514,9 @@ const TournamentDetail: React.FC<Props> = ({
                   <Input
                     placeholder="Enter player name"
                     value={newName}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => onSetNewName(e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      onSetNewName(e.target.value)
+                    }
                     disabled={isFull}
                     onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
                       e.key === "Enter" && onAddParticipant()
@@ -489,7 +532,9 @@ const TournamentDetail: React.FC<Props> = ({
                   </Field.Label>
                   <chakra.select
                     value={newFaction}
-                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) => onSetNewFaction(e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                      onSetNewFaction(e.target.value)
+                    }
                     disabled={isFull}
                     w="full"
                     borderRadius="md"
@@ -599,7 +644,9 @@ const TournamentDetail: React.FC<Props> = ({
                         {Math.max(
                           ...matches
                             .filter(
-                              (m) => m.bracketSide !== "losers" && m.bracketSide !== "grand_final",
+                              (m) =>
+                                m.bracketSide !== "losers" &&
+                                m.bracketSide !== "grand_final",
                             )
                             .map((m) => m.round),
                         )}{" "}
@@ -620,7 +667,8 @@ const TournamentDetail: React.FC<Props> = ({
                         </Text>
                       </HStack>
                       <Text fontWeight="medium">
-                        {matches.filter((m) => m.status === "completed").length}/ {matches.length}
+                        {matches.filter((m) => m.status === "completed").length}
+                        / {matches.length}
                       </Text>
                     </HStack>
                     <Separator />
@@ -642,11 +690,14 @@ const TournamentDetail: React.FC<Props> = ({
                         const finalMatch = matches.find(
                           (m) =>
                             m.winnerId &&
-                            m.round === Math.max(...matches.map((x) => x.round)),
+                            m.round ===
+                              Math.max(...matches.map((x) => x.round)),
                         );
-                        if (!finalMatch) return <Text fontWeight="medium">-</Text>;
+                        if (!finalMatch)
+                          return <Text fontWeight="medium">-</Text>;
                         const champion =
-                          finalMatch.winnerId === finalMatch.player1.participantId
+                          finalMatch.winnerId ===
+                          finalMatch.player1.participantId
                             ? finalMatch.player1
                             : finalMatch.player2;
                         return (
@@ -668,7 +719,8 @@ const TournamentDetail: React.FC<Props> = ({
                     </Text>
                   </HStack>
                   <Badge colorPalette={statusColorMap[selected.status]}>
-                    {selected.status.charAt(0).toUpperCase() + selected.status.slice(1)}
+                    {selected.status.charAt(0).toUpperCase() +
+                      selected.status.slice(1)}
                   </Badge>
                 </HStack>
                 <Separator />
@@ -680,7 +732,9 @@ const TournamentDetail: React.FC<Props> = ({
                       Created
                     </Text>
                   </HStack>
-                  <Text fontSize="sm">{new Date(selected.createdAt).toLocaleDateString()}</Text>
+                  <Text fontSize="sm">
+                    {new Date(selected.createdAt).toLocaleDateString()}
+                  </Text>
                 </HStack>
                 {selected.bannedFactions.length > 0 && (
                   <>
@@ -692,7 +746,12 @@ const TournamentDetail: React.FC<Props> = ({
                       <HStack wrap="wrap" gap={1}>
                         <For each={selected.bannedFactions}>
                           {(f) => (
-                            <Badge key={f} colorPalette="red" size="sm" variant="subtle">
+                            <Badge
+                              key={f}
+                              colorPalette="red"
+                              size="sm"
+                              variant="subtle"
+                            >
                               {f}
                             </Badge>
                           )}
@@ -709,7 +768,9 @@ const TournamentDetail: React.FC<Props> = ({
         {selected.status === "completed" &&
           (() => {
             const finalRound = Math.max(...matches.map((m) => m.round));
-            const finalMatch = matches.find((m) => m.round === finalRound && m.winnerId);
+            const finalMatch = matches.find(
+              (m) => m.round === finalRound && m.winnerId,
+            );
             if (!finalMatch) return null;
             const champion =
               finalMatch.winnerId === finalMatch.player1.participantId
