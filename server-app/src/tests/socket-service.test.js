@@ -5,10 +5,14 @@ import { describe, it, beforeEach, mock } from "node:test";
 const mockEmitFn = mock.fn();
 const mockToFn = mock.fn(() => ({ emit: mockEmitFn }));
 const ioHandlers = {};
+const ioMiddlewares = [];
 const mockIoInstance = {
   to: mockToFn,
   on: mock.fn((event, handler) => {
     ioHandlers[event] = handler;
+  }),
+  use: mock.fn((fn) => {
+    ioMiddlewares.push(fn);
   }),
 };
 
@@ -54,6 +58,7 @@ function makeSocket() {
     id: `sock-${Math.random()}`,
     join: mock.fn(),
     leave: mock.fn(),
+    disconnect: mock.fn(),
     on: mock.fn((event, handler) => {
       handlers[event] = handler;
     }),
@@ -131,6 +136,55 @@ describe("socket-service", () => {
       assert.doesNotThrow(() => socket._fire("disconnect"));
     });
   });
+
+  // ── Rate limiting ────────────────────────────────────────────────────────────
+
+  describe("connection rate limiting", () => {
+    it("registers a connection middleware on io", () => {
+      assert.strictEqual(typeof ioMiddlewares[0], "function");
+    });
+
+    it("allows a connection within the per-IP limit", () => {
+      const next = mock.fn();
+      ioMiddlewares[0]({ handshake: { address: "1.2.3.4" } }, next);
+      assert.strictEqual(next.mock.calls[0].arguments[0], undefined);
+    });
+
+    it("rejects the 21st connection from the same IP", () => {
+      const ip = "10.0.0.99"; // unique to this test
+      for (let i = 0; i < 20; i++) {
+        ioMiddlewares[0]({ handshake: { address: ip } }, mock.fn());
+      }
+      const next = mock.fn();
+      ioMiddlewares[0]({ handshake: { address: ip } }, next);
+      assert.ok(next.mock.calls[0].arguments[0] instanceof Error);
+    });
+  });
+
+  describe("event rate limiting", () => {
+    const validId = "aaaaaaaaaaaaaaaaaaaaaaaa";
+
+    it("allows events within the per-socket limit", () => {
+      const socket = makeSocket();
+      ioHandlers["connection"](socket);
+      socket._fire("tournament:join", validId);
+      assert.strictEqual(socket.disconnect.mock.calls.length, 0);
+      assert.strictEqual(socket.join.mock.calls.length, 1);
+    });
+
+    it("disconnects the socket on the 61st event", () => {
+      const socket = makeSocket(); // unique socket.id via Math.random()
+      ioHandlers["connection"](socket);
+      for (let i = 0; i < 60; i++) {
+        socket._fire("tournament:join", validId);
+      }
+      socket._fire("tournament:join", validId);
+      assert.strictEqual(socket.disconnect.mock.calls.length, 1);
+      assert.strictEqual(socket.join.mock.calls.length, 60);
+    });
+  });
+
+  // ── Emit helpers ─────────────────────────────────────────────────────────────
 
   describe("emitTournamentUpdated", () => {
     it("broadcasts to the correct tournament room", () => {

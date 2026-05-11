@@ -1,6 +1,12 @@
 import { Server } from "socket.io";
 
 import logger from "../utils/logger.js";
+import { createRateLimiter } from "../utils/rate-limiter.js";
+
+// 20 unique connections per IP per minute
+const connectionLimiter = createRateLimiter({ windowMs: 60_000, max: 20 });
+// 60 events per connected socket per minute
+const eventLimiter = createRateLimiter({ windowMs: 60_000, max: 60 });
 
 let io = null;
 
@@ -13,10 +19,24 @@ export function initSocketIO(httpServer, corsOrigin) {
     },
   });
 
+  io.use((socket, next) => {
+    const ip = socket.handshake.address;
+    if (!connectionLimiter(ip)) {
+      logger.warn(`Socket connection rate limit exceeded for ${ip}`);
+      return next(new Error("Too many connections"));
+    }
+    next();
+  });
+
   io.on("connection", (socket) => {
     logger.debug(`Socket connected: ${socket.id}`);
 
     socket.on("tournament:join", (tournamentId) => {
+      if (!eventLimiter(socket.id)) {
+        logger.warn(`Socket event rate limit exceeded for ${socket.id}`);
+        socket.disconnect(true);
+        return;
+      }
       if (
         typeof tournamentId !== "string" ||
         !/^[a-f\d]{24}$/i.test(tournamentId)
@@ -27,6 +47,11 @@ export function initSocketIO(httpServer, corsOrigin) {
     });
 
     socket.on("tournament:leave", (tournamentId) => {
+      if (!eventLimiter(socket.id)) {
+        logger.warn(`Socket event rate limit exceeded for ${socket.id}`);
+        socket.disconnect(true);
+        return;
+      }
       if (
         typeof tournamentId !== "string" ||
         !/^[a-f\d]{24}$/i.test(tournamentId)
