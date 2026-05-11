@@ -69,6 +69,7 @@ const warhammer3Factions = [
   "Dark Elves",
   "Tomb Kings",
   "Ogre Kingdoms",
+  "Deamons of Chaos",
   "Norsca",
   "Nurgle",
   "Tzeentch",
@@ -508,7 +509,9 @@ const MatchesPage: React.FC = () => {
 
     const onTournamentUpdated = (data: Tournament) => {
       setSelected(data);
-      setTournaments((prev) => prev.map((t) => (t._id === data._id ? data : t)));
+      setTournaments((prev) =>
+        prev.map((t) => (t._id === data._id ? data : t)),
+      );
     };
     const onMatchesUpdated = (data: Match[]) => setMatches(data);
     const onMatchesAppended = (newMatches: Match[]) =>

@@ -52,7 +52,7 @@ const warhammer3Factions = [
   "Kislev",
   "Cathay",
   "Ogre Kingdoms",
-  "Daemons of Chaos Undivided",
+  "Daemons of Chaos",
   "Khorne",
   "Nurgle",
   "Slaanesh",
