@@ -77,7 +77,9 @@ describe("authentication-controller", () => {
       mockUserFindOne.mock.mockImplementation(() => ({
         select: mock.fn(() => null),
       }));
-      const req = mockReq({ body: { identifier: "test@test.com", password: "pw" } });
+      const req = mockReq({
+        body: { identifier: "test@test.com", password: "pw" },
+      });
       const res = mockRes();
       await login(req, res);
       assert.strictEqual(res.status.mock.calls[0].arguments[0], 401);
@@ -90,7 +92,9 @@ describe("authentication-controller", () => {
       mockUserFindOne.mock.mockImplementation(() => ({
         select: mock.fn(() => user),
       }));
-      const req = mockReq({ body: { identifier: "test@test.com", password: "pw" } });
+      const req = mockReq({
+        body: { identifier: "test@test.com", password: "pw" },
+      });
       const res = mockRes();
       await login(req, res);
       assert.strictEqual(res.status.mock.calls[0].arguments[0], 401);
@@ -107,7 +111,9 @@ describe("authentication-controller", () => {
       mockUserFindOne.mock.mockImplementation(() => ({
         select: mock.fn(() => user),
       }));
-      const req = mockReq({ body: { identifier: "test@test.com", password: "pw" } });
+      const req = mockReq({
+        body: { identifier: "test@test.com", password: "pw" },
+      });
       const res = mockRes();
       await login(req, res);
       assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);

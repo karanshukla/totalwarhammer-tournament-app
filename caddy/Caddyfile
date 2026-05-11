@@ -36,6 +36,8 @@
                 name {$BACKEND_DOMAIN}
                 port {$BACKEND_PORT}
                 refresh 1s
+                dial_timeout 30s
+                versions ipv4 ipv6
             }
             header_up Host {upstream_hostport}
             header_up Connection {>Connection}

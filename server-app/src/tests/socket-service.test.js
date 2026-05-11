@@ -89,24 +89,40 @@ describe("socket-service", () => {
   });
 
   describe("room management (connection handler)", () => {
+    const validId = "aaaaaaaaaaaaaaaaaaaaaaaa";
+
     it("joins the tournament room when tournament:join is received", () => {
       const socket = makeSocket();
       ioHandlers["connection"](socket);
-      socket._fire("tournament:join", "tid123");
+      socket._fire("tournament:join", validId);
       assert.strictEqual(
         socket.join.mock.calls[0].arguments[0],
-        "tournament:tid123",
+        `tournament:${validId}`,
       );
+    });
+
+    it("ignores tournament:join with an invalid id", () => {
+      const socket = makeSocket();
+      ioHandlers["connection"](socket);
+      socket._fire("tournament:join", "not-an-objectid");
+      assert.strictEqual(socket.join.mock.calls.length, 0);
     });
 
     it("leaves the tournament room when tournament:leave is received", () => {
       const socket = makeSocket();
       ioHandlers["connection"](socket);
-      socket._fire("tournament:leave", "tid456");
+      socket._fire("tournament:leave", validId);
       assert.strictEqual(
         socket.leave.mock.calls[0].arguments[0],
-        "tournament:tid456",
+        `tournament:${validId}`,
       );
+    });
+
+    it("ignores tournament:leave with an invalid id", () => {
+      const socket = makeSocket();
+      ioHandlers["connection"](socket);
+      socket._fire("tournament:leave", 12345);
+      assert.strictEqual(socket.leave.mock.calls.length, 0);
     });
 
     it("does not throw on disconnect", () => {
@@ -119,10 +135,7 @@ describe("socket-service", () => {
   describe("emitTournamentUpdated", () => {
     it("broadcasts to the correct tournament room", () => {
       emitTournamentUpdated("t1", {});
-      assert.strictEqual(
-        mockToFn.mock.calls[0].arguments[0],
-        "tournament:t1",
-      );
+      assert.strictEqual(mockToFn.mock.calls[0].arguments[0], "tournament:t1");
     });
 
     it("emits the tournament:updated event with the tournament payload", () => {
@@ -139,10 +152,7 @@ describe("socket-service", () => {
   describe("emitMatchesUpdated", () => {
     it("broadcasts to the correct tournament room", () => {
       emitMatchesUpdated("t2", []);
-      assert.strictEqual(
-        mockToFn.mock.calls[0].arguments[0],
-        "tournament:t2",
-      );
+      assert.strictEqual(mockToFn.mock.calls[0].arguments[0], "tournament:t2");
     });
 
     it("emits the matches:updated event with the full match array", () => {
@@ -159,10 +169,7 @@ describe("socket-service", () => {
   describe("emitMatchesAppended", () => {
     it("broadcasts to the correct tournament room", () => {
       emitMatchesAppended("t3", []);
-      assert.strictEqual(
-        mockToFn.mock.calls[0].arguments[0],
-        "tournament:t3",
-      );
+      assert.strictEqual(mockToFn.mock.calls[0].arguments[0], "tournament:t3");
     });
 
     it("emits the matches:appended event with only the new matches", () => {
@@ -179,10 +186,7 @@ describe("socket-service", () => {
   describe("emitMatchUpdated", () => {
     it("broadcasts to the correct tournament room", () => {
       emitMatchUpdated("t4", {});
-      assert.strictEqual(
-        mockToFn.mock.calls[0].arguments[0],
-        "tournament:t4",
-      );
+      assert.strictEqual(mockToFn.mock.calls[0].arguments[0], "tournament:t4");
     });
 
     it("emits the match:updated event with the updated match", () => {

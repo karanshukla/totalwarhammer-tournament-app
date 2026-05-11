@@ -2,8 +2,8 @@ import mongoose from "mongoose";
 
 import Match from "../../../domain/models/match.js";
 import Tournament from "../../../domain/models/tournament.js";
-import logger from "../../../infrastructure/utils/logger.js";
 import { emitMatchUpdated } from "../../../infrastructure/socket/socket-service.js";
+import logger from "../../../infrastructure/utils/logger.js";
 
 const isValidObjectId = (id) => /^[a-f\d]{24}$/i.test(id);
 const toObjectId = (id) => new mongoose.Types.ObjectId(id);

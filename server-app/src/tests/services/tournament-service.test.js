@@ -1,5 +1,6 @@
 import assert from "node:assert";
 import { describe, it } from "node:test";
+
 import {
   doubleElimStart,
   doubleElimAdvance,
@@ -21,7 +22,9 @@ function completeMatches(matches) {
 
 // Run the full double elimination bracket to completion and return all matches
 function runDoubleElim(tournamentId, participants) {
-  const allMatches = completeMatches(doubleElimStart(tournamentId, participants));
+  const allMatches = completeMatches(
+    doubleElimStart(tournamentId, participants),
+  );
   let iterations = 0;
   const maxIterations = 50;
 
@@ -47,8 +50,14 @@ function assertNoDuplicateParticipantsPerRound(matches) {
     const p1 = m.player1.participantId?.toString();
     const p2 = m.player2.participantId?.toString();
     if (p1 && p2 !== "null" && p2 !== null) {
-      assert.ok(!seen.has(p1), `Participant ${m.player1.name} appears twice in ${key}`);
-      assert.ok(!seen.has(p2), `Participant ${m.player2.name} appears twice in ${key}`);
+      assert.ok(
+        !seen.has(p1),
+        `Participant ${m.player1.name} appears twice in ${key}`,
+      );
+      assert.ok(
+        !seen.has(p2),
+        `Participant ${m.player2.name} appears twice in ${key}`,
+      );
     }
     if (p1) seen.add(p1);
     if (p2 && p2 !== "null") seen.add(p2);
@@ -59,20 +68,28 @@ function assertNoDuplicateParticipantsPerRound(matches) {
 function assertGrandFinalExists(matches) {
   const gf = matches.filter((m) => m.bracketSide === "grand_final");
   assert.ok(gf.length >= 1, "Expected at least one grand final match");
-  assert.ok(gf.length <= 2, "Expected at most two grand final matches (bracket reset)");
+  assert.ok(
+    gf.length <= 2,
+    "Expected at most two grand final matches (bracket reset)",
+  );
 }
 
 // Verify every non-BYE participant appears in the bracket
 function assertAllParticipantsPresent(participants, matches) {
   const seen = new Set(
-    matches.flatMap((m) => [
-      m.player1.participantId?.toString(),
-      m.player2.participantId?.toString(),
-    ]).filter((id) => id && id !== "null"),
+    matches
+      .flatMap((m) => [
+        m.player1.participantId?.toString(),
+        m.player2.participantId?.toString(),
+      ])
+      .filter((id) => id && id !== "null"),
   );
   for (const p of participants) {
     const id = (p._id ?? p.participantId)?.toString();
-    assert.ok(seen.has(id), `Participant ${p.name} never appeared in any match`);
+    assert.ok(
+      seen.has(id),
+      `Participant ${p.name} never appeared in any match`,
+    );
   }
 }
 
@@ -146,8 +163,10 @@ describe("doubleElimAdvance", () => {
       for (const m of lbRounds.get(round)) {
         const p1Id = m.player1.participantId?.toString();
         const p2Id = m.player2.participantId?.toString();
-        if (p1Id && p1Id !== "null" && !lbDebut.has(p1Id)) lbDebut.set(p1Id, round);
-        if (p2Id && p2Id !== "null" && !lbDebut.has(p2Id)) lbDebut.set(p2Id, round);
+        if (p1Id && p1Id !== "null" && !lbDebut.has(p1Id))
+          lbDebut.set(p1Id, round);
+        if (p2Id && p2Id !== "null" && !lbDebut.has(p2Id))
+          lbDebut.set(p2Id, round);
       }
     }
 

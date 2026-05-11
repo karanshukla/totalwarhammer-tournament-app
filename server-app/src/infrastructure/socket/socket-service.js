@@ -1,4 +1,5 @@
 import { Server } from "socket.io";
+
 import logger from "../utils/logger.js";
 
 let io = null;
@@ -16,11 +17,21 @@ export function initSocketIO(httpServer, corsOrigin) {
     logger.debug(`Socket connected: ${socket.id}`);
 
     socket.on("tournament:join", (tournamentId) => {
+      if (
+        typeof tournamentId !== "string" ||
+        !/^[a-f\d]{24}$/i.test(tournamentId)
+      )
+        return;
       socket.join(`tournament:${tournamentId}`);
       logger.debug(`Socket ${socket.id} joined tournament:${tournamentId}`);
     });
 
     socket.on("tournament:leave", (tournamentId) => {
+      if (
+        typeof tournamentId !== "string" ||
+        !/^[a-f\d]{24}$/i.test(tournamentId)
+      )
+        return;
       socket.leave(`tournament:${tournamentId}`);
     });
 
