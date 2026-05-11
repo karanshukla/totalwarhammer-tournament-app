@@ -53,33 +53,7 @@ import { getSocket } from "@/core/socket/socketClient";
 import { useUserStore } from "@/shared/stores/userStore";
 import { toaster } from "@/shared/ui/Toaster";
 import MatchCard from "./MatchCard";
-
-const warhammer3Factions = [
-  "Empire",
-  "Dwarfs",
-  "Greenskins",
-  "Vampire Counts",
-  "Chaos Warriors",
-  "Bretonnia",
-  "Wood Elves",
-  "Beastmen",
-  "Skaven",
-  "Lizardmen",
-  "High Elves",
-  "Dark Elves",
-  "Tomb Kings",
-  "Ogre Kingdoms",
-  "Deamons of Chaos",
-  "Norsca",
-  "Nurgle",
-  "Tzeentch",
-  "Slaanesh",
-  "Khorne",
-  "Grand Cathay",
-  "Kislev",
-  "Ogres",
-  "Chaos Dwarfs",
-];
+import { warhammer3Factions } from "@/shared/constants/warhammer3Factions";
 
 interface Match {
   _id: string;

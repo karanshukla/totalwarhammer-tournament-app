@@ -32,33 +32,7 @@ import { httpClient } from "@/core/api/httpClient";
 import { getSocket } from "@/core/socket/socketClient";
 import { useUserStore } from "@/shared/stores/userStore";
 import { displayName as dn } from "@/shared/utils/displayName";
-
-const warhammer3Factions = [
-  "Empire",
-  "Dwarfs",
-  "Greenskins",
-  "Vampire Counts",
-  "Warriors of Chaos",
-  "Beastmen",
-  "Wood Elves",
-  "Bretonnia",
-  "Norsca",
-  "High Elves",
-  "Dark Elves",
-  "Lizardmen",
-  "Skaven",
-  "Tomb Kings",
-  "Vampire Coast",
-  "Kislev",
-  "Cathay",
-  "Ogre Kingdoms",
-  "Daemons of Chaos",
-  "Khorne",
-  "Nurgle",
-  "Slaanesh",
-  "Tzeentch",
-  "Chaos Dwarfs",
-];
+import { warhammer3Factions } from "@/shared/constants/warhammer3Factions";
 
 const statusColorMap: Record<string, string> = {
   pending: "yellow",

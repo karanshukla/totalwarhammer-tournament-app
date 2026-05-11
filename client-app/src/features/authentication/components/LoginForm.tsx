@@ -6,9 +6,7 @@ import { loginUser } from "../api/authenticationApi";
 import { useState, useRef } from "react";
 
 const loginFormSchema = z.object({
-  identifier: z
-    .string()
-    .min(3, { message: "Username or email is required" }),
+  identifier: z.string().min(3, { message: "Username or email is required" }),
   password: z.string().min(1, { message: "Password is required" }),
   rememberMe: z.boolean().optional(),
 });
@@ -20,7 +18,10 @@ interface LoginFormProps {
   onSuccess?: () => void;
 }
 
-export function LoginForm({ defaultIdentifier = "", onSuccess }: LoginFormProps) {
+export function LoginForm({
+  defaultIdentifier = "",
+  onSuccess,
+}: LoginFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const isSubmittingRef = useRef(false);
 

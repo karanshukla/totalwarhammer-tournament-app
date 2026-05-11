@@ -18,33 +18,7 @@ import { NumberInputRoot, NumberInputField } from "@/shared/ui/NumberInput";
 import { httpClient } from "@/core/api/httpClient";
 import { useNavigate } from "react-router-dom";
 import { toaster } from "@/shared/ui/Toaster";
-
-const warhammer3Factions = [
-  "Empire",
-  "Dwarfs",
-  "Greenskins",
-  "Vampire Counts",
-  "Warriors of Chaos",
-  "Beastmen",
-  "Wood Elves",
-  "Bretonnia",
-  "Norsca",
-  "High Elves",
-  "Dark Elves",
-  "Lizardmen",
-  "Skaven",
-  "Tomb Kings",
-  "Vampire Coast",
-  "Kislev",
-  "Cathay",
-  "Ogre Kingdoms",
-  "Daemons of Chaos",
-  "Khorne",
-  "Nurgle",
-  "Slaanesh",
-  "Tzeentch",
-  "Chaos Dwarfs",
-];
+import { warhammer3Factions } from "@/shared/constants/warhammer3Factions";
 
 const tournamentTypes = [
   "Single Elimination",

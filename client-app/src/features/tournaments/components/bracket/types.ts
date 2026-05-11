@@ -20,31 +20,3 @@ export interface Round {
   title: string;
   matches: Match[];
 }
-
-// Total War: Warhammer factions (simplified list)
-export const FACTIONS = [
-  "Empire",
-  "Dwarfs",
-  "Greenskins",
-  "Vampire Counts",
-  "Bretonnia",
-  "High Elves",
-  "Dark Elves",
-  "Lizardmen",
-  "Skaven",
-  "Tomb Kings",
-  "Vampire Coast",
-  "Warriors of Chaos",
-  "Beastmen",
-  "Wood Elves",
-  "Norsca",
-  "Chaos Dwarfs",
-  "Daemons of Chaos",
-  "Cathay",
-  "Ogre Kingdoms",
-  "Kislev",
-  "Tzeentch",
-  "Nurgle",
-  "Slaanesh",
-  "Khorne",
-];
