@@ -114,7 +114,7 @@ const TournamentList: React.FC<Props> = ({
         </Box>
       )}
 
-      {tournaments.length > 0 && (
+      {statusCounts.all > 0 && (
         <HStack mb={4} gap={2} wrap="wrap">
           {(["all", "pending", "active", "completed"] as const).map((s) => (
             <Button
@@ -149,7 +149,7 @@ const TournamentList: React.FC<Props> = ({
         </HStack>
       )}
 
-      {tournaments.length === 0 ? (
+      {statusCounts.all === 0 ? (
         <Card.Root>
           <Card.Body py={16}>
             <VStack gap={4}>
@@ -186,7 +186,7 @@ const TournamentList: React.FC<Props> = ({
             </VStack>
           </Card.Body>
         </Card.Root>
-      ) : tournaments.length === 0 && statusFilter !== "all" ? (
+      ) : tournaments.length === 0 ? (
         <Card.Root>
           <Card.Body py={12}>
             <VStack gap={2}>
