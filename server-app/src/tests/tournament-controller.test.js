@@ -1,6 +1,47 @@
 import assert from "node:assert";
 import { describe, it, beforeEach, mock } from "node:test";
 
+// ── Socket service mocks ──────────────────────────────────────────────────────
+const mockEmitTournamentUpdated = mock.fn();
+const mockEmitMatchesUpdated = mock.fn();
+const mockEmitMatchesAppended = mock.fn();
+
+mock.module("../infrastructure/socket/socket-service.js", {
+  namedExports: {
+    emitTournamentUpdated: mockEmitTournamentUpdated,
+    emitMatchesUpdated: mockEmitMatchesUpdated,
+    emitMatchesAppended: mockEmitMatchesAppended,
+    emitMatchUpdated: mock.fn(),
+  },
+});
+
+// ── Tournament service mocks (needed for startTournament / advanceRound) ──────
+const mockSingleElimStart = mock.fn(() => []);
+const mockSingleElimAdvance = mock.fn(() => ({ completed: false, docs: [] }));
+const mockDoubleElimStart = mock.fn(() => []);
+const mockDoubleElimAdvance = mock.fn(() => ({
+  completed: false,
+  docs: [],
+  message: null,
+}));
+const mockRoundRobinStart = mock.fn(() => []);
+const mockRoundRobinAdvance = mock.fn(() => ({ completed: true }));
+const mockSwissStart = mock.fn(() => []);
+const mockSwissAdvance = mock.fn(() => ({ docs: [] }));
+
+mock.module("../domain/services/tournament-service.js", {
+  namedExports: {
+    singleElimStart: mockSingleElimStart,
+    singleElimAdvance: mockSingleElimAdvance,
+    doubleElimStart: mockDoubleElimStart,
+    doubleElimAdvance: mockDoubleElimAdvance,
+    roundRobinStart: mockRoundRobinStart,
+    roundRobinAdvance: mockRoundRobinAdvance,
+    swissStart: mockSwissStart,
+    swissAdvance: mockSwissAdvance,
+  },
+});
+
 const mockSave = mock.fn();
 const mockTournamentInstance = {
   save: mockSave,
@@ -34,10 +75,16 @@ mock.module("../infrastructure/utils/logger.js", {
   },
 });
 
+const mockMatchInsertMany = mock.fn(async () => []);
+const mockMatchFind = mock.fn(() => ({
+  sort: mock.fn(async () => []),
+}));
+
 mock.module("../domain/models/match.js", {
   namedExports: {},
   defaultExport: {
-    insertMany: mock.fn(async () => []),
+    insertMany: mockMatchInsertMany,
+    find: mockMatchFind,
   },
 });
 
@@ -52,6 +99,8 @@ const {
   joinTournament,
   updateDescription,
   deleteTournament,
+  startTournament,
+  advanceRound,
 } = await import("../interfaces/http/controllers/tournament-controller.js");
 
 function mockRes() {
@@ -80,6 +129,15 @@ describe("tournament-controller", () => {
     mockTournamentFindById.mock.resetCalls();
     mockTournamentFindByIdAndUpdate.mock.resetCalls();
     mockTournamentInstance.deleteOne.mock.resetCalls();
+    mockMatchInsertMany.mock.resetCalls();
+    mockEmitTournamentUpdated.mock.resetCalls();
+    mockEmitMatchesUpdated.mock.resetCalls();
+    mockEmitMatchesAppended.mock.resetCalls();
+    mockSingleElimStart.mock.resetCalls();
+    mockSingleElimAdvance.mock.resetCalls();
+    mockRoundRobinAdvance.mock.resetCalls();
+    mockSwissAdvance.mock.resetCalls();
+    mockDoubleElimAdvance.mock.resetCalls();
   });
 
   describe("createTournament", () => {
@@ -306,6 +364,7 @@ describe("tournament-controller", () => {
   describe("addParticipant", () => {
     function makePendingTournament(overrides = {}) {
       return {
+        _id: { toString: () => "t1" },
         status: "pending",
         playerCount: 8,
         participants: [],
@@ -384,6 +443,7 @@ describe("tournament-controller", () => {
 
     it("should remove participant and return 200", async () => {
       const t = {
+        _id: { toString: () => "t1" },
         status: "pending",
         participants: [{ _id: { toString: () => "p1" }, name: "Alice" }],
         save: mock.fn(async () => {}),
@@ -436,6 +496,7 @@ describe("tournament-controller", () => {
 
     it("should join tournament and return 200", async () => {
       const t = {
+        _id: { toString: () => "t1" },
         status: "pending",
         playerCount: 8,
         participants: [],
@@ -456,6 +517,7 @@ describe("tournament-controller", () => {
 
     it("should use Guest_XXXX name when no username", async () => {
       const t = {
+        _id: { toString: () => "t1" },
         status: "pending",
         playerCount: 8,
         participants: [],
@@ -571,6 +633,198 @@ describe("tournament-controller", () => {
       await deleteTournament(req, res);
 
       assert.strictEqual(res.status.mock.calls[0].arguments[0], 500);
+    });
+  });
+
+  // ── startTournament ─────────────────────────────────────────────────────────
+
+  describe("startTournament", () => {
+    function makePendingTournament(overrides = {}) {
+      return {
+        _id: "t1",
+        status: "pending",
+        tournamentType: "Single Elimination",
+        participants: [{ name: "Alice" }, { name: "Bob" }],
+        save: mock.fn(async () => {}),
+        ...overrides,
+      };
+    }
+
+    it("should return 404 if tournament not found", async () => {
+      mockTournamentFindOne.mock.mockImplementation(async () => null);
+      const req = mockReq({ params: { id: "t1" } });
+      const res = mockRes();
+      await startTournament(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 404);
+    });
+
+    it("should return 400 if tournament is already active", async () => {
+      mockTournamentFindOne.mock.mockImplementation(async () =>
+        makePendingTournament({ status: "active" }),
+      );
+      const req = mockReq({ params: { id: "t1" } });
+      const res = mockRes();
+      await startTournament(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 400);
+    });
+
+    it("should return 400 if fewer than 2 participants", async () => {
+      mockTournamentFindOne.mock.mockImplementation(async () =>
+        makePendingTournament({ participants: [{ name: "Alice" }] }),
+      );
+      const req = mockReq({ params: { id: "t1" } });
+      const res = mockRes();
+      await startTournament(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 400);
+    });
+
+    it("should start tournament and return 200 with matches", async () => {
+      const t = makePendingTournament();
+      mockTournamentFindOne.mock.mockImplementation(async () => t);
+      mockSingleElimStart.mock.mockImplementation(() => [{ round: 1 }]);
+      mockMatchInsertMany.mock.mockImplementation(async (docs) => docs);
+      const req = mockReq({ params: { id: "t1" } });
+      const res = mockRes();
+      await startTournament(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
+      assert.strictEqual(t.status, "active");
+    });
+
+    it("should emit tournament:updated and matches:updated on success", async () => {
+      const t = makePendingTournament();
+      const newMatches = [{ _id: "m1", round: 1 }];
+      mockTournamentFindOne.mock.mockImplementation(async () => t);
+      mockSingleElimStart.mock.mockImplementation(() => []);
+      mockMatchInsertMany.mock.mockImplementation(async () => newMatches);
+      const req = mockReq({ params: { id: "t1" } });
+      const res = mockRes();
+      await startTournament(req, res);
+      assert.strictEqual(mockEmitTournamentUpdated.mock.calls.length, 1);
+      assert.strictEqual(
+        mockEmitTournamentUpdated.mock.calls[0].arguments[0],
+        "t1",
+      );
+      assert.strictEqual(mockEmitMatchesUpdated.mock.calls.length, 1);
+      assert.deepStrictEqual(
+        mockEmitMatchesUpdated.mock.calls[0].arguments[1],
+        newMatches,
+      );
+    });
+
+    it("should not emit when startTournament fails validation", async () => {
+      mockTournamentFindOne.mock.mockImplementation(async () => null);
+      const req = mockReq({ params: { id: "t1" } });
+      const res = mockRes();
+      await startTournament(req, res);
+      assert.strictEqual(mockEmitTournamentUpdated.mock.calls.length, 0);
+      assert.strictEqual(mockEmitMatchesUpdated.mock.calls.length, 0);
+    });
+  });
+
+  // ── advanceRound ────────────────────────────────────────────────────────────
+
+  describe("advanceRound", () => {
+    function makeActiveTournament(overrides = {}) {
+      return {
+        _id: "t1",
+        status: "active",
+        tournamentType: "Single Elimination",
+        participants: [{ name: "Alice" }, { name: "Bob" }],
+        save: mock.fn(async () => {}),
+        ...overrides,
+      };
+    }
+
+    function makeCompletedMatches(round = 1) {
+      return [
+        {
+          round,
+          bracketSide: null,
+          status: "completed",
+          winnerId: "p1",
+        },
+      ];
+    }
+
+    it("should return 404 if tournament not found", async () => {
+      mockTournamentFindOne.mock.mockImplementation(async () => null);
+      const req = mockReq({ params: { id: "t1" } });
+      const res = mockRes();
+      await advanceRound(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 404);
+    });
+
+    it("should return 400 if no matches found", async () => {
+      const t = makeActiveTournament();
+      mockTournamentFindOne.mock.mockImplementation(async () => t);
+      mockMatchFind.mock.mockImplementation(() => ({
+        sort: mock.fn(async () => []),
+      }));
+      const req = mockReq({ params: { id: "t1" } });
+      const res = mockRes();
+      await advanceRound(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 400);
+    });
+
+    it("Single Elimination: emits tournament:updated and returns completed=true when done", async () => {
+      const t = makeActiveTournament();
+      mockTournamentFindOne.mock.mockImplementation(async () => t);
+      mockMatchFind.mock.mockImplementation(() => ({
+        sort: mock.fn(async () => makeCompletedMatches(1)),
+      }));
+      mockSingleElimAdvance.mock.mockImplementation(() => ({
+        completed: true,
+        docs: [],
+      }));
+      const req = mockReq({ params: { id: "t1" } });
+      const res = mockRes();
+      await advanceRound(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
+      const json = res.json.mock.calls[0].arguments[0];
+      assert.strictEqual(json.completed, true);
+      assert.strictEqual(mockEmitTournamentUpdated.mock.calls.length, 1);
+      assert.strictEqual(mockEmitMatchesAppended.mock.calls.length, 0);
+    });
+
+    it("Single Elimination: emits matches:appended with new round when advancing", async () => {
+      const t = makeActiveTournament();
+      const newMatches = [{ _id: "m2", round: 2 }];
+      mockTournamentFindOne.mock.mockImplementation(async () => t);
+      mockMatchFind.mock.mockImplementation(() => ({
+        sort: mock.fn(async () => makeCompletedMatches(1)),
+      }));
+      mockSingleElimAdvance.mock.mockImplementation(() => ({
+        completed: false,
+        docs: [{ round: 2 }],
+      }));
+      mockMatchInsertMany.mock.mockImplementation(async () => newMatches);
+      const req = mockReq({ params: { id: "t1" } });
+      const res = mockRes();
+      await advanceRound(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
+      assert.strictEqual(mockEmitMatchesAppended.mock.calls.length, 1);
+      assert.deepStrictEqual(
+        mockEmitMatchesAppended.mock.calls[0].arguments[1],
+        newMatches,
+      );
+      assert.strictEqual(mockEmitTournamentUpdated.mock.calls.length, 0);
+    });
+
+    it("Round Robin: emits tournament:updated when completed", async () => {
+      const t = makeActiveTournament({ tournamentType: "Round Robin" });
+      mockTournamentFindOne.mock.mockImplementation(async () => t);
+      mockMatchFind.mock.mockImplementation(() => ({
+        sort: mock.fn(async () => makeCompletedMatches(1)),
+      }));
+      mockRoundRobinAdvance.mock.mockImplementation(() => ({
+        completed: true,
+      }));
+      const req = mockReq({ params: { id: "t1" } });
+      const res = mockRes();
+      await advanceRound(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
+      assert.strictEqual(mockEmitTournamentUpdated.mock.calls.length, 1);
+      assert.strictEqual(t.status, "completed");
     });
   });
 });

@@ -10,6 +10,11 @@ import {
   swissStart,
   swissAdvance,
 } from "../../../domain/services/tournament-service.js";
+import {
+  emitTournamentUpdated,
+  emitMatchesUpdated,
+  emitMatchesAppended,
+} from "../../../infrastructure/socket/socket-service.js";
 import logger from "../../../infrastructure/utils/logger.js";
 
 function generateCode() {
@@ -221,6 +226,7 @@ export const addParticipant = async (req, res) => {
     const { name, faction } = req.body;
     tournament.participants.push({ name, faction: faction || "" });
     await tournament.save();
+    emitTournamentUpdated(tournament._id.toString(), tournament);
     return res.status(200).json({ success: true, data: tournament });
   } catch (error) {
     logger.error(`Add participant error: ${error.message}`, { error });
@@ -260,6 +266,7 @@ export const removeParticipant = async (req, res) => {
     }
     tournament.participants.splice(participantIndex, 1);
     await tournament.save();
+    emitTournamentUpdated(tournament._id.toString(), tournament);
     return res.status(200).json({ success: true, data: tournament });
   } catch (error) {
     logger.error(`Remove participant error: ${error.message}`, { error });
@@ -293,6 +300,7 @@ export const updateParticipant = async (req, res) => {
     if (name !== undefined) participant.name = name;
     if (faction !== undefined) participant.faction = faction;
     await tournament.save();
+    emitTournamentUpdated(tournament._id.toString(), tournament);
     return res.status(200).json({ success: true, data: tournament });
   } catch (error) {
     logger.error(`Update participant error: ${error.message}`, { error });
@@ -338,6 +346,7 @@ export const joinTournament = async (req, res) => {
     }
     tournament.participants.push({ name: playerName, faction: faction || "" });
     await tournament.save();
+    emitTournamentUpdated(tournament._id.toString(), tournament);
     return res.status(200).json({ success: true, data: tournament });
   } catch (error) {
     logger.error(`Join tournament error: ${error.message}`, { error });
@@ -397,6 +406,8 @@ export const startTournament = async (req, res) => {
     }
 
     const matches = await Match.insertMany(matchDocs);
+    emitTournamentUpdated(tId.toString(), tournament);
+    emitMatchesUpdated(tId.toString(), matches);
     return res.status(200).json({ success: true, data: tournament, matches });
   } catch (error) {
     logger.error(`Start tournament error: ${error.message}`, { error });
@@ -447,6 +458,7 @@ export const advanceRound = async (req, res) => {
       }
       tournament.status = "completed";
       await tournament.save();
+      emitTournamentUpdated(tournament._id.toString(), tournament);
       return res
         .status(200)
         .json({ success: true, data: tournament, completed: true });
@@ -473,6 +485,7 @@ export const advanceRound = async (req, res) => {
       if (maxRound >= maxSwissRounds) {
         tournament.status = "completed";
         await tournament.save();
+        emitTournamentUpdated(tournament._id.toString(), tournament);
         return res
           .status(200)
           .json({ success: true, data: tournament, completed: true });
@@ -485,6 +498,7 @@ export const advanceRound = async (req, res) => {
         nextRound,
       );
       const newMatches = await Match.insertMany(result.docs);
+      emitMatchesAppended(tournament._id.toString(), newMatches);
       return res
         .status(200)
         .json({ success: true, round: nextRound, matches: newMatches });
@@ -523,6 +537,7 @@ export const advanceRound = async (req, res) => {
       if (result.completed) {
         tournament.status = "completed";
         await tournament.save();
+        emitTournamentUpdated(tournament._id.toString(), tournament);
         return res
           .status(200)
           .json({ success: true, data: tournament, completed: true });
@@ -533,6 +548,7 @@ export const advanceRound = async (req, res) => {
           .json({ success: false, message: result.message });
       }
       const newMatches = await Match.insertMany(result.docs);
+      emitMatchesAppended(tournament._id.toString(), newMatches);
       return res.status(200).json({ success: true, matches: newMatches });
     }
 
@@ -559,11 +575,13 @@ export const advanceRound = async (req, res) => {
     if (result.completed) {
       tournament.status = "completed";
       await tournament.save();
+      emitTournamentUpdated(tournament._id.toString(), tournament);
       return res
         .status(200)
         .json({ success: true, data: tournament, completed: true });
     }
     const newMatches = await Match.insertMany(result.docs);
+    emitMatchesAppended(tournament._id.toString(), newMatches);
     return res
       .status(200)
       .json({ success: true, round: maxRound + 1, matches: newMatches });

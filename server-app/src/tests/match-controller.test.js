@@ -29,6 +29,16 @@ mock.module("../infrastructure/utils/logger.js", {
   },
 });
 
+// ── Socket service mocks ──────────────────────────────────────────────────────
+mock.module("../infrastructure/socket/socket-service.js", {
+  namedExports: {
+    emitMatchUpdated: mock.fn(),
+    emitTournamentUpdated: mock.fn(),
+    emitMatchesUpdated: mock.fn(),
+    emitMatchesAppended: mock.fn(),
+  },
+});
+
 const {
   getMatchesByTournament,
   getMatchById,
@@ -149,6 +159,9 @@ describe("match-controller", () => {
         player1: { participantId: p1Id, name: "Alice", faction: "" },
         player2: { participantId: p2Id, name: "Bob", faction: "" },
         tournament: {
+          _id: {
+            toString: () => "tttttttttttttttttttttttt",
+          },
           status: "active",
           createdBy: "cccccccccccccccccccccccc",
         },
@@ -350,7 +363,13 @@ describe("match-controller", () => {
         ],
         player1: { participantId: p1Id, name: "Alice", faction: "" },
         player2: { participantId: p2Id, name: "Bob", faction: "" },
-        tournament: { status: "active", createdBy: creatorId },
+        tournament: {
+          _id: {
+            toString: () => "tttttttttttttttttttttttt",
+          },
+          status: "active",
+          createdBy: creatorId,
+        },
         winnerId: null,
         save: mock.fn(async () => {}),
       };
@@ -429,7 +448,13 @@ describe("match-controller", () => {
         resultOverrides: [],
         player1: { participantId: p1Id, name: "Alice", faction: "" },
         player2: { participantId: p2Id, name: "Bob", faction: "" },
-        tournament: { status: "active", createdBy: creatorId },
+        tournament: {
+          _id: {
+            toString: () => "tttttttttttttttttttttttt",
+          },
+          status: "active",
+          createdBy: creatorId,
+        },
         winnerId: p1Id,
         completedAt: new Date(),
         save: mock.fn(async () => {}),
