@@ -126,7 +126,12 @@ export const getUserTournaments = async (req, res) => {
 
     const page = Math.max(1, parseInt(req.query.page) || 1);
     const limit = Math.min(50, Math.max(1, parseInt(req.query.limit) || 9));
-    const status = req.query.status;
+    const allowedStatuses = new Set(["all", "pending", "active", "completed"]);
+    const rawStatus = req.query.status;
+    const status =
+      typeof rawStatus === "string" && allowedStatuses.has(rawStatus)
+        ? rawStatus
+        : "all";
     const skip = (page - 1) * limit;
 
     const possibleNames = [userId];
