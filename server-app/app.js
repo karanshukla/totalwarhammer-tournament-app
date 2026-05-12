@@ -116,7 +116,7 @@ app.use(express.static("public"));
 const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 300,
-  standardHeaders: true,
+  standardHeaders: "draft-7",
   legacyHeaders: false,
   message: {
     success: false,
@@ -129,7 +129,7 @@ app.use(globalLimiter);
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 20,
-  standardHeaders: true,
+  standardHeaders: "draft-7",
   legacyHeaders: false,
   message: {
     success: false,
@@ -145,7 +145,7 @@ app.use("/auth/token", authLimiter);
 const passwordResetLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
   max: 5,
-  standardHeaders: true,
+  standardHeaders: "draft-7",
   legacyHeaders: false,
   message: {
     success: false,
