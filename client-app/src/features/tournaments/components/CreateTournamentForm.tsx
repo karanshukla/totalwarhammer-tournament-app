@@ -13,6 +13,7 @@ import {
   Box,
   HStack,
   Badge,
+  CheckboxCard,
 } from "@chakra-ui/react";
 import {
   LuTriangleAlert,
@@ -225,24 +226,28 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
                   >
                     <SimpleGrid columns={2} gap={2}>
                       {activeFactionList.map((faction, factionIndex) => (
-                        <Flex
+                        <CheckboxCard.Root
                           key={faction}
-                          align="center"
-                          gap={2}
-                          p={2}
-                          borderRadius="md"
-                          borderWidth="1px"
-                          borderColor="border"
+                          checked={formData.bannedFactions.includes(faction)}
+                          onCheckedChange={({ checked }) => {
+                            setFormData((prev) => ({
+                              ...prev,
+                              bannedFactions: checked
+                                ? [...prev.bannedFactions, faction]
+                                : prev.bannedFactions.filter(
+                                    (f) => f !== faction,
+                                  ),
+                            }));
+                            lastClickedFactionIndexRef.current = factionIndex;
+                          }}
                           cursor="pointer"
-                          minW={0}
                           userSelect="none"
-                          _hover={{ bg: "bg.muted" }}
-                          transition="background 0.2s"
                           onClick={(e) => {
                             if (
                               e.shiftKey &&
                               lastClickedFactionIndexRef.current !== null
                             ) {
+                              e.preventDefault();
                               const start = Math.min(
                                 lastClickedFactionIndexRef.current,
                                 factionIndex,
@@ -274,53 +279,27 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
                                   };
                                 }
                               });
-                            } else {
-                              const isChecked =
-                                !formData.bannedFactions.includes(faction);
-                              setFormData((prev) => ({
-                                ...prev,
-                                bannedFactions: isChecked
-                                  ? [...prev.bannedFactions, faction]
-                                  : prev.bannedFactions.filter(
-                                      (f) => f !== faction,
-                                    ),
-                              }));
-                              lastClickedFactionIndexRef.current = factionIndex;
                             }
+                            // non-shift clicks: onCheckedChange handles state + anchor
                           }}
                         >
-                          <input
-                            type="checkbox"
-                            value={faction}
-                            checked={formData.bannedFactions.includes(faction)}
-                            onChange={(e) => {
-                              const isChecked = e.target.checked;
-                              setFormData((prev) => ({
-                                ...prev,
-                                bannedFactions: isChecked
-                                  ? [...prev.bannedFactions, faction]
-                                  : prev.bannedFactions.filter(
-                                      (f) => f !== faction,
-                                    ),
-                              }));
-                            }}
-                            width={16}
-                            height={16}
-                          />
-                          <Text
-                            fontSize="sm"
-                            userSelect="none"
-                            minW={0}
-                            wordBreak="break-word"
-                          >
-                            {faction}
-                          </Text>
-                        </Flex>
+                          <CheckboxCard.HiddenInput />
+                          <CheckboxCard.Control>
+                            <CheckboxCard.Indicator />
+                            <CheckboxCard.Label
+                              fontSize="sm"
+                              minW={0}
+                              wordBreak="break-word"
+                            >
+                              {faction}
+                            </CheckboxCard.Label>
+                          </CheckboxCard.Control>
+                        </CheckboxCard.Root>
                       ))}
                     </SimpleGrid>
                   </Box>
                   <Text color="fg.muted" fontSize="sm">
-                    Select factions that will be banned in this tournament.
+                    You can bulk select factions with the Shift key!
                   </Text>
                 </VStack>
 
