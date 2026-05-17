@@ -314,16 +314,19 @@ const MatchCard: React.FC<MatchCardProps> = ({
               </Button>
             </VStack>
           )}
-        {isAdmin && isActive && m.status === "completed" && (
-          <Button
-            size="xs"
-            colorPalette="orange"
-            variant="outline"
-            onClick={onStartOverride}
-          >
-            <LuShieldAlert /> Override
-          </Button>
-        )}
+        {isAdmin &&
+          isActive &&
+          (m.status === "completed" || m.status === "in_progress") &&
+          m.player2.name !== "BYE" && (
+            <Button
+              size="xs"
+              colorPalette="orange"
+              variant="outline"
+              onClick={onStartOverride}
+            >
+              <LuShieldAlert /> Override
+            </Button>
+          )}
       </HStack>
 
       {/* Participant report buttons */}
