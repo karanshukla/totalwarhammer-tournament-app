@@ -83,6 +83,13 @@ describe("warhammer40kFactions", () => {
     expect(warhammer40kFactions).toContain("World Eaters");
   });
 
+  it("should include Unification mod factions", () => {
+    expect(warhammer40kFactions).toContain("Harlequins");
+    expect(warhammer40kFactions).toContain("Ynnari");
+    expect(warhammer40kFactions).toContain("Farsight Enclaves");
+    expect(warhammer40kFactions).toContain("Adeptus Custodes");
+  });
+
   it("should not use deprecated names (Eldar, Dark Eldar, Sisters of Battle, etc.)", () => {
     expect(warhammer40kFactions).not.toContain("Eldar");
     expect(warhammer40kFactions).not.toContain("Dark Eldar");

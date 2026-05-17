@@ -25,8 +25,9 @@ mock.module("../infrastructure/utils/logger.js", {
   },
 });
 
-const { createGuestUser, updateGuestUsername } =
-  await import("../interfaces/http/controllers/guest-controller.js");
+const { createGuestUser, updateGuestUsername } = await import(
+  "../interfaces/http/controllers/guest-controller.js"
+);
 
 function mockRes() {
   const res = {};
