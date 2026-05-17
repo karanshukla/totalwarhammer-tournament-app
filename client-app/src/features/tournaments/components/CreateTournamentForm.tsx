@@ -365,7 +365,28 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
                             </HStack>
                           </Box>
                         ))}
+
                         <Box mt="auto">
+                          {formData.enable40kFactions && (
+                            <Box
+                              p={3}
+                              borderRadius="md"
+                              bg="purple.subtle"
+                              borderWidth={1}
+                              borderColor="purple.muted"
+                              mb={2}
+                            >
+                              <HStack gap={2} alignItems="flex-start">
+                                <Box color="purple.fg" flexShrink={0} mt="1px">
+                                  <LuFlaskConical size={14} />
+                                </Box>
+                                <Text fontSize="sm" color="purple.fg">
+                                  40K factions are in beta and will not appear
+                                  in global statistics or player stat pages.
+                                </Text>
+                              </HStack>
+                            </Box>
+                          )}
                           <HStack
                             gap={2}
                             mb={2}
@@ -460,26 +481,6 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
                               </Box>
                             </HStack>
                           </HStack>
-                          {formData.enable40kFactions && (
-                            <Box
-                              p={3}
-                              borderRadius="md"
-                              bg="purple.subtle"
-                              borderWidth={1}
-                              borderColor="purple.muted"
-                              mb={2}
-                            >
-                              <HStack gap={2} alignItems="flex-start">
-                                <Box color="purple.fg" flexShrink={0} mt="1px">
-                                  <LuFlaskConical size={14} />
-                                </Box>
-                                <Text fontSize="sm" color="purple.fg">
-                                  40K factions are in beta and will not appear
-                                  in global statistics or player stat pages.
-                                </Text>
-                              </HStack>
-                            </Box>
-                          )}
                           {isGuest && (
                             <Box
                               p={3}

@@ -7,6 +7,7 @@ import logger from "../../../infrastructure/utils/logger.js";
 
 const authStateService = new AuthStateService();
 
+/** @type {import('express').RequestHandler} */
 export const createGuestUser = async (req, res) => {
   try {
     const guestId = crypto.randomUUID();
@@ -44,6 +45,7 @@ export const createGuestUser = async (req, res) => {
   }
 };
 
+/** @type {import('express').RequestHandler} */
 export const updateGuestUsername = async (req, res) => {
   try {
     const { username } = req.body;

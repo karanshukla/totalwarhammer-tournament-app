@@ -4,10 +4,11 @@ import logger from "../../../infrastructure/utils/logger.js";
 const authStateService = new AuthStateService();
 
 /**
- * Middleware to verify user authentication from session
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- * @param {Function} next - Express next middleware function
+ * Requires an authenticated (non-guest) session. Returns 401 when the session
+ * is missing, the isAuthenticated flag is not set, or the UA fingerprint
+ * doesn't match the one recorded at login.
+ *
+ * @type {import('express').RequestHandler}
  */
 const authenticateSession = (req, res, next) => {
   try {
@@ -37,9 +38,10 @@ const authenticateSession = (req, res, next) => {
 };
 
 /**
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- * @param {Function} next - Express next middleware function
+ * Requires a guest session. Attempts to recover a partial session when the
+ * user object is missing but a session ID is present.
+ *
+ * @type {import('express').RequestHandler}
  */
 const authenticateGuestSession = (req, res, next) => {
   try {
@@ -61,31 +63,25 @@ const authenticateGuestSession = (req, res, next) => {
       });
     }
 
-    // Primary approach: Set the user object from session if available
     if (req.session.user) {
       req.user = req.session.user;
 
-      // Ensure isGuest flag is set
       if (!req.user.isGuest && req.session.isGuest) {
         req.user.isGuest = true;
         logger.debug("Fixed missing isGuest flag on user object");
       }
-    }
-    // Fallback: Attempt to recover session if it might exist but user data is missing
-    else if (req.session.id) {
+    } else if (req.session.id) {
       logger.warn(
         "Attempting session recovery: Session exists but user data is missing",
       );
 
-      // Create minimal user object based on session data
       req.user = {
-        id: req.session.id, // Use session ID as fallback user ID
+        id: req.session.id,
         isGuest: true,
         role: "guest",
-        username: `Guest_${req.session.id.substring(0, 6)}`, // Generate a basic username
+        username: `Guest_${req.session.id.substring(0, 6)}`,
       };
 
-      // Store the recovered user back in the session
       req.session.user = req.user;
       req.session.isGuest = true;
       req.session.isAuthenticated = true;
@@ -95,13 +91,10 @@ const authenticateGuestSession = (req, res, next) => {
         recoveredUser: req.user,
       });
 
-      // Save the session explicitly
       if (req.session.save) {
         req.session.save((err) => {
           if (err) {
             logger.error("Failed to save recovered session:", err);
-          } else {
-            logger.debug("Recovered session saved successfully");
           }
         });
       }
@@ -124,8 +117,11 @@ const authenticateGuestSession = (req, res, next) => {
 };
 
 /**
- * Middleware to check if user has required role
- * @param {Array|String} roles - Required roles for access
+ * Factory that returns middleware requiring the authenticated user to have one
+ * of the specified roles.
+ *
+ * @param {string | string[]} roles
+ * @returns {import('express').RequestHandler}
  */
 const checkRole = (roles) => {
   return (req, res, next) => {
@@ -137,7 +133,6 @@ const checkRole = (roles) => {
     }
 
     const userRole = req.user.role || "user";
-
     const requiredRoles = Array.isArray(roles) ? roles : [roles];
 
     if (requiredRoles.includes(userRole)) {

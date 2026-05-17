@@ -19,10 +19,19 @@ class JwtService {
     }
   }
 
+  /**
+   * @param {string} token
+   * @returns {import('jsonwebtoken').JwtPayload | string | null}
+   */
   decodeToken(token) {
     return decode(token);
   }
 
+  /**
+   * @param {object} payload
+   * @param {'standard' | 'rememberMe' | 'guest'} [tokenType]
+   * @returns {string}
+   */
   generateToken(payload, tokenType = "standard") {
     const expiresIn = this.tokenExpiration[tokenType] || this.defaultExpiresIn;
     if (!expiresIn) {
@@ -38,15 +47,27 @@ class JwtService {
     return sign(enhancedPayload, this.secretKey, { expiresIn });
   }
 
+  /**
+   * @param {string} token
+   * @returns {import('jsonwebtoken').JwtPayload | string}
+   */
   verifyToken(token) {
     return verify(token, this.secretKey);
   }
 
+  /**
+   * @param {string} token
+   * @returns {boolean}
+   */
   isTokenExpired(token) {
     const decoded = this.decodeToken(token);
     return decoded.exp < Math.floor(Date.now() / 1000);
   }
 
+  /**
+   * @param {string} token
+   * @returns {string}
+   */
   getTokenType(token) {
     const decoded = this.decodeToken(token);
     return decoded.tokenType || "standard";

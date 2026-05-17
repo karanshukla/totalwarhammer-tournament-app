@@ -13,6 +13,7 @@ import "./src/infrastructure/config/env-loader.js";
 
 // Import logger for centralized logging
 import { port, clientUrl } from "./src/infrastructure/config/env.js";
+import { passport } from "./src/infrastructure/config/passport-config.js";
 import { connectToDatabase } from "./src/infrastructure/db/connection.js";
 import { configureSessionMiddleware } from "./src/infrastructure/services/session-store-service.js";
 import { initSocketIO } from "./src/infrastructure/socket/socket-service.js";
@@ -103,6 +104,10 @@ logger.info(
 
 // Configure and use session middleware
 app.use(configureSessionMiddleware(SESSION_SECRET, isProduction));
+
+// Passport session support — must come after express-session
+app.use(passport.initialize());
+app.use(passport.session());
 
 // Add CSRF prerequisite check to debug session issues
 app.use(csrfPrerequisiteCheck);

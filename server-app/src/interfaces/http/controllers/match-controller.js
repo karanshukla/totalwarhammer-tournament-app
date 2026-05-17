@@ -10,6 +10,7 @@ const isValidObjectId = (id) => /^[a-f\d]{24}$/i.test(id);
 const toObjectId = (id) => new mongoose.Types.ObjectId(id);
 
 // GET /match/tournament/:tournamentId
+/** @type {import('express').RequestHandler} */
 export const getMatchesByTournament = async (req, res) => {
   try {
     if (!isValidObjectId(req.params.tournamentId)) {
@@ -32,6 +33,7 @@ export const getMatchesByTournament = async (req, res) => {
 };
 
 // GET /match/:id
+/** @type {import('express').RequestHandler} */
 export const getMatchById = async (req, res) => {
   try {
     const match = await Match.findById(req.params.id);
@@ -52,6 +54,7 @@ export const getMatchById = async (req, res) => {
 };
 
 // POST /match  (admin creates a match manually)
+/** @type {import('express').RequestHandler} */
 export const createMatch = async (req, res) => {
   try {
     const { tournamentId, round, matchNumber, player1, player2 } = req.body;
@@ -99,6 +102,7 @@ export const createMatch = async (req, res) => {
 };
 
 // PATCH /match/:id/report  (participant self-reports their match result)
+/** @type {import('express').RequestHandler} */
 export const reportResult = async (req, res) => {
   try {
     const match = await Match.findById(req.params.id).populate(
@@ -231,6 +235,7 @@ export const reportResult = async (req, res) => {
 };
 
 // PATCH /match/:id/resolve  (creator resolves a disputed match)
+/** @type {import('express').RequestHandler} */
 export const resolveDispute = async (req, res) => {
   try {
     const match = await Match.findById(req.params.id).populate(
@@ -302,6 +307,7 @@ export const resolveDispute = async (req, res) => {
 };
 
 // PATCH /match/:id/result  (record match result — tournament admin only)
+/** @type {import('express').RequestHandler} */
 export const recordResult = async (req, res) => {
   try {
     const match = await Match.findById(req.params.id).populate(
@@ -377,6 +383,7 @@ export const recordResult = async (req, res) => {
 };
 
 // PATCH /match/:id/override  (tournament admin only)
+/** @type {import('express').RequestHandler} */
 export const overrideResult = async (req, res) => {
   try {
     const match = await Match.findById(req.params.id).populate(
@@ -444,6 +451,7 @@ export const overrideResult = async (req, res) => {
 };
 
 // PATCH /match/:id/status  (admin sets match to in_progress)
+/** @type {import('express').RequestHandler} */
 export const updateMatchStatus = async (req, res) => {
   try {
     const match = await Match.findById(req.params.id).populate(

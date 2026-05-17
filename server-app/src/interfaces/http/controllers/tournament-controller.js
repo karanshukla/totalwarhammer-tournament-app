@@ -40,6 +40,7 @@ async function ensureCode(tournament) {
   return tournament;
 }
 
+/** @type {import('express').RequestHandler} */
 export const createTournament = async (req, res) => {
   try {
     // Only registered users can create tournaments
@@ -96,6 +97,7 @@ export const createTournament = async (req, res) => {
   }
 };
 
+/** @type {import('express').RequestHandler} */
 export const getTournaments = async (req, res) => {
   try {
     const { status } = req.query;
@@ -126,6 +128,7 @@ export const getTournaments = async (req, res) => {
   }
 };
 
+/** @type {import('express').RequestHandler} */
 export const getUserTournaments = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -195,6 +198,7 @@ export const getUserTournaments = async (req, res) => {
   }
 };
 
+/** @type {import('express').RequestHandler} */
 export const getTournamentById = async (req, res) => {
   try {
     const found = await Tournament.findById(req.params.id);
@@ -215,6 +219,7 @@ export const getTournamentById = async (req, res) => {
   }
 };
 
+/** @type {import('express').RequestHandler} */
 export const getTournamentByCode = async (req, res) => {
   try {
     const tournament = await Tournament.findOne({
@@ -237,6 +242,7 @@ export const getTournamentByCode = async (req, res) => {
   }
 };
 
+/** @type {import('express').RequestHandler} */
 export const addParticipant = async (req, res) => {
   try {
     const tournament = await Tournament.findOne({
@@ -276,6 +282,7 @@ export const addParticipant = async (req, res) => {
   }
 };
 
+/** @type {import('express').RequestHandler} */
 export const removeParticipant = async (req, res) => {
   try {
     const tournament = await Tournament.findOne({
@@ -316,6 +323,7 @@ export const removeParticipant = async (req, res) => {
   }
 };
 
+/** @type {import('express').RequestHandler} */
 export const updateParticipant = async (req, res) => {
   try {
     const tournament = await Tournament.findOne({
@@ -350,6 +358,7 @@ export const updateParticipant = async (req, res) => {
   }
 };
 
+/** @type {import('express').RequestHandler} */
 export const joinTournament = async (req, res) => {
   try {
     const tournament = await Tournament.findById(req.params.id);
@@ -396,6 +405,7 @@ export const joinTournament = async (req, res) => {
   }
 };
 
+/** @type {import('express').RequestHandler} */
 export const startTournament = async (req, res) => {
   try {
     const tournament = await Tournament.findOne({
@@ -462,6 +472,7 @@ export const startTournament = async (req, res) => {
   }
 };
 
+/** @type {import('express').RequestHandler} */
 export const advanceRound = async (req, res) => {
   try {
     const tournament = await Tournament.findOne({
@@ -642,6 +653,7 @@ export const advanceRound = async (req, res) => {
   }
 };
 
+/** @type {import('express').RequestHandler} */
 export const updateDescription = async (req, res) => {
   try {
     const { id } = req.params;
@@ -690,6 +702,7 @@ export const updateDescription = async (req, res) => {
   }
 };
 
+/** @type {import('express').RequestHandler} */
 export const deleteTournament = async (req, res) => {
   try {
     const { id } = req.params;

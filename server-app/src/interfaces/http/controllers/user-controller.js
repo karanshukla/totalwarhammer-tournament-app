@@ -5,6 +5,7 @@ import Tournament from "../../../domain/models/tournament.js";
 import User from "../../../domain/models/user.js";
 import logger from "../../../infrastructure/utils/logger.js";
 
+/** @type {import('express').RequestHandler} */
 export const userExists = async (req, res) => {
   try {
     const { identifier } = req.query;
@@ -45,6 +46,7 @@ export const userExists = async (req, res) => {
   }
 };
 
+/** @type {import('express').RequestHandler} */
 export const register = async (req, res) => {
   try {
     const { username, email, password } = req.body;
@@ -95,6 +97,7 @@ export const register = async (req, res) => {
   }
 };
 
+/** @type {import('express').RequestHandler} */
 export const updateGuestUsername = async (req, res) => {
   try {
     const { username } = req.body;
@@ -153,6 +156,7 @@ export const updateGuestUsername = async (req, res) => {
   }
 };
 
+/** @type {import('express').RequestHandler} */
 export const updateUsername = async (req, res) => {
   try {
     const { username } = req.body;
@@ -220,6 +224,7 @@ export const updateUsername = async (req, res) => {
   }
 };
 
+/** @type {import('express').RequestHandler} */
 export const deleteAccount = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -262,6 +267,7 @@ export const deleteAccount = async (req, res) => {
   }
 };
 
+/** @type {import('express').RequestHandler} */
 export const getUserStats = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -324,6 +330,7 @@ export const getUserStats = async (req, res) => {
   }
 };
 
+/** @type {import('express').RequestHandler} */
 export const updatePassword = async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;

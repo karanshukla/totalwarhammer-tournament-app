@@ -26,11 +26,7 @@ setInterval(
   15 * 60 * 1000,
 ).unref();
 
-/**
- * Authenticates a user and creates a session or authorization code
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- */
+/** @type {import('express').RequestHandler} */
 export const login = async (req, res) => {
   try {
     const {
@@ -123,7 +119,7 @@ export const login = async (req, res) => {
 
     try {
       // Create user session
-      authStateService.createUserAuthState(req, {
+      await authStateService.createUserAuthState(req, {
         ...user.toObject(),
         rememberMe,
       });
@@ -159,11 +155,7 @@ export const login = async (req, res) => {
   }
 };
 
-/**
- * Exchange an authorization code for a session using PKCE
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- */
+/** @type {import('express').RequestHandler} */
 export const token = async (req, res) => {
   try {
     const { grant_type, code, code_verifier } = req.body;
@@ -236,7 +228,7 @@ export const token = async (req, res) => {
 
     try {
       // Create user session with the rememberMe preference from the code data
-      authStateService.createUserAuthState(req, {
+      await authStateService.createUserAuthState(req, {
         ...user.toObject(),
         rememberMe: codeData.rememberMe || false,
       });
@@ -275,11 +267,7 @@ export const token = async (req, res) => {
   }
 };
 
-/**
- * Log out a user by destroying their session
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- */
+/** @type {import('express').RequestHandler} */
 export const logout = async (req, res) => {
   // If no session exists, simply return success
   if (!req.session) {
@@ -320,6 +308,9 @@ function generateAuthCode() {
 }
 
 // Helper function to generate code challenge from code verifier (S256 method)
+/**
+ * @param {crypto.BinaryLike} codeVerifier
+ */
 function generateCodeChallenge(codeVerifier) {
   const hash = crypto
     .createHash("sha256")

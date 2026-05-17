@@ -1,6 +1,12 @@
+/** @import { Request, Response, NextFunction } from 'express' */
+
 import { validationResult } from "express-validator";
 
-// Middleware to check for validation errors and return appropriate response
+/**
+ * @param {Request} req
+ * @param {Response} res
+ * @param {NextFunction} next
+ */
 export const validationHandler = (req, res, next) => {
   const errors = validationResult(req);
 

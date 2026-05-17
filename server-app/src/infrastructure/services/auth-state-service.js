@@ -1,7 +1,35 @@
-/**
- * Service for managing user authentication state
- */
+import { promisify } from "util";
+
+import { UAParser } from "ua-parser-js";
+
 import logger from "../utils/logger.js";
+
+/**
+ * Parses a User-Agent string into a normalised fingerprint that only captures
+ * browser family and OS family. Minor version bumps (e.g. Chrome 124 → 125)
+ * are deliberately ignored so they don't invalidate a live session.
+ *
+ * @param {string | undefined} uaString
+ * @returns {{ browser: string, os: string } | null}
+ */
+function parseUAFingerprint(uaString) {
+  if (!uaString) return null;
+  const { browser, os } = new UAParser(uaString).getResult();
+  return {
+    browser: browser.name ?? "Unknown",
+    os: os.name ?? "Unknown",
+  };
+}
+
+/**
+ * @param {{ browser: string, os: string } | null | undefined} stored
+ * @param {{ browser: string, os: string } | null | undefined} current
+ * @returns {boolean}
+ */
+function fingerprintMatches(stored, current) {
+  if (!stored || !current) return true;
+  return stored.browser === current.browser && stored.os === current.os;
+}
 
 class AuthStateService {
   constructor() {
@@ -11,16 +39,23 @@ class AuthStateService {
   }
 
   /**
-   * Creates a new user authentication state in the server
-   * @param {Object} req - Express request object
-   * @param {Object} userData - User data to store in auth state
+   * Creates a new authenticated session for a regular user.
+   *
+   * Writes all session metadata (user object, fingerprint, maxAge) and, when
+   * passport is available on the request, also calls `req.login()` so that
+   * `req.isAuthenticated()` works on all subsequent requests via
+   * `passport.session()` + `deserializeUser`.
+   *
+   * @param {import('express').Request} req
+   * @param {object} userData
+   * @returns {Promise<void>}
    */
-  createUserAuthState(req, userData) {
+  async createUserAuthState(req, userData) {
     if (!userData || !req) {
       throw new Error("Invalid request or user data");
     }
 
-    const authStateUser = {
+    const sessionUser = {
       id: userData._id || userData.id,
       email: userData.email,
       username: userData.username,
@@ -28,40 +63,43 @@ class AuthStateService {
       isGuest: userData.isGuest || false,
     };
 
-    req.session.user = authStateUser;
+    const maxAge = userData.rememberMe
+      ? this.REMEMBER_ME_TIMEOUT
+      : this.DEFAULT_AUTH_STATE_TIMEOUT;
+
+    // Passport v0.6+ regenerates the session on req.login() to prevent session
+    // fixation. All custom session properties must be set AFTER login() so they
+    // land on the new session rather than the one that gets discarded.
+    if (typeof req.login === "function") {
+      const login = promisify(req.login.bind(req));
+      await login(sessionUser);
+    }
+
+    req.session.user = sessionUser;
     req.session.isAuthenticated = true;
     req.session.createdAt = new Date();
-
-    req.session.fingerprint = {
-      ip: req.ip,
-      userAgent: req.get("user-agent"),
-    };
-
-    // Initialize session.cookie if it doesn't exist
-    if (!req.session.cookie) {
-      req.session.cookie = {};
-    }
-
-    req.session.cookie.maxAge = this.DEFAULT_AUTH_STATE_TIMEOUT;
-
-    if (userData.rememberMe) {
-      req.session.cookie.maxAge = this.REMEMBER_ME_TIMEOUT;
-    }
+    req.session.fingerprint = parseUAFingerprint(req.get("user-agent"));
+    req.session.cookie.maxAge = maxAge;
   }
 
   /**
-   * Get current user from authentication state
-   * @param {Object} req - Express request object
-   * @returns {Object|null} - User data or null if not authenticated
+   * Returns the authenticated user for this request.
+   * Prefers passport's `req.user` (freshly loaded from DB on each request)
+   * then falls back to the snapshot stored in the session at login time.
+   *
+   * @param {import('express').Request} req
+   * @returns {object | null}
    */
   getCurrentUser(req) {
-    return req.session && req.session.user ? req.session.user : null;
+    return req.user || (req.session?.user ?? null);
   }
 
   /**
-   * Check if user is authenticated
-   * @param {Object} req - Express request object
-   * @returns {boolean} - True if authenticated
+   * Returns true when the request belongs to a valid, un-tampered session.
+   * Checks the session flag and the UA fingerprint (browser family + OS).
+   *
+   * @param {import('express').Request} req
+   * @returns {boolean}
    */
   isAuthenticated(req) {
     if (!req.session || !req.session.isAuthenticated) {
@@ -74,6 +112,9 @@ class AuthStateService {
     const isGuest =
       req.session.isGuest === true || req.session.user?.isGuest === true;
 
+    const stored = req.session.fingerprint;
+    const current = parseUAFingerprint(req.get("user-agent"));
+
     if (isGuest) {
       logger.debug(
         "Guest authentication detected, using relaxed authentication rules",
@@ -84,52 +125,51 @@ class AuthStateService {
         );
         return false;
       }
-
-      if (req.session.fingerprint && req.session.fingerprint.userAgent) {
-        const currentUserAgent = req.get("user-agent");
-        if (req.session.fingerprint.userAgent !== currentUserAgent) {
-          logger.warn("Guest authentication rejected: user agent mismatch");
-          return false;
-        }
+      if (!fingerprintMatches(stored, current)) {
+        logger.warn("Guest authentication rejected: UA fingerprint mismatch", {
+          stored,
+          current,
+        });
+        return false;
       }
-
       return true;
     }
 
-    if (req.session.fingerprint && req.session.fingerprint.userAgent) {
-      const currentUserAgent = req.get("user-agent");
-
-      if (req.session.fingerprint.userAgent !== currentUserAgent) {
-        logger.warn("Authentication rejected: user agent mismatch");
-        return false;
-      }
+    if (!fingerprintMatches(stored, current)) {
+      logger.warn("Authentication rejected: UA fingerprint mismatch", {
+        stored,
+        current,
+      });
+      return false;
     }
 
     return true;
   }
 
   /**
-   * Clear user authentication state
-   * @param {Object} req - Express request object
-   * @param {Function} callback - Callback function
+   * Destroys the session. Uses passport's `req.logout()` when available;
+   * falls back to `session.destroy()` for backward compatibility.
+   *
+   * @param {import('express').Request} req
+   * @param {(err?: Error) => void} [callback]
    */
   clearAuthState(req, callback) {
-    if (req.session) {
-      // Only pass the callback if it exists
-      if (callback) {
-        req.session.destroy(callback);
-      } else {
-        req.session.destroy();
-      }
+    if (typeof req.logout === "function") {
+      req.logout(callback || (() => {}));
+    } else if (req.session) {
+      req.session.destroy(callback || (() => {}));
     } else if (callback) {
       callback();
     }
   }
 
   /**
-   * Create guest authentication state
-   * @param {Object} req - Express request object
-   * @param {string} guestId - ID for the guest user
+   * Creates a guest session. Guests are not managed by passport — they live
+   * purely in the session and are identified by their UA fingerprint.
+   *
+   * @param {import('express').Request} req
+   * @param {string} guestId
+   * @param {string} [guestUsername]
    */
   createGuestAuthState(req, guestId, guestUsername) {
     if (!guestId || !req) {
@@ -147,27 +187,22 @@ class AuthStateService {
     req.session.isAuthenticated = true;
     req.session.isGuest = true;
     req.session.createdAt = new Date();
-
-    req.session.fingerprint = {
-      ip: req.ip,
-      userAgent: req.get("user-agent"),
-    };
-
-    // Initialize session.cookie if it doesn't exist
-    if (!req.session.cookie) {
-      req.session.cookie = {};
-    }
+    req.session.fingerprint = parseUAFingerprint(req.get("user-agent"));
 
     req.session.cookie.maxAge = this.GUEST_AUTH_STATE_TIMEOUT;
 
     if (req.session.save) {
       req.session.save((err) => {
         if (err) {
-          console.error("Error saving guest authentication state:", err);
+          logger.error(
+            `Error saving guest authentication state: ${err.message}`,
+            { error: err },
+          );
         }
       });
     }
   }
 }
 
+export { parseUAFingerprint };
 export default AuthStateService;

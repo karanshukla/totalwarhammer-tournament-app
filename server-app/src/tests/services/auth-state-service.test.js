@@ -5,10 +5,16 @@ import AuthStateService from "../../infrastructure/services/auth-state-service.j
 
 mock.timers.enable(["Date"]);
 
+// Real UA strings so ua-parser-js can identify browser/OS
+const CHROME_UA =
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
+const FIREFOX_UA =
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:120.0) Gecko/20100101 Firefox/120.0";
+
 function createMockRequest({
   session = {},
   ip = "127.0.0.1",
-  userAgent = "test-agent",
+  userAgent = CHROME_UA,
 } = {}) {
   return {
     session,
@@ -25,7 +31,7 @@ describe("AuthStateService", () => {
   });
 
   describe("createUserAuthState", () => {
-    it("should create a new user authentication state", () => {
+    it("should create a new user authentication state", async () => {
       const req = createMockRequest({ session: { cookie: {} } });
       const userData = {
         _id: "123",
@@ -34,7 +40,7 @@ describe("AuthStateService", () => {
         role: "admin",
       };
 
-      authStateService.createUserAuthState(req, userData);
+      await authStateService.createUserAuthState(req, userData);
 
       assert.deepStrictEqual(req.session.user, {
         id: "123",
@@ -46,8 +52,8 @@ describe("AuthStateService", () => {
       assert.strictEqual(req.session.isAuthenticated, true);
       assert.ok(req.session.createdAt instanceof Date);
       assert.deepStrictEqual(req.session.fingerprint, {
-        ip: "127.0.0.1",
-        userAgent: "test-agent",
+        browser: "Chrome",
+        os: "Windows",
       });
       assert.strictEqual(
         req.session.cookie.maxAge,
@@ -55,11 +61,11 @@ describe("AuthStateService", () => {
       );
     });
 
-    it("should set extended timeout with rememberMe flag", () => {
+    it("should set extended timeout with rememberMe flag", async () => {
       const req = createMockRequest({ session: { cookie: {} } });
       const userData = { _id: "123", username: "testuser", rememberMe: true };
 
-      authStateService.createUserAuthState(req, userData);
+      await authStateService.createUserAuthState(req, userData);
 
       assert.strictEqual(
         req.session.cookie.maxAge,
@@ -67,15 +73,29 @@ describe("AuthStateService", () => {
       );
     });
 
-    it("should throw an error with invalid input", () => {
-      assert.throws(
+    it("should throw an error with invalid input", async () => {
+      await assert.rejects(
         () => authStateService.createUserAuthState(null, { id: "123" }),
         { message: /Invalid request or user data/ },
       );
 
-      assert.throws(() => authStateService.createUserAuthState({}, null), {
-        message: /Invalid request or user data/,
+      await assert.rejects(
+        () => authStateService.createUserAuthState({}, null),
+        { message: /Invalid request or user data/ },
+      );
+    });
+
+    it("calls req.login when passport is present on the request", async () => {
+      const loginMock = mock.fn((user, cb) => cb(null));
+      const req = createMockRequest({ session: { cookie: {} } });
+      req.login = loginMock;
+
+      await authStateService.createUserAuthState(req, {
+        _id: "123",
+        username: "testuser",
       });
+
+      assert.strictEqual(loginMock.mock.calls.length, 1);
     });
   });
 
@@ -87,6 +107,18 @@ describe("AuthStateService", () => {
       const result = authStateService.getCurrentUser(req);
 
       assert.deepStrictEqual(result, user);
+    });
+
+    it("prefers req.user (passport) over session.user", () => {
+      const passportUser = { id: "abc", username: "passport" };
+      const sessionUser = { id: "xyz", username: "session" };
+      const req = createMockRequest({ session: { user: sessionUser } });
+      req.user = passportUser;
+
+      assert.deepStrictEqual(
+        authStateService.getCurrentUser(req),
+        passportUser,
+      );
     });
 
     it("should return null when no user in session", () => {
@@ -106,7 +138,7 @@ describe("AuthStateService", () => {
         session: {
           isAuthenticated: true,
           user: { id: "123" },
-          fingerprint: { ip: "127.0.0.1", userAgent: "test-agent" },
+          fingerprint: { browser: "Chrome", os: "Windows" },
         },
       });
 
@@ -123,29 +155,46 @@ describe("AuthStateService", () => {
       assert.strictEqual(authStateService.isAuthenticated(req), false);
     });
 
-    it("should return true when IP address does not match but user agent matches", () => {
+    it("should return true when IP address changes (IP is not checked)", () => {
       const req = createMockRequest({
         session: {
           isAuthenticated: true,
           user: { id: "123" },
-          fingerprint: { ip: "192.168.1.1", userAgent: "test-agent" },
+          fingerprint: { browser: "Chrome", os: "Windows" },
         },
-        ip: "127.0.0.1",
+        ip: "10.0.0.99",
       });
 
       assert.strictEqual(authStateService.isAuthenticated(req), true);
     });
 
-    it("should return false when user agent does not match", () => {
+    it("should return false when browser family changes", () => {
+      // Session fingerprinted with Chrome, but Firefox is making the request
       const req = createMockRequest({
         session: {
           isAuthenticated: true,
           user: { id: "123" },
-          fingerprint: { ip: "127.0.0.1", userAgent: "different-agent" },
+          fingerprint: { browser: "Chrome", os: "Windows" },
         },
+        userAgent: FIREFOX_UA,
       });
 
       assert.strictEqual(authStateService.isAuthenticated(req), false);
+    });
+
+    it("should return true when UA version changes but browser family is the same", () => {
+      const CHROME_NEWER =
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36";
+      const req = createMockRequest({
+        session: {
+          isAuthenticated: true,
+          user: { id: "123" },
+          fingerprint: { browser: "Chrome", os: "Windows" },
+        },
+        userAgent: CHROME_NEWER,
+      });
+
+      assert.strictEqual(authStateService.isAuthenticated(req), true);
     });
   });
 
@@ -156,7 +205,7 @@ describe("AuthStateService", () => {
           isAuthenticated: true,
           isGuest: true,
           user: { id: "123", isGuest: true },
-          fingerprint: { userAgent: "test-agent" },
+          fingerprint: { browser: "Chrome", os: "Windows" },
         },
       });
 
@@ -168,21 +217,22 @@ describe("AuthStateService", () => {
         session: {
           isAuthenticated: true,
           isGuest: true,
-          fingerprint: { userAgent: "test-agent" },
+          fingerprint: { browser: "Chrome", os: "Windows" },
         },
       });
 
       assert.strictEqual(authStateService.isAuthenticated(req), false);
     });
 
-    it("should return false when guest user agent does not match", () => {
+    it("should return false when guest browser family changes", () => {
       const req = createMockRequest({
         session: {
           isAuthenticated: true,
           isGuest: true,
           user: { id: "123", isGuest: true },
-          fingerprint: { userAgent: "different-agent" },
+          fingerprint: { browser: "Chrome", os: "Windows" },
         },
+        userAgent: FIREFOX_UA,
       });
 
       assert.strictEqual(authStateService.isAuthenticated(req), false);
@@ -201,6 +251,17 @@ describe("AuthStateService", () => {
       assert.strictEqual(callbackMock.mock.calls.length, 1);
     });
 
+    it("uses req.logout when passport is present", () => {
+      const logoutMock = mock.fn((cb) => cb());
+      const callbackMock = mock.fn();
+      const req = { logout: logoutMock };
+
+      authStateService.clearAuthState(req, callbackMock);
+
+      assert.strictEqual(logoutMock.mock.calls.length, 1);
+      assert.strictEqual(callbackMock.mock.calls.length, 1);
+    });
+
     it("should handle missing session", () => {
       const callbackMock = mock.fn();
       const req = {};
@@ -211,7 +272,7 @@ describe("AuthStateService", () => {
     });
 
     it("should handle missing callback", () => {
-      const destroyMock = mock.fn();
+      const destroyMock = mock.fn((cb) => cb());
       const req = { session: { destroy: destroyMock } };
 
       authStateService.clearAuthState(req);
@@ -244,8 +305,8 @@ describe("AuthStateService", () => {
       assert.strictEqual(req.session.isGuest, true);
       assert.ok(req.session.createdAt instanceof Date);
       assert.deepStrictEqual(req.session.fingerprint, {
-        ip: "127.0.0.1",
-        userAgent: "test-agent",
+        browser: "Chrome",
+        os: "Windows",
       });
       assert.strictEqual(
         req.session.cookie.maxAge,
