@@ -563,7 +563,13 @@ describe("match-controller", () => {
     });
 
     it("should return 403 if user is not the tournament admin", async () => {
-      const match = makeActiveMatch({ tournament: { _id: { toString: () => "tttttttttttttttttttttttt" }, status: "active", createdBy: "someone-else" } });
+      const match = makeActiveMatch({
+        tournament: {
+          _id: { toString: () => "tttttttttttttttttttttttt" },
+          status: "active",
+          createdBy: "someone-else",
+        },
+      });
       mockMatchFindById.mock.mockImplementation(() => ({
         populate: async () => match,
       }));

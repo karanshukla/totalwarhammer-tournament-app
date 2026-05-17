@@ -12,13 +12,22 @@ import {
   chakra,
   Box,
   HStack,
+  Badge,
 } from "@chakra-ui/react";
-import { LuTriangleAlert, LuInfo, LuLock } from "react-icons/lu";
+import {
+  LuTriangleAlert,
+  LuInfo,
+  LuLock,
+  LuFlaskConical,
+} from "react-icons/lu";
 import { NumberInputRoot, NumberInputField } from "@/shared/ui/NumberInput";
 import { httpClient } from "@/core/api/httpClient";
 import { useNavigate } from "react-router-dom";
 import { toaster } from "@/shared/ui/Toaster";
-import { warhammer3Factions } from "@/shared/constants/warhammer3Factions";
+import {
+  warhammer3Factions,
+  warhammer40kFactions,
+} from "@/shared/constants/factions";
 
 const tournamentTypes = [
   "Single Elimination",
@@ -40,9 +49,23 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
     playerCount: 8,
     tournamentType: tournamentTypes[0],
     bannedFactions: [] as string[],
+    enable40kFactions: false,
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [factionListVisible, setFactionListVisible] = useState(true);
   const navigate = useNavigate();
+
+  const activeFactionList = formData.enable40kFactions
+    ? warhammer40kFactions
+    : warhammer3Factions;
+
+  const handleToggle40k = () => {
+    setFactionListVisible(false);
+    setTimeout(() => {
+      toggle40k();
+      setFactionListVisible(true);
+    }, 180);
+  };
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -53,6 +76,14 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
 
   const handleNumberChange = ({ value }: { value: string }) => {
     setFormData((prev) => ({ ...prev, playerCount: parseInt(value) || 2 }));
+  };
+
+  const toggle40k = () => {
+    setFormData((prev) => ({
+      ...prev,
+      enable40kFactions: !prev.enable40kFactions,
+      bannedFactions: [],
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -79,6 +110,7 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
         playerCount: 8,
         tournamentType: tournamentTypes[0],
         bannedFactions: [],
+        enable40kFactions: false,
       });
     } catch (err) {
       toaster.create({
@@ -181,38 +213,26 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
               <Field.Label>Banned Factions</Field.Label>
               <SimpleGrid columns={{ base: 1, md: 2 }} gap={6}>
                 <VStack gap={2} align="stretch">
-                  <SimpleGrid columns={{ base: 1, sm: 2, lg: 3 }} gap={2}>
-                    {warhammer3Factions.map((faction) => (
-                      <Flex
-                        key={faction}
-                        align="center"
-                        gap={2}
-                        p={2}
-                        borderRadius="md"
-                        borderWidth="1px"
-                        borderColor="border"
-                        cursor="pointer"
-                        _hover={{ bg: "bg.muted" }}
-                        transition="background 0.2s"
-                        onClick={() => {
-                          const isChecked =
-                            !formData.bannedFactions.includes(faction);
-                          setFormData((prev) => ({
-                            ...prev,
-                            bannedFactions: isChecked
-                              ? [...prev.bannedFactions, faction]
-                              : prev.bannedFactions.filter(
-                                  (f) => f !== faction,
-                                ),
-                          }));
-                        }}
-                      >
-                        <input
-                          type="checkbox"
-                          value={faction}
-                          checked={formData.bannedFactions.includes(faction)}
-                          onChange={(e) => {
-                            const isChecked = e.target.checked;
+                  <Box
+                    opacity={factionListVisible ? 1 : 0}
+                    transition="opacity 0.18s ease"
+                  >
+                    <SimpleGrid columns={{ base: 1, sm: 2, lg: 3 }} gap={2}>
+                      {activeFactionList.map((faction) => (
+                        <Flex
+                          key={faction}
+                          align="center"
+                          gap={2}
+                          p={2}
+                          borderRadius="md"
+                          borderWidth="1px"
+                          borderColor="border"
+                          cursor="pointer"
+                          _hover={{ bg: "bg.muted" }}
+                          transition="background 0.2s"
+                          onClick={() => {
+                            const isChecked =
+                              !formData.bannedFactions.includes(faction);
                             setFormData((prev) => ({
                               ...prev,
                               bannedFactions: isChecked
@@ -222,26 +242,38 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
                                   ),
                             }));
                           }}
-                          width={16}
-                          height={16}
-                        />
-                        <Text fontSize="sm" userSelect="none">
-                          {faction}
-                        </Text>
-                      </Flex>
-                    ))}
-                  </SimpleGrid>
+                        >
+                          <input
+                            type="checkbox"
+                            value={faction}
+                            checked={formData.bannedFactions.includes(faction)}
+                            onChange={(e) => {
+                              const isChecked = e.target.checked;
+                              setFormData((prev) => ({
+                                ...prev,
+                                bannedFactions: isChecked
+                                  ? [...prev.bannedFactions, faction]
+                                  : prev.bannedFactions.filter(
+                                      (f) => f !== faction,
+                                    ),
+                              }));
+                            }}
+                            width={16}
+                            height={16}
+                          />
+                          <Text fontSize="sm" userSelect="none">
+                            {faction}
+                          </Text>
+                        </Flex>
+                      ))}
+                    </SimpleGrid>
+                  </Box>
                   <Text color="fg.muted" fontSize="sm">
                     Select factions that will be banned in this tournament.
                   </Text>
                 </VStack>
 
-                <Flex
-                  display={{ base: "none", md: "flex" }}
-                  direction="column"
-                  gap={3}
-                  flex={1}
-                >
+                <Flex direction="column" gap={3} flex={1}>
                   {(() => {
                     const n = formData.playerCount;
                     const type = formData.tournamentType;
@@ -334,6 +366,120 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
                           </Box>
                         ))}
                         <Box mt="auto">
+                          <HStack
+                            gap={2}
+                            mb={2}
+                            p={2}
+                            borderRadius="md"
+                            borderWidth={1}
+                            borderColor="border"
+                            bg="bg.subtle"
+                            alignItems="center"
+                          >
+                            <HStack gap={1} flex={1} alignItems="center">
+                              <Text
+                                fontSize="xs"
+                                color="fg.muted"
+                                fontWeight="medium"
+                              >
+                                Factions
+                              </Text>
+                              <Badge
+                                colorPalette="purple"
+                                size="xs"
+                                variant="subtle"
+                              >
+                                <LuFlaskConical size={9} />
+                                Beta
+                              </Badge>
+                            </HStack>
+                            <HStack gap={1}>
+                              <Box
+                                as="button"
+                                type="button"
+                                py={0.5}
+                                px={2}
+                                borderRadius="sm"
+                                borderWidth={1}
+                                fontSize="xs"
+                                cursor="pointer"
+                                transition="all 0.15s"
+                                onClick={() =>
+                                  formData.enable40kFactions &&
+                                  handleToggle40k()
+                                }
+                                bg={
+                                  !formData.enable40kFactions
+                                    ? "colorPalette.subtle"
+                                    : "transparent"
+                                }
+                                borderColor={
+                                  !formData.enable40kFactions
+                                    ? "colorPalette.muted"
+                                    : "border"
+                                }
+                                color={
+                                  !formData.enable40kFactions
+                                    ? "fg"
+                                    : "fg.muted"
+                                }
+                                colorPalette="blue"
+                              >
+                                WH3
+                              </Box>
+                              <Box
+                                as="button"
+                                type="button"
+                                py={0.5}
+                                px={2}
+                                borderRadius="sm"
+                                borderWidth={1}
+                                fontSize="xs"
+                                cursor="pointer"
+                                transition="all 0.15s"
+                                onClick={() =>
+                                  !formData.enable40kFactions &&
+                                  handleToggle40k()
+                                }
+                                bg={
+                                  formData.enable40kFactions
+                                    ? "colorPalette.subtle"
+                                    : "transparent"
+                                }
+                                borderColor={
+                                  formData.enable40kFactions
+                                    ? "colorPalette.muted"
+                                    : "border"
+                                }
+                                color={
+                                  formData.enable40kFactions ? "fg" : "fg.muted"
+                                }
+                                colorPalette="purple"
+                              >
+                                40K
+                              </Box>
+                            </HStack>
+                          </HStack>
+                          {formData.enable40kFactions && (
+                            <Box
+                              p={3}
+                              borderRadius="md"
+                              bg="purple.subtle"
+                              borderWidth={1}
+                              borderColor="purple.muted"
+                              mb={2}
+                            >
+                              <HStack gap={2} alignItems="flex-start">
+                                <Box color="purple.fg" flexShrink={0} mt="1px">
+                                  <LuFlaskConical size={14} />
+                                </Box>
+                                <Text fontSize="sm" color="purple.fg">
+                                  40K factions are in beta and will not appear
+                                  in global statistics or player stat pages.
+                                </Text>
+                              </HStack>
+                            </Box>
+                          )}
                           {isGuest && (
                             <Box
                               p={3}

@@ -33,8 +33,9 @@ mock.module("../infrastructure/utils/logger.js", {
   },
 });
 
-const { login, logout } =
-  await import("../interfaces/http/controllers/authentication-controller.js");
+const { login, logout } = await import(
+  "../interfaces/http/controllers/authentication-controller.js"
+);
 
 function mockRes() {
   const res = {};

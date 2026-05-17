@@ -59,7 +59,7 @@ export const getStats = async (_req, res) => {
         },
       ]),
 
-      // Top winning factions
+      // Top winning factions (beta 40k factions excluded)
       Match.aggregate([
         { $match: { status: "completed", winnerId: { $ne: null } } },
         {
@@ -71,9 +71,21 @@ export const getStats = async (_req, res) => {
                 "$player2.faction",
               ],
             },
+            winnerIsBeta: {
+              $cond: [
+                { $eq: ["$winnerId", "$player1.participantId"] },
+                { $ifNull: ["$player1.isBetaFaction", false] },
+                { $ifNull: ["$player2.isBetaFaction", false] },
+              ],
+            },
           },
         },
-        { $match: { winnerFaction: { $ne: "" } } },
+        {
+          $match: {
+            winnerFaction: { $ne: "" },
+            winnerIsBeta: { $ne: true },
+          },
+        },
         {
           $group: {
             _id: "$winnerFaction",

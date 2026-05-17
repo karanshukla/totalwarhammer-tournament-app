@@ -21,8 +21,18 @@ interface MatchData {
   _id: string;
   round: number;
   matchNumber: number;
-  player1: { participantId: string; name: string; faction: string };
-  player2: { participantId: string; name: string; faction: string };
+  player1: {
+    participantId: string;
+    name: string;
+    faction: string;
+    isBetaFaction?: boolean;
+  };
+  player2: {
+    participantId: string;
+    name: string;
+    faction: string;
+    isBetaFaction?: boolean;
+  };
   winnerId: string | null;
   loserId: string | null;
   status: "pending" | "in_progress" | "completed" | "disputed";
@@ -194,7 +204,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
             </Text>
           </HStack>
           {m.player2.faction && m.player2.name !== "BYE" && (
-            <Text fontSize="xs" color="fg.muted">
+            <Text fontSize="xs" color="fg.muted" textAlign="right">
               {m.player2.faction}
             </Text>
           )}

@@ -21,16 +21,24 @@ function shuffle(arr) {
 }
 
 /** Slot object from a participant subdoc. */
-function slot(p) {
+function slot(p, isBetaFaction = false) {
   return {
     participantId: p._id ?? p.participantId,
     name: p.name,
     faction: p.faction || "",
+    isBetaFaction,
   };
 }
 
 /** Bye match — player1 wins automatically. */
-function byeMatch(tournamentId, round, matchNumber, p, bracketSide = null) {
+function byeMatch(
+  tournamentId,
+  round,
+  matchNumber,
+  p,
+  bracketSide = null,
+  isBetaFaction = false,
+) {
   return {
     tournament: tournamentId,
     round,
@@ -39,8 +47,14 @@ function byeMatch(tournamentId, round, matchNumber, p, bracketSide = null) {
       participantId: p.participantId ?? p._id,
       name: p.name,
       faction: p.faction || "",
+      isBetaFaction,
     },
-    player2: { participantId: null, name: "BYE", faction: "" },
+    player2: {
+      participantId: null,
+      name: "BYE",
+      faction: "",
+      isBetaFaction: false,
+    },
     winnerId: p.participantId ?? p._id,
     loserId: null,
     status: "completed",
@@ -51,7 +65,11 @@ function byeMatch(tournamentId, round, matchNumber, p, bracketSide = null) {
 
 // ─── Single Elimination ───────────────────────────────────────────────────────
 
-export function singleElimStart(tournamentId, participants) {
+export function singleElimStart(
+  tournamentId,
+  participants,
+  enable40kFactions = false,
+) {
   const seeded = shuffle([...participants]);
   const docs = [];
   let mn = 1;
@@ -61,12 +79,21 @@ export function singleElimStart(tournamentId, participants) {
         tournament: tournamentId,
         round: 1,
         matchNumber: mn++,
-        player1: slot(seeded[i]),
-        player2: slot(seeded[i + 1]),
+        player1: slot(seeded[i], enable40kFactions),
+        player2: slot(seeded[i + 1], enable40kFactions),
         bracketSide: "winners",
       });
     } else {
-      docs.push(byeMatch(tournamentId, 1, mn++, slot(seeded[i]), "winners"));
+      docs.push(
+        byeMatch(
+          tournamentId,
+          1,
+          mn++,
+          slot(seeded[i], enable40kFactions),
+          "winners",
+          enable40kFactions,
+        ),
+      );
     }
   }
   return docs;
@@ -115,7 +142,11 @@ export function singleElimAdvance(
 //   Losers bracket rounds are stored as round 1, 2, 3 … with bracketSide="losers"
 //   Grand final is stored as round 1 with bracketSide="grand_final"
 
-export function doubleElimStart(tournamentId, participants) {
+export function doubleElimStart(
+  tournamentId,
+  participants,
+  enable40kFactions = false,
+) {
   // Same as SE round 1, but label bracketSide="winners"
   const seeded = shuffle([...participants]);
   const docs = [];
@@ -126,12 +157,21 @@ export function doubleElimStart(tournamentId, participants) {
         tournament: tournamentId,
         round: 1,
         matchNumber: mn++,
-        player1: slot(seeded[i]),
-        player2: slot(seeded[i + 1]),
+        player1: slot(seeded[i], enable40kFactions),
+        player2: slot(seeded[i + 1], enable40kFactions),
         bracketSide: "winners",
       });
     } else {
-      docs.push(byeMatch(tournamentId, 1, mn++, slot(seeded[i]), "winners"));
+      docs.push(
+        byeMatch(
+          tournamentId,
+          1,
+          mn++,
+          slot(seeded[i], enable40kFactions),
+          "winners",
+          enable40kFactions,
+        ),
+      );
     }
   }
   return docs;
@@ -338,7 +378,11 @@ export function doubleElimAdvance(tournamentId, allMatches) {
 // Rounds are natural — each player plays once per round.
 // Tournament completes when all matches are done (admin triggers "advance" to finalise).
 
-export function roundRobinStart(tournamentId, participants) {
+export function roundRobinStart(
+  tournamentId,
+  participants,
+  enable40kFactions = false,
+) {
   const ps = [...participants];
   const hasBye = ps.length % 2 !== 0;
   if (hasBye)
@@ -362,14 +406,23 @@ export function roundRobinStart(tournamentId, participants) {
       if (p1.name === "BYE" || p2.name === "BYE") {
         // Give the real player a bye win
         const real = p1.name === "BYE" ? p2 : p1;
-        docs.push(byeMatch(tournamentId, round, mn++, slot(real)));
+        docs.push(
+          byeMatch(
+            tournamentId,
+            round,
+            mn++,
+            slot(real, enable40kFactions),
+            null,
+            enable40kFactions,
+          ),
+        );
       } else {
         docs.push({
           tournament: tournamentId,
           round,
           matchNumber: mn++,
-          player1: slot(p1),
-          player2: slot(p2),
+          player1: slot(p1, enable40kFactions),
+          player2: slot(p2, enable40kFactions),
         });
       }
     }
@@ -442,7 +495,11 @@ export function roundRobinStandings(participants, allMatches) {
 // Subsequent rounds: pair players with same number of wins (top-down), no rematches.
 // Typical swiss ends after ceil(log2(n)) rounds; admin decides when to stop.
 
-export function swissStart(tournamentId, participants) {
+export function swissStart(
+  tournamentId,
+  participants,
+  enable40kFactions = false,
+) {
   const seeded = shuffle([...participants]);
   const docs = [];
   let mn = 1;
@@ -452,11 +509,20 @@ export function swissStart(tournamentId, participants) {
         tournament: tournamentId,
         round: 1,
         matchNumber: mn++,
-        player1: slot(seeded[i]),
-        player2: slot(seeded[i + 1]),
+        player1: slot(seeded[i], enable40kFactions),
+        player2: slot(seeded[i + 1], enable40kFactions),
       });
     } else {
-      docs.push(byeMatch(tournamentId, 1, mn++, slot(seeded[i])));
+      docs.push(
+        byeMatch(
+          tournamentId,
+          1,
+          mn++,
+          slot(seeded[i], enable40kFactions),
+          null,
+          enable40kFactions,
+        ),
+      );
     }
   }
   return docs;

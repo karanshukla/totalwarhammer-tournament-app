@@ -1,26 +1,2 @@
-export const warhammer3Factions = [
-  "Empire",
-  "Dwarfs",
-  "Greenskins",
-  "Vampire Counts",
-  "Warriors of Chaos",
-  "Beastmen",
-  "Wood Elves",
-  "Bretonnia",
-  "Norsca",
-  "High Elves",
-  "Dark Elves",
-  "Lizardmen",
-  "Skaven",
-  "Tomb Kings",
-  "Vampire Coast",
-  "Kislev",
-  "Cathay",
-  "Ogre Kingdoms",
-  "Daemons of Chaos",
-  "Khorne",
-  "Nurgle",
-  "Slaanesh",
-  "Tzeentch",
-  "Chaos Dwarfs",
-];
+// Re-exported from the unified faction registry for backward compatibility.
+export { warhammer3Factions } from "./factions";

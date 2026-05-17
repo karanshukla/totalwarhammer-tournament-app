@@ -1,31 +1,6 @@
 import { body } from "express-validator";
 
-const VALID_FACTIONS = [
-  "Empire",
-  "Dwarfs",
-  "Greenskins",
-  "Vampire Counts",
-  "Warriors of Chaos",
-  "Beastmen",
-  "Wood Elves",
-  "Bretonnia",
-  "Norsca",
-  "High Elves",
-  "Dark Elves",
-  "Lizardmen",
-  "Skaven",
-  "Tomb Kings",
-  "Vampire Coast",
-  "Kislev",
-  "Cathay",
-  "Ogre Kingdoms",
-  "Daemons of Chaos",
-  "Khorne",
-  "Nurgle",
-  "Slaanesh",
-  "Tzeentch",
-  "Chaos Dwarfs",
-];
+import { allFactions } from "../../../../constants/factions.js";
 
 const VALID_TYPES = [
   "Single Elimination",
@@ -58,13 +33,18 @@ export const validateCreateTournament = [
     .isIn(VALID_TYPES)
     .withMessage(`Tournament type must be one of: ${VALID_TYPES.join(", ")}`),
 
+  body("enable40kFactions")
+    .optional()
+    .isBoolean()
+    .withMessage("enable40kFactions must be a boolean"),
+
   body("bannedFactions")
     .optional()
     .isArray()
     .withMessage("Banned factions must be an array")
     .custom((factions) => {
       if (!Array.isArray(factions)) return true;
-      const invalid = factions.filter((f) => !VALID_FACTIONS.includes(f));
+      const invalid = factions.filter((f) => !allFactions.includes(f));
       if (invalid.length > 0) {
         throw new Error(`Invalid factions: ${invalid.join(", ")}`);
       }

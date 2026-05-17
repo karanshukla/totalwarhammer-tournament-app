@@ -14,7 +14,7 @@ import {
   Separator,
   For,
 } from "@chakra-ui/react";
-import { LuTrophy, LuUsers, LuSearch } from "react-icons/lu";
+import { LuTrophy, LuUsers, LuSearch, LuFlaskConical } from "react-icons/lu";
 import { Tournament, statusColorMap } from "./types";
 
 interface Props {
@@ -233,9 +233,21 @@ const TournamentList: React.FC<Props> = ({
                           {t.status.charAt(0).toUpperCase() + t.status.slice(1)}
                         </Badge>
                       </HStack>
-                      <Text fontSize="sm" color="fg.muted">
-                        {t.tournamentType}
-                      </Text>
+                      <HStack gap={2} alignItems="center">
+                        <Text fontSize="sm" color="fg.muted">
+                          {t.tournamentType}
+                        </Text>
+                        {t.enable40kFactions && (
+                          <Badge
+                            colorPalette="purple"
+                            size="xs"
+                            variant="subtle"
+                          >
+                            <LuFlaskConical size={9} />
+                            40K Beta
+                          </Badge>
+                        )}
+                      </HStack>
                       <Separator />
                       <HStack gap={4} fontSize="sm" color="fg.muted">
                         <HStack gap={1}>

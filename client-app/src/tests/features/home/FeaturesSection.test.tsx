@@ -16,7 +16,9 @@ function renderFeatures() {
 describe("FeaturesSection", () => {
   it("renders the section heading", () => {
     renderFeatures();
-    expect(screen.getByRole("heading", { name: /What you can do/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: /What you can do/i }),
+    ).toBeInTheDocument();
   });
 
   it("renders all four feature cards", () => {
@@ -30,7 +32,9 @@ describe("FeaturesSection", () => {
   it("renders descriptions for each feature", () => {
     renderFeatures();
     expect(screen.getByText(/Create and manage brackets/i)).toBeInTheDocument();
-    expect(screen.getByText(/Record results, advance rounds/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Record results, advance rounds/i),
+    ).toBeInTheDocument();
     expect(screen.getByText(/Explore win rates/i)).toBeInTheDocument();
     expect(screen.getByText(/No account required/i)).toBeInTheDocument();
   });

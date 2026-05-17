@@ -50,8 +50,14 @@ export const createTournament = async (req, res) => {
       });
     }
 
-    const { name, description, playerCount, tournamentType, bannedFactions } =
-      req.body;
+    const {
+      name,
+      description,
+      playerCount,
+      tournamentType,
+      bannedFactions,
+      enable40kFactions,
+    } = req.body;
 
     if (description && description.length > 2000) {
       return res.status(400).json({
@@ -66,6 +72,7 @@ export const createTournament = async (req, res) => {
       playerCount,
       tournamentType,
       bannedFactions: bannedFactions || [],
+      enable40kFactions: !!enable40kFactions,
       createdBy: req.user.id,
       code: generateCode(),
       participants: [
@@ -416,23 +423,28 @@ export const startTournament = async (req, res) => {
     await tournament.save();
 
     let matchDocs;
-    const { tournamentType, _id: tId, participants } = tournament;
+    const {
+      tournamentType,
+      _id: tId,
+      participants,
+      enable40kFactions,
+    } = tournament;
 
     switch (tournamentType) {
       case "Single Elimination":
-        matchDocs = singleElimStart(tId, participants);
+        matchDocs = singleElimStart(tId, participants, enable40kFactions);
         break;
       case "Double Elimination":
-        matchDocs = doubleElimStart(tId, participants);
+        matchDocs = doubleElimStart(tId, participants, enable40kFactions);
         break;
       case "Round Robin":
-        matchDocs = roundRobinStart(tId, participants);
+        matchDocs = roundRobinStart(tId, participants, enable40kFactions);
         break;
       case "Swiss System":
-        matchDocs = swissStart(tId, participants);
+        matchDocs = swissStart(tId, participants, enable40kFactions);
         break;
       default:
-        matchDocs = singleElimStart(tId, participants);
+        matchDocs = singleElimStart(tId, participants, enable40kFactions);
     }
 
     const matches = await Match.insertMany(matchDocs);

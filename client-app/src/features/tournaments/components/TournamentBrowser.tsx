@@ -12,7 +12,13 @@ import {
   Separator,
   For,
 } from "@chakra-ui/react";
-import { LuLogIn, LuEye, LuTrophy, LuSwords } from "react-icons/lu";
+import {
+  LuLogIn,
+  LuEye,
+  LuTrophy,
+  LuSwords,
+  LuFlaskConical,
+} from "react-icons/lu";
 import { useNavigate } from "react-router-dom";
 import { httpClient } from "@/core/api/httpClient";
 import { useUserStore } from "@/shared/stores/userStore";
@@ -36,6 +42,7 @@ interface Tournament {
   playerCount: number;
   tournamentType: string;
   bannedFactions: string[];
+  enable40kFactions?: boolean;
   participants: Participant[];
   status: "pending" | "active" | "completed";
   createdAt: string;
@@ -150,9 +157,21 @@ const TournamentBrowser: React.FC<Props> = ({ statusFilter, emptyMessage }) => {
                           {t.status.charAt(0).toUpperCase() + t.status.slice(1)}
                         </Badge>
                       </HStack>
-                      <Text fontSize="sm" color="fg.muted">
-                        {t.tournamentType}
-                      </Text>
+                      <HStack gap={2} alignItems="center">
+                        <Text fontSize="sm" color="fg.muted">
+                          {t.tournamentType}
+                        </Text>
+                        {t.enable40kFactions && (
+                          <Badge
+                            colorPalette="purple"
+                            size="xs"
+                            variant="subtle"
+                          >
+                            <LuFlaskConical size={9} />
+                            40K Beta
+                          </Badge>
+                        )}
+                      </HStack>
                       {t.description && (
                         <Text fontSize="sm" lineClamp={2} color="fg.muted">
                           {t.description

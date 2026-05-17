@@ -21,7 +21,13 @@ vi.mock("@/core/api/httpClient", () => ({
 
 vi.mock("@/shared/stores/userStore", () => ({
   useUserStore: vi.fn(() => ({
-    user: { isAuthenticated: false, isGuest: false, id: "", username: "", email: "" },
+    user: {
+      isAuthenticated: false,
+      isGuest: false,
+      id: "",
+      username: "",
+      email: "",
+    },
   })),
 }));
 
@@ -45,14 +51,18 @@ describe("TournamentLookup", () => {
   it("renders the code input and submit button", () => {
     renderLookup();
     expect(screen.getByPlaceholderText(/e.g., ABC123/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /View Tournament/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /View Tournament/i }),
+    ).toBeInTheDocument();
   });
 
   it("renders the card title and description", () => {
     renderLookup();
     expect(screen.getByText(/View a Tournament/i)).toBeInTheDocument();
     expect(
-      screen.getByText(/Enter a tournament code or select an ongoing tournament/i),
+      screen.getByText(
+        /Enter a tournament code or select an ongoing tournament/i,
+      ),
     ).toBeInTheDocument();
   });
 
@@ -63,8 +73,13 @@ describe("TournamentLookup", () => {
 
     renderLookup();
 
-    await userEvent.type(screen.getByPlaceholderText(/e.g., ABC123/i), "BADCODE");
-    await userEvent.click(screen.getByRole("button", { name: /View Tournament/i }));
+    await userEvent.type(
+      screen.getByPlaceholderText(/e.g., ABC123/i),
+      "BADCODE",
+    );
+    await userEvent.click(
+      screen.getByRole("button", { name: /View Tournament/i }),
+    );
 
     await waitFor(() => {
       expect(
@@ -83,8 +98,13 @@ describe("TournamentLookup", () => {
 
     renderLookup();
 
-    await userEvent.type(screen.getByPlaceholderText(/e.g., ABC123/i), "ABC123");
-    await userEvent.click(screen.getByRole("button", { name: /View Tournament/i }));
+    await userEvent.type(
+      screen.getByPlaceholderText(/e.g., ABC123/i),
+      "ABC123",
+    );
+    await userEvent.click(
+      screen.getByRole("button", { name: /View Tournament/i }),
+    );
 
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith("/matches/spectate/t123");
@@ -112,8 +132,13 @@ describe("TournamentLookup", () => {
 
     renderLookup();
 
-    await userEvent.type(screen.getByPlaceholderText(/e.g., ABC123/i), "XYZ789");
-    await userEvent.click(screen.getByRole("button", { name: /View Tournament/i }));
+    await userEvent.type(
+      screen.getByPlaceholderText(/e.g., ABC123/i),
+      "XYZ789",
+    );
+    await userEvent.click(
+      screen.getByRole("button", { name: /View Tournament/i }),
+    );
 
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith("/matches#t456");
@@ -131,7 +156,9 @@ describe("TournamentLookup", () => {
     await userEvent.type(input, "ENTER1{Enter}");
 
     await waitFor(() => {
-      expect(screen.getByText(/No tournament found with that code/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/No tournament found with that code/i),
+      ).toBeInTheDocument();
     });
   });
 
@@ -140,7 +167,9 @@ describe("TournamentLookup", () => {
 
     renderLookup();
 
-    await userEvent.click(screen.getByRole("button", { name: /View Tournament/i }));
+    await userEvent.click(
+      screen.getByRole("button", { name: /View Tournament/i }),
+    );
 
     // Only the initial active tournaments fetch should have been called
     expect(mockGet).toHaveBeenCalledTimes(1);
@@ -196,7 +225,9 @@ describe("TournamentLookup", () => {
     renderLookup();
 
     await waitFor(() => {
-      expect(screen.getByRole("link", { name: /View all tournaments/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole("link", { name: /View all tournaments/i }),
+      ).toBeInTheDocument();
     });
   });
 
