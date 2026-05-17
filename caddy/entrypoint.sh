@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 set -euo pipefail
 
@@ -13,7 +13,7 @@ export BACKEND_PORT=${BACKEND_PORT:-${BACKEND_HOST##*:}}
 FRONTEND_DOMAIN=${FRONTEND_DOMAIN##*://}
 BACKEND_DOMAIN=${BACKEND_DOMAIN##*://}
 
-echo using frontend: ${FRONTEND_DOMAIN} with port: ${FRONTEND_PORT}
-echo using backend: ${BACKEND_DOMAIN} with port: ${BACKEND_PORT}
+echo "using frontend: ${FRONTEND_DOMAIN} with port: ${FRONTEND_PORT}"
+echo "using backend: ${BACKEND_DOMAIN} with port: ${BACKEND_PORT}"
 
 exec caddy run --config Caddyfile --adapter caddyfile 2>&1

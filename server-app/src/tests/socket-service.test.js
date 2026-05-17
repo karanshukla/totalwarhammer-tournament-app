@@ -90,7 +90,7 @@ describe("socket-service", () => {
 
     it("registers a connection event handler on the io instance", () => {
       assert.ok(
-        typeof ioHandlers["connection"] === "function",
+        typeof ioHandlers.connection === "function",
         "connection handler should be registered",
       );
     });
@@ -101,7 +101,7 @@ describe("socket-service", () => {
 
     it("joins the tournament room when tournament:join is received", () => {
       const socket = makeSocket();
-      ioHandlers["connection"](socket);
+      ioHandlers.connection(socket);
       socket._fire("tournament:join", validId);
       assert.strictEqual(
         socket.join.mock.calls[0].arguments[0],
@@ -111,14 +111,14 @@ describe("socket-service", () => {
 
     it("ignores tournament:join with an invalid id", () => {
       const socket = makeSocket();
-      ioHandlers["connection"](socket);
+      ioHandlers.connection(socket);
       socket._fire("tournament:join", "not-an-objectid");
       assert.strictEqual(socket.join.mock.calls.length, 0);
     });
 
     it("leaves the tournament room when tournament:leave is received", () => {
       const socket = makeSocket();
-      ioHandlers["connection"](socket);
+      ioHandlers.connection(socket);
       socket._fire("tournament:leave", validId);
       assert.strictEqual(
         socket.leave.mock.calls[0].arguments[0],
@@ -128,14 +128,14 @@ describe("socket-service", () => {
 
     it("ignores tournament:leave with an invalid id", () => {
       const socket = makeSocket();
-      ioHandlers["connection"](socket);
+      ioHandlers.connection(socket);
       socket._fire("tournament:leave", 12345);
       assert.strictEqual(socket.leave.mock.calls.length, 0);
     });
 
     it("does not throw on disconnect", () => {
       const socket = makeSocket();
-      ioHandlers["connection"](socket);
+      ioHandlers.connection(socket);
       assert.doesNotThrow(() => socket._fire("disconnect"));
     });
   });
@@ -169,7 +169,7 @@ describe("socket-service", () => {
 
     it("allows events within the per-socket limit", () => {
       const socket = makeSocket();
-      ioHandlers["connection"](socket);
+      ioHandlers.connection(socket);
       socket._fire("tournament:join", validId);
       assert.strictEqual(socket.disconnect.mock.calls.length, 0);
       assert.strictEqual(socket.join.mock.calls.length, 1);
@@ -177,7 +177,7 @@ describe("socket-service", () => {
 
     it("disconnects the socket on the 61st event", () => {
       const socket = makeSocket(); // unique socket.id via Math.random()
-      ioHandlers["connection"](socket);
+      ioHandlers.connection(socket);
       for (let i = 0; i < 60; i++) {
         socket._fire("tournament:join", validId);
       }

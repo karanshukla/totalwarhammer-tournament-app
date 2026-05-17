@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 
 import Match from "../../../domain/models/match.js";
 import Tournament from "../../../domain/models/tournament.js";
+import { invalidateStatsCache } from "../../../infrastructure/services/stats-service.js";
 import { emitMatchUpdated } from "../../../infrastructure/socket/socket-service.js";
 import logger from "../../../infrastructure/utils/logger.js";
 
@@ -216,6 +217,7 @@ export const reportResult = async (req, res) => {
     }
 
     await match.save();
+    if (match.status === "completed") invalidateStatsCache().catch(() => {});
     emitMatchUpdated(match.tournament._id.toString(), match);
     return res.status(200).json({ success: true, data: match });
   } catch (error) {
@@ -285,6 +287,7 @@ export const resolveDispute = async (req, res) => {
     match.status = "completed";
     match.completedAt = new Date();
     await match.save();
+    invalidateStatsCache().catch(() => {});
     emitMatchUpdated(match.tournament._id.toString(), match);
 
     return res.status(200).json({ success: true, data: match });
@@ -359,6 +362,7 @@ export const recordResult = async (req, res) => {
     match.status = "completed";
     match.completedAt = new Date();
     await match.save();
+    invalidateStatsCache().catch(() => {});
     emitMatchUpdated(match.tournament._id.toString(), match);
 
     return res.status(200).json({ success: true, data: match });
@@ -425,6 +429,7 @@ export const overrideResult = async (req, res) => {
     match.status = "completed";
     match.completedAt = match.completedAt ?? new Date();
     await match.save();
+    invalidateStatsCache().catch(() => {});
     emitMatchUpdated(match.tournament._id.toString(), match);
 
     return res.status(200).json({ success: true, data: match });

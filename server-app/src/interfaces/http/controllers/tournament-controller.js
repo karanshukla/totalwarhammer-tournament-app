@@ -10,6 +10,7 @@ import {
   swissStart,
   swissAdvance,
 } from "../../../domain/services/tournament-service.js";
+import { invalidateStatsCache } from "../../../infrastructure/services/stats-service.js";
 import {
   emitTournamentUpdated,
   emitMatchesUpdated,
@@ -500,6 +501,7 @@ export const advanceRound = async (req, res) => {
       }
       tournament.status = "completed";
       await tournament.save();
+      invalidateStatsCache().catch(() => {});
       emitTournamentUpdated(tournament._id.toString(), tournament);
       return res
         .status(200)
@@ -527,6 +529,7 @@ export const advanceRound = async (req, res) => {
       if (maxRound >= maxSwissRounds) {
         tournament.status = "completed";
         await tournament.save();
+        invalidateStatsCache().catch(() => {});
         emitTournamentUpdated(tournament._id.toString(), tournament);
         return res
           .status(200)
@@ -579,6 +582,7 @@ export const advanceRound = async (req, res) => {
       if (result.completed) {
         tournament.status = "completed";
         await tournament.save();
+        invalidateStatsCache().catch(() => {});
         emitTournamentUpdated(tournament._id.toString(), tournament);
         return res
           .status(200)
@@ -617,6 +621,7 @@ export const advanceRound = async (req, res) => {
     if (result.completed) {
       tournament.status = "completed";
       await tournament.save();
+      invalidateStatsCache().catch(() => {});
       emitTournamentUpdated(tournament._id.toString(), tournament);
       return res
         .status(200)

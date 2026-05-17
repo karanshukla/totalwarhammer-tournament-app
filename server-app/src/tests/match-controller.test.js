@@ -29,6 +29,12 @@ mock.module("../infrastructure/utils/logger.js", {
   },
 });
 
+// ── Stats cache mock ──────────────────────────────────────────────────────────
+const mockInvalidateStatsCache = mock.fn(async () => {});
+mock.module("../infrastructure/services/stats-service.js", {
+  namedExports: { invalidateStatsCache: mockInvalidateStatsCache },
+});
+
 // ── Socket service mocks ──────────────────────────────────────────────────────
 const mockEmitMatchUpdated = mock.fn();
 mock.module("../infrastructure/socket/socket-service.js", {
@@ -74,6 +80,7 @@ describe("match-controller", () => {
     mockMatchCreate.mock.resetCalls();
     mockTournamentFindOne.mock.resetCalls();
     mockEmitMatchUpdated.mock.resetCalls();
+    mockInvalidateStatsCache.mock.resetCalls();
   });
 
   describe("getMatchesByTournament", () => {
@@ -325,6 +332,7 @@ describe("match-controller", () => {
       assert.strictEqual(match.status, "completed");
       assert.strictEqual(match.winnerId, p1Id);
       assert.strictEqual(mockEmitMatchUpdated.mock.calls.length, 1);
+      assert.strictEqual(mockInvalidateStatsCache.mock.calls.length, 1);
     });
 
     it("should set status to disputed when players disagree", async () => {
@@ -352,6 +360,7 @@ describe("match-controller", () => {
       await reportResult(req, res);
       assert.strictEqual(match.status, "disputed");
       assert.strictEqual(mockEmitMatchUpdated.mock.calls.length, 1);
+      assert.strictEqual(mockInvalidateStatsCache.mock.calls.length, 0);
     });
   });
 
@@ -442,6 +451,7 @@ describe("match-controller", () => {
       assert.strictEqual(match.winnerId, p1Id);
       assert.strictEqual(match.resultOverrides.length, 1);
       assert.strictEqual(mockEmitMatchUpdated.mock.calls.length, 1);
+      assert.strictEqual(mockInvalidateStatsCache.mock.calls.length, 1);
     });
   });
 
@@ -513,6 +523,7 @@ describe("match-controller", () => {
       assert.strictEqual(match.resultOverrides.length, 1);
       assert.strictEqual(match.resultOverrides[0].reason, "Correcting error");
       assert.strictEqual(mockEmitMatchUpdated.mock.calls.length, 1);
+      assert.strictEqual(mockInvalidateStatsCache.mock.calls.length, 1);
     });
 
     it("should return 400 if winnerId is not a player in the match", async () => {
@@ -660,6 +671,7 @@ describe("match-controller", () => {
       assert.strictEqual(match.status, "completed");
       assert.strictEqual(match.winnerId, p1Id);
       assert.strictEqual(mockEmitMatchUpdated.mock.calls.length, 1);
+      assert.strictEqual(mockInvalidateStatsCache.mock.calls.length, 1);
     });
   });
 
