@@ -39,10 +39,14 @@ import {
   LuHash,
   LuFilePen,
   LuCheck,
+  LuFlaskConical,
 } from "react-icons/lu";
 import { useNavigate } from "react-router-dom";
 import { toaster } from "@/shared/ui/Toaster";
-import { warhammer3Factions } from "@/shared/constants/warhammer3Factions";
+import {
+  warhammer3Factions,
+  warhammer40kFactions,
+} from "@/shared/constants/factions";
 import { Match, Participant, Tournament, statusColorMap } from "./types";
 import MatchesSection from "./MatchesSection";
 import EditParticipantDialog from "./EditParticipantDialog";
@@ -220,6 +224,12 @@ const TournamentDetail: React.FC<Props> = ({
           </HStack>
           <HStack gap={3} color="fg.muted" fontSize="sm" wrap="wrap">
             <Text>{selected.tournamentType}</Text>
+            {selected.enable40kFactions && (
+              <Badge colorPalette="purple" size="xs" variant="subtle">
+                <LuFlaskConical size={9} />
+                40K Beta
+              </Badge>
+            )}
             <Text>·</Text>
             <Text>
               {selected.participants.length}/{selected.playerCount} players
@@ -546,7 +556,10 @@ const TournamentDetail: React.FC<Props> = ({
                     p={2}
                   >
                     <option value="">No Faction</option>
-                    {warhammer3Factions
+                    {(selected.enable40kFactions
+                      ? warhammer40kFactions
+                      : warhammer3Factions
+                    )
                       .filter((f) => !selected.bannedFactions.includes(f))
                       .map((f) => (
                         <option key={f} value={f}>
@@ -836,6 +849,7 @@ const TournamentDetail: React.FC<Props> = ({
         open={editDialogOpen}
         participant={editingParticipant}
         actionLoading={actionLoading}
+        enable40kFactions={selected.enable40kFactions}
         onClose={() => {
           setEditDialogOpen(false);
           setEditingParticipant(null);

@@ -22,5 +22,8 @@
   "devDependencies": {
     "concurrently": "^9.1.2",
     "lodash": "^4.18.1"
+  },
+  "overrides": {
+    "@exodus/bytes": "^1.15.0"
   }
 }

@@ -1,7 +1,13 @@
+import dns from "node:dns";
+
 import mongoose from "mongoose";
 
 // Import configuration which ensures environment variables are loaded via bootstrap.js
 import { mongoUri } from "../config/env.js";
+
+// Node 24 uses the system resolver for SRV lookups; force public DNS so
+// +srv connection strings resolve even when the local resolver blocks them.
+dns.setServers(["8.8.8.8", "8.8.4.4", "1.1.1.1"]);
 
 const connectOptions = {
   dbName: "twt-app",

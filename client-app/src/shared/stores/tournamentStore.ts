@@ -5,7 +5,7 @@ import {
   Participant,
   Round,
 } from "@/features/tournaments/components/bracket/types";
-import { warhammer3Factions } from "../constants/warhammer3Factions";
+import { warhammer3Factions } from "../constants/factions";
 
 // Helper to create default participants
 const createDefaultParticipants = (): Participant[] => [

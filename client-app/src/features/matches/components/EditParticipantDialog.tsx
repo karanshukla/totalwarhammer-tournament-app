@@ -8,13 +8,17 @@ import {
   VStack,
   chakra,
 } from "@chakra-ui/react";
-import { warhammer3Factions } from "@/shared/constants/warhammer3Factions";
+import {
+  warhammer3Factions,
+  warhammer40kFactions,
+} from "@/shared/constants/factions";
 import { Participant } from "./types";
 
 interface Props {
   open: boolean;
   participant: Participant | null;
   actionLoading: boolean;
+  enable40kFactions?: boolean;
   onClose: () => void;
   onParticipantChange: (p: Participant) => void;
   onSave: () => void;
@@ -26,10 +30,15 @@ const EditParticipantDialog: React.FC<Props> = ({
   open,
   participant,
   actionLoading,
+  enable40kFactions = false,
   onClose,
   onParticipantChange,
   onSave,
 }) => {
+  const factionList = enable40kFactions
+    ? warhammer40kFactions
+    : warhammer3Factions;
+
   return (
     <Dialog.Root
       open={open}
@@ -83,7 +92,7 @@ const EditParticipantDialog: React.FC<Props> = ({
                     p={2}
                   >
                     <option value="">No Faction</option>
-                    {warhammer3Factions.map((f) => (
+                    {factionList.map((f) => (
                       <option key={f} value={f}>
                         {f}
                       </option>

@@ -24,11 +24,21 @@ describe("HowItWorksSection", () => {
 
   it("renders all five steps", () => {
     renderSection();
-    expect(screen.getByText(/Register or join as a guest/i)).toBeInTheDocument();
-    expect(screen.getByText(/Create a tournament or get a join code/i)).toBeInTheDocument();
-    expect(screen.getByText(/Invite participants and fill the bracket/i)).toBeInTheDocument();
-    expect(screen.getByText(/Start the tournament and record results/i)).toBeInTheDocument();
-    expect(screen.getByText(/Advance rounds until a winner is crowned/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Register or join as a guest/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/Create a tournament or get a join code/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/Invite participants and fill the bracket/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/Start the tournament and record results/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/Advance rounds until a winner is crowned/i),
+    ).toBeInTheDocument();
   });
 
   it("renders step numbers 1 through 5", () => {
@@ -50,7 +60,9 @@ describe("HowItWorksSection", () => {
 
   it("View Ongoing Tournaments link points to /tournaments", () => {
     renderSection();
-    const link = screen.getByRole("link", { name: /View Ongoing Tournaments/i });
+    const link = screen.getByRole("link", {
+      name: /View Ongoing Tournaments/i,
+    });
     expect(link).toHaveAttribute("href", "/tournaments");
   });
 });

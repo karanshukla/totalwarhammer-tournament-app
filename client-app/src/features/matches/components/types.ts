@@ -1,9 +1,16 @@
+export interface PlayerSlot {
+  participantId: string;
+  name: string;
+  faction: string;
+  isBetaFaction?: boolean;
+}
+
 export interface Match {
   _id: string;
   round: number;
   matchNumber: number;
-  player1: { participantId: string; name: string; faction: string };
-  player2: { participantId: string; name: string; faction: string };
+  player1: PlayerSlot;
+  player2: PlayerSlot;
   winnerId: string | null;
   loserId: string | null;
   status: "pending" | "in_progress" | "completed" | "disputed";
@@ -38,6 +45,7 @@ export interface Tournament {
   playerCount: number;
   tournamentType: string;
   bannedFactions: string[];
+  enable40kFactions: boolean;
   participants: Participant[];
   status: "pending" | "active" | "completed";
   createdAt: string;

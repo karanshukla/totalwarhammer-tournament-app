@@ -2,8 +2,11 @@ import assert from "node:assert";
 import { describe, it } from "node:test";
 
 import {
+  singleElimStart,
   doubleElimStart,
   doubleElimAdvance,
+  roundRobinStart,
+  swissStart,
 } from "../../domain/services/tournament-service.js";
 
 // Simulate completing all pending matches by setting a winner
@@ -186,5 +189,112 @@ describe("doubleElimAdvance", () => {
         }
       }
     }
+  });
+});
+
+describe("isBetaFaction propagation", () => {
+  const tid = "t1";
+  const makePlayers = (n, faction = "Empire") =>
+    Array.from({ length: n }, (_, i) => ({
+      _id: `p${i + 1}`,
+      name: `Player ${i + 1}`,
+      faction,
+    }));
+
+  function allSlots(matches) {
+    return matches.flatMap((m) => [m.player1, m.player2]);
+  }
+
+  function realSlots(matches) {
+    return allSlots(matches).filter((s) => s.name !== "BYE");
+  }
+
+  describe("singleElimStart", () => {
+    it("sets isBetaFaction: false on all slots when enable40kFactions is false", () => {
+      const matches = singleElimStart(tid, makePlayers(4), false);
+      for (const slot of realSlots(matches)) {
+        assert.strictEqual(slot.isBetaFaction, false);
+      }
+    });
+
+    it("sets isBetaFaction: true on all real slots when enable40kFactions is true", () => {
+      const matches = singleElimStart(tid, makePlayers(4), true);
+      for (const slot of realSlots(matches)) {
+        assert.strictEqual(slot.isBetaFaction, true);
+      }
+    });
+
+    it("always sets isBetaFaction: false on BYE slots even when 40k is enabled", () => {
+      const matches = singleElimStart(tid, makePlayers(3), true);
+      const byeSlots = allSlots(matches).filter((s) => s.name === "BYE");
+      assert.ok(byeSlots.length > 0, "Expected at least one BYE slot");
+      for (const slot of byeSlots) {
+        assert.strictEqual(slot.isBetaFaction, false);
+      }
+    });
+
+    it("defaults to false when enable40kFactions is omitted", () => {
+      const matches = singleElimStart(tid, makePlayers(4));
+      for (const slot of realSlots(matches)) {
+        assert.strictEqual(slot.isBetaFaction, false);
+      }
+    });
+  });
+
+  describe("doubleElimStart", () => {
+    it("sets isBetaFaction: true on all real slots when enabled", () => {
+      const matches = doubleElimStart(tid, makePlayers(4), true);
+      for (const slot of realSlots(matches)) {
+        assert.strictEqual(slot.isBetaFaction, true);
+      }
+    });
+
+    it("sets isBetaFaction: false when disabled", () => {
+      const matches = doubleElimStart(tid, makePlayers(4), false);
+      for (const slot of realSlots(matches)) {
+        assert.strictEqual(slot.isBetaFaction, false);
+      }
+    });
+  });
+
+  describe("roundRobinStart", () => {
+    it("sets isBetaFaction: true on all real slots when enabled", () => {
+      const matches = roundRobinStart(tid, makePlayers(4), true);
+      for (const slot of realSlots(matches)) {
+        assert.strictEqual(slot.isBetaFaction, true);
+      }
+    });
+
+    it("sets isBetaFaction: false when disabled", () => {
+      const matches = roundRobinStart(tid, makePlayers(4), false);
+      for (const slot of realSlots(matches)) {
+        assert.strictEqual(slot.isBetaFaction, false);
+      }
+    });
+
+    it("BYE slots have isBetaFaction: false even when 40k is enabled", () => {
+      const matches = roundRobinStart(tid, makePlayers(3), true);
+      const byeSlots = allSlots(matches).filter((s) => s.name === "BYE");
+      assert.ok(byeSlots.length > 0);
+      for (const slot of byeSlots) {
+        assert.strictEqual(slot.isBetaFaction, false);
+      }
+    });
+  });
+
+  describe("swissStart", () => {
+    it("sets isBetaFaction: true on all real slots when enabled", () => {
+      const matches = swissStart(tid, makePlayers(4), true);
+      for (const slot of realSlots(matches)) {
+        assert.strictEqual(slot.isBetaFaction, true);
+      }
+    });
+
+    it("sets isBetaFaction: false when disabled", () => {
+      const matches = swissStart(tid, makePlayers(4), false);
+      for (const slot of realSlots(matches)) {
+        assert.strictEqual(slot.isBetaFaction, false);
+      }
+    });
   });
 });

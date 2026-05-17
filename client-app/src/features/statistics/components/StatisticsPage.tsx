@@ -59,6 +59,7 @@ interface RecentTournament {
 }
 
 interface Stats {
+  cachedAt?: string;
   tournaments: {
     pending: number;
     active: number;
@@ -188,9 +189,26 @@ const StatisticsPage: React.FC = () => {
   return (
     <Container maxW="container.xl" py={8}>
       <VStack gap={8} align="stretch">
-        <Heading as="h1" size="xl">
-          Statistics
-        </Heading>
+        <HStack justify="space-between" align="baseline" wrap="wrap" gap={2}>
+          <Heading as="h1" size="xl">
+            Statistics
+          </Heading>
+          {stats.cachedAt && (
+            <HStack gap={1} color="fg.subtle">
+              <LuClock size={12} />
+              <Text fontSize="xs">
+                Updated{" "}
+                {new Date(stats.cachedAt).toLocaleTimeString("en-GB", {
+                  timeZone: "UTC",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  second: "2-digit",
+                })}{" "}
+                UTC
+              </Text>
+            </HStack>
+          )}
+        </HStack>
 
         {/* Overview cards */}
         <SimpleGrid columns={{ base: 2, md: 4 }} gap={4}>

@@ -22,6 +22,7 @@ const tournamentSchema = new mongoose.Schema({
     ],
   },
   bannedFactions: { type: [String], default: [] },
+  enable40kFactions: { type: Boolean, default: false },
   participants: {
     type: [
       {

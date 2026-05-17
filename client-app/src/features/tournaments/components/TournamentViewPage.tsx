@@ -27,12 +27,16 @@ import {
   LuSwords,
   LuTrophy,
   LuSettings,
+  LuFlaskConical,
 } from "react-icons/lu";
 import { httpClient } from "@/core/api/httpClient";
 import { getSocket } from "@/core/socket/socketClient";
 import { useUserStore } from "@/shared/stores/userStore";
 import { displayName as dn } from "@/shared/utils/displayName";
-import { warhammer3Factions } from "@/shared/constants/warhammer3Factions";
+import {
+  warhammer3Factions,
+  warhammer40kFactions,
+} from "@/shared/constants/factions";
 
 const statusColorMap: Record<string, string> = {
   pending: "yellow",
@@ -71,6 +75,7 @@ interface Tournament {
   playerCount: number;
   tournamentType: string;
   bannedFactions: string[];
+  enable40kFactions: boolean;
   participants: Participant[];
   status: "pending" | "active" | "completed";
   createdAt: string;
@@ -326,6 +331,12 @@ const TournamentViewPage: React.FC = () => {
           </HStack>
           <HStack gap={3} color="fg.muted" fontSize="sm">
             <Text>{tournament.tournamentType}</Text>
+            {tournament.enable40kFactions && (
+              <Badge colorPalette="purple" size="xs" variant="subtle">
+                <LuFlaskConical size={9} />
+                40K Beta
+              </Badge>
+            )}
             <Text>·</Text>
             <Text>
               {tournament.participants.length}/{tournament.playerCount} players
@@ -602,7 +613,10 @@ const TournamentViewPage: React.FC = () => {
                       p={2}
                     >
                       <option value="">No Faction</option>
-                      {warhammer3Factions
+                      {(tournament.enable40kFactions
+                        ? warhammer40kFactions
+                        : warhammer3Factions
+                      )
                         .filter((f) => !tournament.bannedFactions.includes(f))
                         .map((f) => (
                           <option key={f} value={f}>

@@ -5,6 +5,7 @@ const playerSlotSchema = new mongoose.Schema(
     participantId: { type: mongoose.Schema.Types.ObjectId },
     name: { type: String, required: true, trim: true },
     faction: { type: String, default: "" },
+    isBetaFaction: { type: Boolean, default: false },
   },
   { _id: false },
 );

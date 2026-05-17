@@ -9,7 +9,10 @@ import {
   Portal,
 } from "@chakra-ui/react";
 import { Participant } from "./types";
-import { warhammer3Factions } from "@/shared/constants/warhammer3Factions";
+import {
+  warhammer3Factions,
+  warhammer40kFactions,
+} from "@/shared/constants/factions";
 
 interface ParticipantEditDialogProps {
   isOpen: boolean;
@@ -17,6 +20,7 @@ interface ParticipantEditDialogProps {
   participant: Participant | null;
   onParticipantChange: (participant: Participant | null) => void;
   onSave: () => void;
+  enable40kFactions?: boolean;
 }
 
 interface OpenChangeDetails {
@@ -29,11 +33,16 @@ export function ParticipantEditDialog({
   participant,
   onParticipantChange,
   onSave,
+  enable40kFactions = false,
 }: ParticipantEditDialogProps) {
   const cancelRef = React.useRef<HTMLButtonElement>(null);
   const bgColor = "bg.panel";
   const borderColor = "border";
   const inputBgColor = "bg";
+
+  const factionList = enable40kFactions
+    ? warhammer40kFactions
+    : warhammer3Factions;
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (participant) {
@@ -113,7 +122,7 @@ export function ParticipantEditDialog({
                       p={2}
                     >
                       <option value="">Select Faction</option>
-                      {warhammer3Factions.map((faction) => (
+                      {factionList.map((faction) => (
                         <option key={faction} value={faction}>
                           {faction}
                         </option>
@@ -138,7 +147,7 @@ export function ParticipantEditDialog({
                   Cancel
                 </Button>
                 <Button
-                  type="submit" // Changed to type="submit"
+                  type="submit"
                   colorPalette="blue"
                   width={{ base: "full", sm: "auto" }}
                 >

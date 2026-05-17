@@ -2,10 +2,11 @@ import MongoDBStore from "connect-mongodb-session";
 import { RedisStore } from "connect-redis";
 // eslint is complaining about the import above but it is correct
 import session from "express-session";
-import { createClient } from "redis";
 
 import { mongoUri } from "../config/env.js";
 import logger from "../utils/logger.js";
+
+import { getRedisClient } from "./redis-service.js";
 
 /**
  * Configures and returns the appropriate session store based on environment configuration
@@ -15,7 +16,7 @@ import logger from "../utils/logger.js";
 export function configureSessionStore() {
   let sessionStore;
 
-  if (process.env.USE_MONGO_SESSION === "true") {
+  if (process.env.USE_MONGO_SESSION === "true" || !process.env.REDIS_URL) {
     logger.info("Using MongoDB session store");
     const MongoDBSessionStore = MongoDBStore(session);
     sessionStore = new MongoDBSessionStore({
@@ -29,20 +30,9 @@ export function configureSessionStore() {
       logger.error(`MongoDB session store error: ${error.message}`, { error });
     });
   } else {
-    // Initialize Redis client for Redis session store
     logger.info("Using Redis session store");
-    const redisClient = createClient({
-      url: process.env.REDIS_URL,
-    });
-
-    redisClient.connect().catch((err) => {
-      logger.error(`Redis client connection error: ${err.message}`, {
-        error: err,
-      });
-    });
-
     sessionStore = new RedisStore({
-      client: redisClient,
+      client: getRedisClient(),
       prefix: "twt-app-session:",
       ttl: 30 * 24 * 60 * 60, // 30 days (max remember-me lifetime)
     });

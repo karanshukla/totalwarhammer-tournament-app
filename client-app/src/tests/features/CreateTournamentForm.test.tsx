@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom";
@@ -247,6 +247,105 @@ describe("CreateTournamentForm", () => {
   it("does not show toaster initially", () => {
     renderForm();
     expect(mockToaster.create).not.toHaveBeenCalled();
+  });
+
+  describe("40K faction toggle", () => {
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it("shows WH3 factions by default", () => {
+      renderForm();
+      expect(screen.getByText("Empire")).toBeInTheDocument();
+      expect(screen.getByText("Skaven")).toBeInTheDocument();
+      expect(screen.queryByText("Adeptus Astartes")).not.toBeInTheDocument();
+    });
+
+    it("shows 40K factions after clicking the 40K button", async () => {
+      renderForm();
+      fireEvent.click(screen.getByRole("button", { name: "40K" }));
+      await waitFor(() =>
+        expect(screen.getByText("Adeptus Astartes")).toBeInTheDocument(),
+      );
+      expect(screen.queryByText("Empire")).not.toBeInTheDocument();
+    });
+
+    it("switches back to WH3 factions after clicking WH3 button", async () => {
+      renderForm();
+      fireEvent.click(screen.getByRole("button", { name: "40K" }));
+      await waitFor(() =>
+        expect(screen.getByText("Adeptus Astartes")).toBeInTheDocument(),
+      );
+      fireEvent.click(screen.getByRole("button", { name: "WH3" }));
+      await waitFor(() =>
+        expect(screen.getByText("Empire")).toBeInTheDocument(),
+      );
+      expect(screen.queryByText("Adeptus Astartes")).not.toBeInTheDocument();
+    });
+
+    it("does not switch when clicking the already-active mode button", async () => {
+      renderForm();
+      fireEvent.click(screen.getByRole("button", { name: "WH3" }));
+      // Give any potential timer a chance to fire
+      await new Promise((r) => setTimeout(r, 300));
+      expect(screen.getByText("Empire")).toBeInTheDocument();
+      expect(screen.queryByText("Adeptus Astartes")).not.toBeInTheDocument();
+    });
+
+    it("submits with enable40kFactions: true when in 40K mode", async () => {
+      mockPost.mockResolvedValueOnce({
+        success: true,
+        data: { _id: "t1", name: "40K Cup" },
+      });
+
+      renderForm();
+      fireEvent.click(screen.getByRole("button", { name: "40K" }));
+      await waitFor(() =>
+        expect(screen.getByText("Adeptus Astartes")).toBeInTheDocument(),
+      );
+
+      await userEvent.type(
+        screen.getByPlaceholderText("Enter tournament name"),
+        "40K Cup",
+      );
+      fireEvent.submit(
+        screen
+          .getByRole("button", { name: /create tournament/i })
+          .closest("form")!,
+      );
+
+      await waitFor(() => {
+        expect(mockPost).toHaveBeenCalledWith(
+          "/tournament",
+          expect.objectContaining({ enable40kFactions: true }),
+        );
+      });
+    });
+
+    it("submits with enable40kFactions: false by default", async () => {
+      mockPost.mockResolvedValueOnce({
+        success: true,
+        data: { _id: "t1", name: "WH3 Cup" },
+      });
+
+      renderForm();
+      await userEvent.type(
+        screen.getByPlaceholderText("Enter tournament name"),
+        "WH3 Cup",
+      );
+      fireEvent.submit(
+        screen
+          .getByRole("button", { name: /create tournament/i })
+          .closest("form")!,
+      );
+
+      await waitFor(() => {
+        expect(mockPost).toHaveBeenCalledWith(
+          "/tournament",
+          expect.objectContaining({ enable40kFactions: false }),
+        );
+      });
+    });
   });
 
   it("calls toaster for each attempt when form is resubmitted", async () => {

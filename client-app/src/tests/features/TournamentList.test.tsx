@@ -37,6 +37,7 @@ function makeTournament(overrides: Partial<Tournament> = {}): Tournament {
     playerCount: 8,
     tournamentType: "Single Elimination",
     bannedFactions: [],
+    enable40kFactions: false,
     participants: [],
     status: "active",
     createdAt: "2026-01-01",
@@ -45,7 +46,12 @@ function makeTournament(overrides: Partial<Tournament> = {}): Tournament {
   };
 }
 
-function renderList(props: Partial<typeof baseProps> & { tournaments: Tournament[]; statusCounts: typeof emptyStatusCounts }) {
+function renderList(
+  props: Partial<typeof baseProps> & {
+    tournaments: Tournament[];
+    statusCounts: typeof emptyStatusCounts;
+  },
+) {
   return render(
     <BrowserRouter>
       <ChakraProvider value={defaultSystem}>
@@ -58,7 +64,9 @@ function renderList(props: Partial<typeof baseProps> & { tournaments: Tournament
 describe("TournamentList filter buttons", () => {
   it("hides filter buttons when there are no tournaments at all", () => {
     renderList({ tournaments: [], statusCounts: emptyStatusCounts });
-    expect(screen.queryByRole("button", { name: /all/i })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /all/i }),
+    ).not.toBeInTheDocument();
   });
 
   it("shows filter buttons when tournaments exist", () => {
@@ -79,8 +87,12 @@ describe("TournamentList filter buttons", () => {
       total: 0,
     });
     // Check unambiguous filter button names (not "Show all")
-    expect(screen.getByRole("button", { name: /pending/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /completed/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /pending/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /completed/i }),
+    ).toBeInTheDocument();
     // Both the "All" filter button and "Show all" button should be present
     expect(screen.getAllByRole("button", { name: /all/i })).toHaveLength(2);
   });
@@ -94,7 +106,9 @@ describe("TournamentList filter buttons", () => {
       total: 0,
     });
     expect(screen.getByText(/no active tournaments/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /show all/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /show all/i }),
+    ).toBeInTheDocument();
   });
 
   it("calls onStatusFilterChange with 'all' when Show all is clicked", async () => {
@@ -116,7 +130,23 @@ describe("TournamentList filter buttons", () => {
     expect(
       screen.getByText(/haven't created or joined any tournaments/i),
     ).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /show all/i })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /show all/i }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("shows the 40K Beta badge when enable40kFactions is true", () => {
+    const tournaments = [makeTournament({ enable40kFactions: true })];
+    const statusCounts = { all: 1, pending: 0, active: 1, completed: 0 };
+    renderList({ tournaments, statusCounts, total: 1 });
+    expect(screen.getByText(/40k beta/i)).toBeInTheDocument();
+  });
+
+  it("does not show the 40K Beta badge when enable40kFactions is false", () => {
+    const tournaments = [makeTournament({ enable40kFactions: false })];
+    const statusCounts = { all: 1, pending: 0, active: 1, completed: 0 };
+    renderList({ tournaments, statusCounts, total: 1 });
+    expect(screen.queryByText(/40k beta/i)).not.toBeInTheDocument();
   });
 
   it("renders tournament cards when tournaments are present", () => {

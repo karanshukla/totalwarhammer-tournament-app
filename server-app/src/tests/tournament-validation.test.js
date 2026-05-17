@@ -221,4 +221,79 @@ describe("validateCreateTournament", () => {
       assert.strictEqual(result.isEmpty(), true);
     });
   });
+
+  describe("enable40kFactions", () => {
+    it("should pass when enable40kFactions is true", async () => {
+      const result = await runValidation({
+        name: "40K Tournament",
+        playerCount: 8,
+        tournamentType: "Single Elimination",
+        enable40kFactions: true,
+      });
+      assert.strictEqual(result.isEmpty(), true);
+    });
+
+    it("should pass when enable40kFactions is false", async () => {
+      const result = await runValidation({
+        name: "WH3 Tournament",
+        playerCount: 8,
+        tournamentType: "Single Elimination",
+        enable40kFactions: false,
+      });
+      assert.strictEqual(result.isEmpty(), true);
+    });
+
+    it("should pass when enable40kFactions is absent", async () => {
+      const result = await runValidation({
+        name: "Valid Tournament",
+        playerCount: 8,
+        tournamentType: "Single Elimination",
+      });
+      assert.strictEqual(result.isEmpty(), true);
+    });
+
+    it("should fail when enable40kFactions is a non-boolean string", async () => {
+      const result = await runValidation({
+        name: "Valid Tournament",
+        playerCount: 8,
+        tournamentType: "Single Elimination",
+        enable40kFactions: "yes",
+      });
+      assert.ok(result.array().some((e) => e.path === "enable40kFactions"));
+    });
+  });
+
+  describe("bannedFactions with 40k factions", () => {
+    it("should pass with valid 40k faction names in bannedFactions", async () => {
+      const result = await runValidation({
+        name: "40K Tournament",
+        playerCount: 8,
+        tournamentType: "Single Elimination",
+        enable40kFactions: true,
+        bannedFactions: ["Adeptus Astartes", "Drukhari"],
+      });
+      assert.strictEqual(result.isEmpty(), true);
+    });
+
+    it("should pass with modded 40k faction names in bannedFactions", async () => {
+      const result = await runValidation({
+        name: "40K Modded Tournament",
+        playerCount: 8,
+        tournamentType: "Single Elimination",
+        enable40kFactions: true,
+        bannedFactions: ["Death Guard", "Thousand Sons", "Blood Angels"],
+      });
+      assert.strictEqual(result.isEmpty(), true);
+    });
+
+    it("should fail with a faction name that is in neither WH3 nor 40k lists", async () => {
+      const result = await runValidation({
+        name: "Bad Tournament",
+        playerCount: 8,
+        tournamentType: "Single Elimination",
+        bannedFactions: ["Space Communists"],
+      });
+      assert.ok(result.array().some((e) => e.path === "bannedFactions"));
+    });
+  });
 });

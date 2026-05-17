@@ -19,7 +19,9 @@ function renderHero() {
 describe("HeroSection", () => {
   it("renders the app title", () => {
     renderHero();
-    expect(screen.getByRole("heading", { name: /TW Tournament App/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: /TW Tournament App/i }),
+    ).toBeInTheDocument();
   });
 
   it("renders the Total War: Warhammer badge", () => {
@@ -30,7 +32,9 @@ describe("HeroSection", () => {
   it("renders the description text", () => {
     renderHero();
     expect(
-      screen.getByText(/Create custom brackets, participate in Total War Warhammer/i),
+      screen.getByText(
+        /Create custom brackets, participate in Total War Warhammer/i,
+      ),
     ).toBeInTheDocument();
   });
 
@@ -50,7 +54,9 @@ describe("HeroSection", () => {
 
   it("View Ongoing Tournaments link points to /tournaments", () => {
     renderHero();
-    const link = screen.getByRole("link", { name: /View Ongoing Tournaments/i });
+    const link = screen.getByRole("link", {
+      name: /View Ongoing Tournaments/i,
+    });
     expect(link).toHaveAttribute("href", "/tournaments");
   });
 });

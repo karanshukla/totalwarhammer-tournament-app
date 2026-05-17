@@ -297,9 +297,9 @@ export const getUserStats = async (req, res) => {
 
     const factionCounts = {};
     for (const m of allMatches) {
-      const faction =
-        m.player1.name === username ? m.player1.faction : m.player2.faction;
-      if (faction) factionCounts[faction] = (factionCounts[faction] || 0) + 1;
+      const slot = m.player1.name === username ? m.player1 : m.player2;
+      if (slot.faction && !slot.isBetaFaction)
+        factionCounts[slot.faction] = (factionCounts[slot.faction] || 0) + 1;
     }
     const factions = Object.entries(factionCounts)
       .sort((a, b) => b[1] - a[1])

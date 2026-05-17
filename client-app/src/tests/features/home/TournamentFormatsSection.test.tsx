@@ -16,7 +16,9 @@ function renderFormats() {
 describe("TournamentFormatsSection", () => {
   it("renders the section heading", () => {
     renderFormats();
-    expect(screen.getByRole("heading", { name: /Tournament formats/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: /Tournament formats/i }),
+    ).toBeInTheDocument();
   });
 
   it("renders all four format names", () => {
@@ -30,8 +32,12 @@ describe("TournamentFormatsSection", () => {
   it("renders format descriptions", () => {
     renderFormats();
     expect(screen.getByText(/Classic knockout format/i)).toBeInTheDocument();
-    expect(screen.getByText(/Two chances to prove yourself/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Two chances to prove yourself/i),
+    ).toBeInTheDocument();
     expect(screen.getByText(/Everyone plays everyone/i)).toBeInTheDocument();
-    expect(screen.getByText(/Paired by performance each round/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Paired by performance each round/i),
+    ).toBeInTheDocument();
   });
 });
