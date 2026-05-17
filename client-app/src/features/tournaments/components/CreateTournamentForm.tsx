@@ -211,13 +211,17 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
 
             <Field.Root>
               <Field.Label>Banned Factions</Field.Label>
-              <SimpleGrid columns={{ base: 1, md: 2 }} gap={6}>
-                <VStack gap={2} align="stretch">
+              <SimpleGrid columns={{ base: 1, md: 2 }} gap={6} w="full">
+                <VStack gap={2} align="stretch" minW={0} overflow="hidden">
                   <Box
                     opacity={factionListVisible ? 1 : 0}
                     transition="opacity 0.18s ease"
+                    maxH="320px"
+                    overflowY="auto"
+                    overflowX="hidden"
+                    pr={1}
                   >
-                    <SimpleGrid columns={{ base: 1, sm: 2, lg: 3 }} gap={2}>
+                    <SimpleGrid columns={2} gap={2}>
                       {activeFactionList.map((faction) => (
                         <Flex
                           key={faction}
@@ -228,6 +232,7 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
                           borderWidth="1px"
                           borderColor="border"
                           cursor="pointer"
+                          minW={0}
                           _hover={{ bg: "bg.muted" }}
                           transition="background 0.2s"
                           onClick={() => {
@@ -261,7 +266,12 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
                             width={16}
                             height={16}
                           />
-                          <Text fontSize="sm" userSelect="none">
+                          <Text
+                            fontSize="sm"
+                            userSelect="none"
+                            minW={0}
+                            wordBreak="break-word"
+                          >
                             {faction}
                           </Text>
                         </Flex>
@@ -273,7 +283,7 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
                   </Text>
                 </VStack>
 
-                <Flex direction="column" gap={3} flex={1}>
+                <Flex direction="column" gap={3} flex={1} minW={0}>
                   {(() => {
                     const n = formData.playerCount;
                     const type = formData.tournamentType;
@@ -415,14 +425,14 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
                               </Badge>
                             </HStack>
                             <HStack gap={1}>
-                              <Box
-                                as="button"
+                              <chakra.button
                                 type="button"
-                                py={0.5}
-                                px={2}
+                                py={1.5}
+                                px={4}
                                 borderRadius="sm"
                                 borderWidth={1}
-                                fontSize="xs"
+                                fontSize="sm"
+                                fontWeight="medium"
                                 cursor="pointer"
                                 transition="all 0.15s"
                                 onClick={() =>
@@ -447,15 +457,15 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
                                 colorPalette="blue"
                               >
                                 WH3
-                              </Box>
-                              <Box
-                                as="button"
+                              </chakra.button>
+                              <chakra.button
                                 type="button"
-                                py={0.5}
-                                px={2}
+                                py={1.5}
+                                px={4}
                                 borderRadius="sm"
                                 borderWidth={1}
-                                fontSize="xs"
+                                fontSize="sm"
+                                fontWeight="medium"
                                 cursor="pointer"
                                 transition="all 0.15s"
                                 onClick={() =>
@@ -478,7 +488,7 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
                                 colorPalette="purple"
                               >
                                 40K
-                              </Box>
+                              </chakra.button>
                             </HStack>
                           </HStack>
                           {isGuest && (

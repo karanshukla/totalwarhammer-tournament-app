@@ -10,8 +10,9 @@ mock.module("../infrastructure/utils/logger.js", {
   defaultExport: { error: mock.fn(), info: mock.fn() },
 });
 
-const { getStats } =
-  await import("../interfaces/http/controllers/stats-controller.js");
+const { getStats } = await import(
+  "../interfaces/http/controllers/stats-controller.js"
+);
 
 function mockRes() {
   const res = {};
