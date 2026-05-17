@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   Button,
   Text,
@@ -53,6 +53,7 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
   });
   const [isLoading, setIsLoading] = useState(false);
   const [factionListVisible, setFactionListVisible] = useState(true);
+  const lastClickedFactionIndexRef = useRef<number | null>(null);
   const navigate = useNavigate();
 
   const activeFactionList = formData.enable40kFactions
@@ -79,6 +80,7 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
   };
 
   const toggle40k = () => {
+    lastClickedFactionIndexRef.current = null;
     setFormData((prev) => ({
       ...prev,
       enable40kFactions: !prev.enable40kFactions,
@@ -222,7 +224,7 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
                     pr={1}
                   >
                     <SimpleGrid columns={2} gap={2}>
-                      {activeFactionList.map((faction) => (
+                      {activeFactionList.map((faction, factionIndex) => (
                         <Flex
                           key={faction}
                           align="center"
@@ -233,19 +235,58 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
                           borderColor="border"
                           cursor="pointer"
                           minW={0}
+                          userSelect="none"
                           _hover={{ bg: "bg.muted" }}
                           transition="background 0.2s"
-                          onClick={() => {
-                            const isChecked =
-                              !formData.bannedFactions.includes(faction);
-                            setFormData((prev) => ({
-                              ...prev,
-                              bannedFactions: isChecked
-                                ? [...prev.bannedFactions, faction]
-                                : prev.bannedFactions.filter(
-                                    (f) => f !== faction,
-                                  ),
-                            }));
+                          onClick={(e) => {
+                            if (
+                              e.shiftKey &&
+                              lastClickedFactionIndexRef.current !== null
+                            ) {
+                              const start = Math.min(
+                                lastClickedFactionIndexRef.current,
+                                factionIndex,
+                              );
+                              const end = Math.max(
+                                lastClickedFactionIndexRef.current,
+                                factionIndex,
+                              );
+                              const rangeFactionsToSelect =
+                                activeFactionList.slice(start, end + 1);
+                              const isAdding =
+                                !formData.bannedFactions.includes(faction);
+                              setFormData((prev) => {
+                                if (isAdding) {
+                                  const newBanned = new Set([
+                                    ...prev.bannedFactions,
+                                    ...rangeFactionsToSelect,
+                                  ]);
+                                  return {
+                                    ...prev,
+                                    bannedFactions: Array.from(newBanned),
+                                  };
+                                } else {
+                                  return {
+                                    ...prev,
+                                    bannedFactions: prev.bannedFactions.filter(
+                                      (f) => !rangeFactionsToSelect.includes(f),
+                                    ),
+                                  };
+                                }
+                              });
+                            } else {
+                              const isChecked =
+                                !formData.bannedFactions.includes(faction);
+                              setFormData((prev) => ({
+                                ...prev,
+                                bannedFactions: isChecked
+                                  ? [...prev.bannedFactions, faction]
+                                  : prev.bannedFactions.filter(
+                                      (f) => f !== faction,
+                                    ),
+                              }));
+                              lastClickedFactionIndexRef.current = factionIndex;
+                            }
                           }}
                         >
                           <input

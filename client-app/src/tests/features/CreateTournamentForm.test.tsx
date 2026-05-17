@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom";
 import React from "react";
@@ -345,6 +345,85 @@ describe("CreateTournamentForm", () => {
           expect.objectContaining({ enable40kFactions: false }),
         );
       });
+    });
+  });
+
+  describe("banned faction shift-select", () => {
+    const getFactionCheckbox = (name: string) =>
+      within(screen.getByText(name).parentElement!).getByRole("checkbox");
+
+    it("shift-clicking after an initial click selects the full range", () => {
+      renderForm();
+
+      // Click Empire (index 0) — sets anchor
+      fireEvent.click(screen.getByText("Empire"));
+
+      // Shift-click Greenskins (index 2) — selects [0..2]
+      fireEvent.click(screen.getByText("Greenskins"), { shiftKey: true });
+
+      expect(getFactionCheckbox("Empire")).toBeChecked();
+      expect(getFactionCheckbox("Dwarfs")).toBeChecked();
+      expect(getFactionCheckbox("Greenskins")).toBeChecked();
+      expect(getFactionCheckbox("Vampire Counts")).not.toBeChecked();
+    });
+
+    it("shift-click works backwards (anchor index > current index)", () => {
+      renderForm();
+
+      // Click Greenskins (index 2) — sets anchor
+      fireEvent.click(screen.getByText("Greenskins"));
+
+      // Shift-click Empire (index 0) — selects [0..2]
+      fireEvent.click(screen.getByText("Empire"), { shiftKey: true });
+
+      expect(getFactionCheckbox("Empire")).toBeChecked();
+      expect(getFactionCheckbox("Dwarfs")).toBeChecked();
+      expect(getFactionCheckbox("Greenskins")).toBeChecked();
+      expect(getFactionCheckbox("Vampire Counts")).not.toBeChecked();
+    });
+
+    it("shift-click with no prior anchor acts as a plain click", () => {
+      renderForm();
+
+      fireEvent.click(screen.getByText("Empire"), { shiftKey: true });
+
+      expect(getFactionCheckbox("Empire")).toBeChecked();
+      expect(getFactionCheckbox("Dwarfs")).not.toBeChecked();
+    });
+
+    it("shift-click deselects the range when the clicked faction is already selected", () => {
+      renderForm();
+
+      // Select [0..2]
+      fireEvent.click(screen.getByText("Empire"));
+      fireEvent.click(screen.getByText("Greenskins"), { shiftKey: true });
+
+      // Reset anchor to Empire, then deselect range via shift-click on Greenskins
+      fireEvent.click(screen.getByText("Empire"));
+      fireEvent.click(screen.getByText("Greenskins"), { shiftKey: true });
+
+      expect(getFactionCheckbox("Empire")).not.toBeChecked();
+      expect(getFactionCheckbox("Dwarfs")).not.toBeChecked();
+      expect(getFactionCheckbox("Greenskins")).not.toBeChecked();
+    });
+
+    it("switching game mode resets the anchor so next shift-click is a plain click", async () => {
+      renderForm();
+
+      // Click Empire in WH3 to set anchor
+      fireEvent.click(screen.getByText("Empire"));
+
+      // Switch to 40K — anchor should reset
+      fireEvent.click(screen.getByRole("button", { name: "40K" }));
+      await waitFor(() =>
+        expect(screen.getByText("Adeptus Astartes")).toBeInTheDocument(),
+      );
+
+      // Shift-click Heretic Astartes (index 1): no anchor, so only it is selected
+      fireEvent.click(screen.getByText("Heretic Astartes"), { shiftKey: true });
+
+      expect(getFactionCheckbox("Heretic Astartes")).toBeChecked();
+      expect(getFactionCheckbox("Adeptus Astartes")).not.toBeChecked();
     });
   });
 
