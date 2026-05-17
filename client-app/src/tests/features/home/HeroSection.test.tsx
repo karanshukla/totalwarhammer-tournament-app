@@ -1,10 +1,16 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import React from "react";
 import { ChakraProvider, defaultSystem } from "@chakra-ui/react";
 import { MemoryRouter } from "react-router-dom";
 import HeroSection from "@/features/home/components/HeroSection";
+
+const mockUseUserStore = vi.fn();
+
+vi.mock("@/shared/stores/userStore", () => ({
+  useUserStore: () => mockUseUserStore(),
+}));
 
 function renderHero() {
   return render(
@@ -17,6 +23,12 @@ function renderHero() {
 }
 
 describe("HeroSection", () => {
+  beforeEach(() => {
+    mockUseUserStore.mockReturnValue({
+      user: { isAuthenticated: false, isGuest: false },
+    });
+  });
+
   it("renders the app title", () => {
     renderHero();
     expect(
@@ -45,11 +57,31 @@ describe("HeroSection", () => {
     ).toBeInTheDocument();
   });
 
-  it("renders the Create Account button", () => {
+  it("renders the Create Account button for unauthenticated non-guest users", () => {
     renderHero();
     expect(
       screen.getByRole("button", { name: /Create Account/i }),
     ).toBeInTheDocument();
+  });
+
+  it("does not render the Create Account button for authenticated users", () => {
+    mockUseUserStore.mockReturnValue({
+      user: { isAuthenticated: true, isGuest: false },
+    });
+    renderHero();
+    expect(
+      screen.queryByRole("button", { name: /Create Account/i }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("does not render the Create Account button for guest users", () => {
+    mockUseUserStore.mockReturnValue({
+      user: { isAuthenticated: false, isGuest: true },
+    });
+    renderHero();
+    expect(
+      screen.queryByRole("button", { name: /Create Account/i }),
+    ).not.toBeInTheDocument();
   });
 
   it("View Ongoing Tournaments link points to /tournaments", () => {
