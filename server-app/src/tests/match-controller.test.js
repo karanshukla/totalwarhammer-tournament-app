@@ -541,6 +541,51 @@ describe("match-controller", () => {
       await overrideResult(req, res);
       assert.strictEqual(res.status.mock.calls[0].arguments[0], 400);
     });
+
+    it("should override result on a pending match before voting starts", async () => {
+      const creatorId = "cccccccccccccccccccccccc";
+      const match = makeCompletedMatch(creatorId);
+      match.status = "pending";
+      match.winnerId = null;
+      match.completedAt = undefined;
+      const p1Id = match.player1.participantId;
+      mockMatchFindById.mock.mockImplementation(() => ({
+        populate: async () => match,
+      }));
+      const req = mockReq({
+        params: { id: "m1" },
+        body: { winnerId: p1Id, reason: "Admin decision" },
+        user: { id: creatorId },
+      });
+      const res = mockRes();
+      await overrideResult(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
+      assert.strictEqual(match.status, "completed");
+      assert.strictEqual(match.winnerId, p1Id);
+      assert.strictEqual(match.resultOverrides.length, 1);
+    });
+
+    it("should override result on an in_progress match during voting", async () => {
+      const creatorId = "cccccccccccccccccccccccc";
+      const match = makeCompletedMatch(creatorId);
+      match.status = "in_progress";
+      match.winnerId = null;
+      const p2Id = match.player2.participantId;
+      mockMatchFindById.mock.mockImplementation(() => ({
+        populate: async () => match,
+      }));
+      const req = mockReq({
+        params: { id: "m1" },
+        body: { winnerId: p2Id, reason: "Override during play" },
+        user: { id: creatorId },
+      });
+      const res = mockRes();
+      await overrideResult(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
+      assert.strictEqual(match.status, "completed");
+      assert.strictEqual(match.winnerId, p2Id);
+      assert.strictEqual(match.resultOverrides.length, 1);
+    });
   });
 
   // ─── recordResult ──────────────────────────────────────────────────────────
