@@ -46,6 +46,7 @@ const { doubleCsrfProtection, generateCsrfToken, invalidCsrfTokenError } =
     ignoreCsrfSizeCheck: true,
   });
 
+/** @type {import('express').RequestHandler} */
 const csrfPrerequisiteCheck = (req, res, next) => {
   if (!req.session) {
     logger.warn("CSRF: No session object found in request");
@@ -54,6 +55,7 @@ const csrfPrerequisiteCheck = (req, res, next) => {
 };
 
 // Enhanced error handling middleware for CSRF errors
+/** @type {import('express').ErrorRequestHandler} */
 const csrfErrorHandler = (err, req, res, next) => {
   // Skip CSRF validation for preflight OPTIONS requests
   if (req.method === "OPTIONS") {

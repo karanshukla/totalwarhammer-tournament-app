@@ -9,6 +9,7 @@ const VALID_TYPES = [
   "Swiss System",
 ];
 
+/** @type {import('express-validator').ValidationChain[]} */
 export const validateCreateTournament = [
   body("name")
     .trim()

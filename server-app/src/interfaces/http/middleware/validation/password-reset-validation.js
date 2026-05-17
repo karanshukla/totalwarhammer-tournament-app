@@ -1,5 +1,6 @@
 import { body } from "express-validator";
 
+/** @type {import('express-validator').ValidationChain[]} */
 export const validatePasswordResetEmail = [
   body("email")
     .trim()
@@ -10,6 +11,7 @@ export const validatePasswordResetEmail = [
     .normalizeEmail(),
 ];
 
+/** @type {import('express-validator').ValidationChain[]} */
 export const validateResetToken = [
   body("token")
     .notEmpty()
@@ -20,6 +22,7 @@ export const validateResetToken = [
     .withMessage("Invalid token format"),
 ];
 
+/** @type {import('express-validator').ValidationChain[]} */
 export const validateResetPassword = [
   body("token")
     .notEmpty()

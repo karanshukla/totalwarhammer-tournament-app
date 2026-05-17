@@ -1,7 +1,7 @@
 import { getGlobalStats } from "../../../infrastructure/services/stats-service.js";
 import logger from "../../../infrastructure/utils/logger.js";
 
-// GET /stats
+/** @type {import('express').RequestHandler} */
 export const getStats = async (_req, res) => {
   try {
     const data = await getGlobalStats();

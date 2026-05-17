@@ -1,5 +1,6 @@
 import { body, query } from "express-validator";
 
+/** @type {import('express-validator').ValidationChain[]} */
 export const validateUserExists = [
   query("identifier")
     .trim()
@@ -10,6 +11,7 @@ export const validateUserExists = [
     .escape(),
 ];
 
+/** @type {import('express-validator').ValidationChain[]} */
 export const validateUserRegistration = [
   body("username")
     .trim()
@@ -38,6 +40,7 @@ export const validateUserRegistration = [
     .withMessage("Password must be at least 8 characters long"),
 ];
 
+/** @type {import('express-validator').ValidationChain[]} */
 export const validateGuestUsername = [
   body("username")
     .trim()
@@ -52,6 +55,7 @@ export const validateGuestUsername = [
     .escape(),
 ];
 
+/** @type {import('express-validator').ValidationChain[]} */
 export const validateUpdateUsername = [
   body("username")
     .trim()
@@ -66,6 +70,7 @@ export const validateUpdateUsername = [
     .escape(),
 ];
 
+/** @type {import('express-validator').ValidationChain[]} */
 export const validateUpdatePassword = [
   body("currentPassword")
     .notEmpty()

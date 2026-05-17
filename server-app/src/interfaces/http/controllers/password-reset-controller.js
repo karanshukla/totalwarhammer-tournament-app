@@ -8,6 +8,7 @@ import EmailService from "../../../infrastructure/services/email-service.js";
 
 const emailService = new EmailService();
 
+/** @type {import('express').RequestHandler} */
 export const sendPasswordResetEmail = async (req, res) => {
   try {
     const { email } = req.body;
@@ -49,6 +50,7 @@ export const sendPasswordResetEmail = async (req, res) => {
   }
 };
 
+/** @type {import('express').RequestHandler} */
 export const verifyResetToken = async (req, res) => {
   try {
     const { token } = req.body;
@@ -86,6 +88,7 @@ export const verifyResetToken = async (req, res) => {
   }
 };
 
+/** @type {import('express').RequestHandler} */
 export const resetPassword = async (req, res) => {
   try {
     const { token, newPassword } = req.body;

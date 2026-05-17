@@ -1,5 +1,6 @@
 import { body } from "express-validator";
 
+/** @type {import('express-validator').ValidationChain[]} */
 export const validateLogin = [
   body("identifier")
     .trim()
@@ -30,6 +31,7 @@ export const validateLogin = [
     .withMessage("RememberMe must be a boolean"),
 ];
 
+/** @type {import('express-validator').ValidationChain[]} */
 export const validateToken = [
   body("grant_type")
     .notEmpty()
