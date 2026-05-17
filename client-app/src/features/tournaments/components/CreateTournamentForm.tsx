@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState } from "react";
 import {
   Button,
   Text,
@@ -13,7 +13,6 @@ import {
   Box,
   HStack,
   Badge,
-  CheckboxCard,
 } from "@chakra-ui/react";
 import {
   LuTriangleAlert,
@@ -54,7 +53,6 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
   });
   const [isLoading, setIsLoading] = useState(false);
   const [factionListVisible, setFactionListVisible] = useState(true);
-  const lastClickedFactionIndexRef = useRef<number | null>(null);
   const navigate = useNavigate();
 
   const activeFactionList = formData.enable40kFactions
@@ -81,7 +79,6 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
   };
 
   const toggle40k = () => {
-    lastClickedFactionIndexRef.current = null;
     setFormData((prev) => ({
       ...prev,
       enable40kFactions: !prev.enable40kFactions,
@@ -225,81 +222,64 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
                     pr={1}
                   >
                     <SimpleGrid columns={2} gap={2}>
-                      {activeFactionList.map((faction, factionIndex) => (
-                        <CheckboxCard.Root
+                      {activeFactionList.map((faction) => (
+                        <Flex
                           key={faction}
-                          checked={formData.bannedFactions.includes(faction)}
-                          onCheckedChange={({ checked }) => {
+                          align="center"
+                          gap={2}
+                          p={2}
+                          borderRadius="md"
+                          borderWidth="1px"
+                          borderColor="border"
+                          cursor="pointer"
+                          minW={0}
+                          _hover={{ bg: "bg.muted" }}
+                          transition="background 0.2s"
+                          onClick={() => {
+                            const isChecked =
+                              !formData.bannedFactions.includes(faction);
                             setFormData((prev) => ({
                               ...prev,
-                              bannedFactions: checked
+                              bannedFactions: isChecked
                                 ? [...prev.bannedFactions, faction]
                                 : prev.bannedFactions.filter(
                                     (f) => f !== faction,
                                   ),
                             }));
-                            lastClickedFactionIndexRef.current = factionIndex;
-                          }}
-                          cursor="pointer"
-                          userSelect="none"
-                          onClick={(e) => {
-                            if (
-                              e.shiftKey &&
-                              lastClickedFactionIndexRef.current !== null
-                            ) {
-                              e.preventDefault();
-                              const start = Math.min(
-                                lastClickedFactionIndexRef.current,
-                                factionIndex,
-                              );
-                              const end = Math.max(
-                                lastClickedFactionIndexRef.current,
-                                factionIndex,
-                              );
-                              const rangeFactionsToSelect =
-                                activeFactionList.slice(start, end + 1);
-                              const isAdding =
-                                !formData.bannedFactions.includes(faction);
-                              setFormData((prev) => {
-                                if (isAdding) {
-                                  const newBanned = new Set([
-                                    ...prev.bannedFactions,
-                                    ...rangeFactionsToSelect,
-                                  ]);
-                                  return {
-                                    ...prev,
-                                    bannedFactions: Array.from(newBanned),
-                                  };
-                                } else {
-                                  return {
-                                    ...prev,
-                                    bannedFactions: prev.bannedFactions.filter(
-                                      (f) => !rangeFactionsToSelect.includes(f),
-                                    ),
-                                  };
-                                }
-                              });
-                            }
-                            // non-shift clicks: onCheckedChange handles state + anchor
                           }}
                         >
-                          <CheckboxCard.HiddenInput />
-                          <CheckboxCard.Control>
-                            <CheckboxCard.Indicator />
-                            <CheckboxCard.Label
-                              fontSize="sm"
-                              minW={0}
-                              wordBreak="break-word"
-                            >
-                              {faction}
-                            </CheckboxCard.Label>
-                          </CheckboxCard.Control>
-                        </CheckboxCard.Root>
+                          <input
+                            type="checkbox"
+                            value={faction}
+                            checked={formData.bannedFactions.includes(faction)}
+                            onChange={(e) => {
+                              const isChecked = e.target.checked;
+                              setFormData((prev) => ({
+                                ...prev,
+                                bannedFactions: isChecked
+                                  ? [...prev.bannedFactions, faction]
+                                  : prev.bannedFactions.filter(
+                                      (f) => f !== faction,
+                                    ),
+                              }));
+                            }}
+                            width={16}
+                            height={16}
+                          />
+                          <Text
+                            fontSize="sm"
+                            userSelect="none"
+                            minW={0}
+                            wordBreak="break-word"
+                          >
+                            {faction}
+                          </Text>
+                        </Flex>
                       ))}
                     </SimpleGrid>
                   </Box>
                   <Text color="fg.muted" fontSize="sm">
-                    You can bulk select factions with the Shift key!
+                    Select factions that will be banned in this tournament.
                   </Text>
                 </VStack>
 

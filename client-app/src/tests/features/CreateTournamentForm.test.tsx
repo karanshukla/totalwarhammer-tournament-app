@@ -1,11 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import {
-  render,
-  screen,
-  fireEvent,
-  waitFor,
-  within,
-} from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom";
 import React from "react";
@@ -356,20 +350,77 @@ describe("CreateTournamentForm", () => {
 
   describe("banned faction shift-select", () => {
     const getFactionCheckbox = (name: string) => {
-      const label = screen.getByText(name).closest("label");
-      return (label ??
-        screen.getByText(name).closest("[data-scope]"))!.querySelector(
-        "input",
-      ) as HTMLInputElement;
+      const root =
+        screen.getByText(name).closest("label") ??
+        screen.getByText(name).closest("[data-scope]");
+      return root!.querySelector("input") as HTMLInputElement;
+    };
+
+    const getFactionCardRoot = (name: string) =>
+      (screen.getByText(name).closest("label") ??
+        screen.getByText(name).closest("[data-scope]")) as HTMLElement;
+
+    const shiftClick = (el: HTMLElement) => {
+      fireEvent.keyDown(document, { key: "Shift" });
+      fireEvent.click(el);
+      fireEvent.keyUp(document, { key: "Shift" });
     };
 
     it("shift-click with no prior anchor acts as a plain click", () => {
       renderForm();
 
-      fireEvent.click(screen.getByText("Empire"), { shiftKey: true });
+      shiftClick(screen.getByText("Empire"));
 
       expect(getFactionCheckbox("Empire")).toBeChecked();
       expect(getFactionCheckbox("Dwarfs")).not.toBeChecked();
+    });
+
+    it("shift-clicking after an initial click selects the full range", () => {
+      renderForm();
+
+      fireEvent.click(screen.getByText("Empire"));
+      shiftClick(screen.getByText("Greenskins"));
+
+      expect(getFactionCardRoot("Empire")).toHaveAttribute(
+        "data-state",
+        "checked",
+      );
+      expect(getFactionCardRoot("Dwarfs")).toHaveAttribute(
+        "data-state",
+        "checked",
+      );
+      expect(getFactionCardRoot("Greenskins")).toHaveAttribute(
+        "data-state",
+        "checked",
+      );
+      expect(getFactionCardRoot("Vampire Counts")).not.toHaveAttribute(
+        "data-state",
+        "checked",
+      );
+    });
+
+    it("shift-click works backwards (anchor index > current index)", () => {
+      renderForm();
+
+      fireEvent.click(screen.getByText("Greenskins"));
+      shiftClick(screen.getByText("Empire"));
+
+      expect(getFactionCardRoot("Empire")).toHaveAttribute(
+        "data-state",
+        "checked",
+      );
+      expect(getFactionCardRoot("Dwarfs")).toHaveAttribute(
+        "data-state",
+        "checked",
+      );
+      expect(getFactionCardRoot("Greenskins")).toHaveAttribute(
+        "data-state",
+        "checked",
+      );
+      expect(getFactionCardRoot("Vampire Counts")).not.toHaveAttribute(
+        "data-state",
+        "checked",
+      );
     });
 
     it("shift-click deselects the range when the clicked faction is already selected", () => {
@@ -377,15 +428,37 @@ describe("CreateTournamentForm", () => {
 
       // Select [0..2]
       fireEvent.click(screen.getByText("Empire"));
-      fireEvent.click(screen.getByText("Greenskins"), { shiftKey: true });
+      shiftClick(screen.getByText("Greenskins"));
 
-      // Reset anchor to Empire, then deselect range via shift-click on Greenskins
+      // Anchor at Empire, shift-deselect through Greenskins
       fireEvent.click(screen.getByText("Empire"));
-      fireEvent.click(screen.getByText("Greenskins"), { shiftKey: true });
+      shiftClick(screen.getByText("Greenskins"));
 
       expect(getFactionCheckbox("Empire")).not.toBeChecked();
       expect(getFactionCheckbox("Dwarfs")).not.toBeChecked();
       expect(getFactionCheckbox("Greenskins")).not.toBeChecked();
+    });
+
+    it("switching game mode resets the anchor so next shift-click is a plain click", async () => {
+      renderForm();
+
+      fireEvent.click(screen.getByText("Empire"));
+
+      fireEvent.click(screen.getByRole("button", { name: "40K" }));
+      await waitFor(() =>
+        expect(screen.getByText("Adeptus Astartes")).toBeInTheDocument(),
+      );
+
+      shiftClick(screen.getByText("Heretic Astartes"));
+
+      expect(getFactionCardRoot("Heretic Astartes")).toHaveAttribute(
+        "data-state",
+        "checked",
+      );
+      expect(getFactionCardRoot("Adeptus Astartes")).not.toHaveAttribute(
+        "data-state",
+        "checked",
+      );
     });
   });
 
