@@ -260,7 +260,16 @@ const TournamentViewPage: React.FC = () => {
   return (
     <Container maxW="container.xl" py={8}>
       {/* Back */}
-      <Button variant="ghost" size="sm" mb={6} onClick={() => navigate(-1)}>
+      <Button
+        variant="ghost"
+        size="sm"
+        mb={6}
+        onClick={() =>
+          isParticipant || isOwner
+            ? navigate(`/matches#${tournament._id}`)
+            : navigate(-1)
+        }
+      >
         <LuChevronLeft /> Back
       </Button>
 
