@@ -184,7 +184,7 @@ export const updateUsername = async (req, res) => {
 
     const updatedUser = await User.findByIdAndUpdate(
       userId,
-      { $set: { username: { $eq: username } } },
+      { $set: { username } },
       { new: true },
     );
 
@@ -253,7 +253,7 @@ export const deleteAccount = async (req, res) => {
       });
     });
 
-    res.clearCookie("connect.sid");
+    res.clearCookie("sid");
     return res
       .status(200)
       .json({ success: true, message: "Account deleted successfully" });
