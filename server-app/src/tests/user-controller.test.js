@@ -159,6 +159,23 @@ describe("user-controller", () => {
         "new",
       );
     });
+
+    it("should pass a plain string value to $set, not a query operator", async () => {
+      mockUserFindOne.mock.mockImplementation(() => null);
+      let capturedUpdate;
+      mockUserFindByIdAndUpdate.mock.mockImplementation(async (_id, update) => {
+        capturedUpdate = update;
+        return { id: "u1", username: "newname", email: "e@t.com" };
+      });
+      const req = mockReq({
+        body: { username: "newname" },
+        session: { user: {}, save: mock.fn((cb) => cb()) },
+      });
+      const res = mockRes();
+      await updateUsername(req, res);
+      assert.strictEqual(typeof capturedUpdate.$set.username, "string");
+      assert.strictEqual(capturedUpdate.$set.username, "newname");
+    });
   });
 
   describe("updatePassword", () => {
@@ -233,6 +250,18 @@ describe("user-controller", () => {
       await deleteAccount(req, res);
       assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
       assert.strictEqual(res.json.mock.calls[0].arguments[0].success, true);
+    });
+
+    it("should clear the sid cookie (not connect.sid)", async () => {
+      mockUserFindByIdAndUpdate.mock.mockImplementation(async () => ({
+        id: "u1",
+      }));
+      const req = mockReq({
+        session: { destroy: mock.fn((cb) => cb()) },
+      });
+      const res = mockRes();
+      await deleteAccount(req, res);
+      assert.strictEqual(res.clearCookie.mock.calls[0].arguments[0], "sid");
     });
   });
 
