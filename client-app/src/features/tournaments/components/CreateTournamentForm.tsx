@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Button,
   Text,
@@ -53,11 +53,28 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
   });
   const [isLoading, setIsLoading] = useState(false);
   const [factionListVisible, setFactionListVisible] = useState(true);
+  const [isShiftPressed, setIsShiftPressed] = useState(false);
+  const [shiftAnchor, setShiftAnchor] = useState<number | null>(null);
   const navigate = useNavigate();
 
   const activeFactionList = formData.enable40kFactions
     ? warhammer40kFactions
     : warhammer3Factions;
+
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Shift") setIsShiftPressed(true);
+    };
+    const onKeyUp = (e: KeyboardEvent) => {
+      if (e.key === "Shift") setIsShiftPressed(false);
+    };
+    document.addEventListener("keydown", onKeyDown);
+    document.addEventListener("keyup", onKeyUp);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      document.removeEventListener("keyup", onKeyUp);
+    };
+  }, []);
 
   const handleToggle40k = () => {
     setFactionListVisible(false);
@@ -65,6 +82,32 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
       toggle40k();
       setFactionListVisible(true);
     }, 180);
+  };
+
+  const handleFactionClick = (faction: string) => {
+    const idx = activeFactionList.indexOf(faction);
+    if (isShiftPressed && shiftAnchor !== null) {
+      const start = Math.min(shiftAnchor, idx);
+      const end = Math.max(shiftAnchor, idx);
+      const range = activeFactionList.slice(start, end + 1);
+      const isTargetChecked = formData.bannedFactions.includes(faction);
+      setFormData((prev) => ({
+        ...prev,
+        bannedFactions: isTargetChecked
+          ? prev.bannedFactions.filter((f) => !range.includes(f))
+          : [...new Set([...prev.bannedFactions, ...range])],
+      }));
+      setShiftAnchor(idx);
+    } else {
+      const isChecked = !formData.bannedFactions.includes(faction);
+      setFormData((prev) => ({
+        ...prev,
+        bannedFactions: isChecked
+          ? [...prev.bannedFactions, faction]
+          : prev.bannedFactions.filter((f) => f !== faction),
+      }));
+      setShiftAnchor(idx);
+    }
   };
 
   const handleInputChange = (
@@ -79,6 +122,7 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
   };
 
   const toggle40k = () => {
+    setShiftAnchor(null);
     setFormData((prev) => ({
       ...prev,
       enable40kFactions: !prev.enable40kFactions,
@@ -222,64 +266,49 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
                     pr={1}
                   >
                     <SimpleGrid columns={2} gap={2}>
-                      {activeFactionList.map((faction) => (
-                        <Flex
-                          key={faction}
-                          align="center"
-                          gap={2}
-                          p={2}
-                          borderRadius="md"
-                          borderWidth="1px"
-                          borderColor="border"
-                          cursor="pointer"
-                          minW={0}
-                          _hover={{ bg: "bg.muted" }}
-                          transition="background 0.2s"
-                          onClick={() => {
-                            const isChecked =
-                              !formData.bannedFactions.includes(faction);
-                            setFormData((prev) => ({
-                              ...prev,
-                              bannedFactions: isChecked
-                                ? [...prev.bannedFactions, faction]
-                                : prev.bannedFactions.filter(
-                                    (f) => f !== faction,
-                                  ),
-                            }));
-                          }}
-                        >
-                          <input
-                            type="checkbox"
-                            value={faction}
-                            checked={formData.bannedFactions.includes(faction)}
-                            onChange={(e) => {
-                              const isChecked = e.target.checked;
-                              setFormData((prev) => ({
-                                ...prev,
-                                bannedFactions: isChecked
-                                  ? [...prev.bannedFactions, faction]
-                                  : prev.bannedFactions.filter(
-                                      (f) => f !== faction,
-                                    ),
-                              }));
-                            }}
-                            width={16}
-                            height={16}
-                          />
-                          <Text
-                            fontSize="sm"
-                            userSelect="none"
+                      {activeFactionList.map((faction) => {
+                        const isChecked =
+                          formData.bannedFactions.includes(faction);
+                        return (
+                          <Flex
+                            key={faction}
+                            data-scope="faction-checkbox"
+                            data-state={isChecked ? "checked" : undefined}
+                            align="center"
+                            gap={2}
+                            p={2}
+                            borderRadius="md"
+                            borderWidth="1px"
+                            borderColor="border"
+                            cursor="pointer"
                             minW={0}
-                            wordBreak="break-word"
+                            _hover={{ bg: "bg.muted" }}
+                            transition="background 0.2s"
+                            onClick={() => handleFactionClick(faction)}
                           >
-                            {faction}
-                          </Text>
-                        </Flex>
-                      ))}
+                            <input
+                              type="checkbox"
+                              value={faction}
+                              checked={isChecked}
+                              onChange={() => {}}
+                              width={16}
+                              height={16}
+                            />
+                            <Text
+                              fontSize="sm"
+                              userSelect="none"
+                              minW={0}
+                              wordBreak="break-word"
+                            >
+                              {faction}
+                            </Text>
+                          </Flex>
+                        );
+                      })}
                     </SimpleGrid>
                   </Box>
                   <Text color="fg.muted" fontSize="sm">
-                    Select factions that will be banned in this tournament.
+                    Hold Shift to select multiple factions!
                   </Text>
                 </VStack>
 
