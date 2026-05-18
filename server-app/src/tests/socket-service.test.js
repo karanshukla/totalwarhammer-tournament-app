@@ -1,12 +1,48 @@
 import assert from "node:assert";
 import { describe, it, beforeEach, mock } from "node:test";
 
+// ── Mock adapters ─────────────────────────────────────────────────────────────
+const mockCreateRedisAdapter = mock.fn(() => "redis-adapter");
+mock.module("@socket.io/redis-adapter", {
+  namedExports: { createAdapter: mockCreateRedisAdapter },
+});
+
+const mockCreateMongoAdapter = mock.fn(() => "mongo-adapter");
+mock.module("@socket.io/mongo-adapter", {
+  namedExports: { createAdapter: mockCreateMongoAdapter },
+});
+
+// ── Mock redis-service ────────────────────────────────────────────────────────
+const mockGetRedisClient = mock.fn(() => null);
+const mockCreateNewRedisClient = mock.fn(() => null);
+mock.module("../infrastructure/services/redis-service.js", {
+  namedExports: {
+    getRedisClient: mockGetRedisClient,
+    createNewRedisClient: mockCreateNewRedisClient,
+  },
+});
+
+// ── Mock mongoose ─────────────────────────────────────────────────────────────
+const mockCollection = {};
+const mockCreateCollection = mock.fn(async () => {});
+const mockDbCollection = mock.fn(() => mockCollection);
+const mockAsPromise = mock.fn(() => Promise.resolve());
+mock.module("mongoose", {
+  defaultExport: {
+    connection: {
+      asPromise: mockAsPromise,
+      db: { createCollection: mockCreateCollection, collection: mockDbCollection },
+    },
+  },
+});
+
 // ── Mock socket.io ────────────────────────────────────────────────────────────
 const mockEmitFn = mock.fn();
 const mockToFn = mock.fn(() => ({ emit: mockEmitFn }));
 const ioHandlers = {};
 const ioMiddlewares = [];
 const mockIoInstance = {
+  adapter: mock.fn(),
   to: mockToFn,
   on: mock.fn((event, handler) => {
     ioHandlers[event] = handler;
@@ -93,6 +129,72 @@ describe("socket-service", () => {
         typeof ioHandlers.connection === "function",
         "connection handler should be registered",
       );
+    });
+
+    describe("adapter initialization — no Redis (MongoDB fallback)", () => {
+      // The module-level initSocketIO call ran with both Redis clients returning
+      // null, so it fell through to the MongoDB adapter path. The .then() is a
+      // microtask; setImmediate lets it drain before we assert.
+      it("attaches an adapter to the io instance", async () => {
+        await new Promise((resolve) => setImmediate(resolve));
+        assert.strictEqual(mockIoInstance.adapter.mock.calls.length, 1);
+      });
+
+      it("uses the MongoDB adapter when Redis is unavailable", async () => {
+        await new Promise((resolve) => setImmediate(resolve));
+        assert.strictEqual(mockCreateMongoAdapter.mock.calls.length, 1);
+        assert.strictEqual(mockCreateRedisAdapter.mock.calls.length, 0);
+      });
+
+      it("passes the mongo collection to the MongoDB adapter", async () => {
+        await new Promise((resolve) => setImmediate(resolve));
+        assert.strictEqual(
+          mockIoInstance.adapter.mock.calls[0].arguments[0],
+          "mongo-adapter",
+        );
+      });
+
+      it("creates the capped adapter collection", async () => {
+        await new Promise((resolve) => setImmediate(resolve));
+        assert.strictEqual(mockCreateCollection.mock.calls.length, 1);
+        assert.strictEqual(
+          mockCreateCollection.mock.calls[0].arguments[0],
+          "socket.io-adapter-events",
+        );
+        assert.deepStrictEqual(
+          mockCreateCollection.mock.calls[0].arguments[1],
+          { capped: true, size: 1_000_000 },
+        );
+      });
+    });
+
+    describe("adapter initialization — Redis available", () => {
+      it("attaches the Redis adapter when both clients are returned", () => {
+        const fakePub = {};
+        const fakeSub = {};
+        mockGetRedisClient.mock.resetCalls();
+        mockCreateNewRedisClient.mock.resetCalls();
+        mockCreateRedisAdapter.mock.resetCalls();
+        mockIoInstance.adapter.mock.resetCalls();
+        mockGetRedisClient.mock.mockImplementation(() => fakePub);
+        mockCreateNewRedisClient.mock.mockImplementation(() => fakeSub);
+
+        initSocketIO({}, "http://localhost:3001");
+
+        assert.strictEqual(mockCreateRedisAdapter.mock.calls.length, 1);
+        assert.strictEqual(
+          mockCreateRedisAdapter.mock.calls[0].arguments[0],
+          fakePub,
+        );
+        assert.strictEqual(
+          mockCreateRedisAdapter.mock.calls[0].arguments[1],
+          fakeSub,
+        );
+        assert.strictEqual(
+          mockIoInstance.adapter.mock.calls[0].arguments[0],
+          "redis-adapter",
+        );
+      });
     });
   });
 
