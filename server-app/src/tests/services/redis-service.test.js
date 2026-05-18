@@ -15,7 +15,7 @@ mock.module("../../infrastructure/utils/logger.js", {
   defaultExport: { error: mock.fn(), info: mock.fn() },
 });
 
-const { getRedisClient } = await import(
+const { getRedisClient, createNewRedisClient } = await import(
   "../../infrastructure/services/redis-service.js"
 );
 
@@ -54,6 +54,46 @@ describe("redis-service", () => {
       assert.strictEqual(first, second);
       // createClient still called only once across all calls
       assert.strictEqual(mockCreateClient.mock.calls.length, 1);
+    });
+  });
+
+  describe("createNewRedisClient", () => {
+    it("returns null when REDIS_URL is not set", () => {
+      delete process.env.REDIS_URL;
+
+      const result = createNewRedisClient();
+
+      assert.strictEqual(result, null);
+    });
+
+    it("creates and returns a client when REDIS_URL is set", () => {
+      process.env.REDIS_URL = "redis://localhost:6379";
+      const callsBefore = mockCreateClient.mock.calls.length;
+
+      const result = createNewRedisClient();
+
+      assert.strictEqual(result, mockClient);
+      assert.strictEqual(mockCreateClient.mock.calls.length, callsBefore + 1);
+    });
+
+    it("creates a new client on every call — not a singleton", () => {
+      process.env.REDIS_URL = "redis://localhost:6379";
+      const callsBefore = mockCreateClient.mock.calls.length;
+
+      createNewRedisClient();
+      createNewRedisClient();
+
+      assert.strictEqual(mockCreateClient.mock.calls.length, callsBefore + 2);
+    });
+
+    it("does not affect the getRedisClient singleton", () => {
+      process.env.REDIS_URL = "redis://localhost:6379";
+
+      const singleton = getRedisClient();
+      createNewRedisClient();
+      const singletonAgain = getRedisClient();
+
+      assert.strictEqual(singleton, singletonAgain);
     });
   });
 });

@@ -1,7 +1,18 @@
+import { createAdapter as createMongoAdapter } from "@socket.io/mongo-adapter";
+import { createAdapter as createRedisAdapter } from "@socket.io/redis-adapter";
+import mongoose from "mongoose";
 import { Server } from "socket.io";
 
 import logger from "../utils/logger.js";
 import { createRateLimiter } from "../utils/rate-limiter.js";
+import {
+  getRedisClient,
+  createNewRedisClient,
+} from "../services/redis-service.js";
+
+const MONGO_ADAPTER_COLLECTION = "socket.io-adapter-events";
+// Capped at 1 MB — enough for burst traffic, auto-evicts old events
+const MONGO_ADAPTER_CAPPED_SIZE = 1_000_000;
 
 // 20 unique connections per IP per minute
 const connectionLimiter = createRateLimiter({ windowMs: 60_000, max: 20 });
@@ -20,6 +31,39 @@ export function initSocketIO(httpServer, corsOrigin) {
       methods: ["GET", "POST"],
     },
   });
+
+  const pubClient = getRedisClient();
+  const subClient = createNewRedisClient();
+  if (pubClient && subClient) {
+    io.adapter(createRedisAdapter(pubClient, subClient));
+    logger.info("[socket] Redis pub/sub adapter attached");
+  } else {
+    // No Redis — fall back to MongoDB adapter once the connection is ready.
+    // mongoose.connection.asPromise() resolves immediately if already connected.
+    mongoose.connection.asPromise().then(async () => {
+      try {
+        await mongoose.connection.db
+          .createCollection(MONGO_ADAPTER_COLLECTION, {
+            capped: true,
+            size: MONGO_ADAPTER_CAPPED_SIZE,
+          })
+          .catch((err) => {
+            // NamespaceExists (48) just means the collection is already there — that's fine
+            if (err?.code !== 48) throw err;
+          });
+        const collection = mongoose.connection.db.collection(
+          MONGO_ADAPTER_COLLECTION,
+        );
+        io.adapter(createMongoAdapter(collection));
+        logger.info("[socket] MongoDB pub/sub adapter attached (fallback)");
+      } catch (err) {
+        logger.error(
+          `[socket] Failed to attach MongoDB adapter: ${err.message}`,
+          { error: err },
+        );
+      }
+    });
+  }
 
   io.engine.on("connection_error", (err) => {
     logger.error(

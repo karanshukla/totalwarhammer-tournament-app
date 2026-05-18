@@ -1,12 +1,5 @@
 import React from "react";
-import {
-  HStack,
-  Button,
-  Text,
-  Box,
-  Heading,
-  Badge,
-} from "@chakra-ui/react";
+import { HStack, Button, Text, Box, Heading, Badge } from "@chakra-ui/react";
 import { Link } from "react-router-dom";
 import { useUserStore } from "@/shared/stores/userStore";
 
@@ -19,7 +12,7 @@ const HeroSection: React.FC = () => {
   return (
     <Box textAlign="center" py={8}>
       <Badge
-        colorPalette="red"
+        colorPalette="purple"
         mb={4}
         px={3}
         py={1}
@@ -27,7 +20,7 @@ const HeroSection: React.FC = () => {
         textTransform="uppercase"
         letterSpacing="wider"
       >
-        Total War: Warhammer
+        Now includes beta warhammer 40k support (Dawn of War/Future Titles)
       </Badge>
       <Heading as="h1" size="4xl" fontWeight="bold" lineHeight="tight" mb={4}>
         TW Tournament App

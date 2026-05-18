@@ -36,9 +36,11 @@ describe("HeroSection", () => {
     ).toBeInTheDocument();
   });
 
-  it("renders the Total War: Warhammer badge", () => {
+  it("renders the 40k beta badge", () => {
     renderHero();
-    expect(screen.getByText(/Total War: Warhammer/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Now includes beta warhammer 40k support/i),
+    ).toBeInTheDocument();
   });
 
   it("renders the description text", () => {
