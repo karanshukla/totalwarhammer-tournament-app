@@ -71,6 +71,7 @@ export const login = async (req, res) => {
     }
 
     if (!user) {
+      logger.warn(`Failed login attempt for identifier: ${normalizedIdentifier}`);
       return res.status(401).json({
         success: false,
         message: "Invalid credentials",
@@ -79,6 +80,7 @@ export const login = async (req, res) => {
 
     const isPasswordValid = await user.validatePassword(password);
     if (!isPasswordValid) {
+      logger.warn(`Failed login attempt (wrong password) for user: ${user.id}`);
       return res.status(401).json({
         success: false,
         message: "Invalid credentials",
@@ -104,6 +106,7 @@ export const login = async (req, res) => {
         rememberMe,
       });
 
+      logger.debug(`PKCE authorization code generated for user: ${user.id}`);
       return res.status(200).json({
         success: true,
         message: "Authorization code generated",
@@ -124,6 +127,7 @@ export const login = async (req, res) => {
         rememberMe,
       });
 
+      logger.info(`User logged in: ${user.id} (${user.username}), rememberMe=${rememberMe}`);
       res.status(200).json({
         success: true,
         message: "Login successful",
@@ -187,6 +191,7 @@ export const token = async (req, res) => {
     if (codeData.used) {
       // Delete the code and reject the request (potential replay attack)
       authorizationCodes.delete(code);
+      logger.warn(`Authorization code replay attempt for user: ${codeData.userId}`);
       return res.status(400).json({
         success: false,
         message: "Authorization code has already been used",
@@ -197,6 +202,7 @@ export const token = async (req, res) => {
     const now = Date.now();
     if (now - codeData.createdAt > CODE_EXPIRATION_TIME) {
       authorizationCodes.delete(code);
+      logger.warn(`Expired authorization code used for user: ${codeData.userId}`);
       return res.status(400).json({
         success: false,
         message: "Authorization code has expired",
@@ -236,6 +242,7 @@ export const token = async (req, res) => {
       // Remove the code after successful use
       setTimeout(() => authorizationCodes.delete(code), 1000);
 
+      logger.info(`PKCE token exchange successful for user: ${user.id} (${user.username})`);
       return res.status(200).json({
         success: true,
         message: "Authentication successful",
@@ -284,10 +291,12 @@ export const logout = async (req, res) => {
     );
 
     // Clear the authentication state
+    const loggedOutUser = req.user?.id;
     await clearAuth(req);
 
     res.clearCookie("sid"); // Clear the session cookie
 
+    logger.info(`User logged out: ${loggedOutUser}`);
     res.status(200).json({
       success: true,
       message: "Logout successful",

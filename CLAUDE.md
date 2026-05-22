@@ -89,7 +89,21 @@ RESEND_API_KEY=           # Email delivery for password reset
 CLIENT_URL=               # CORS allowed origin
 PORT=3000
 NODE_ENV=development
+AXIOM_TOKEN=              # Optional; Axiom API token — enables structured log shipping
+AXIOM_DATASET=            # Optional; Axiom dataset name (required when AXIOM_TOKEN is set)
 ```
+
+### Logging
+
+The server uses **Winston** (`server-app/src/infrastructure/utils/logger.js`) with console and file transports. Log level is `debug` in development and `info` in production.
+
+**Axiom integration** is opt-in: set both `AXIOM_TOKEN` and `AXIOM_DATASET` env vars to enable structured log shipping via `@axiomhq/winston`. When neither is set, the logger behaves exactly as before.
+
+Log levels used across the codebase:
+- `error` — unexpected failures (DB errors, session errors, uncaught exceptions)
+- `warn` — security-relevant rejections (failed logins, auth 401s, disputes, overrides)
+- `info` — key business events (login, logout, registration, tournament lifecycle, match results)
+- `debug` — low-noise internal state (PKCE code generation, session recovery details)
 
 ### CI
 

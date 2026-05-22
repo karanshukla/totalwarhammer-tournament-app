@@ -79,6 +79,7 @@ export const register = async (req, res) => {
       password: await bcrypt.hash(password, 10),
     });
 
+    logger.info(`New user registered: ${newUser.id} (${newUser.username})`);
     res.status(201).json({
       success: true,
       message: "User registered successfully",
@@ -89,6 +90,7 @@ export const register = async (req, res) => {
       },
     });
   } catch (error) {
+    logger.error(`Register error: ${error.message}`, { error });
     res.status(500).json({
       success: false,
       message: "Failed to register user",
@@ -136,6 +138,7 @@ export const updateGuestUsername = async (req, res) => {
       });
     }
 
+    logger.info(`Guest username updated: user=${userId}, new username="${username}"`);
     res.status(200).json({
       success: true,
       message: "Username updated successfully",
@@ -205,6 +208,7 @@ export const updateUsername = async (req, res) => {
       });
     }
 
+    logger.info(`Username updated: user=${userId}, new username="${username}"`);
     res.status(200).json({
       success: true,
       message: "Username updated successfully",
@@ -254,6 +258,7 @@ export const deleteAccount = async (req, res) => {
     });
 
     res.clearCookie("sid");
+    logger.info(`Account anonymized: user=${userId}`);
     return res
       .status(200)
       .json({ success: true, message: "Account deleted successfully" });
@@ -355,6 +360,7 @@ export const updatePassword = async (req, res) => {
     user.password = await bcrypt.hash(newPassword, 10);
     await user.save();
 
+    logger.info(`Password updated for user: ${userId}`);
     res.status(200).json({
       success: true,
       message: "Password updated successfully",

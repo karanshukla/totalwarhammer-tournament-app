@@ -82,6 +82,7 @@ export const createTournament = async (req, res) => {
       ],
     });
 
+    logger.info(`Tournament created: "${tournament.name}" (${tournament._id}) type=${tournamentType} slots=${playerCount} by user=${req.user.id}`);
     return res.status(201).json({
       success: true,
       message: "Tournament created successfully",
@@ -271,6 +272,7 @@ export const addParticipant = async (req, res) => {
     tournament.participants.push({ name, faction: faction || "" });
     await tournament.save();
     emitTournamentUpdated(tournament._id.toString(), tournament);
+    logger.info(`Participant added to tournament ${tournament._id}: "${name}" (faction: ${faction || "none"})`);
     return res.status(200).json({ success: true, data: tournament });
   } catch (error) {
     logger.error(`Add participant error: ${error.message}`, { error });
@@ -309,9 +311,11 @@ export const removeParticipant = async (req, res) => {
         .status(404)
         .json({ success: false, message: "Participant not found" });
     }
+    const removedName = tournament.participants[participantIndex].name;
     tournament.participants.splice(participantIndex, 1);
     await tournament.save();
     emitTournamentUpdated(tournament._id.toString(), tournament);
+    logger.info(`Participant removed from tournament ${tournament._id}: "${removedName}"`);
     return res.status(200).json({ success: true, data: tournament });
   } catch (error) {
     logger.error(`Remove participant error: ${error.message}`, { error });
@@ -394,6 +398,7 @@ export const joinTournament = async (req, res) => {
     tournament.participants.push({ name: playerName, faction: faction || "" });
     await tournament.save();
     emitTournamentUpdated(tournament._id.toString(), tournament);
+    logger.info(`User "${playerName}" (${req.user.id}) joined tournament ${tournament._id} with faction "${faction || "none"}"`);
     return res.status(200).json({ success: true, data: tournament });
   } catch (error) {
     logger.error(`Join tournament error: ${error.message}`, { error });
@@ -461,6 +466,7 @@ export const startTournament = async (req, res) => {
     const matches = await Match.insertMany(matchDocs);
     emitTournamentUpdated(tId.toString(), tournament);
     emitMatchesUpdated(tId.toString(), matches);
+    logger.info(`Tournament started: "${tournament.name}" (${tId}) type=${tournamentType} participants=${participants.length} matches=${matches.length}`);
     return res.status(200).json({ success: true, data: tournament, matches });
   } catch (error) {
     logger.error(`Start tournament error: ${error.message}`, { error });
@@ -514,6 +520,7 @@ export const advanceRound = async (req, res) => {
       await tournament.save();
       invalidateStatsCache().catch(() => {});
       emitTournamentUpdated(tournament._id.toString(), tournament);
+      logger.info(`Tournament completed (Round Robin): "${tournament.name}" (${tournament._id})`);
       return res
         .status(200)
         .json({ success: true, data: tournament, completed: true });
@@ -542,6 +549,7 @@ export const advanceRound = async (req, res) => {
         await tournament.save();
         invalidateStatsCache().catch(() => {});
         emitTournamentUpdated(tournament._id.toString(), tournament);
+        logger.info(`Tournament completed (Swiss): "${tournament.name}" (${tournament._id}) after ${maxRound} rounds`);
         return res
           .status(200)
           .json({ success: true, data: tournament, completed: true });
@@ -555,6 +563,7 @@ export const advanceRound = async (req, res) => {
       );
       const newMatches = await Match.insertMany(result.docs);
       emitMatchesAppended(tournament._id.toString(), newMatches);
+      logger.info(`Swiss round ${nextRound} started for tournament ${tournament._id}: ${newMatches.length} matches created`);
       return res
         .status(200)
         .json({ success: true, round: nextRound, matches: newMatches });
@@ -595,6 +604,7 @@ export const advanceRound = async (req, res) => {
         await tournament.save();
         invalidateStatsCache().catch(() => {});
         emitTournamentUpdated(tournament._id.toString(), tournament);
+        logger.info(`Tournament completed (Double Elimination): "${tournament.name}" (${tournament._id})`);
         return res
           .status(200)
           .json({ success: true, data: tournament, completed: true });
@@ -606,6 +616,7 @@ export const advanceRound = async (req, res) => {
       }
       const newMatches = await Match.insertMany(result.docs);
       emitMatchesAppended(tournament._id.toString(), newMatches);
+      logger.info(`Double elimination advanced for tournament ${tournament._id}: ${newMatches.length} new matches`);
       return res.status(200).json({ success: true, matches: newMatches });
     }
 
@@ -634,12 +645,14 @@ export const advanceRound = async (req, res) => {
       await tournament.save();
       invalidateStatsCache().catch(() => {});
       emitTournamentUpdated(tournament._id.toString(), tournament);
+      logger.info(`Tournament completed (Single Elimination): "${tournament.name}" (${tournament._id})`);
       return res
         .status(200)
         .json({ success: true, data: tournament, completed: true });
     }
     const newMatches = await Match.insertMany(result.docs);
     emitMatchesAppended(tournament._id.toString(), newMatches);
+    logger.info(`Single elimination round ${maxRound + 1} started for tournament ${tournament._id}: ${newMatches.length} matches`);
     return res
       .status(200)
       .json({ success: true, round: maxRound + 1, matches: newMatches });
@@ -728,6 +741,7 @@ export const deleteTournament = async (req, res) => {
 
     await tournament.deleteOne();
 
+    logger.info(`Tournament deleted: "${tournament.name}" (${id}) by user=${req.user.id}`);
     return res.status(200).json({
       success: true,
       message: "Tournament deleted successfully",

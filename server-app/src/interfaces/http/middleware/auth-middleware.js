@@ -13,6 +13,15 @@ const authStateService = new AuthStateService();
 const authenticateSession = (req, res, next) => {
   try {
     if (!authStateService.isAuthenticated(req)) {
+      logger.warn("authenticateSession: 401 — not authenticated", {
+        path: req.path,
+        method: req.method,
+        sessionExists: !!req.session,
+        isAuthenticated: req.session?.isAuthenticated,
+        hasUser: !!req.session?.user,
+        isGuest: req.session?.isGuest,
+        hasCookie: !!req.headers.cookie,
+      });
       return res
         .status(401)
         .json({ success: false, message: "Unauthorized: Not authenticated" });
@@ -21,6 +30,10 @@ const authenticateSession = (req, res, next) => {
     req.user = authStateService.getCurrentUser(req);
 
     if (!req.user) {
+      logger.warn("authenticateSession: 401 — isAuthenticated passed but no user object", {
+        path: req.path,
+        sessionId: req.session?.id,
+      });
       return res.status(401).json({
         success: false,
         message: "Unauthorized: Invalid session user",
