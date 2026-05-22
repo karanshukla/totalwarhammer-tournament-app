@@ -11,7 +11,7 @@ const mockResendClient = {
   },
 };
 
-const successResponse = { id: "mock-email-id", error: null };
+const successResponse = { data: { id: "mock-email-id" }, error: null };
 
 // Create a testing subclass of EmailService that replaces the Resend client
 class TestEmailService extends EmailService {

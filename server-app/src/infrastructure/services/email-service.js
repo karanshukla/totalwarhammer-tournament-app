@@ -64,16 +64,16 @@ class EmailService {
       html,
     };
     try {
-      const response = await this.resendClient.emails.send(message);
-      if (response?.error === null)
+      const { data, error } = await this.resendClient.emails.send(message);
+      if (error === null) {
         return {
           success: true,
-          messageId: response?.id || null,
+          messageId: data?.id || null,
         };
-      else {
+      } else {
         return {
           success: false,
-          error: response.error,
+          error,
         };
       }
     } catch (error) {
