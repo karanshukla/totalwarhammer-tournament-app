@@ -1,5 +1,6 @@
 import path from "path";
 
+import { WinstonTransport as AxiomTransport } from "@axiomhq/winston";
 import winston from "winston";
 
 // Define log levels
@@ -54,6 +55,15 @@ const transports = [
     filename: path.join("logs", "combined.log"),
   }),
 ];
+
+if (process.env.AXIOM_TOKEN && process.env.AXIOM_DATASET) {
+  transports.push(
+    new AxiomTransport({
+      token: process.env.AXIOM_TOKEN,
+      dataset: process.env.AXIOM_DATASET,
+    }),
+  );
+}
 
 // Create the Winston logger
 const logger = winston.createLogger({
