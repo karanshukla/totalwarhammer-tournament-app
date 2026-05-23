@@ -42,16 +42,23 @@ connectToDatabase();
 
 // Security
 app.use(helmet({}));
-app.use(mongoSanitize());
-app.use((req, _res, next) => {
-  if (req.body) {
-    for (const [key, value] of Object.entries(req.body)) {
-      if (typeof value === "string") {
-        req.body[key] = xssFilter.process(value);
-      }
-    }
-  }
 
+// Express 5 made req.query a read-only getter that returns a fresh object on
+// every access, so express-mongo-sanitize's strategy of reassigning req.query
+// throws a TypeError. Instead we shadow the getter with a sanitized own
+// property so all subsequent middleware can safely read and write req.query.
+app.use((req, _res, next) => {
+  const sanitizedQuery = mongoSanitize.sanitize({ ...req.query });
+  Object.defineProperty(req, "query", {
+    value: sanitizedQuery,
+    writable: true,
+    enumerable: true,
+    configurable: true,
+  });
+  next();
+});
+
+app.use((req, _res, next) => {
   if (req.query) {
     for (const [key, value] of Object.entries(req.query)) {
       if (typeof value === "string") {
@@ -115,6 +122,22 @@ app.use(csrfPrerequisiteCheck);
 // JSON and URL encoded middleware — limit body size to prevent payload flooding
 app.use(express.json({ limit: "50kb" }));
 app.use(express.urlencoded({ extended: true, limit: "50kb" }));
+
+// Sanitize parsed body and apply XSS filter to body strings.
+// Both must run after body parsing; previously mongoSanitize ran before
+// express.json() so req.body was always undefined there.
+app.use((req, _res, next) => {
+  if (req.body) {
+    req.body = mongoSanitize.sanitize(req.body);
+    for (const [key, value] of Object.entries(req.body)) {
+      if (typeof value === "string") {
+        req.body[key] = xssFilter.process(value);
+      }
+    }
+  }
+  next();
+});
+
 app.use(express.static("public"));
 
 // Global rate limiter — wide safety net
