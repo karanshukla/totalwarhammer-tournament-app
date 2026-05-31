@@ -102,16 +102,16 @@ describe("match-controller", () => {
   describe("getMatchById", () => {
     it("should return 404 if match not found", async () => {
       mockMatchFindById.mock.mockImplementation(async () => null);
-      const req = mockReq({ params: { id: "m1" } });
+      const req = mockReq({ params: { id: "aaaaaaaaaaaaaaaaaaaaaaaa" } });
       const res = mockRes();
       await getMatchById(req, res);
       assert.strictEqual(res.status.mock.calls[0].arguments[0], 404);
     });
 
     it("should return match if found", async () => {
-      const match = { id: "m1" };
+      const match = { id: "aaaaaaaaaaaaaaaaaaaaaaaa" };
       mockMatchFindById.mock.mockImplementation(async () => match);
-      const req = mockReq({ params: { id: "m1" } });
+      const req = mockReq({ params: { id: "aaaaaaaaaaaaaaaaaaaaaaaa" } });
       const res = mockRes();
       await getMatchById(req, res);
       assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
@@ -741,7 +741,7 @@ describe("match-controller", () => {
       mockMatchFindById.mock.mockImplementation(async () => {
         throw new Error("DB error");
       });
-      const req = mockReq({ params: { id: "m1" } });
+      const req = mockReq({ params: { id: "aaaaaaaaaaaaaaaaaaaaaaaa" } });
       const res = mockRes();
       await getMatchById(req, res);
       assert.strictEqual(res.status.mock.calls[0].arguments[0], 500);
