@@ -83,7 +83,6 @@ jobs:
           fail_action: false
           allow_issue_writing: true
           artifact_name: zap-api-report
-          cmd_options: "-config replacer.full_list(0).description=auth -config replacer.full_list(0).enabled=true -config replacer.full_list(0).matchtype=REQ_HEADER -config replacer.full_list(0).matchstr=Host -config replacer.full_list(0).replacement=localhost"
 
       - name: Stop containers
         if: always()
