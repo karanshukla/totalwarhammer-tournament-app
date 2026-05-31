@@ -69,4 +69,35 @@ describe("EmailService", () => {
 
     assert.equal(mockSendFn.mock.callCount(), 0);
   });
+
+  it("should return failure response when the API returns an error object", async () => {
+    mockSendFn.mock.mockImplementation(() =>
+      Promise.resolve({ error: { message: "invalid_api_key", code: "unauthorized" } }),
+    );
+    const result = await emailService.sendEmail({
+      subject: "Test",
+      html: "<p>Test</p>",
+    });
+    assert.equal(result.success, false);
+    assert.ok(result.error, "error field should be present");
+    assert.equal(result.error.code, "unauthorized");
+  });
+
+  it("should rethrow when the Resend API throws a network error", async () => {
+    const networkError = new Error("Network failure");
+    mockSendFn.mock.mockImplementation(() => Promise.reject(networkError));
+    await assert.rejects(
+      async () =>
+        await emailService.sendEmail({ subject: "Test", html: "<p>Test</p>" }),
+      { message: "Network failure" },
+    );
+  });
+
+  it("should lazily create and cache the resend client on first access", () => {
+    const svc = new EmailService();
+    const client1 = svc.resendClient;
+    const client2 = svc.resendClient;
+    assert.strictEqual(client1, client2, "client should be the same cached instance");
+    assert.ok(client1, "client should be truthy");
+  });
 });
