@@ -1,0 +1,836 @@
+openapi: "3.0.3"
+info:
+  title: TW Tournament App API
+  version: "1.0.0"
+servers:
+  - url: http://localhost/api
+
+components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: connect.sid
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+
+paths:
+  # ── Auth ──────────────────────────────────────────────────────────────────
+  /auth/csrf-token:
+    get:
+      summary: Get CSRF token
+      operationId: getCsrfToken
+      responses:
+        "200":
+          description: CSRF token issued
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  csrfToken:
+                    type: string
+                  sessionId:
+                    type: string
+
+  /auth/login:
+    post:
+      summary: Login with email/username and password
+      operationId: authLogin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [identifier, password]
+              properties:
+                identifier:
+                  type: string
+                  example: user@example.com
+                password:
+                  type: string
+                  example: password123
+      responses:
+        "200":
+          description: Authenticated
+        "400":
+          description: Validation error
+        "401":
+          description: Invalid credentials
+
+  /auth/logout:
+    post:
+      summary: Logout (POST)
+      operationId: authLogoutPost
+      responses:
+        "200":
+          description: Logged out
+    delete:
+      summary: Logout (DELETE)
+      operationId: authLogoutDelete
+      responses:
+        "200":
+          description: Logged out
+
+  /auth/token:
+    post:
+      summary: Exchange PKCE code for session
+      operationId: authToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [code, codeVerifier]
+              properties:
+                code:
+                  type: string
+                codeVerifier:
+                  type: string
+      responses:
+        "200":
+          description: Session established
+        "400":
+          description: Invalid or expired code
+        "401":
+          description: Code verifier mismatch
+
+  # ── User ──────────────────────────────────────────────────────────────────
+  /user/register:
+    post:
+      summary: Register a new user account
+      operationId: userRegister
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, email, password]
+              properties:
+                username:
+                  type: string
+                  example: player1
+                email:
+                  type: string
+                  example: player1@example.com
+                password:
+                  type: string
+                  example: SecurePass1!
+      responses:
+        "201":
+          description: Registered
+        "400":
+          description: Validation error
+        "409":
+          description: Username or email already taken
+
+  /user/exists:
+    get:
+      summary: Check if a username or email is taken
+      operationId: userExists
+      parameters:
+        - name: username
+          in: query
+          schema:
+            type: string
+        - name: email
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Existence check result
+        "400":
+          description: Missing query param
+
+  /user/login:
+    post:
+      summary: Login (user-scoped alias)
+      operationId: userLogin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [identifier, password]
+              properties:
+                identifier:
+                  type: string
+                password:
+                  type: string
+      responses:
+        "200":
+          description: Authenticated
+        "401":
+          description: Invalid credentials
+
+  /user/logout:
+    post:
+      summary: Logout (user-scoped)
+      operationId: userLogout
+      security:
+        - sessionCookie: []
+      responses:
+        "200":
+          description: Logged out
+        "403":
+          description: CSRF validation failed
+
+  /user/update-username:
+    post:
+      summary: Update username (authenticated)
+      operationId: updateUsername
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username]
+              properties:
+                username:
+                  type: string
+      responses:
+        "200":
+          description: Username updated
+        "401":
+          description: Not authenticated
+        "409":
+          description: Username taken
+
+  /user/update-password:
+    post:
+      summary: Update password (authenticated)
+      operationId: updatePassword
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [currentPassword, newPassword]
+              properties:
+                currentPassword:
+                  type: string
+                newPassword:
+                  type: string
+      responses:
+        "200":
+          description: Password updated
+        "401":
+          description: Not authenticated or wrong current password
+
+  /user/account:
+    delete:
+      summary: Delete own account (authenticated)
+      operationId: deleteAccount
+      security:
+        - sessionCookie: []
+      responses:
+        "200":
+          description: Account deleted
+        "401":
+          description: Not authenticated
+        "403":
+          description: CSRF validation failed
+
+  /user/stats:
+    get:
+      summary: Get stats for authenticated user
+      operationId: getUserStats
+      security:
+        - sessionCookie: []
+      responses:
+        "200":
+          description: User stats
+        "401":
+          description: Not authenticated
+
+  # ── Guest ─────────────────────────────────────────────────────────────────
+  /guest:
+    post:
+      summary: Create a guest session
+      operationId: createGuest
+      responses:
+        "201":
+          description: Guest created
+        "200":
+          description: Guest session already exists
+
+  /guest/username:
+    post:
+      summary: Set guest username
+      operationId: updateGuestUsername
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username]
+              properties:
+                username:
+                  type: string
+      responses:
+        "200":
+          description: Username set
+        "401":
+          description: Not a guest session
+
+  # ── Password Reset ─────────────────────────────────────────────────────────
+  /password-reset/request:
+    post:
+      summary: Request a password reset email
+      operationId: requestPasswordReset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email:
+                  type: string
+                  example: player1@example.com
+      responses:
+        "200":
+          description: Reset email sent (or silently ignored if not found)
+        "400":
+          description: Validation error
+
+  /password-reset/verify:
+    post:
+      summary: Verify a password reset token
+      operationId: verifyResetToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token]
+              properties:
+                token:
+                  type: string
+      responses:
+        "200":
+          description: Token valid
+        "400":
+          description: Invalid or expired token
+
+  /password-reset/reset:
+    post:
+      summary: Reset password using a valid token
+      operationId: resetPassword
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token, newPassword]
+              properties:
+                token:
+                  type: string
+                newPassword:
+                  type: string
+      responses:
+        "200":
+          description: Password reset
+        "400":
+          description: Invalid or expired token
+
+  # ── Tournament ─────────────────────────────────────────────────────────────
+  /tournament:
+    get:
+      summary: List all public tournaments
+      operationId: getTournaments
+      responses:
+        "200":
+          description: List of tournaments
+    post:
+      summary: Create a tournament (authenticated)
+      operationId: createTournament
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, format]
+              properties:
+                name:
+                  type: string
+                format:
+                  type: string
+                  enum: [single_elimination, double_elimination, round_robin, swiss]
+                description:
+                  type: string
+                maxParticipants:
+                  type: integer
+      responses:
+        "201":
+          description: Tournament created
+        "401":
+          description: Not authenticated
+
+  /tournament/mine:
+    get:
+      summary: Get tournaments created by the authenticated user
+      operationId: getUserTournaments
+      security:
+        - sessionCookie: []
+      responses:
+        "200":
+          description: User's tournaments
+        "401":
+          description: Not authenticated
+
+  /tournament/code/{code}:
+    get:
+      summary: Get tournament by join code
+      operationId: getTournamentByCode
+      parameters:
+        - name: code
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Tournament data
+        "404":
+          description: Not found
+
+  /tournament/{id}:
+    get:
+      summary: Get tournament by ID
+      operationId: getTournamentById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Tournament data
+        "404":
+          description: Not found
+    delete:
+      summary: Delete tournament (authenticated, creator only)
+      operationId: deleteTournament
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Deleted
+        "401":
+          description: Not authenticated
+        "403":
+          description: Not the creator
+        "404":
+          description: Not found
+
+  /tournament/{id}/participants:
+    post:
+      summary: Add participant (authenticated)
+      operationId: addParticipant
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+      responses:
+        "200":
+          description: Participant added
+        "401":
+          description: Not authenticated
+
+  /tournament/{id}/participants/{participantId}:
+    patch:
+      summary: Update participant (authenticated)
+      operationId: updateParticipant
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: participantId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+      responses:
+        "200":
+          description: Participant updated
+        "401":
+          description: Not authenticated
+    delete:
+      summary: Remove participant (authenticated)
+      operationId: removeParticipant
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: participantId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Participant removed
+        "401":
+          description: Not authenticated
+
+  /tournament/{id}/join:
+    post:
+      summary: Join a tournament (authenticated)
+      operationId: joinTournament
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Joined
+        "401":
+          description: Not authenticated
+        "404":
+          description: Not found
+
+  /tournament/{id}/start:
+    post:
+      summary: Start a tournament (authenticated, creator only)
+      operationId: startTournament
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Started
+        "401":
+          description: Not authenticated
+        "403":
+          description: Not the creator
+
+  /tournament/{id}/advance:
+    post:
+      summary: Advance tournament round (authenticated, creator only)
+      operationId: advanceRound
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Round advanced
+        "401":
+          description: Not authenticated
+
+  /tournament/{id}/description:
+    patch:
+      summary: Update tournament description (authenticated)
+      operationId: updateDescription
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [description]
+              properties:
+                description:
+                  type: string
+      responses:
+        "200":
+          description: Description updated
+        "401":
+          description: Not authenticated
+
+  # ── Match ─────────────────────────────────────────────────────────────────
+  /match/tournament/{tournamentId}:
+    get:
+      summary: Get all matches for a tournament
+      operationId: getMatchesByTournament
+      parameters:
+        - name: tournamentId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of matches
+        "404":
+          description: Tournament not found
+
+  /match/{id}:
+    get:
+      summary: Get a match by ID
+      operationId: getMatchById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Match data
+        "404":
+          description: Not found
+
+  /match:
+    post:
+      summary: Create a match (authenticated)
+      operationId: createMatch
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [tournamentId, player1, player2]
+              properties:
+                tournamentId:
+                  type: string
+                player1:
+                  type: string
+                player2:
+                  type: string
+      responses:
+        "201":
+          description: Match created
+        "401":
+          description: Not authenticated
+
+  /match/{id}/report:
+    patch:
+      summary: Report match result (authenticated participant)
+      operationId: reportResult
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [winnerId]
+              properties:
+                winnerId:
+                  type: string
+      responses:
+        "200":
+          description: Result reported
+        "401":
+          description: Not authenticated
+
+  /match/{id}/result:
+    patch:
+      summary: Record match result (authenticated)
+      operationId: recordResult
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [winnerId]
+              properties:
+                winnerId:
+                  type: string
+      responses:
+        "200":
+          description: Result recorded
+        "401":
+          description: Not authenticated
+
+  /match/{id}/resolve:
+    patch:
+      summary: Resolve a disputed match (authenticated, creator)
+      operationId: resolveDispute
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [winnerId]
+              properties:
+                winnerId:
+                  type: string
+      responses:
+        "200":
+          description: Dispute resolved
+        "401":
+          description: Not authenticated
+        "403":
+          description: Not the tournament creator
+
+  /match/{id}/override:
+    patch:
+      summary: Override match result (authenticated, creator)
+      operationId: overrideResult
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [winnerId]
+              properties:
+                winnerId:
+                  type: string
+      responses:
+        "200":
+          description: Result overridden
+        "401":
+          description: Not authenticated
+
+  /match/{id}/status:
+    patch:
+      summary: Update match status (authenticated)
+      operationId: updateMatchStatus
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  type: string
+                  enum: [pending, in_progress, completed, disputed]
+      responses:
+        "200":
+          description: Status updated
+        "401":
+          description: Not authenticated
+
+  # ── Stats ──────────────────────────────────────────────────────────────────
+  /stats:
+    get:
+      summary: Get global app statistics
+      operationId: getStats
+      responses:
+        "200":
+          description: Global stats
