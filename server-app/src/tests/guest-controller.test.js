@@ -170,5 +170,92 @@ describe("guest-controller", () => {
       await updateGuestUsername(req, res);
       assert.strictEqual(res.status.mock.calls[0].arguments[0], 401);
     });
+
+    it("should still return 200 when Tournament.updateMany throws", async () => {
+      mockTournamentUpdateMany.mock.mockImplementation(async () => {
+        throw new Error("DB error");
+      });
+      const req = mockReq({
+        body: { username: "new_name" },
+        user: { id: "u1", username: "old_name", isGuest: true },
+        session: {
+          cookie: { maxAge: 1000 },
+          user: { username: "old_name" },
+          save: mock.fn((cb) => cb()),
+          touch: mock.fn(),
+        },
+      });
+      const res = mockRes();
+      await updateGuestUsername(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
+    });
+
+    it("should still return 200 when session.save calls callback with an error", async () => {
+      mockTournamentUpdateMany.mock.mockImplementation(async () => ({}));
+      const req = mockReq({
+        body: { username: "new_name" },
+        user: { id: "u1", username: "old_name", isGuest: true },
+        session: {
+          cookie: { maxAge: 1000 },
+          user: { username: "old_name" },
+          save: mock.fn((cb) => cb(new Error("save error"))),
+          touch: mock.fn(),
+        },
+      });
+      const res = mockRes();
+      await updateGuestUsername(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
+    });
+
+    it("should still return 200 when session.touch throws", async () => {
+      mockTournamentUpdateMany.mock.mockImplementation(async () => ({}));
+      const req = mockReq({
+        body: { username: "new_name" },
+        user: { id: "u1", username: "old_name", isGuest: true },
+        session: {
+          cookie: { maxAge: 1000 },
+          user: { username: "old_name" },
+          save: mock.fn((cb) => cb()),
+          touch: mock.fn(() => {
+            throw new Error("touch error");
+          }),
+        },
+      });
+      const res = mockRes();
+      await updateGuestUsername(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
+    });
+
+    it("should return 500 on unexpected outer error", async () => {
+      const frozenUser = Object.freeze({ id: "u1", username: "old", isGuest: true });
+      const req = mockReq({
+        body: { username: "new_name" },
+        user: frozenUser,
+        session: {
+          cookie: { maxAge: 1000 },
+          user: { username: "old" },
+          save: mock.fn((cb) => cb()),
+          touch: mock.fn(),
+        },
+      });
+      const res = mockRes();
+      await updateGuestUsername(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 500);
+    });
+  });
+
+  describe("createGuestUser - error paths", () => {
+    it("should return 500 when session.save fails", async () => {
+      const req = {
+        body: {},
+        session: {
+          cookie: { maxAge: 1000 },
+          save: mock.fn((cb) => cb(new Error("session save failed"))),
+        },
+      };
+      const res = mockRes();
+      await createGuestUser(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 500);
+    });
   });
 });

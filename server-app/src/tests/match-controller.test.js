@@ -722,6 +722,107 @@ describe("match-controller", () => {
 
   // ─── updateMatchStatus ─────────────────────────────────────────────────────
 
+  describe("500-error paths", () => {
+    it("getMatchesByTournament returns 500 on DB error", async () => {
+      mockMatchFind.mock.mockImplementation(() => ({
+        sort: mock.fn(async () => {
+          throw new Error("DB error");
+        }),
+      }));
+      const req = mockReq({
+        params: { tournamentId: "aaaaaaaaaaaaaaaaaaaaaaaa" },
+      });
+      const res = mockRes();
+      await getMatchesByTournament(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 500);
+    });
+
+    it("getMatchById returns 500 on DB error", async () => {
+      mockMatchFindById.mock.mockImplementation(async () => {
+        throw new Error("DB error");
+      });
+      const req = mockReq({ params: { id: "m1" } });
+      const res = mockRes();
+      await getMatchById(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 500);
+    });
+
+    it("createMatch returns 500 on DB error", async () => {
+      mockTournamentFindOne.mock.mockImplementation(async () => {
+        throw new Error("DB error");
+      });
+      const req = mockReq({
+        body: { tournamentId: "aaaaaaaaaaaaaaaaaaaaaaaa" },
+      });
+      const res = mockRes();
+      await createMatch(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 500);
+    });
+
+    it("reportResult returns 500 on DB error", async () => {
+      mockMatchFindById.mock.mockImplementation(() => ({
+        populate: async () => {
+          throw new Error("DB error");
+        },
+      }));
+      const req = mockReq({ params: { id: "m1" }, body: { winnerId: "aaa" } });
+      const res = mockRes();
+      await reportResult(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 500);
+    });
+
+    it("resolveDispute returns 500 on DB error", async () => {
+      mockMatchFindById.mock.mockImplementation(() => ({
+        populate: async () => {
+          throw new Error("DB error");
+        },
+      }));
+      const req = mockReq({ params: { id: "m1" }, body: { winnerId: "aaa" } });
+      const res = mockRes();
+      await resolveDispute(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 500);
+    });
+
+    it("recordResult returns 500 on DB error", async () => {
+      mockMatchFindById.mock.mockImplementation(() => ({
+        populate: async () => {
+          throw new Error("DB error");
+        },
+      }));
+      const req = mockReq({ params: { id: "m1" }, body: { winnerId: "aaa" } });
+      const res = mockRes();
+      await recordResult(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 500);
+    });
+
+    it("overrideResult returns 500 on DB error", async () => {
+      mockMatchFindById.mock.mockImplementation(() => ({
+        populate: async () => {
+          throw new Error("DB error");
+        },
+      }));
+      const req = mockReq({ params: { id: "m1" }, body: { winnerId: "aaa" } });
+      const res = mockRes();
+      await overrideResult(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 500);
+    });
+
+    it("updateMatchStatus returns 500 on DB error", async () => {
+      mockMatchFindById.mock.mockImplementation(() => ({
+        populate: async () => {
+          throw new Error("DB error");
+        },
+      }));
+      const req = mockReq({
+        params: { id: "m1" },
+        body: { status: "in_progress" },
+      });
+      const res = mockRes();
+      await updateMatchStatus(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 500);
+    });
+  });
+
   describe("updateMatchStatus", () => {
     function makeMatchForStatusUpdate(creatorId = "cccccccccccccccccccccccc") {
       return {
