@@ -32,7 +32,8 @@ mock.module("winston", {
   },
 });
 
-const { default: logger } = await import("../../infrastructure/utils/logger.js");
+const loggerModule = await import("../../infrastructure/utils/logger.js");
+const logger = loggerModule.default;
 
 // Restore NODE_ENV so other modules are not affected
 process.env.NODE_ENV = originalNodeEnv;

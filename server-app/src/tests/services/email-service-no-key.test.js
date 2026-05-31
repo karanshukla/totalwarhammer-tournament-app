@@ -17,9 +17,10 @@ mock.module("resend", {
   },
 });
 
-const { default: EmailService } = await import(
+const emailServiceModule = await import(
   "../../infrastructure/services/email-service.js"
 );
+const EmailService = emailServiceModule.default;
 
 describe("EmailService resendClient getter — missing API key", () => {
   it("should throw when RESEND_API_KEY is not set", () => {
