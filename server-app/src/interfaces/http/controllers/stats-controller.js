@@ -11,7 +11,6 @@ export const getStats = async (_req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to fetch statistics",
-      error: error.message,
     });
   }
 };

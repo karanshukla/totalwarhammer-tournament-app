@@ -220,7 +220,7 @@ describe("tournament-controller", () => {
   describe("getTournamentById", () => {
     it("should return 404 if tournament not found", async () => {
       mockTournamentFindById.mock.mockImplementation(async () => null);
-      const req = mockReq({ params: { id: "t1" } });
+      const req = mockReq({ params: { id: "aaaaaaaaaaaaaaaaaaaaaaaa" } });
       const res = mockRes();
       await getTournamentById(req, res);
       assert.strictEqual(res.status.mock.calls[0].arguments[0], 404);
@@ -228,7 +228,7 @@ describe("tournament-controller", () => {
 
     it("should return tournament with 200 if found", async () => {
       const tournament = {
-        _id: "t1",
+        _id: "aaaaaaaaaaaaaaaaaaaaaaaa",
         name: "My T",
         code: "ABC123",
         save: mock.fn(async () => {}),
@@ -237,7 +237,7 @@ describe("tournament-controller", () => {
       mockTournamentFindByIdAndUpdate.mock.mockImplementation(
         async () => tournament,
       );
-      const req = mockReq({ params: { id: "t1" } });
+      const req = mockReq({ params: { id: "aaaaaaaaaaaaaaaaaaaaaaaa" } });
       const res = mockRes();
       await getTournamentById(req, res);
       assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
@@ -1192,7 +1192,7 @@ describe("tournament-controller", () => {
   describe("getTournamentById - extra paths", () => {
     it("should return 404 if tournament not found", async () => {
       mockTournamentFindById.mock.mockImplementation(async () => null);
-      const req = mockReq({ params: { id: "missing" } });
+      const req = mockReq({ params: { id: "aaaaaaaaaaaaaaaaaaaaaaaa" } });
       const res = mockRes();
       await getTournamentById(req, res);
       assert.strictEqual(res.status.mock.calls[0].arguments[0], 404);
@@ -1202,7 +1202,7 @@ describe("tournament-controller", () => {
       mockTournamentFindById.mock.mockImplementation(async () => {
         throw new Error("db error");
       });
-      const req = mockReq({ params: { id: "t1" } });
+      const req = mockReq({ params: { id: "aaaaaaaaaaaaaaaaaaaaaaaa" } });
       const res = mockRes();
       await getTournamentById(req, res);
       assert.strictEqual(res.status.mock.calls[0].arguments[0], 500);
@@ -1405,13 +1405,13 @@ describe("tournament-controller", () => {
 
   describe("ensureCode - via getTournamentById", () => {
     it("should assign a code when tournament has none", async () => {
-      const codelessTournament = { _id: "t1", name: "no code", code: null };
+      const codelessTournament = { _id: "aaaaaaaaaaaaaaaaaaaaaaaa", name: "no code", code: null };
       const withCode = { ...codelessTournament, code: "ABC123" };
       // findById returns tournament without code
       mockTournamentFindById.mock.mockImplementation(async () => codelessTournament);
       // findOneAndUpdate (ensureCode) returns tournament with code
       mockTournamentFindOneAndUpdate.mock.mockImplementation(async () => withCode);
-      const req = mockReq({ params: { id: "t1" } });
+      const req = mockReq({ params: { id: "aaaaaaaaaaaaaaaaaaaaaaaa" } });
       const res = mockRes();
       await getTournamentById(req, res);
       assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
@@ -1422,7 +1422,7 @@ describe("tournament-controller", () => {
     });
 
     it("should re-fetch when findOneAndUpdate returns null (race condition)", async () => {
-      const codelessTournament = { _id: "t1", name: "no code", code: "" };
+      const codelessTournament = { _id: "aaaaaaaaaaaaaaaaaaaaaaaa", name: "no code", code: "" };
       const withCode = { ...codelessTournament, code: "XYZ999" };
       let findByIdCallCount = 0;
       mockTournamentFindById.mock.mockImplementation(async () => {
@@ -1431,7 +1431,7 @@ describe("tournament-controller", () => {
       });
       // findOneAndUpdate returns null (another request won the race)
       mockTournamentFindOneAndUpdate.mock.mockImplementation(async () => null);
-      const req = mockReq({ params: { id: "t1" } });
+      const req = mockReq({ params: { id: "aaaaaaaaaaaaaaaaaaaaaaaa" } });
       const res = mockRes();
       await getTournamentById(req, res);
       assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
