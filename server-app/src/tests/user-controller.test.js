@@ -41,6 +41,7 @@ const {
   register,
   updateUsername,
   updatePassword,
+  updateGuestUsername,
   deleteAccount,
   getUserStats,
 } = await import("../interfaces/http/controllers/user-controller.js");
@@ -331,6 +332,227 @@ describe("user-controller", () => {
       assert.strictEqual(data.tournamentsCreated, 3);
       assert.strictEqual(data.matchesPlayed, 2);
       assert.strictEqual(data.wins, 1);
+    });
+
+    it("should return 500 on unexpected error", async () => {
+      mockUserFindById.mock.mockImplementation(() => {
+        throw new Error("db error");
+      });
+      const req = mockReq();
+      const res = mockRes();
+      await getUserStats(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 500);
+    });
+  });
+
+  describe("userExists - extra validation paths", () => {
+    it("should return 400 if identifier is a non-string type", async () => {
+      // Pass an array — query params parsed as array counts as non-string
+      const req = mockReq({ query: { identifier: ["a", "b"] } });
+      const res = mockRes();
+      await userExists(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 400);
+    });
+
+    it("should return 500 on unexpected DB error", async () => {
+      mockUserFindOne.mock.mockImplementation(() => {
+        throw new Error("db error");
+      });
+      const req = mockReq({ query: { identifier: "test" } });
+      const res = mockRes();
+      await userExists(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 500);
+    });
+  });
+
+  describe("register - extra validation paths", () => {
+    it("should return 400 if username is not a string", async () => {
+      mockUserFindOne.mock.mockImplementation(() => null); // no existing email
+      const req = mockReq({
+        body: { username: 42, email: "new@test.com", password: "pw" },
+      });
+      const res = mockRes();
+      await register(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 400);
+    });
+
+    it("should return 400 if username already taken", async () => {
+      let callCount = 0;
+      mockUserFindOne.mock.mockImplementation(() => {
+        callCount++;
+        // first call (email check) → null; second call (username check) → taken
+        return callCount === 1 ? null : { username: "taken" };
+      });
+      const req = mockReq({
+        body: { username: "taken", email: "new@test.com", password: "pw" },
+      });
+      const res = mockRes();
+      await register(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 400);
+    });
+
+    it("should return 500 on unexpected error during registration", async () => {
+      mockUserFindOne.mock.mockImplementation(() => null);
+      mockUserCreate.mock.mockImplementation(async () => {
+        throw new Error("db error");
+      });
+      const req = mockReq({
+        body: { username: "newuser", email: "new@test.com", password: "pw" },
+      });
+      const res = mockRes();
+      await register(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 500);
+    });
+  });
+
+  describe("updateGuestUsername", () => {
+    it("should return 403 if user is not a guest", async () => {
+      const req = mockReq({
+        body: { username: "newname" },
+        user: { id: "u1", isGuest: false },
+      });
+      const res = mockRes();
+      await updateGuestUsername(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 403);
+    });
+
+    it("should return 400 if username is already taken", async () => {
+      mockUserFindOne.mock.mockImplementation(async () => ({
+        username: "taken",
+      }));
+      const req = mockReq({
+        body: { username: "taken" },
+        user: { id: "u1", isGuest: true },
+      });
+      const res = mockRes();
+      await updateGuestUsername(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 400);
+    });
+
+    it("should return 404 if user not found after update", async () => {
+      mockUserFindOne.mock.mockImplementation(async () => null);
+      mockUserFindByIdAndUpdate.mock.mockImplementation(async () => null);
+      const req = mockReq({
+        body: { username: "newname" },
+        user: { id: "u1", isGuest: true },
+      });
+      const res = mockRes();
+      await updateGuestUsername(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 404);
+    });
+
+    it("should update guest username and return 200", async () => {
+      mockUserFindOne.mock.mockImplementation(async () => null);
+      mockUserFindByIdAndUpdate.mock.mockImplementation(async () => ({
+        id: "u1",
+        username: "newname",
+        email: null,
+      }));
+      const req = mockReq({
+        body: { username: "newname" },
+        user: { id: "u1", isGuest: true },
+      });
+      const res = mockRes();
+      await updateGuestUsername(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
+      assert.strictEqual(
+        res.json.mock.calls[0].arguments[0].data.username,
+        "newname",
+      );
+      assert.strictEqual(
+        res.json.mock.calls[0].arguments[0].data.isGuest,
+        true,
+      );
+    });
+
+    it("should return 500 on unexpected error", async () => {
+      mockUserFindOne.mock.mockImplementation(async () => {
+        throw new Error("db error");
+      });
+      const req = mockReq({
+        body: { username: "newname" },
+        user: { id: "u1", isGuest: true },
+      });
+      const res = mockRes();
+      await updateGuestUsername(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 500);
+    });
+  });
+
+  describe("updateUsername - extra validation paths", () => {
+    it("should return 400 if username is not a string", async () => {
+      const req = mockReq({
+        body: { username: 123 },
+        user: { id: "u1" },
+      });
+      const res = mockRes();
+      await updateUsername(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 400);
+    });
+
+    it("should return 404 if user not found after update", async () => {
+      mockUserFindOne.mock.mockImplementation(() => null);
+      mockUserFindByIdAndUpdate.mock.mockImplementation(async () => null);
+      const req = mockReq({
+        body: { username: "newname" },
+        user: { id: "u1" },
+      });
+      const res = mockRes();
+      await updateUsername(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 404);
+    });
+
+    it("should return 500 on unexpected error", async () => {
+      mockUserFindOne.mock.mockImplementation(() => {
+        throw new Error("db error");
+      });
+      const req = mockReq({ body: { username: "newname" }, user: { id: "u1" } });
+      const res = mockRes();
+      await updateUsername(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 500);
+    });
+  });
+
+  describe("updatePassword - extra paths", () => {
+    it("should return 500 on unexpected error", async () => {
+      mockUserFindById.mock.mockImplementation(() => {
+        throw new Error("db error");
+      });
+      const req = mockReq({
+        body: { currentPassword: "old", newPassword: "new" },
+        user: { id: "u1" },
+      });
+      const res = mockRes();
+      await updatePassword(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 500);
+    });
+  });
+
+  describe("deleteAccount - extra paths", () => {
+    it("should return 500 when session destroy fails", async () => {
+      mockUserFindByIdAndUpdate.mock.mockImplementation(async () => ({
+        id: "u1",
+      }));
+      const req = mockReq({
+        user: { id: "u1" },
+        session: { destroy: mock.fn((cb) => cb(new Error("destroy error"))) },
+      });
+      const res = mockRes();
+      await deleteAccount(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 500);
+    });
+
+    it("should return 500 on unexpected DB error", async () => {
+      mockUserFindByIdAndUpdate.mock.mockImplementation(async () => {
+        throw new Error("db error");
+      });
+      const req = mockReq({
+        user: { id: "u1" },
+        session: { destroy: mock.fn((cb) => cb()) },
+      });
+      const res = mockRes();
+      await deleteAccount(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 500);
     });
   });
 });
