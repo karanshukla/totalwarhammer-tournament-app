@@ -2,8 +2,6 @@ import mongoose from "mongoose";
 
 import Match from "../../../domain/models/match.js";
 import Tournament from "../../../domain/models/tournament.js";
-
-const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id) && /^[a-f\d]{24}$/i.test(id);
 import {
   singleElimStart,
   singleElimAdvance,
@@ -21,6 +19,8 @@ import {
   emitMatchesAppended,
 } from "../../../infrastructure/socket/socket-service.js";
 import logger from "../../../infrastructure/utils/logger.js";
+
+const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id) && /^[a-f\d]{24}$/i.test(id);
 
 function generateCode() {
   return Math.random().toString(36).substring(2, 8).toUpperCase();
