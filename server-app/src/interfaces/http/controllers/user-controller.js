@@ -41,7 +41,6 @@ export const userExists = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to check user existence",
-      error: error.message,
     });
   }
 };
@@ -94,7 +93,6 @@ export const register = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to register user",
-      error: error.message,
     });
   }
 };
@@ -154,7 +152,6 @@ export const updateGuestUsername = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to update username",
-      error: error.message,
     });
   }
 };
@@ -223,7 +220,6 @@ export const updateUsername = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to update username",
-      error: error.message,
     });
   }
 };
@@ -267,7 +263,6 @@ export const deleteAccount = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to delete account",
-      error: error.message,
     });
   }
 };
@@ -330,7 +325,6 @@ export const getUserStats = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to fetch user stats",
-      error: error.message,
     });
   }
 };
@@ -370,7 +364,6 @@ export const updatePassword = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to update password",
-      error: error.message,
     });
   }
 };

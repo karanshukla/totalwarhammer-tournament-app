@@ -154,7 +154,6 @@ export const login = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to login",
-      error: error.message,
     });
   }
 };
@@ -269,7 +268,6 @@ export const token = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to authenticate",
-      error: error.message,
     });
   }
 };
@@ -306,7 +304,6 @@ export const logout = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to logout",
-      error: error.message,
     });
   }
 };

@@ -138,14 +138,12 @@ paths:
       summary: Check if a username or email is taken
       operationId: userExists
       parameters:
-        - name: username
+        - name: identifier
           in: query
+          required: true
           schema:
             type: string
-        - name: email
-          in: query
-          schema:
-            type: string
+            example: player1
       responses:
         "200":
           description: Existence check result

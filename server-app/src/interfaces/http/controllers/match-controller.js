@@ -27,7 +27,6 @@ export const getMatchesByTournament = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to fetch matches",
-      error: error.message,
     });
   }
 };
@@ -36,6 +35,11 @@ export const getMatchesByTournament = async (req, res) => {
 /** @type {import('express').RequestHandler} */
 export const getMatchById = async (req, res) => {
   try {
+    if (!isValidObjectId(req.params.id)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid match ID" });
+    }
     const match = await Match.findById(req.params.id);
     if (!match) {
       return res
@@ -48,7 +52,6 @@ export const getMatchById = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to fetch match",
-      error: error.message,
     });
   }
 };
@@ -96,7 +99,6 @@ export const createMatch = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to create match",
-      error: error.message,
     });
   }
 };
@@ -233,7 +235,6 @@ export const reportResult = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to report result",
-      error: error.message,
     });
   }
 };
@@ -306,7 +307,6 @@ export const resolveDispute = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to resolve dispute",
-      error: error.message,
     });
   }
 };
@@ -383,7 +383,6 @@ export const recordResult = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to record result",
-      error: error.message,
     });
   }
 };
@@ -453,7 +452,6 @@ export const overrideResult = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to override result",
-      error: error.message,
     });
   }
 };
@@ -499,7 +497,6 @@ export const updateMatchStatus = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to update match status",
-      error: error.message,
     });
   }
 };

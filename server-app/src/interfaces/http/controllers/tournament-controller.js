@@ -1,5 +1,9 @@
+import mongoose from "mongoose";
+
 import Match from "../../../domain/models/match.js";
 import Tournament from "../../../domain/models/tournament.js";
+
+const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id) && /^[a-f\d]{24}$/i.test(id);
 import {
   singleElimStart,
   singleElimAdvance,
@@ -93,7 +97,6 @@ export const createTournament = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to create tournament",
-      error: error.message,
     });
   }
 };
@@ -124,7 +127,6 @@ export const getTournaments = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to fetch tournaments",
-      error: error.message,
     });
   }
 };
@@ -194,7 +196,6 @@ export const getUserTournaments = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to fetch user tournaments",
-      error: error.message,
     });
   }
 };
@@ -202,6 +203,11 @@ export const getUserTournaments = async (req, res) => {
 /** @type {import('express').RequestHandler} */
 export const getTournamentById = async (req, res) => {
   try {
+    if (!isValidObjectId(req.params.id)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid tournament ID" });
+    }
     const found = await Tournament.findById(req.params.id);
     if (!found) {
       return res
@@ -215,7 +221,6 @@ export const getTournamentById = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to fetch tournament",
-      error: error.message,
     });
   }
 };
@@ -238,7 +243,6 @@ export const getTournamentByCode = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to fetch tournament",
-      error: error.message,
     });
   }
 };
@@ -279,7 +283,6 @@ export const addParticipant = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to add participant",
-      error: error.message,
     });
   }
 };
@@ -322,7 +325,6 @@ export const removeParticipant = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to remove participant",
-      error: error.message,
     });
   }
 };
@@ -357,7 +359,6 @@ export const updateParticipant = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to update participant",
-      error: error.message,
     });
   }
 };
@@ -405,7 +406,6 @@ export const joinTournament = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to join tournament",
-      error: error.message,
     });
   }
 };
@@ -473,7 +473,6 @@ export const startTournament = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to start tournament",
-      error: error.message,
     });
   }
 };
@@ -661,7 +660,6 @@ export const advanceRound = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to advance round",
-      error: error.message,
     });
   }
 };
@@ -710,7 +708,6 @@ export const updateDescription = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to update description",
-      error: error.message,
     });
   }
 };
@@ -751,7 +748,6 @@ export const deleteTournament = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to delete tournament",
-      error: error.message,
     });
   }
 };

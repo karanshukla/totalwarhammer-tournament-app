@@ -45,7 +45,6 @@ export const sendPasswordResetEmail = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to send password reset email",
-      error: error.message,
     });
   }
 };
@@ -83,7 +82,6 @@ export const verifyResetToken = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to verify reset token",
-      error: error.message,
     });
   }
 };
@@ -140,7 +138,6 @@ export const resetPassword = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to reset password",
-      error: error.message,
     });
   }
 };
