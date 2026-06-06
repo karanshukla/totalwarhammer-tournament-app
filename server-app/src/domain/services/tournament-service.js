@@ -489,10 +489,13 @@ export function roundRobinStandings(participants, allMatches) {
   );
 }
 
+import { Swiss as blossomSwiss } from "tournament-pairings";
+
 // ─── Swiss System ─────────────────────────────────────────────────────────────
 //
 // Round 1: random pairing.
-// Subsequent rounds: pair players with same number of wins (top-down), no rematches.
+// Subsequent rounds: Blossom algorithm (maximum cardinality matching) via
+// tournament-pairings, pairing by win score while avoiding rematches.
 // Typical swiss ends after ceil(log2(n)) rounds; admin decides when to stop.
 
 export function swissStart(
@@ -529,7 +532,8 @@ export function swissStart(
 }
 
 /**
- * Swiss advance — pair players by win score, avoiding rematches.
+ * Swiss advance — pair players using the Blossom algorithm (maximum cardinality
+ * matching) via tournament-pairings, by win score with rematch avoidance.
  */
 export function swissAdvance(
   tournamentId,
@@ -537,7 +541,6 @@ export function swissAdvance(
   allMatches,
   nextRound,
 ) {
-  // Build score map
   const scores = new Map();
   for (const p of participants) {
     const id = (p.participantId ?? p._id)?.toString();
@@ -545,64 +548,55 @@ export function swissAdvance(
       scores.set(id, {
         p: { participantId: id, name: p.name, faction: p.faction || "" },
         wins: 0,
+        avoid: [],
       });
   }
 
-  // Track played pairs to avoid rematches
-  const played = new Set();
   for (const m of allMatches) {
     if (m.status !== "completed" || m.player2.name === "BYE") continue;
     const a = m.player1.participantId?.toString();
     const b = m.player2.participantId?.toString();
     if (a && b) {
-      played.add(`${a}_${b}`);
-      played.add(`${b}_${a}`);
+      scores.get(a)?.avoid.push(b);
+      scores.get(b)?.avoid.push(a);
     }
     const wId = m.winnerId?.toString();
     if (wId && scores.has(wId)) scores.get(wId).wins++;
   }
 
-  // Group by wins, sort desc
-  const entries = [...scores.values()].sort((a, b) => b.wins - a.wins);
+  const players = [...scores.values()].map(({ p, wins, avoid }) => ({
+    id: p.participantId,
+    score: wins,
+    avoid,
+  }));
 
-  // Greedy pairing — try to pair adjacent players, skip rematches
-  const unpaired = [...entries];
+  // Blossom throws when avoid constraints make a valid matching impossible.
+  // In that case strip the avoid lists and force rematches (last-resort behavior).
+  let pairings;
+  try {
+    pairings = blossomSwiss(players, nextRound);
+  } catch {
+    pairings = blossomSwiss(
+      players.map((p) => ({ ...p, avoid: [] })),
+      nextRound,
+    );
+  }
+
   const docs = [];
   let mn = 1;
-
-  while (unpaired.length > 0) {
-    const p1entry = unpaired.shift();
-    let paired = false;
-    for (let i = 0; i < unpaired.length; i++) {
-      const p2entry = unpaired[i];
-      const key = `${p1entry.p.participantId}_${p2entry.p.participantId}`;
-      if (!played.has(key)) {
-        docs.push({
-          tournament: tournamentId,
-          round: nextRound,
-          matchNumber: mn++,
-          player1: p1entry.p,
-          player2: p2entry.p,
-        });
-        unpaired.splice(i, 1);
-        paired = true;
-        break;
-      }
-    }
-    if (!paired) {
-      // All remaining opponents already played — forced rematch or bye
-      if (unpaired.length > 0) {
-        const p2entry = unpaired.shift();
-        docs.push({
-          tournament: tournamentId,
-          round: nextRound,
-          matchNumber: mn++,
-          player1: p1entry.p,
-          player2: p2entry.p,
-        });
-      } else {
-        docs.push(byeMatch(tournamentId, nextRound, mn++, p1entry.p));
-      }
+  for (const pairing of pairings) {
+    const p1 = scores.get(pairing.player1?.toString())?.p;
+    if (pairing.player2 === null) {
+      docs.push(byeMatch(tournamentId, nextRound, mn++, p1));
+    } else {
+      const p2 = scores.get(pairing.player2?.toString())?.p;
+      docs.push({
+        tournament: tournamentId,
+        round: nextRound,
+        matchNumber: mn++,
+        player1: p1,
+        player2: p2,
+      });
     }
   }
 

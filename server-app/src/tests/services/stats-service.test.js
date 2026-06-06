@@ -32,9 +32,8 @@ mock.module("../../domain/models/tournament.js", {
   },
 });
 
-const { getGlobalStats, invalidateStatsCache } = await import(
-  "../../infrastructure/services/stats-service.js"
-);
+const { getGlobalStats, invalidateStatsCache } =
+  await import("../../infrastructure/services/stats-service.js");
 
 function makeLeanChain(data = []) {
   const chain = {

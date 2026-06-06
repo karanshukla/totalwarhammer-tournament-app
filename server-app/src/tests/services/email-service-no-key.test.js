@@ -17,17 +17,15 @@ mock.module("resend", {
   },
 });
 
-const emailServiceModule = await import(
-  "../../infrastructure/services/email-service.js"
-);
+const emailServiceModule =
+  await import("../../infrastructure/services/email-service.js");
 const EmailService = emailServiceModule.default;
 
 describe("EmailService resendClient getter — missing API key", () => {
   it("should throw when RESEND_API_KEY is not set", () => {
     const svc = new EmailService();
-    assert.throws(
-      () => svc.resendClient,
-      { message: "RESEND_API_KEY is not set in environment variables" },
-    );
+    assert.throws(() => svc.resendClient, {
+      message: "RESEND_API_KEY is not set in environment variables",
+    });
   });
 });

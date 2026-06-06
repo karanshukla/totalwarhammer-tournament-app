@@ -31,7 +31,10 @@ mock.module("mongoose", {
   defaultExport: {
     connection: {
       asPromise: mockAsPromise,
-      db: { createCollection: mockCreateCollection, collection: mockDbCollection },
+      db: {
+        createCollection: mockCreateCollection,
+        collection: mockDbCollection,
+      },
     },
   },
 });

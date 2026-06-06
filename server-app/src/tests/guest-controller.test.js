@@ -25,9 +25,8 @@ mock.module("../infrastructure/utils/logger.js", {
   },
 });
 
-const { createGuestUser, updateGuestUsername } = await import(
-  "../interfaces/http/controllers/guest-controller.js"
-);
+const { createGuestUser, updateGuestUsername } =
+  await import("../interfaces/http/controllers/guest-controller.js");
 
 function mockRes() {
   const res = {};
@@ -227,7 +226,11 @@ describe("guest-controller", () => {
     });
 
     it("should return 500 on unexpected outer error", async () => {
-      const frozenUser = Object.freeze({ id: "u1", username: "old", isGuest: true });
+      const frozenUser = Object.freeze({
+        id: "u1",
+        username: "old",
+        isGuest: true,
+      });
       const req = mockReq({
         body: { username: "new_name" },
         user: frozenUser,

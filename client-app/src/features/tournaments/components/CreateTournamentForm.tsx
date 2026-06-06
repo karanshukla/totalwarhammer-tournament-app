@@ -253,6 +253,30 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
               </Field.HelperText>
             </Field.Root>
 
+            {formData.tournamentType === "Swiss System" && (
+              <Box
+                p={3}
+                borderRadius="md"
+                bg="blue.subtle"
+                borderWidth={1}
+                borderColor="blue.muted"
+              >
+                <HStack gap={2} alignItems="flex-start">
+                  <Box color="blue.fg" flexShrink={0} mt="1px">
+                    <LuInfo size={14} />
+                  </Box>
+                  <Text fontSize="xs" color="blue.fg">
+                    Swiss System uses the{" "}
+                    <Text as="span" fontWeight="semibold">
+                      Blossom algorithm
+                    </Text>{" "}
+                    for maximum-cardinality matching - players are paired by win
+                    score while avoiding rematches wherever possible.
+                  </Text>
+                </HStack>
+              </Box>
+            )}
+
             <Field.Root>
               <Field.Label>Banned Factions</Field.Label>
               <SimpleGrid columns={{ base: 1, md: 2 }} gap={6} w="full">

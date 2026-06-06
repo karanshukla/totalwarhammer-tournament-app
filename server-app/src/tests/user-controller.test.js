@@ -506,7 +506,10 @@ describe("user-controller", () => {
       mockUserFindOne.mock.mockImplementation(() => {
         throw new Error("db error");
       });
-      const req = mockReq({ body: { username: "newname" }, user: { id: "u1" } });
+      const req = mockReq({
+        body: { username: "newname" },
+        user: { id: "u1" },
+      });
       const res = mockRes();
       await updateUsername(req, res);
       assert.strictEqual(res.status.mock.calls[0].arguments[0], 500);

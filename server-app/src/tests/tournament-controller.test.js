@@ -859,7 +859,12 @@ describe("tournament-controller", () => {
     it("Swiss System: returns 400 when current round has incomplete matches", async () => {
       const t = makeActiveTournament({
         tournamentType: "Swiss System",
-        participants: [{ name: "A" }, { name: "B" }, { name: "C" }, { name: "D" }],
+        participants: [
+          { name: "A" },
+          { name: "B" },
+          { name: "C" },
+          { name: "D" },
+        ],
       });
       mockTournamentFindOne.mock.mockImplementation(async () => t);
       mockMatchFind.mock.mockImplementation(() => ({
@@ -899,8 +904,14 @@ describe("tournament-controller", () => {
       const t = makeActiveTournament({
         tournamentType: "Swiss System",
         participants: [
-          { name: "A" }, { name: "B" }, { name: "C" }, { name: "D" },
-          { name: "E" }, { name: "F" }, { name: "G" }, { name: "H" },
+          { name: "A" },
+          { name: "B" },
+          { name: "C" },
+          { name: "D" },
+          { name: "E" },
+          { name: "F" },
+          { name: "G" },
+          { name: "H" },
         ],
         save: mock.fn(async () => {}),
       });
@@ -912,7 +923,9 @@ describe("tournament-controller", () => {
           { round: 1, bracketSide: null, status: "completed" },
         ]),
       }));
-      mockSwissAdvance.mock.mockImplementation(() => ({ docs: [{ round: 2 }] }));
+      mockSwissAdvance.mock.mockImplementation(() => ({
+        docs: [{ round: 2 }],
+      }));
       mockMatchInsertMany.mock.mockImplementation(async () => newMatches);
       const req = mockReq({ params: { id: "t1" } });
       const res = mockRes();
@@ -1134,7 +1147,11 @@ describe("tournament-controller", () => {
   describe("createTournament - extra paths", () => {
     it("should return 403 if user is a guest", async () => {
       const req = mockReq({
-        body: { name: "t", playerCount: 4, tournamentType: "Single Elimination" },
+        body: {
+          name: "t",
+          playerCount: 4,
+          tournamentType: "Single Elimination",
+        },
         user: { id: "u1", isGuest: true },
       });
       const res = mockRes();
@@ -1405,12 +1422,20 @@ describe("tournament-controller", () => {
 
   describe("ensureCode - via getTournamentById", () => {
     it("should assign a code when tournament has none", async () => {
-      const codelessTournament = { _id: "aaaaaaaaaaaaaaaaaaaaaaaa", name: "no code", code: null };
+      const codelessTournament = {
+        _id: "aaaaaaaaaaaaaaaaaaaaaaaa",
+        name: "no code",
+        code: null,
+      };
       const withCode = { ...codelessTournament, code: "ABC123" };
       // findById returns tournament without code
-      mockTournamentFindById.mock.mockImplementation(async () => codelessTournament);
+      mockTournamentFindById.mock.mockImplementation(
+        async () => codelessTournament,
+      );
       // findOneAndUpdate (ensureCode) returns tournament with code
-      mockTournamentFindOneAndUpdate.mock.mockImplementation(async () => withCode);
+      mockTournamentFindOneAndUpdate.mock.mockImplementation(
+        async () => withCode,
+      );
       const req = mockReq({ params: { id: "aaaaaaaaaaaaaaaaaaaaaaaa" } });
       const res = mockRes();
       await getTournamentById(req, res);
@@ -1422,7 +1447,11 @@ describe("tournament-controller", () => {
     });
 
     it("should re-fetch when findOneAndUpdate returns null (race condition)", async () => {
-      const codelessTournament = { _id: "aaaaaaaaaaaaaaaaaaaaaaaa", name: "no code", code: "" };
+      const codelessTournament = {
+        _id: "aaaaaaaaaaaaaaaaaaaaaaaa",
+        name: "no code",
+        code: "",
+      };
       const withCode = { ...codelessTournament, code: "XYZ999" };
       let findByIdCallCount = 0;
       mockTournamentFindById.mock.mockImplementation(async () => {

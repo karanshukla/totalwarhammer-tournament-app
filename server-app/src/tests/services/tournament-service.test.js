@@ -573,14 +573,11 @@ describe("swissAdvance", () => {
     const result = swissAdvance(tid, participants, allMatches, 3);
     assert.strictEqual(result.docs.length, 2);
     // p1 and p2 haven't played each other yet despite different scores
-    const pairKeys = result.docs.map(
-      (d) =>
-        [d.player1.participantId, d.player2.participantId].sort().join("_"),
+    const pairKeys = result.docs.map((d) =>
+      [d.player1.participantId, d.player2.participantId].sort().join("_"),
     );
     // No rematch of p1 vs p2 or p3 vs p4 (unless forced)
-    const p1p2Match = pairKeys.find(
-      (k) => k === "p1_p2" || k === "p2_p1",
-    );
+    const p1p2Match = pairKeys.find((k) => k === "p1_p2" || k === "p2_p1");
     // p1 already played p2, so they should NOT be paired (different opponents available)
     assert.strictEqual(p1p2Match, undefined);
   });
@@ -607,10 +604,7 @@ describe("swissAdvance", () => {
   });
 
   it("forces rematch when no other pairing is available", () => {
-    const participants = [
-      makePlayer("p1", "Alice"),
-      makePlayer("p2", "Bob"),
-    ];
+    const participants = [makePlayer("p1", "Alice"), makePlayer("p2", "Bob")];
     // They've already played each other — forced rematch
     const allMatches = [
       {
@@ -623,6 +617,139 @@ describe("swissAdvance", () => {
     ];
     const result = swissAdvance(tid, participants, allMatches, 2);
     assert.strictEqual(result.docs.length, 1);
+  });
+
+  it("finds a perfect pairing when greedy would produce a forced rematch", () => {
+    // 6 players; prior round paired them as (p1-p2), (p3-p4), (p5-p6).
+    // A greedy top-down pass picks p1-p3, p2-p4, then has no choice but to
+    // rematch p5-p6. The Blossom algorithm finds a perfect matching instead
+    // (e.g. p1-p4, p2-p5, p3-p6 or any other rematch-free solution).
+    const participants = [
+      makePlayer("p1", "Alice"),
+      makePlayer("p2", "Bob"),
+      makePlayer("p3", "Carol"),
+      makePlayer("p4", "Dave"),
+      makePlayer("p5", "Eve"),
+      makePlayer("p6", "Frank"),
+    ];
+    const allMatches = [
+      {
+        round: 1,
+        status: "completed",
+        winnerId: "p1",
+        player1: { participantId: "p1", name: "Alice" },
+        player2: { participantId: "p2", name: "Bob" },
+      },
+      {
+        round: 1,
+        status: "completed",
+        winnerId: "p3",
+        player1: { participantId: "p3", name: "Carol" },
+        player2: { participantId: "p4", name: "Dave" },
+      },
+      {
+        round: 1,
+        status: "completed",
+        winnerId: "p5",
+        player1: { participantId: "p5", name: "Eve" },
+        player2: { participantId: "p6", name: "Frank" },
+      },
+    ];
+    const result = swissAdvance(tid, participants, allMatches, 2);
+    assert.strictEqual(result.docs.length, 3);
+    const rematches = new Set([
+      "p1_p2",
+      "p2_p1",
+      "p3_p4",
+      "p4_p3",
+      "p5_p6",
+      "p6_p5",
+    ]);
+    for (const doc of result.docs) {
+      const key = `${doc.player1.participantId}_${doc.player2.participantId}`;
+      assert.ok(!rematches.has(key), `unexpected rematch: ${key}`);
+    }
+  });
+
+  it("preserves participantId, name, and faction through the blossom mapping", () => {
+    const participants = [
+      { _id: "p1", participantId: "p1", name: "Alice", faction: "Dwarfs" },
+      { _id: "p2", participantId: "p2", name: "Bob", faction: "Greenskins" },
+      { _id: "p3", participantId: "p3", name: "Carol", faction: "Empire" },
+      { _id: "p4", participantId: "p4", name: "Dave", faction: "Chaos" },
+    ];
+    const allMatches = [
+      {
+        round: 1,
+        status: "completed",
+        winnerId: "p1",
+        player1: { participantId: "p1", name: "Alice" },
+        player2: { participantId: "p2", name: "Bob" },
+      },
+      {
+        round: 1,
+        status: "completed",
+        winnerId: "p3",
+        player1: { participantId: "p3", name: "Carol" },
+        player2: { participantId: "p4", name: "Dave" },
+      },
+    ];
+    const result = swissAdvance(tid, participants, allMatches, 2);
+    const factionMap = Object.fromEntries(
+      participants.map((p) => [p.participantId, p.faction]),
+    );
+    for (const doc of result.docs) {
+      for (const slot of [doc.player1, doc.player2]) {
+        assert.ok(slot.participantId, "missing participantId");
+        assert.ok(slot.name, "missing name");
+        assert.strictEqual(slot.faction, factionMap[slot.participantId]);
+      }
+    }
+  });
+
+  it("accounts for every participant exactly once across all output docs", () => {
+    const participants = [
+      makePlayer("p1", "Alice"),
+      makePlayer("p2", "Bob"),
+      makePlayer("p3", "Carol"),
+      makePlayer("p4", "Dave"),
+      makePlayer("p5", "Eve"),
+      makePlayer("p6", "Frank"),
+    ];
+    const allMatches = [
+      {
+        round: 1,
+        status: "completed",
+        winnerId: "p1",
+        player1: { participantId: "p1", name: "Alice" },
+        player2: { participantId: "p2", name: "Bob" },
+      },
+      {
+        round: 1,
+        status: "completed",
+        winnerId: "p3",
+        player1: { participantId: "p3", name: "Carol" },
+        player2: { participantId: "p4", name: "Dave" },
+      },
+      {
+        round: 1,
+        status: "completed",
+        winnerId: "p5",
+        player1: { participantId: "p5", name: "Eve" },
+        player2: { participantId: "p6", name: "Frank" },
+      },
+    ];
+    const result = swissAdvance(tid, participants, allMatches, 2);
+    const seen = new Map();
+    for (const doc of result.docs) {
+      for (const slot of [doc.player1, doc.player2]) {
+        if (slot.name === "BYE") continue;
+        const id = slot.participantId;
+        assert.ok(!seen.has(id), `participant ${id} appears more than once`);
+        seen.set(id, true);
+      }
+    }
+    assert.strictEqual(seen.size, participants.length);
   });
 });
 
@@ -688,7 +815,10 @@ describe("doubleElimAdvance bracket reset", () => {
 
     // At this point we should have a bracket reset or completed tournament
     const gfMatches = allMatches.filter((m) => m.bracketSide === "grand_final");
-    assert.ok(gfMatches.length >= 1, "should have at least one grand final match");
+    assert.ok(
+      gfMatches.length >= 1,
+      "should have at least one grand final match",
+    );
   });
 
   it("returns completed=true when WB player wins the grand final", () => {
@@ -710,7 +840,10 @@ describe("doubleElimAdvance bracket reset", () => {
     let iter = 0;
     while (!done && iter++ < 20) {
       const r = doubleElimAdvance(tid, allMatches);
-      if (r.completed) { done = true; break; }
+      if (r.completed) {
+        done = true;
+        break;
+      }
       if (!r.docs || r.docs.length === 0) break;
       const next = r.docs.map((d) => ({
         ...d,
