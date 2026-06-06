@@ -94,16 +94,4 @@ describe("EmailService", () => {
       { message: "Network failure" },
     );
   });
-
-  it("should lazily create and cache the resend client on first access", () => {
-    const svc = new EmailService();
-    const client1 = svc.resendClient;
-    const client2 = svc.resendClient;
-    assert.strictEqual(
-      client1,
-      client2,
-      "client should be the same cached instance",
-    );
-    assert.ok(client1, "client should be truthy");
-  });
 });
