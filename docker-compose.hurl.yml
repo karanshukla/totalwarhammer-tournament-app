@@ -1,0 +1,52 @@
+# docker-compose.hurl.yml
+# Overlay this on top of docker-compose.yml to add the Hurl test runner.
+# The hurl service runs on the backend network so it can reach the server
+# directly without going through Caddy.
+#
+# Usage (local):
+#   docker compose -f docker-compose.yml -f docker-compose.hurl.yml up -d --build
+#   docker compose -f docker-compose.yml -f docker-compose.hurl.yml run --rm hurl
+#   docker compose -f docker-compose.yml -f docker-compose.hurl.yml down --volumes
+#
+# In CI the workflow handles startup and teardown.
+
+services:
+  # Override: run in development mode so session and CSRF cookies are NOT marked
+  # Secure. Without this, Hurl (connecting over plain HTTP) never stores the CSRF
+  # cookie and every mutation request fails CSRF validation with 403.
+  # Development config still reads MONGO_URI, SESSION_SECRET, etc. from env vars.
+  server:
+    environment:
+      NODE_ENV: development
+      MONGO_URI: mongodb://mongo:27017/twt-hurl-test
+
+  hurl:
+    image: ghcr.io/orange-opensource/hurl:latest
+    depends_on:
+      - server
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        RUN_ID=$$(tr -dc 'a-f0-9' < /dev/urandom | head -c 12) && \
+        hurl --test \
+             --retry 12 \
+             --retry-interval 5000 \
+             --error-format long \
+             --variable host=server:3000 \
+             --report-html /report \
+             /tests/no-auth.hurl \
+        && \
+        hurl --test \
+             --error-format long \
+             --variable host=server:3000 \
+             --variable run_id="$$RUN_ID" \
+             --report-html /report \
+             /tests/auth-boundaries.hurl
+    volumes:
+      - ./tests/hurl:/tests:ro
+      - hurl-report:/report
+    networks:
+      - backend
+
+volumes:
+  hurl-report:
