@@ -25,6 +25,14 @@ const { doubleCsrfProtection, generateCsrfToken, invalidCsrfTokenError } =
     // Use fixed secret key for consistent tokens
     getSecret: () => CSRF_SECRET,
 
+    // The __Host- prefix (csrf-csrf's default) requires the Secure attribute by spec.
+    // Any RFC-compliant HTTP client (including Hurl) will refuse to store or send it
+    // over plain HTTP, breaking test environments. Use a plain name in non-production.
+    cookieName:
+      process.env.NODE_ENV === "production"
+        ? "__Host-psifi.x-csrf-token"
+        : "psifi.x-csrf-token",
+
     cookieOptions: {
       httpOnly: true,
       sameSite: process.env.NODE_ENV === "production" ? "Strict" : "Lax",

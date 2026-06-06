@@ -1,0 +1,95 @@
+name: Auth Boundary Tests (Hurl)
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "server-app/**"
+      - "tests/hurl/**"
+      - "docker-compose.yml"
+      - "docker-compose.hurl.yml"
+      - "docker/server/Dockerfile"
+      - ".github/workflows/authBoundaries.yml"
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "server-app/**"
+      - "tests/hurl/**"
+      - "docker-compose.yml"
+      - "docker-compose.hurl.yml"
+      - "docker/server/Dockerfile"
+      - ".github/workflows/authBoundaries.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  hurl:
+    name: Hurl Auth Boundary Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Secrets fall back to throwaway CI values when not configured.
+      # These are only used for the test DB — no real data is at risk.
+      - name: Create .env for Docker Compose
+        env:
+          SESSION_SECRET: ${{ secrets.SESSION_SECRET != '' && secrets.SESSION_SECRET || 'ci-session-secret-hurl' }}
+          CSRF_SECRET: ${{ secrets.CSRF_SECRET != '' && secrets.CSRF_SECRET || 'ci-csrf-secret-hurl' }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET != '' && secrets.JWT_SECRET || 'ci-jwt-secret-hurl' }}
+        run: |
+          cat > .env <<EOF
+          SESSION_SECRET=${SESSION_SECRET}
+          CSRF_SECRET=${CSRF_SECRET}
+          JWT_SECRET=${JWT_SECRET}
+          RESEND_API_KEY=re_placeholder_not_used_in_tests
+          CLIENT_URL=http://localhost
+          BASE_URL=http://localhost
+          EOF
+
+      - name: Build and start app stack
+        run: docker compose -f docker-compose.yml -f docker-compose.hurl.yml up -d --build
+
+      - name: Wait for server to be ready
+        run: |
+          echo "Waiting for server to accept requests..."
+          for i in $(seq 1 40); do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+              http://localhost/api/auth/csrf-token 2>/dev/null || echo "000")
+            if [ "$STATUS" = "200" ]; then
+              echo "Server ready (HTTP $STATUS) after $i attempt(s)"
+              break
+            fi
+            echo "Attempt $i/40 — HTTP $STATUS, retrying in 3 s..."
+            sleep 3
+          done
+
+      - name: Run Hurl tests
+        run: |
+          docker compose \
+            -f docker-compose.yml \
+            -f docker-compose.hurl.yml \
+            run --rm hurl
+
+      - name: Copy Hurl HTML report out of the volume
+        if: always()
+        run: |
+          # Spin up a temporary container to copy the report from the named volume
+          docker run --rm \
+            -v totalwarhammer-tournament-app_hurl-report:/report:ro \
+            -v /tmp/hurl-report:/out \
+            busybox cp -r /report/. /out/ || true
+
+      - name: Upload Hurl HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hurl-report
+          path: /tmp/hurl-report
+          retention-days: 14
+
+      - name: Stop containers
+        if: always()
+        run: docker compose -f docker-compose.yml -f docker-compose.hurl.yml down --volumes --remove-orphans

@@ -49,10 +49,18 @@ jobs:
           node --experimental-vm-modules \
                --experimental-test-module-mocks \
                --experimental-test-coverage \
+               --test-coverage-reporter=lcov \
+               --test-coverage-reporter=text \
                --test \
                --test-reporter=spec 2>&1 | tee /tmp/test-output.txt
         env:
           NODE_ENV: test
+
+      - name: Upload coverage to Coveralls
+        uses: coverallsapp/github-action@v2
+        with:
+          file: ./server-app/lcov.info
+          flag-name: server
 
       - name: Write coverage to job summary
         if: always()
