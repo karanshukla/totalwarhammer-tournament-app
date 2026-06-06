@@ -176,7 +176,9 @@ export const reportResult = async (req, res) => {
     const isCreator = createdById?.toString() === userId;
 
     if (!isPlayer1 && !isPlayer2 && !isCreator) {
-      logger.warn(`Unauthorized result report attempt on match ${match._id} by user ${userId}`);
+      logger.warn(
+        `Unauthorized result report attempt on match ${match._id} by user ${userId}`,
+      );
       return res.status(403).json({
         success: false,
         message:
@@ -216,14 +218,20 @@ export const reportResult = async (req, res) => {
         match.loserId = loserId;
         match.status = "completed";
         match.completedAt = new Date();
-        logger.info(`Match ${match._id} completed by consensus: winner=${winnerIdStr}, reported by ${userName || userId}`);
+        logger.info(
+          `Match ${match._id} completed by consensus: winner=${winnerIdStr}, reported by ${userName || userId}`,
+        );
       } else {
         match.status = "disputed";
-        logger.warn(`Match ${match._id} disputed: conflicting reports from ${reports.map((r) => r.reportedByName).join(", ")}`);
+        logger.warn(
+          `Match ${match._id} disputed: conflicting reports from ${reports.map((r) => r.reportedByName).join(", ")}`,
+        );
       }
     } else {
       match.status = "in_progress";
-      logger.debug(`Match ${match._id} result reported by ${userName || userId}: winner=${winnerIdStr} (awaiting other player)`);
+      logger.debug(
+        `Match ${match._id} result reported by ${userName || userId}: winner=${winnerIdStr} (awaiting other player)`,
+      );
     }
 
     await match.save();
@@ -300,7 +308,9 @@ export const resolveDispute = async (req, res) => {
     invalidateStatsCache().catch(() => {});
     emitMatchUpdated(match.tournament._id.toString(), match);
 
-    logger.info(`Dispute resolved on match ${match._id} by user ${req.user.id}: winner=${winnerIdStr}, reason="${reason || "none"}"`);
+    logger.info(
+      `Dispute resolved on match ${match._id} by user ${req.user.id}: winner=${winnerIdStr}, reason="${reason || "none"}"`,
+    );
     return res.status(200).json({ success: true, data: match });
   } catch (error) {
     logger.error(`Resolve dispute error: ${error.message}`, { error });
@@ -376,7 +386,9 @@ export const recordResult = async (req, res) => {
     invalidateStatsCache().catch(() => {});
     emitMatchUpdated(match.tournament._id.toString(), match);
 
-    logger.info(`Match ${match._id} result recorded by admin ${req.user.id}: winner=${winnerIdStr}`);
+    logger.info(
+      `Match ${match._id} result recorded by admin ${req.user.id}: winner=${winnerIdStr}`,
+    );
     return res.status(200).json({ success: true, data: match });
   } catch (error) {
     logger.error(`Record result error: ${error.message}`, { error });
@@ -445,7 +457,9 @@ export const overrideResult = async (req, res) => {
     invalidateStatsCache().catch(() => {});
     emitMatchUpdated(match.tournament._id.toString(), match);
 
-    logger.warn(`Match ${match._id} result overridden by admin ${req.user.id}: ${previousWinner} → ${winnerIdStr}, reason="${reason || "none"}"`);
+    logger.warn(
+      `Match ${match._id} result overridden by admin ${req.user.id}: ${previousWinner} → ${winnerIdStr}, reason="${reason || "none"}"`,
+    );
     return res.status(200).json({ success: true, data: match });
   } catch (error) {
     logger.error(`Override result error: ${error.message}`, { error });

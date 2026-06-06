@@ -15,9 +15,8 @@ mock.module("../../infrastructure/utils/logger.js", {
   defaultExport: { error: mock.fn(), info: mock.fn() },
 });
 
-const { getRedisClient, createNewRedisClient } = await import(
-  "../../infrastructure/services/redis-service.js"
-);
+const { getRedisClient, createNewRedisClient } =
+  await import("../../infrastructure/services/redis-service.js");
 
 // Note: these tests run in order because getRedisClient() is a module-level
 // singleton — once a client is created it persists for the module's lifetime.

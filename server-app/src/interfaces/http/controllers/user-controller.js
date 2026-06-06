@@ -136,7 +136,9 @@ export const updateGuestUsername = async (req, res) => {
       });
     }
 
-    logger.info(`Guest username updated: user=${userId}, new username="${username}"`);
+    logger.info(
+      `Guest username updated: user=${userId}, new username="${username}"`,
+    );
     res.status(200).json({
       success: true,
       message: "Username updated successfully",

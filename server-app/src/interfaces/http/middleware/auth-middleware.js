@@ -30,10 +30,13 @@ const authenticateSession = (req, res, next) => {
     req.user = authStateService.getCurrentUser(req);
 
     if (!req.user) {
-      logger.warn("authenticateSession: 401 — isAuthenticated passed but no user object", {
-        path: req.path,
-        sessionId: req.session?.id,
-      });
+      logger.warn(
+        "authenticateSession: 401 — isAuthenticated passed but no user object",
+        {
+          path: req.path,
+          sessionId: req.session?.id,
+        },
+      );
       return res.status(401).json({
         success: false,
         message: "Unauthorized: Invalid session user",

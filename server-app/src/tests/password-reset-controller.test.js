@@ -38,9 +38,8 @@ mock.module("../infrastructure/email-templates/password-reset-template.js", {
   namedExports: { createPasswordResetEmail: mockCreatePasswordResetEmail },
 });
 
-const { sendPasswordResetEmail, verifyResetToken, resetPassword } = await import(
-  "../interfaces/http/controllers/password-reset-controller.js"
-);
+const { sendPasswordResetEmail, verifyResetToken, resetPassword } =
+  await import("../interfaces/http/controllers/password-reset-controller.js");
 
 function mockRes() {
   const res = {};
@@ -225,7 +224,9 @@ describe("password-reset-controller", () => {
         save: mock.fn(async () => {}),
       };
       mockUserFindById.mock.mockImplementation(async () => user);
-      const req = { body: { token: "validtok", newPassword: "newvalidpassword" } };
+      const req = {
+        body: { token: "validtok", newPassword: "newvalidpassword" },
+      };
       const res = mockRes();
       await resetPassword(req, res);
       assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);

@@ -207,7 +207,10 @@ describe("multi-device auth", () => {
       const deviceB = makeDevice(FIREFOX_MAC_UA);
 
       await service.createUserAuthState(deviceA, { ...USER, rememberMe: true });
-      await service.createUserAuthState(deviceB, { ...USER, rememberMe: false });
+      await service.createUserAuthState(deviceB, {
+        ...USER,
+        rememberMe: false,
+      });
 
       assert.strictEqual(
         deviceA.session.cookie.maxAge,

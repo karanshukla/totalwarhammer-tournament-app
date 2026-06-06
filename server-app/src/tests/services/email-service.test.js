@@ -72,7 +72,9 @@ describe("EmailService", () => {
 
   it("should return failure response when the API returns an error object", async () => {
     mockSendFn.mock.mockImplementation(() =>
-      Promise.resolve({ error: { message: "invalid_api_key", code: "unauthorized" } }),
+      Promise.resolve({
+        error: { message: "invalid_api_key", code: "unauthorized" },
+      }),
     );
     const result = await emailService.sendEmail({
       subject: "Test",
@@ -97,7 +99,11 @@ describe("EmailService", () => {
     const svc = new EmailService();
     const client1 = svc.resendClient;
     const client2 = svc.resendClient;
-    assert.strictEqual(client1, client2, "client should be the same cached instance");
+    assert.strictEqual(
+      client1,
+      client2,
+      "client should be the same cached instance",
+    );
     assert.ok(client1, "client should be truthy");
   });
 });

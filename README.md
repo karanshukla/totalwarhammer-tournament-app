@@ -4,7 +4,7 @@ A full-stack web application for organizing and managing tournaments for the Tot
 
 ## Features
 
-- **Tournament formats** — Single Elimination, Double Elimination, Round Robin, Swiss System
+- **Tournament formats** — Single Elimination, Double Elimination, Round Robin, Swiss System (Blossom algorithm for optimal pairing via [tournament-pairings](https://github.com/slashinfty/tournament-pairings))
 - **Guest users** — join and participate in tournaments without registering
 - **Match result reporting** — participants report results; consensus auto-completes, conflicts raise a disputed state
 - **Dispute resolution** — tournament creators can resolve disputed matches or override completed results
@@ -78,6 +78,7 @@ npm run dev:server
 | Email | Resend |
 | Logging | Winston |
 | Testing | Vitest (client), Node test runner (server) |
+| Swiss Pairing | [tournament-pairings](https://github.com/slashinfty/tournament-pairings) — Blossom algorithm (maximum cardinality matching) |
 
 ## Authentication
 
