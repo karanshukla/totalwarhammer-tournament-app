@@ -1,5 +1,7 @@
 # Total War: Warhammer Tournament App
 
+[![OWASP ZAP Security Scan](https://github.com/karanshukla/totalwarhammer-tournament-app/actions/workflows/zapScan.yml/badge.svg)](https://github.com/karanshukla/totalwarhammer-tournament-app/actions/workflows/zapScan.yml)
+
 A full-stack web application for organizing and managing tournaments for the Total War: Warhammer game series. Supports registered and guest users, multiple tournament formats, match result reporting, dispute resolution, and live bracket tracking.
 
 <img width="2482" height="1710" alt="image" src="https://github.com/user-attachments/assets/7b6accde-847f-41ca-93cd-733d67624268" />
