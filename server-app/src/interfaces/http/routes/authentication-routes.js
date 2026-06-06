@@ -21,7 +21,6 @@ router.get("/csrf-token", (req, res) => {
     const token = generateCsrfToken(req, res);
     logger.info("CSRF token generated successfully", {
       sessionId: req.session.id,
-      csrfToken: token,
     });
 
     res.json({

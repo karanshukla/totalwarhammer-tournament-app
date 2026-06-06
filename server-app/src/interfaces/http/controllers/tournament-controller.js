@@ -356,8 +356,18 @@ export const updateParticipant = async (req, res) => {
         .json({ success: false, message: "Participant not found" });
     }
     const { name, faction } = req.body;
-    if (name !== undefined) participant.name = name;
-    if (faction !== undefined) participant.faction = faction;
+    if (name !== undefined) {
+      if (typeof name !== "string" || name.trim().length === 0 || name.length > 100) {
+        return res.status(400).json({ success: false, message: "Name must be between 1 and 100 characters" });
+      }
+      participant.name = name.trim();
+    }
+    if (faction !== undefined) {
+      if (typeof faction !== "string" || faction.length > 100) {
+        return res.status(400).json({ success: false, message: "Faction must be at most 100 characters" });
+      }
+      participant.faction = faction;
+    }
     await tournament.save();
     emitTournamentUpdated(tournament._id.toString(), tournament);
     return res.status(200).json({ success: true, data: tournament });
