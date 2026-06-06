@@ -48,7 +48,7 @@ jobs:
           set -o pipefail
           node --experimental-vm-modules \
                --experimental-test-module-mocks \
-               --experimental-test-coverage \
+               --test-coverage \
                --test-coverage-reporter=lcov \
                --test-coverage-reporter=text \
                --test \
