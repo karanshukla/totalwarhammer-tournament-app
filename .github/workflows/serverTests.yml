@@ -13,6 +13,7 @@ on:
       - "server-app/**"
       - "package.json"
       - "package-lock.json"
+  workflow_dispatch:
 
 permissions:
   contents: read
