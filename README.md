@@ -2,6 +2,14 @@
 
 A full-stack web application for organizing and managing tournaments for the Total War: Warhammer game series. Supports registered and guest users, multiple tournament formats, match result reporting, dispute resolution, and live bracket tracking.
 
+<img width="2482" height="1710" alt="image" src="https://github.com/user-attachments/assets/7b6accde-847f-41ca-93cd-733d67624268" />
+
+<img width="2062" height="1576" alt="image" src="https://github.com/user-attachments/assets/6f940c66-a7e7-4e41-8a1e-ef5cb3d44330" />
+
+<img width="2062" height="1576" alt="image" src="https://github.com/user-attachments/assets/71a2d96b-5b21-412e-b266-d5525ad30f53" />
+
+<img width="2112" height="1620" alt="image" src="https://github.com/user-attachments/assets/7cd700ad-8d9e-4369-83cc-68341adc2865" />
+
 ## Features
 
 - **Tournament formats** — Single Elimination, Double Elimination, Round Robin, Swiss System (Blossom algorithm for optimal pairing via [tournament-pairings](https://github.com/slashinfty/tournament-pairings))
