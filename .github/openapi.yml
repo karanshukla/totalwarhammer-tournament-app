@@ -390,6 +390,8 @@ paths:
           description: Tournament created
         "401":
           description: Not authenticated
+        "403":
+          description: CSRF validation failed or guest user
 
   /tournament/mine:
     get:
@@ -451,7 +453,7 @@ paths:
         "401":
           description: Not authenticated
         "403":
-          description: Not the creator
+          description: CSRF validation failed or not the creator
         "404":
           description: Not found
 
@@ -482,10 +484,12 @@ paths:
           description: Participant added
         "401":
           description: Not authenticated
+        "403":
+          description: CSRF validation failed
 
   /tournament/{id}/participants/{participantId}:
     patch:
-      summary: Update participant (authenticated)
+      summary: Update participant (authenticated, creator only)
       operationId: updateParticipant
       security:
         - sessionCookie: []
@@ -509,11 +513,21 @@ paths:
               properties:
                 name:
                   type: string
+                  maxLength: 100
+                faction:
+                  type: string
+                  maxLength: 100
       responses:
         "200":
           description: Participant updated
+        "400":
+          description: Validation error
         "401":
           description: Not authenticated
+        "403":
+          description: CSRF validation failed or not the creator
+        "404":
+          description: Tournament or participant not found
     delete:
       summary: Remove participant (authenticated)
       operationId: removeParticipant
@@ -535,6 +549,8 @@ paths:
           description: Participant removed
         "401":
           description: Not authenticated
+        "403":
+          description: CSRF validation failed
 
   /tournament/{id}/join:
     post:
@@ -553,6 +569,8 @@ paths:
           description: Joined
         "401":
           description: Not authenticated
+        "403":
+          description: CSRF validation failed
         "404":
           description: Not found
 
@@ -574,7 +592,7 @@ paths:
         "401":
           description: Not authenticated
         "403":
-          description: Not the creator
+          description: CSRF validation failed or not the creator
 
   /tournament/{id}/advance:
     post:
@@ -593,6 +611,8 @@ paths:
           description: Round advanced
         "401":
           description: Not authenticated
+        "403":
+          description: CSRF validation failed
 
   /tournament/{id}/description:
     patch:
@@ -621,6 +641,8 @@ paths:
           description: Description updated
         "401":
           description: Not authenticated
+        "403":
+          description: CSRF validation failed
 
   # ── Match ─────────────────────────────────────────────────────────────────
   /match/tournament/{tournamentId}:
@@ -680,6 +702,8 @@ paths:
           description: Match created
         "401":
           description: Not authenticated
+        "403":
+          description: CSRF validation failed
 
   /match/{id}/report:
     patch:
@@ -708,10 +732,12 @@ paths:
           description: Result reported
         "401":
           description: Not authenticated
+        "403":
+          description: CSRF validation failed or not a participant
 
   /match/{id}/result:
     patch:
-      summary: Record match result (authenticated)
+      summary: Record match result (authenticated, creator only)
       operationId: recordResult
       security:
         - sessionCookie: []
@@ -736,6 +762,8 @@ paths:
           description: Result recorded
         "401":
           description: Not authenticated
+        "403":
+          description: CSRF validation failed or not the creator
 
   /match/{id}/resolve:
     patch:
@@ -765,7 +793,7 @@ paths:
         "401":
           description: Not authenticated
         "403":
-          description: Not the tournament creator
+          description: CSRF validation failed or not the tournament creator
 
   /match/{id}/override:
     patch:
@@ -789,11 +817,15 @@ paths:
               properties:
                 winnerId:
                   type: string
+                reason:
+                  type: string
       responses:
         "200":
           description: Result overridden
         "401":
           description: Not authenticated
+        "403":
+          description: CSRF validation failed or not the creator
 
   /match/{id}/status:
     patch:
@@ -823,6 +855,8 @@ paths:
           description: Status updated
         "401":
           description: Not authenticated
+        "403":
+          description: CSRF validation failed
 
   # ── Stats ──────────────────────────────────────────────────────────────────
   /stats:
