@@ -11,7 +11,7 @@ const __dirname = path.dirname(__filename);
 const envPath = path.resolve(__dirname, "../../..", ".env");
 
 // Load environment variables from .env file
-const result = dotenv.config({ path: envPath });
+const result = dotenv.config({ path: envPath, quiet: true });
 
 // Check if we're in production (most cloud environments set this)
 const isProduction = process.env.NODE_ENV === "production";
