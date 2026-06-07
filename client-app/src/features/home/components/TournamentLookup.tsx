@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+﻿import React, { useState, useEffect } from "react";
 import {
   HStack,
   VStack,
@@ -118,7 +118,7 @@ const TournamentLookup: React.FC = () => {
               )}
             </Field.Root>
             <Button
-              colorPalette="blue"
+              colorPalette="brass"
               onClick={handleFindByCode}
               loading={codeLoading}
               alignSelf="start"
@@ -149,8 +149,8 @@ const TournamentLookup: React.FC = () => {
                         <Box
                           p={1}
                           borderRadius="sm"
-                          bg="blue.subtle"
-                          color="blue.fg"
+                          bg="brass.subtle"
+                          color="brass.fg"
                           flexShrink={0}
                         >
                           <LuSwords size={12} />

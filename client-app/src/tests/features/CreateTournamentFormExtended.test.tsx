@@ -14,7 +14,13 @@ vi.mock("@/core/api/httpClient", () => ({
 }));
 
 vi.mock("@/shared/ui/NumberInput", () => ({
-  NumberInputRoot: ({ children, onValueChange }: { children: React.ReactNode; onValueChange: (v: { value: string }) => void }) => (
+  NumberInputRoot: ({
+    children,
+    onValueChange,
+  }: {
+    children: React.ReactNode;
+    onValueChange: (v: { value: string }) => void;
+  }) => (
     <div
       data-testid="number-input-root"
       onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
@@ -46,7 +52,9 @@ describe("CreateTournamentForm - extended coverage", () => {
 
   describe("tournament type warnings and info messages", () => {
     const selectTournamentType = (type: string) => {
-      fireEvent.change(screen.getByRole("combobox"), { target: { value: type } });
+      fireEvent.change(screen.getByRole("combobox"), {
+        target: { value: type },
+      });
     };
 
     const setPlayerCount = (count: number) => {
@@ -88,7 +96,9 @@ describe("CreateTournamentForm - extended coverage", () => {
         renderForm();
         selectTournamentType("Round Robin");
         // Default 8 players: 7 rounds, 4 matches/round
-        expect(screen.getByText(/7 rounds, 4 matches\/round/i)).toBeInTheDocument();
+        expect(
+          screen.getByText(/7 rounds, 4 matches\/round/i),
+        ).toBeInTheDocument();
       });
 
       it("shows bye info for Round Robin with odd players", () => {
@@ -111,7 +121,9 @@ describe("CreateTournamentForm - extended coverage", () => {
         renderForm();
         selectTournamentType("Round Robin");
         setPlayerCount(2);
-        expect(screen.getByText(/works best with 3 or more players/i)).toBeInTheDocument();
+        expect(
+          screen.getByText(/works best with 3 or more players/i),
+        ).toBeInTheDocument();
       });
     });
 
@@ -120,7 +132,9 @@ describe("CreateTournamentForm - extended coverage", () => {
         renderForm();
         selectTournamentType("Single Elimination");
         setPlayerCount(5);
-        expect(screen.getByText(/5 players is not a power of 2/i)).toBeInTheDocument();
+        expect(
+          screen.getByText(/5 players is not a power of 2/i),
+        ).toBeInTheDocument();
       });
 
       it("shows no warnings when player count is a power of 2", () => {
@@ -134,7 +148,9 @@ describe("CreateTournamentForm - extended coverage", () => {
         renderForm();
         selectTournamentType("Single Elimination");
         setPlayerCount(1);
-        expect(screen.getByText(/need at least 2 players/i)).toBeInTheDocument();
+        expect(
+          screen.getByText(/need at least 2 players/i),
+        ).toBeInTheDocument();
       });
     });
 
@@ -143,7 +159,9 @@ describe("CreateTournamentForm - extended coverage", () => {
         renderForm();
         selectTournamentType("Double Elimination");
         setPlayerCount(3);
-        expect(screen.getByText(/requires at least 4 players/i)).toBeInTheDocument();
+        expect(
+          screen.getByText(/requires at least 4 players/i),
+        ).toBeInTheDocument();
       });
 
       it("shows info when player count is not a power of 2", () => {
@@ -158,7 +176,9 @@ describe("CreateTournamentForm - extended coverage", () => {
         selectTournamentType("Double Elimination");
         setPlayerCount(8);
         expect(screen.queryByText(/not a power of 2/i)).not.toBeInTheDocument();
-        expect(screen.queryByText(/requires at least/i)).not.toBeInTheDocument();
+        expect(
+          screen.queryByText(/requires at least/i),
+        ).not.toBeInTheDocument();
       });
     });
   });
@@ -168,7 +188,9 @@ describe("CreateTournamentForm - extended coverage", () => {
       renderForm();
       fireEvent.click(screen.getByRole("button", { name: "40K" }));
       await waitFor(() => {
-        expect(screen.getByText(/40k factions are in beta/i)).toBeInTheDocument();
+        expect(
+          screen.getByText(/40k factions are in beta/i),
+        ).toBeInTheDocument();
       });
     });
 
@@ -176,11 +198,15 @@ describe("CreateTournamentForm - extended coverage", () => {
       renderForm();
       fireEvent.click(screen.getByRole("button", { name: "40K" }));
       await waitFor(() =>
-        expect(screen.getByText(/40k factions are in beta/i)).toBeInTheDocument()
+        expect(
+          screen.getByText(/40k factions are in beta/i),
+        ).toBeInTheDocument(),
       );
       fireEvent.click(screen.getByRole("button", { name: "WH3" }));
       await waitFor(() => {
-        expect(screen.queryByText(/40k factions are in beta/i)).not.toBeInTheDocument();
+        expect(
+          screen.queryByText(/40k factions are in beta/i),
+        ).not.toBeInTheDocument();
       });
     });
   });
@@ -193,12 +219,16 @@ describe("CreateTournamentForm - extended coverage", () => {
 
     it("disables submit button for guests", () => {
       renderForm(true);
-      expect(screen.getByRole("button", { name: /create tournament/i })).toBeDisabled();
+      expect(
+        screen.getByRole("button", { name: /create tournament/i }),
+      ).toBeDisabled();
     });
 
     it("does not show registration required for non-guests", () => {
       renderForm(false);
-      expect(screen.queryByText(/registration required/i)).not.toBeInTheDocument();
+      expect(
+        screen.queryByText(/registration required/i),
+      ).not.toBeInTheDocument();
     });
   });
 
@@ -229,8 +259,14 @@ describe("CreateTournamentForm - extended coverage", () => {
       const removeEventSpy = vi.spyOn(document, "removeEventListener");
       const { unmount } = renderForm();
       unmount();
-      expect(removeEventSpy).toHaveBeenCalledWith("keydown", expect.any(Function));
-      expect(removeEventSpy).toHaveBeenCalledWith("keyup", expect.any(Function));
+      expect(removeEventSpy).toHaveBeenCalledWith(
+        "keydown",
+        expect.any(Function),
+      );
+      expect(removeEventSpy).toHaveBeenCalledWith(
+        "keyup",
+        expect.any(Function),
+      );
       removeEventSpy.mockRestore();
     });
   });

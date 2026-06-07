@@ -10,16 +10,31 @@ router.get("/tournament/:tournamentId", matchController.getMatchesByTournament);
 
 router.get("/:id", matchController.getMatchById);
 
-router.post("/", authenticateSession, doubleCsrfProtection, matchController.createMatch);
+router.post(
+  "/",
+  authenticateSession,
+  doubleCsrfProtection,
+  matchController.createMatch,
+);
 
-router.patch("/:id/report", authenticateSession, doubleCsrfProtection, matchController.reportResult);
+router.patch(
+  "/:id/report",
+  authenticateSession,
+  doubleCsrfProtection,
+  matchController.reportResult,
+);
 router.patch(
   "/:id/resolve",
   authenticateSession,
   doubleCsrfProtection,
   matchController.resolveDispute,
 );
-router.patch("/:id/result", authenticateSession, doubleCsrfProtection, matchController.recordResult);
+router.patch(
+  "/:id/result",
+  authenticateSession,
+  doubleCsrfProtection,
+  matchController.recordResult,
+);
 
 router.patch(
   "/:id/override",

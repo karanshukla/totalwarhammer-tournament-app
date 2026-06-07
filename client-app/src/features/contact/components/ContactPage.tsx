@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 import {
   Heading,
   Container,
@@ -128,13 +128,13 @@ const ContactPage: React.FC = () => {
                     minW={7}
                     h={7}
                     borderRadius="full"
-                    bg="blue.subtle"
+                    bg="brass.subtle"
                     display="flex"
                     alignItems="center"
                     justifyContent="center"
                     flexShrink={0}
                   >
-                    <Text fontSize="xs" fontWeight="bold" color="blue.fg">
+                    <Text fontSize="xs" fontWeight="bold" color="brass.fg">
                       {step}
                     </Text>
                   </Box>
@@ -158,7 +158,7 @@ const ContactPage: React.FC = () => {
             <SimpleGrid columns={{ base: 1, md: 2 }} gap={4}>
               <Box p={4} borderRadius="md" borderWidth={1} borderColor="border">
                 <HStack mb={2}>
-                  <Badge colorPalette="green">Single Elimination</Badge>
+                  <Badge colorPalette="crimson">Single Elimination</Badge>
                 </HStack>
                 <Text fontSize="sm" color="fg.muted" mb={2}>
                   Lose once and you're out. Best for quick events with a
@@ -178,7 +178,7 @@ const ContactPage: React.FC = () => {
               </Box>
               <Box p={4} borderRadius="md" borderWidth={1} borderColor="border">
                 <HStack mb={2}>
-                  <Badge colorPalette="blue">Double Elimination</Badge>
+                  <Badge colorPalette="brass">Double Elimination</Badge>
                 </HStack>
                 <Text fontSize="sm" color="fg.muted" mb={2}>
                   Two losses to be eliminated. Winners and Losers brackets run
@@ -198,7 +198,7 @@ const ContactPage: React.FC = () => {
               </Box>
               <Box p={4} borderRadius="md" borderWidth={1} borderColor="border">
                 <HStack mb={2}>
-                  <Badge colorPalette="purple">Swiss System</Badge>
+                  <Badge colorPalette="verdigris">Swiss System</Badge>
                 </HStack>
                 <Text fontSize="sm" color="fg.muted" mb={2}>
                   Nobody is eliminated. Players are paired against others with
@@ -218,7 +218,7 @@ const ContactPage: React.FC = () => {
               </Box>
               <Box p={4} borderRadius="md" borderWidth={1} borderColor="border">
                 <HStack mb={2}>
-                  <Badge colorPalette="teal">Round Robin</Badge>
+                  <Badge colorPalette="gray">Round Robin</Badge>
                 </HStack>
                 <Text fontSize="sm" color="fg.muted" mb={2}>
                   Everyone plays everyone. Most comprehensive format - the
@@ -312,14 +312,14 @@ const ContactPage: React.FC = () => {
               <Box
                 p={3}
                 borderRadius="md"
-                bg="green.subtle"
+                bg="status.win.subtle"
                 borderWidth={1}
-                borderColor="green.muted"
+                borderColor="status.win.border"
               >
                 <Text
                   fontSize="xs"
                   fontWeight="semibold"
-                  color="green.fg"
+                  color="status.win"
                   mb={1}
                 >
                   Both agree
@@ -332,14 +332,14 @@ const ContactPage: React.FC = () => {
               <Box
                 p={3}
                 borderRadius="md"
-                bg="orange.subtle"
+                bg="status.loss.subtle"
                 borderWidth={1}
-                borderColor="orange.muted"
+                borderColor="status.loss.border"
               >
                 <Text
                   fontSize="xs"
                   fontWeight="semibold"
-                  color="orange.fg"
+                  color="status.loss"
                   mb={1}
                 >
                   Conflict
@@ -352,14 +352,14 @@ const ContactPage: React.FC = () => {
               <Box
                 p={3}
                 borderRadius="md"
-                bg="blue.subtle"
+                bg="brass.subtle"
                 borderWidth={1}
-                borderColor="blue.muted"
+                borderColor="brass.muted"
               >
                 <Text
                   fontSize="xs"
                   fontWeight="semibold"
-                  color="blue.fg"
+                  color="brass.fg"
                   mb={1}
                 >
                   Organiser override

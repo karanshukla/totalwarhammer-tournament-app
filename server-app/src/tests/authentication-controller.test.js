@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import assert from "node:assert";
 import { describe, it, beforeEach, mock } from "node:test";
 
@@ -56,7 +57,6 @@ function mockReq(overrides = {}) {
 }
 
 // Helper to build a PKCE code_challenge from a code_verifier (S256)
-import crypto from "crypto";
 function buildCodeChallenge(verifier) {
   return crypto
     .createHash("sha256")

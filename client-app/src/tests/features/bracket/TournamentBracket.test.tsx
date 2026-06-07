@@ -31,12 +31,16 @@ describe("TournamentBracket", () => {
 
   it("renders the Add Round button", () => {
     renderBracket();
-    expect(screen.getByRole("button", { name: /add round/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /add round/i }),
+    ).toBeInTheDocument();
   });
 
   it("renders drag instruction text", () => {
     renderBracket();
-    expect(screen.getByText(/drag participants into the empty slots/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/drag participants into the empty slots/i),
+    ).toBeInTheDocument();
   });
 
   it("shows existing rounds", () => {
@@ -69,18 +73,26 @@ describe("TournamentBracket", () => {
 
   it("removes a match when Remove is clicked", async () => {
     const state = useTournamentStore.getState();
-    const initialMatchCount = state.rounds.reduce((sum, r) => sum + r.matches.length, 0);
+    const initialMatchCount = state.rounds.reduce(
+      (sum, r) => sum + r.matches.length,
+      0,
+    );
     renderBracket();
     const removeButtons = screen.getAllByRole("button", { name: /remove/i });
     await userEvent.click(removeButtons[0]);
     const newState = useTournamentStore.getState();
-    const newMatchCount = newState.rounds.reduce((sum, r) => sum + r.matches.length, 0);
+    const newMatchCount = newState.rounds.reduce(
+      (sum, r) => sum + r.matches.length,
+      0,
+    );
     expect(newMatchCount).toBe(initialMatchCount - 1);
   });
 
   it("renders Add Match buttons for each round", () => {
     renderBracket();
-    const addMatchButtons = screen.getAllByRole("button", { name: /add match/i });
+    const addMatchButtons = screen.getAllByRole("button", {
+      name: /add match/i,
+    });
     const roundCount = useTournamentStore.getState().rounds.length;
     expect(addMatchButtons.length).toBe(roundCount);
   });
@@ -89,7 +101,9 @@ describe("TournamentBracket", () => {
     const state = useTournamentStore.getState();
     const initialMatchCount = state.rounds[0]?.matches.length ?? 0;
     renderBracket();
-    const addMatchButtons = screen.getAllByRole("button", { name: /add match/i });
+    const addMatchButtons = screen.getAllByRole("button", {
+      name: /add match/i,
+    });
     await userEvent.click(addMatchButtons[0]);
     const newState = useTournamentStore.getState();
     const newMatchCount = newState.rounds[0]?.matches.length ?? 0;
@@ -99,10 +113,10 @@ describe("TournamentBracket", () => {
   it("sorts rounds so finals appear last", () => {
     // Add a finals round first, then a regular round
     useTournamentStore.getState().addRound(); // adds a new round with title containing "Round"
-    const state = useTournamentStore.getState();
-    const lastRound = state.rounds[state.rounds.length - 1];
     renderBracket();
-    const roundTitles = screen.getAllByText(/round|final/i).map((el) => el.textContent);
+    const roundTitles = screen
+      .getAllByText(/round|final/i)
+      .map((el) => el.textContent);
     // Finals should come at the end in the visual output
     // Just verify rounds are rendered
     expect(roundTitles.length).toBeGreaterThan(0);
@@ -133,7 +147,9 @@ describe("TournamentBracket", () => {
       await userEvent.click(removeParticipantBtns[0]);
 
       const newState = useTournamentStore.getState();
-      const newMatch1 = newState.rounds[0]?.matches.find((m) => m.id === match1?.id);
+      const newMatch1 = newState.rounds[0]?.matches.find(
+        (m) => m.id === match1?.id,
+      );
       // Participant slot should have been cleared to null
       expect(newMatch1?.participant1Id ?? null).not.toBe(initialP1);
     } else {
@@ -147,7 +163,11 @@ describe("TournamentBracket", () => {
     const state = useTournamentStore.getState();
     const firstRound = state.rounds[0];
     if (firstRound?.matches[0]) {
-      state.updateMatchParticipant(firstRound.matches[0].id, "participant1Id", null);
+      state.updateMatchParticipant(
+        firstRound.matches[0].id,
+        "participant1Id",
+        null,
+      );
     }
     renderBracket();
     // At least some empty slots should say "Drop player here"

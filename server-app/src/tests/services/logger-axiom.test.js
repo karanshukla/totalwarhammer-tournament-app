@@ -10,8 +10,6 @@ process.env.AXIOM_TOKEN = "test-axiom-token";
 process.env.AXIOM_DATASET = "test-axiom-dataset";
 process.env.NODE_ENV = "production";
 
-const pushMock = mock.fn();
-
 const mockAxiomTransportClass = class MockAxiomTransport {
   constructor(opts) {
     this.opts = opts;
@@ -51,23 +49,34 @@ mock.module("winston", {
 });
 
 // Import the logger AFTER mocks are set up
-const { default: logger } = await import("../../infrastructure/utils/logger.js");
+const { default: logger } =
+  await import("../../infrastructure/utils/logger.js");
 
 describe("logger – Axiom transport branch", () => {
   it("adds an AxiomTransport when AXIOM_TOKEN and AXIOM_DATASET are set", () => {
-    assert.ok(mockCreateLogger.mock.calls.length >= 1, "createLogger should have been called");
+    assert.ok(
+      mockCreateLogger.mock.calls.length >= 1,
+      "createLogger should have been called",
+    );
     const callArgs = mockCreateLogger.mock.calls[0].arguments[0];
     const transports = callArgs.transports;
 
     // At least one transport should be an instance of our MockAxiomTransport
-    const axiomTransport = transports.find((t) => t instanceof mockAxiomTransportClass);
-    assert.ok(axiomTransport, "AxiomTransport should be in the transports list");
+    const axiomTransport = transports.find(
+      (t) => t instanceof mockAxiomTransportClass,
+    );
+    assert.ok(
+      axiomTransport,
+      "AxiomTransport should be in the transports list",
+    );
   });
 
   it("initialises Axiom transport with correct token and dataset", () => {
     const callArgs = mockCreateLogger.mock.calls[0].arguments[0];
     const transports = callArgs.transports;
-    const axiomTransport = transports.find((t) => t instanceof mockAxiomTransportClass);
+    const axiomTransport = transports.find(
+      (t) => t instanceof mockAxiomTransportClass,
+    );
 
     assert.strictEqual(axiomTransport.opts.token, "test-axiom-token");
     assert.strictEqual(axiomTransport.opts.dataset, "test-axiom-dataset");

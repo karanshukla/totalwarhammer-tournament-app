@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+﻿import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   Heading,
   Container,
@@ -59,18 +59,18 @@ const TournamentsPage: React.FC = () => {
     [],
   );
 
-  const activeBg = "blue.subtle";
+  const activeBg = "gold.subtle";
   const inactiveBg = "bg.panel";
-  const activeBorderColor = "blue.muted";
+  const activeBorderColor = "gold.border";
   const inactiveBorderColor = "border";
 
-  const activeIconColor = "blue.fg";
-  const inactiveIconColor = "fg.muted";
+  const activeIconColor = "gold.text";
+  const inactiveIconColor = "fg.secondary";
 
-  const activeTextColor = "blue.fg";
-  const inactiveTextColor = "fg.muted";
+  const activeTextColor = "gold.text";
+  const inactiveTextColor = "fg.secondary";
 
-  const hoverActiveBorderColor = "blue.emphasized";
+  const hoverActiveBorderColor = "gold.border";
   const hoverInactiveBorderColor = "border.emphasized";
   const hoverInactiveBg = "bg.subtle";
 
@@ -184,7 +184,7 @@ const TournamentsPage: React.FC = () => {
               />
               <Button
                 size="sm"
-                colorPalette="blue"
+                colorPalette="brass"
                 onClick={handleFindByCode}
                 loading={codeLoading}
                 gap={2}

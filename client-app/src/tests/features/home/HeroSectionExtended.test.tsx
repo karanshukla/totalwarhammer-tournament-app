@@ -56,10 +56,14 @@ describe("HeroSection – Create Account button onClick", () => {
     document.addEventListener("auth-event", handler);
 
     renderHero();
-    await userEvent.click(screen.getByRole("button", { name: /create account/i }));
+    await userEvent.click(
+      screen.getByRole("button", { name: /create account/i }),
+    );
 
     expect(capturedEvent).not.toBeNull();
-    expect((capturedEvent as CustomEvent).detail).toEqual({ type: "open-drawer" });
+    expect((capturedEvent as unknown as CustomEvent).detail).toEqual({
+      type: "open-drawer",
+    });
 
     document.removeEventListener("auth-event", handler);
   });

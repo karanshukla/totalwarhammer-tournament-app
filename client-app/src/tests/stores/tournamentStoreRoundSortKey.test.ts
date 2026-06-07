@@ -61,7 +61,7 @@ describe("tournamentStore – getRoundSortKey via sortRounds", () => {
       rounds: [
         makeRound("r-finals", "Finals"),
         makeRound("r-custom", "Group Stage"), // unmatched → key 50
-        makeRound("r-round5", "Round 5"),    // key 15
+        makeRound("r-round5", "Round 5"), // key 15
       ],
     });
 

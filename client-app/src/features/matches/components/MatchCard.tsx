@@ -116,36 +116,43 @@ const MatchCard: React.FC<MatchCardProps> = ({
       borderWidth={1}
       borderColor={
         m.status === "disputed"
-          ? "orange.emphasized"
+          ? "status.loss.border"
           : m.status === "completed"
-            ? "green.muted"
+            ? "status.win.border"
             : borderColor
       }
       bg={
         m.status === "disputed"
-          ? "orange.subtle"
+          ? "status.loss.subtle"
           : m.status === "completed"
-            ? "green.subtle"
+            ? "status.win.subtle"
             : mutedBg
       }
     >
       {/* Match status row */}
       <HStack mb={2} justifyContent="space-between">
-        <Text fontSize="xs" color="fg.subtle">
+        <Text fontSize="xs" color="fg.muted">
           Match {m.matchNumber}
         </Text>
         {m.status === "completed" && (
-          <Badge colorPalette="green" size="sm" variant="subtle">
+          <Badge
+            size="sm"
+            variant="subtle"
+            bg="status.win.subtle"
+            color="status.win"
+            borderColor="status.win.border"
+            borderWidth="1px"
+          >
             <LuCircleCheck /> Completed
           </Badge>
         )}
         {m.status === "disputed" && (
-          <Badge colorPalette="orange" size="sm" variant="solid">
+          <Badge colorPalette="crimson" size="sm" variant="solid">
             ⚠ Disputed
           </Badge>
         )}
         {m.status === "in_progress" && (
-          <Badge colorPalette="blue" size="sm" variant="subtle">
+          <Badge colorPalette="brass" size="sm" variant="subtle">
             <LuClock /> In Progress
           </Badge>
         )}
@@ -159,16 +166,31 @@ const MatchCard: React.FC<MatchCardProps> = ({
         <VStack alignItems="flex-start" gap={0} flex={1}>
           <HStack gap={1}>
             {p1Won && (
-              <Badge colorPalette="green" size="sm">
+              <Badge
+                size="sm"
+                colorPalette="verdigris"
+                variant="solid"
+                fontWeight="bold"
+              >
                 W
               </Badge>
             )}
             {m.winnerId && !p1Won && (
-              <Badge colorPalette="red" size="sm">
+              <Badge
+                size="sm"
+                bg="status.loss.subtle"
+                color="status.loss"
+                borderColor="status.loss.border"
+                borderWidth="1px"
+                fontWeight="bold"
+              >
                 L
               </Badge>
             )}
-            <Text fontWeight={p1Won ? "bold" : "medium"}>
+            <Text
+              fontWeight={p1Won ? "bold" : "medium"}
+              color={m.winnerId && !p1Won ? "fg.muted" : undefined}
+            >
               {dn(m.player1.name)}
             </Text>
           </HStack>
@@ -186,18 +208,36 @@ const MatchCard: React.FC<MatchCardProps> = ({
         <VStack alignItems="flex-end" gap={0} flex={1}>
           <HStack gap={1}>
             {p2Won && (
-              <Badge colorPalette="green" size="sm">
+              <Badge
+                size="sm"
+                colorPalette="verdigris"
+                variant="solid"
+                fontWeight="bold"
+              >
                 W
               </Badge>
             )}
             {m.winnerId && !p2Won && m.player2.name !== "BYE" && (
-              <Badge colorPalette="red" size="sm">
+              <Badge
+                size="sm"
+                bg="status.loss.subtle"
+                color="status.loss"
+                borderColor="status.loss.border"
+                borderWidth="1px"
+                fontWeight="bold"
+              >
                 L
               </Badge>
             )}
             <Text
               fontWeight={p2Won ? "bold" : "medium"}
-              color={m.player2.name === "BYE" ? "fg.subtle" : undefined}
+              color={
+                m.player2.name === "BYE"
+                  ? "fg.muted"
+                  : m.winnerId && !p2Won
+                    ? "fg.muted"
+                    : undefined
+              }
               fontStyle={m.player2.name === "BYE" ? "italic" : undefined}
             >
               {dn(m.player2.name)}
@@ -211,7 +251,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
         </VStack>
         {isAdmin && isActive && m.status === "disputed" && (
           <VStack gap={2} flexShrink={0} alignItems="flex-start">
-            <Text fontSize="xs" color="orange.fg" fontWeight="bold">
+            <Text fontSize="xs" color="status.loss" fontWeight="bold">
               ⚠ Disputed - resolve:
             </Text>
             {(m.reportedResults ?? []).map((r) => {
@@ -235,7 +275,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
             })}
             <Button
               size="xs"
-              colorPalette="orange"
+              colorPalette="crimson"
               variant="solid"
               onClick={() => onResolveDispute(m._id, m.player1.participantId)}
               loading={actionLoading}
@@ -244,7 +284,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
             </Button>
             <Button
               size="xs"
-              colorPalette="orange"
+              colorPalette="crimson"
               variant="solid"
               onClick={() => onResolveDispute(m._id, m.player2.participantId)}
               loading={actionLoading}
@@ -259,7 +299,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
           m.status === "in_progress" &&
           (m.reportedResults?.length ?? 0) > 0 && (
             <VStack gap={1} flexShrink={0} alignItems="flex-start">
-              <Text fontSize="xs" color="blue.fg" fontWeight="medium">
+              <Text fontSize="xs" color="gold.text" fontWeight="medium">
                 Reported results ({m.reportedResults?.length}/2):
               </Text>
               {(m.reportedResults ?? []).map((r) => {
@@ -296,7 +336,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
               </Text>
               <Button
                 size="xs"
-                colorPalette="green"
+                colorPalette="verdigris"
                 variant="outline"
                 onClick={() => onRecordResult(m._id, m.player1.participantId)}
                 loading={actionLoading}
@@ -305,7 +345,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
               </Button>
               <Button
                 size="xs"
-                colorPalette="green"
+                colorPalette="verdigris"
                 variant="outline"
                 onClick={() => onRecordResult(m._id, m.player2.participantId)}
                 loading={actionLoading}
@@ -317,7 +357,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
         {isAdmin && isActive && m.player2.name !== "BYE" && (
           <Button
             size="xs"
-            colorPalette="orange"
+            colorPalette="brass"
             variant="outline"
             onClick={onStartOverride}
           >
@@ -346,7 +386,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
                 width="full"
                 colorPalette={
                   myReport?.winnerId === m.player1.participantId
-                    ? "green"
+                    ? "verdigris"
                     : "gray"
                 }
                 variant={
@@ -366,7 +406,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
                 width="full"
                 colorPalette={
                   myReport?.winnerId === m.player2.participantId
-                    ? "green"
+                    ? "verdigris"
                     : "gray"
                 }
                 variant={
@@ -386,7 +426,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
         </Box>
       )}
       {!isAdmin && (isP1 || isP2) && m.status === "in_progress" && myReport && (
-        <Text fontSize="xs" color="blue.fg" mt={2} textAlign="center">
+        <Text fontSize="xs" color="gold.text" mt={2} textAlign="center">
           You reported{" "}
           <strong>
             {myReport.winnerId === m.player1.participantId
@@ -399,7 +439,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
       {!isAdmin && (isP1 || isP2) && m.status === "disputed" && (
         <Text
           fontSize="xs"
-          color="orange.fg"
+          color="status.loss"
           mt={2}
           textAlign="center"
           fontWeight="medium"
@@ -411,14 +451,16 @@ const MatchCard: React.FC<MatchCardProps> = ({
       {m.winnerId && (
         <Box mt={2} pt={2} borderTopWidth={1} borderColor="border">
           <HStack gap={1} justifyContent="center">
-            <LuTrophy size={12} />
+            <Box color="gold.text" display="inline-flex">
+              <LuTrophy size={12} />
+            </Box>
             <Text fontSize="xs" color="fg.muted" fontWeight="medium">
               Winner:{" "}
-              <strong>
+              <Text as="span" color="gold.text" fontWeight="bold">
                 {m.winnerId === m.player1.participantId
                   ? dn(m.player1.name)
                   : dn(m.player2.name)}
-              </strong>
+              </Text>
             </Text>
           </HStack>
         </Box>
@@ -428,7 +470,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
       {isOverriding && (
         <Box mt={3} pt={3} borderTopWidth={1} borderColor="border">
           <VStack gap={2} alignItems="stretch">
-            <Text fontSize="xs" color="orange.fg" fontWeight="bold">
+            <Text fontSize="xs" color="brand.text" fontWeight="bold">
               Override result
             </Text>
             <HStack gap={2}>
@@ -440,7 +482,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
                     ? "solid"
                     : "outline"
                 }
-                colorPalette="blue"
+                colorPalette="brass"
                 onClick={() => onSetOverrideWinner(m.player1.participantId)}
               >
                 {dn(m.player1.name)}
@@ -453,7 +495,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
                     ? "solid"
                     : "outline"
                 }
-                colorPalette="blue"
+                colorPalette="brass"
                 onClick={() => onSetOverrideWinner(m.player2.participantId)}
               >
                 {dn(m.player2.name)}
@@ -470,7 +512,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
             <HStack gap={2}>
               <Button
                 size="xs"
-                colorPalette="orange"
+                colorPalette="crimson"
                 onClick={onConfirmOverride}
                 loading={overrideLoading}
                 disabled={!overrideWinnerId}

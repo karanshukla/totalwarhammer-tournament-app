@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+﻿import React, { useState, useEffect } from "react";
 import {
   Button,
   Text,
@@ -245,7 +245,9 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
                 <Text
                   as="span"
                   color={
-                    formData.description.length >= 2000 ? "red.fg" : "fg.muted"
+                    formData.description.length >= 2000
+                      ? "status.loss"
+                      : "fg.muted"
                   }
                 >
                   {formData.description.length}/2000
@@ -257,15 +259,15 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
               <Box
                 p={3}
                 borderRadius="md"
-                bg="blue.subtle"
+                bg="brass.subtle"
                 borderWidth={1}
-                borderColor="blue.muted"
+                borderColor="brass.muted"
               >
                 <HStack gap={2} alignItems="flex-start">
-                  <Box color="blue.fg" flexShrink={0} mt="1px">
+                  <Box color="brass.fg" flexShrink={0} mt="1px">
                     <LuInfo size={14} />
                   </Box>
-                  <Text fontSize="xs" color="blue.fg">
+                  <Text fontSize="xs" color="brass.fg">
                     Swiss System uses the{" "}
                     <Text as="span" fontWeight="semibold">
                       Blossom algorithm
@@ -395,15 +397,15 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
                             key={i}
                             p={3}
                             borderRadius="md"
-                            bg="orange.subtle"
+                            bg="status.loss.subtle"
                             borderWidth={1}
-                            borderColor="orange.muted"
+                            borderColor="status.loss.border"
                           >
                             <HStack gap={2} alignItems="flex-start">
-                              <Box color="orange.fg" flexShrink={0} mt="1px">
+                              <Box color="status.loss" flexShrink={0} mt="1px">
                                 <LuTriangleAlert size={14} />
                               </Box>
-                              <Text fontSize="xs" color="orange.fg">
+                              <Text fontSize="xs" color="status.loss">
                                 {w}
                               </Text>
                             </HStack>
@@ -414,15 +416,15 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
                             key={i}
                             p={3}
                             borderRadius="md"
-                            bg="blue.subtle"
+                            bg="brass.subtle"
                             borderWidth={1}
-                            borderColor="blue.muted"
+                            borderColor="brass.muted"
                           >
                             <HStack gap={2} alignItems="flex-start">
-                              <Box color="blue.fg" flexShrink={0} mt="1px">
+                              <Box color="brass.fg" flexShrink={0} mt="1px">
                                 <LuInfo size={14} />
                               </Box>
-                              <Text fontSize="xs" color="blue.fg">
+                              <Text fontSize="xs" color="brass.fg">
                                 {info}
                               </Text>
                             </HStack>
@@ -434,16 +436,16 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
                             <Box
                               p={3}
                               borderRadius="md"
-                              bg="purple.subtle"
+                              bg="info.subtle"
                               borderWidth={1}
-                              borderColor="purple.muted"
+                              borderColor="info.border"
                               mb={2}
                             >
                               <HStack gap={2} alignItems="flex-start">
-                                <Box color="purple.fg" flexShrink={0} mt="1px">
+                                <Box color="info.text" flexShrink={0} mt="1px">
                                   <LuFlaskConical size={14} />
                                 </Box>
-                                <Text fontSize="sm" color="purple.fg">
+                                <Text fontSize="sm" color="info.text">
                                   40K factions are in beta and will not appear
                                   in global statistics or player stat pages.
                                 </Text>
@@ -469,7 +471,7 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
                                 Factions
                               </Text>
                               <Badge
-                                colorPalette="purple"
+                                colorPalette="verdigris"
                                 size="xs"
                                 variant="subtle"
                               >
@@ -507,7 +509,7 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
                                     ? "fg"
                                     : "fg.muted"
                                 }
-                                colorPalette="blue"
+                                colorPalette="brass"
                               >
                                 WH3
                               </chakra.button>
@@ -538,7 +540,7 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
                                 color={
                                   formData.enable40kFactions ? "fg" : "fg.muted"
                                 }
-                                colorPalette="purple"
+                                colorPalette="verdigris"
                               >
                                 40K
                               </chakra.button>
@@ -548,24 +550,24 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
                             <Box
                               p={3}
                               borderRadius="md"
-                              bg="orange.subtle"
+                              bg="gold.subtle"
                               borderWidth={1}
-                              borderColor="orange.muted"
+                              borderColor="gold.border"
                               mb={3}
                             >
                               <HStack gap={2} alignItems="flex-start">
-                                <Box color="orange.fg" flexShrink={0} mt="1px">
+                                <Box color="gold.text" flexShrink={0} mt="1px">
                                   <LuLock size={14} />
                                 </Box>
                                 <VStack gap={1} alignItems="flex-start">
                                   <Text
                                     fontSize="sm"
                                     fontWeight="semibold"
-                                    color="orange.fg"
+                                    color="gold.text"
                                   >
                                     Registration Required
                                   </Text>
-                                  <Text fontSize="sm" color="orange.fg">
+                                  <Text fontSize="sm" color="gold.text">
                                     Only registered users can create
                                     tournaments. Guest users can join and
                                     participate.
@@ -672,7 +674,7 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
         <Card.Footer>
           <Button
             type="submit"
-            colorPalette="blue"
+            colorPalette="brass"
             size="md"
             loading={isLoading}
             disabled={isGuest}

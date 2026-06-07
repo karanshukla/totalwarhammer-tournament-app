@@ -15,10 +15,22 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           if (!id.includes("node_modules")) return;
-          if (/[\\/]node_modules[\\/](?:react|react-dom)[\\/]/.test(id)) return "vendor-react";
-          if (/[\\/]node_modules[\\/](?:@chakra-ui|@emotion)[\\/]/.test(id)) return "vendor-chakra";
-          if (/[\\/]node_modules[\\/](?:react-hook-form|@hookform|zod)[\\/]/.test(id)) return "vendor-forms";
-          if (/[\\/]node_modules[\\/](?:zustand|next-themes|react-icons)[\\/]/.test(id)) return "vendor-utils";
+          if (/[\\/]node_modules[\\/](?:react|react-dom)[\\/]/.test(id))
+            return "vendor-react";
+          if (/[\\/]node_modules[\\/](?:@chakra-ui|@emotion)[\\/]/.test(id))
+            return "vendor-chakra";
+          if (
+            /[\\/]node_modules[\\/](?:react-hook-form|@hookform|zod)[\\/]/.test(
+              id,
+            )
+          )
+            return "vendor-forms";
+          if (
+            /[\\/]node_modules[\\/](?:zustand|next-themes|react-icons)[\\/]/.test(
+              id,
+            )
+          )
+            return "vendor-utils";
         },
       },
     },

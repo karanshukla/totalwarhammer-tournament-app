@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import {
   SimpleGrid,
   Card,
@@ -43,8 +43,8 @@ const HowItWorksSection: React.FC = () => (
               w={10}
               h={10}
               borderRadius="full"
-              bg="blue.subtle"
-              color="blue.fg"
+              bg="brass.subtle"
+              color="brass.fg"
               display="flex"
               alignItems="center"
               justifyContent="center"
@@ -57,8 +57,8 @@ const HowItWorksSection: React.FC = () => (
               w={5}
               h={5}
               borderRadius="full"
-              bg="blue.muted"
-              color="blue.fg"
+              bg="brass.muted"
+              color="brass.fg"
               display="flex"
               alignItems="center"
               justifyContent="center"
@@ -76,7 +76,7 @@ const HowItWorksSection: React.FC = () => (
     </Card.Body>
     <Card.Footer>
       <HStack gap={3}>
-        <Button colorPalette="blue" asChild>
+        <Button colorPalette="brass" asChild>
           <Link to="/tournaments">View Ongoing Tournaments</Link>
         </Button>
         <Button

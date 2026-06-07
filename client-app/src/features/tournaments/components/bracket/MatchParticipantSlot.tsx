@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import { Box, Flex, Text, Button } from "@chakra-ui/react";
 import { useDroppable } from "@dnd-kit/core";
 import { Participant } from "./types";
@@ -30,19 +30,19 @@ export function MatchParticipantSlot({
       ref={setNodeRef}
       borderWidth="1px"
       borderRadius="md"
-      borderColor={isOver ? "blue.emphasized" : "border"}
+      borderColor={isOver ? "brass.emphasized" : "border"}
       p={1}
-      bg={isOver ? "blue.subtle" : "bg.panel"}
+      bg={isOver ? "brass.subtle" : "bg.panel"}
       width="100%"
       height="32px"
       transition="all 0.2s"
     >
       {participant ? (
         <Flex justify="space-between" align="center" height="100%">
-          <Text fontSize="xs" fontWeight="medium" noOfLines={1} flex="1">
+          <Text fontSize="xs" fontWeight="medium" lineClamp={1} flex="1">
             {participant.name}
           </Text>
-          <Text fontSize="2xs" color="fg.muted" mx={1} noOfLines={1}>
+          <Text fontSize="2xs" color="fg.muted" mx={1} lineClamp={1}>
             {participant.faction}
           </Text>
           <Button
@@ -50,7 +50,7 @@ export function MatchParticipantSlot({
             size="xs"
             onClick={onRemove}
             variant="ghost"
-            colorPalette="red"
+            colorPalette="crimson"
             height="20px"
             minWidth="auto"
             px={1}

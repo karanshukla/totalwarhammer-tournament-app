@@ -14,25 +14,29 @@ const tournamentTypes = [
   {
     icon: LuGitBranch,
     name: "Single Elimination",
-    color: "blue",
+    bg: "brand.subtle",
+    color: "brand.text",
     desc: "Classic knockout format. Lose once and you're out - fast-paced and decisive.",
   },
   {
     icon: LuRepeat,
     name: "Double Elimination",
-    color: "purple",
+    bg: "brand.subtle",
+    color: "brand.text",
     desc: "Two chances to prove yourself. Losers drop to a second bracket before being eliminated.",
   },
   {
     icon: LuCircleDot,
     name: "Round Robin",
-    color: "green",
+    bg: "info.subtle",
+    color: "info.text",
     desc: "Everyone plays everyone. The player with the most wins takes the crown.",
   },
   {
     icon: LuHash,
     name: "Swiss System",
-    color: "orange",
+    bg: "gold.subtle",
+    color: "gold.text",
     desc: "Paired by performance each round. No eliminations - the best record wins.",
   },
 ];
@@ -54,8 +58,8 @@ const TournamentFormatsSection: React.FC = () => (
                 <Box
                   p={2}
                   borderRadius="md"
-                  bg={`${t.color}.subtle`}
-                  color={`${t.color}.fg`}
+                  bg={t.bg}
+                  color={t.color}
                   fontSize="lg"
                 >
                   <t.icon />

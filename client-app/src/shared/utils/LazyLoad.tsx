@@ -25,7 +25,7 @@ const DefaultLoadingFallback = () => (
 const DefaultErrorFallback = () => (
   <Center h="100%" minH="200px" w="100%">
     <Stack align="center">
-      <Text color="red.fg">Failed to load component</Text>
+      <Text color="status.loss">Failed to load component</Text>
       <Text fontSize="sm">Please try refreshing the page</Text>
     </Stack>
   </Center>

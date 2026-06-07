@@ -43,17 +43,23 @@ describe("ParticipantList", () => {
 
   it("renders Add Participants button", () => {
     renderParticipantList();
-    expect(screen.getByRole("button", { name: /add participants/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /add participants/i }),
+    ).toBeInTheDocument();
   });
 
   it("renders Reset Bracket button", () => {
     renderParticipantList();
-    expect(screen.getByRole("button", { name: /reset bracket/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /reset bracket/i }),
+    ).toBeInTheDocument();
   });
 
   it("renders Reset All button", () => {
     renderParticipantList();
-    expect(screen.getByRole("button", { name: /reset all/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /reset all/i }),
+    ).toBeInTheDocument();
   });
 
   it("shows the current participant count as quantity", () => {
@@ -65,10 +71,8 @@ describe("ParticipantList", () => {
     const onSetNewParticipantCount = vi.fn();
     renderParticipantList({ newParticipantCount: 2, onSetNewParticipantCount });
     // Find the increment button (LuPlus icon)
-    const buttons = screen.getAllByRole("button");
-    const plusBtn = buttons.find((b) => !b.textContent?.trim() && !b.getAttribute("aria-label"));
+    screen.getAllByRole("button");
     // Click the + button (second button in quantity area)
-    const allButtons = screen.getAllByRole("button");
     // The increment button follows after the minus button in the quantity section
     // Let's use the text "Quantity:" context
     const quantitySection = screen.getByText("Quantity:").closest("div");
@@ -146,7 +150,9 @@ describe("ParticipantList", () => {
 
   it("resets bracket when Reset Bracket button is clicked", async () => {
     renderParticipantList();
-    const resetBracketBtn = screen.getByRole("button", { name: /reset bracket/i });
+    const resetBracketBtn = screen.getByRole("button", {
+      name: /reset bracket/i,
+    });
     await userEvent.click(resetBracketBtn);
     // Store should be in a valid state after reset
     const state = useTournamentStore.getState();

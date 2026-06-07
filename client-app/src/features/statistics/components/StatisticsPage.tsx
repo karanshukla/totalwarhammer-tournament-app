@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+﻿import React, { useEffect, useState } from "react";
 import {
   Container,
   Heading,
@@ -93,7 +93,7 @@ const StatCard: React.FC<StatCardProps> = ({
   label,
   value,
   icon,
-  colorPalette = "blue",
+  colorPalette = "crimson",
   sub,
 }) => {
   const bg = "bg.panel";
@@ -172,12 +172,12 @@ const StatisticsPage: React.FC = () => {
       <Container maxW="container.xl" py={8}>
         <Box
           p={4}
-          bg="red.subtle"
+          bg="status.loss.subtle"
           borderRadius="md"
           borderWidth={1}
-          borderColor="red.muted"
+          borderColor="status.loss.border"
         >
-          <Text color="red.fg">{error ?? "No data available."}</Text>
+          <Text color="status.loss">{error ?? "No data available."}</Text>
         </Box>
       </Container>
     );
@@ -216,26 +216,26 @@ const StatisticsPage: React.FC = () => {
             label="Total Tournaments"
             value={stats.tournaments.total}
             icon={<LuTrophy />}
-            colorPalette="yellow"
+            colorPalette="brass"
           />
           <StatCard
             label="Active Tournaments"
             value={stats.tournaments.active}
             icon={<LuClock />}
-            colorPalette="green"
+            colorPalette="verdigris"
           />
           <StatCard
             label="Matches Played"
             value={stats.matches.completed}
             icon={<LuSwords />}
-            colorPalette="blue"
+            colorPalette="brass"
           />
           <StatCard
-            label="Completion Rate"
-            value={`${stats.matches.completionRate}%`}
+            label="Completed Tournaments"
+            value={stats.tournaments.completed}
             icon={<LuCircleCheck />}
-            colorPalette="teal"
-            sub={`${stats.matches.total} total matches`}
+            colorPalette="verdigris"
+            sub={`of ${stats.tournaments.total} total`}
           />
         </SimpleGrid>
 
@@ -244,7 +244,7 @@ const StatisticsPage: React.FC = () => {
           <Card.Root bg={cardBg}>
             <Card.Header>
               <HStack gap={2}>
-                <Box color="orange.fg">
+                <Box color="gold.text">
                   <LuShield />
                 </Box>
                 <Heading size="md">Top Winning Factions</Heading>
@@ -274,7 +274,7 @@ const StatisticsPage: React.FC = () => {
                               {f.faction}
                             </Text>
                           </HStack>
-                          <Badge colorPalette="orange" variant="subtle">
+                          <Badge colorPalette="brass" variant="subtle">
                             {f.wins} {f.wins === 1 ? "win" : "wins"}
                           </Badge>
                         </HStack>
@@ -282,9 +282,9 @@ const StatisticsPage: React.FC = () => {
                           <Box
                             h="full"
                             borderRadius="full"
-                            bg="orange.subtle"
+                            bg="gold.subtle"
                             borderWidth={1}
-                            borderColor="orange.muted"
+                            borderColor="gold.border"
                             style={{
                               width: `${(f.wins / maxFactionWins) * 100}%`,
                             }}
@@ -302,7 +302,7 @@ const StatisticsPage: React.FC = () => {
           <Card.Root bg={cardBg}>
             <Card.Header>
               <HStack gap={2}>
-                <Box color="blue.fg">
+                <Box color="brass.fg">
                   <LuTrophy />
                 </Box>
                 <Heading size="md">Top Players</Heading>
@@ -324,11 +324,11 @@ const StatisticsPage: React.FC = () => {
                               fontSize="sm"
                               color={
                                 i === 0
-                                  ? "yellow.fg"
+                                  ? "gold.text"
                                   : i === 1
                                     ? "gray.fg"
                                     : i === 2
-                                      ? "orange.fg"
+                                      ? "brand.text"
                                       : "fg.muted"
                               }
                               w={5}
@@ -348,7 +348,7 @@ const StatisticsPage: React.FC = () => {
                               )}
                             </VStack>
                           </HStack>
-                          <Badge colorPalette="blue" variant="subtle">
+                          <Badge colorPalette="brass" variant="subtle">
                             {p.wins} {p.wins === 1 ? "win" : "wins"}
                           </Badge>
                         </HStack>
@@ -356,9 +356,9 @@ const StatisticsPage: React.FC = () => {
                           <Box
                             h="full"
                             borderRadius="full"
-                            bg="blue.subtle"
+                            bg="brass.subtle"
                             borderWidth={1}
-                            borderColor="blue.muted"
+                            borderColor="brass.muted"
                             style={{
                               width: `${(p.wins / maxPlayerWins) * 100}%`,
                             }}
@@ -376,7 +376,7 @@ const StatisticsPage: React.FC = () => {
           <Card.Root bg={cardBg}>
             <Card.Header>
               <HStack gap={2}>
-                <Box color="yellow.fg">
+                <Box color="gold.text">
                   <LuTrophy />
                 </Box>
                 <Heading size="md">Recent Tournament Winners</Heading>
@@ -446,7 +446,7 @@ const StatisticsPage: React.FC = () => {
           <Card.Root bg={cardBg}>
             <Card.Header>
               <HStack gap={2}>
-                <Box color="teal.fg">
+                <Box color="info.text">
                   <LuUsers />
                 </Box>
                 <Heading size="md">Top Tournament Creators</Heading>
@@ -476,7 +476,7 @@ const StatisticsPage: React.FC = () => {
                           </Text>
                         </HStack>
                         <HStack gap={2}>
-                          <Badge colorPalette="teal" variant="subtle">
+                          <Badge colorPalette="verdigris" variant="subtle">
                             {c.tournamentsCreated} created
                           </Badge>
                           {c.completed > 0 && (

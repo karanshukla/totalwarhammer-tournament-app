@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import {
   Container,
@@ -82,7 +82,7 @@ interface Props {
 
 const cardBg = "bg.panel";
 const borderColor = "border";
-const selectedBg = "blue.subtle";
+const selectedBg = "brass.subtle";
 
 const TournamentDetail: React.FC<Props> = ({
   selected,
@@ -225,7 +225,7 @@ const TournamentDetail: React.FC<Props> = ({
           <HStack gap={3} color="fg.muted" fontSize="sm" wrap="wrap">
             <Text>{selected.tournamentType}</Text>
             {selected.enable40kFactions && (
-              <Badge colorPalette="purple" size="xs" variant="subtle">
+              <Badge colorPalette="verdigris" size="xs" variant="subtle">
                 <LuFlaskConical size={9} />
                 40K Beta
               </Badge>
@@ -244,7 +244,7 @@ const TournamentDetail: React.FC<Props> = ({
                   size="xs"
                   variant="ghost"
                   onClick={() => handleCopyCode(selected.code)}
-                  colorPalette={codeCopied ? "green" : "gray"}
+                  colorPalette={codeCopied ? "verdigris" : "gray"}
                 >
                   <LuCopy />
                   {codeCopied ? "Copied!" : "Copy"}
@@ -268,7 +268,9 @@ const TournamentDetail: React.FC<Props> = ({
               />
               <Text
                 fontSize="xs"
-                color={descriptionDraft.length >= 2000 ? "red.fg" : "fg.muted"}
+                color={
+                  descriptionDraft.length >= 2000 ? "status.loss" : "fg.muted"
+                }
                 textAlign="right"
               >
                 {descriptionDraft.length}/2000
@@ -276,7 +278,7 @@ const TournamentDetail: React.FC<Props> = ({
               <HStack gap={2}>
                 <Button
                   size="xs"
-                  colorPalette="blue"
+                  colorPalette="brass"
                   onClick={handleUpdateDescription}
                   loading={descriptionLoading}
                 >
@@ -339,7 +341,7 @@ const TournamentDetail: React.FC<Props> = ({
                       margin: "0.5rem 0",
                     },
                     "& a": {
-                      color: "var(--chakra-colors-blue-fg)",
+                      color: "var(--chakra-colors-verdigris-fg)",
                       textDecoration: "underline",
                     },
                   }}
@@ -372,7 +374,7 @@ const TournamentDetail: React.FC<Props> = ({
           <Button
             size="sm"
             variant="ghost"
-            colorPalette="blue"
+            colorPalette="brass"
             onClick={() => navigate(`/matches/spectate/${selected._id}`)}
           >
             <LuEye />
@@ -380,7 +382,7 @@ const TournamentDetail: React.FC<Props> = ({
           </Button>
           {canStart && (
             <Button
-              colorPalette="green"
+              colorPalette="verdigris"
               size="sm"
               onClick={onStart}
               loading={actionLoading}
@@ -391,7 +393,7 @@ const TournamentDetail: React.FC<Props> = ({
           )}
           {canAdvance && (
             <Button
-              colorPalette="blue"
+              colorPalette="brass"
               size="sm"
               onClick={onAdvanceRound}
               loading={actionLoading}
@@ -408,7 +410,7 @@ const TournamentDetail: React.FC<Props> = ({
           )}
           {canDelete && (
             <Button
-              colorPalette="red"
+              colorPalette="crimson"
               variant="outline"
               size="sm"
               onClick={onDelete}
@@ -425,12 +427,12 @@ const TournamentDetail: React.FC<Props> = ({
         <Box
           mb={6}
           p={3}
-          bg="red.subtle"
+          bg="status.loss.subtle"
           borderRadius="md"
           borderWidth={1}
-          borderColor="red.muted"
+          borderColor="status.loss.border"
         >
-          <Text color="red.fg">{actionError}</Text>
+          <Text color="status.loss">{actionError}</Text>
         </Box>
       )}
 
@@ -476,7 +478,7 @@ const TournamentDetail: React.FC<Props> = ({
                           <Button
                             size="xs"
                             variant="ghost"
-                            colorPalette="blue"
+                            colorPalette="brass"
                             onClick={() => {
                               setEditingParticipant(p);
                               setEditDialogOpen(true);
@@ -490,7 +492,7 @@ const TournamentDetail: React.FC<Props> = ({
                           <Button
                             size="xs"
                             variant="ghost"
-                            colorPalette="red"
+                            colorPalette="crimson"
                             onClick={() => onRemoveParticipant(p._id)}
                             loading={actionLoading}
                             aria-label="Remove participant"
@@ -512,7 +514,7 @@ const TournamentDetail: React.FC<Props> = ({
             <Card.Header>
               <Heading size="md">Add Participant</Heading>
               {isFull && (
-                <Text fontSize="sm" color="orange.fg" mt={1}>
+                <Text fontSize="sm" color="gold.text" mt={1}>
                   Tournament is full
                 </Text>
               )}
@@ -570,7 +572,7 @@ const TournamentDetail: React.FC<Props> = ({
                 </Field.Root>
                 <Button
                   width="full"
-                  colorPalette="blue"
+                  colorPalette="brass"
                   onClick={onAddParticipant}
                   disabled={!newName.trim() || isFull}
                   loading={actionLoading}
@@ -599,9 +601,21 @@ const TournamentDetail: React.FC<Props> = ({
                     </Text>
                   </HStack>
                   <HStack gap={1}>
-                    <Text fontWeight="medium" fontFamily="mono">
+                    <Box
+                      px={2}
+                      py="1px"
+                      bg="gold.subtle"
+                      color="gold.text"
+                      borderRadius="sm"
+                      fontSize="xs"
+                      fontWeight="bold"
+                      letterSpacing="widest"
+                      border="1px solid"
+                      borderColor="gold.border"
+                      textTransform="uppercase"
+                    >
                       {selected.code}
-                    </Text>
+                    </Box>
                     <Button
                       size="xs"
                       variant="ghost"
@@ -692,7 +706,7 @@ const TournamentDetail: React.FC<Props> = ({
                   <>
                     <HStack justifyContent="space-between">
                       <HStack gap={1}>
-                        <Box as="span" color="yellow.fg" display="inline-flex">
+                        <Box as="span" color="gold.text" display="inline-flex">
                           <LuAward size={14} />
                         </Box>
                         <Text color="fg.muted" fontSize="sm">
@@ -714,7 +728,7 @@ const TournamentDetail: React.FC<Props> = ({
                             ? finalMatch.player1
                             : finalMatch.player2;
                         return (
-                          <Text fontWeight="bold" color="yellow.fg">
+                          <Text fontWeight="bold" color="gold.text">
                             {champion.name}
                           </Text>
                         );
@@ -761,7 +775,7 @@ const TournamentDetail: React.FC<Props> = ({
                           {(f) => (
                             <Badge
                               key={f}
-                              colorPalette="red"
+                              colorPalette="crimson"
                               size="sm"
                               variant="subtle"
                             >
@@ -794,14 +808,14 @@ const TournamentDetail: React.FC<Props> = ({
                 mb={0}
                 p={5}
                 borderRadius="lg"
-                bg="yellow.subtle"
+                bg="gold.subtle"
                 borderWidth={1}
-                borderColor="yellow.muted"
+                borderColor="gold.border"
                 textAlign="center"
                 gridColumn={{ lg: "1 / -1" }}
               >
                 <HStack justifyContent="center" gap={3}>
-                  <LuTrophy size={24} color="var(--chakra-colors-yellow-500)" />
+                  <LuTrophy size={24} color="var(--chakra-colors-brass-400)" />
                   <VStack gap={0}>
                     <Text
                       fontSize="xs"
@@ -821,7 +835,7 @@ const TournamentDetail: React.FC<Props> = ({
                       </Text>
                     )}
                   </VStack>
-                  <LuTrophy size={24} color="var(--chakra-colors-yellow-500)" />
+                  <LuTrophy size={24} color="var(--chakra-colors-brass-400)" />
                 </HStack>
               </Box>
             );

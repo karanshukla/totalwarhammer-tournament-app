@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+﻿import React, { useState, useEffect, useCallback } from "react";
 import {
   Box,
   Text,
@@ -24,9 +24,21 @@ import { httpClient } from "@/core/api/httpClient";
 import { useUserStore } from "@/shared/stores/userStore";
 
 const statusColorMap: Record<string, string> = {
-  pending: "yellow",
-  active: "green",
+  pending: "brass",
+  active: "verdigris",
   completed: "gray",
+};
+
+const statusAccentMap: Record<string, string> = {
+  pending: "brass.emphasized",
+  active: "verdigris.emphasized",
+  completed: "border.emphasized",
+};
+
+const statusBarMap: Record<string, string> = {
+  pending: "gold.border",
+  active: "info.border",
+  completed: "border.emphasized",
 };
 
 interface Participant {
@@ -109,12 +121,12 @@ const TournamentBrowser: React.FC<Props> = ({ statusFilter, emptyMessage }) => {
     return (
       <Box
         p={3}
-        bg="red.subtle"
+        bg="status.loss.subtle"
         borderRadius="md"
         borderWidth={1}
-        borderColor="red.muted"
+        borderColor="status.loss.border"
       >
-        <Text color="red.fg">{error}</Text>
+        <Text color="status.loss">{error}</Text>
       </Box>
     );
   }
@@ -135,11 +147,17 @@ const TournamentBrowser: React.FC<Props> = ({ statusFilter, emptyMessage }) => {
                 isAuthenticated() && t.status === "pending" && !joined && !full;
               const canView = t.status === "pending" && canJoin;
 
+              const fillPct = Math.round(
+                (t.participants.length / t.playerCount) * 100,
+              );
+
               return (
                 <Card.Root
                   key={t._id}
                   bg={cardBg}
                   borderColor={borderColor}
+                  borderTopColor={statusAccentMap[t.status]}
+                  borderTopWidth="2px"
                   display="flex"
                   flexDirection="column"
                 >
@@ -163,7 +181,7 @@ const TournamentBrowser: React.FC<Props> = ({ statusFilter, emptyMessage }) => {
                         </Text>
                         {t.enable40kFactions && (
                           <Badge
-                            colorPalette="purple"
+                            colorPalette="verdigris"
                             size="xs"
                             variant="subtle"
                           >
@@ -183,28 +201,41 @@ const TournamentBrowser: React.FC<Props> = ({ statusFilter, emptyMessage }) => {
                             .trim()}
                         </Text>
                       )}
-                      <Separator />
-                      <HStack
-                        gap={4}
-                        fontSize="sm"
-                        color="fg.muted"
-                        width="full"
-                        justifyContent="space-between"
-                      >
-                        <Text>
-                          {t.participants.length}/{t.playerCount} players
-                        </Text>
-                        <Text>
-                          {new Date(t.createdAt).toLocaleDateString()}
-                        </Text>
-                      </HStack>
+                      <Box width="full" pt={1}>
+                        <HStack
+                          justifyContent="space-between"
+                          fontSize="xs"
+                          color="fg.muted"
+                          mb={1}
+                        >
+                          <Text>
+                            {t.participants.length}/{t.playerCount} players
+                          </Text>
+                          <Text>
+                            {new Date(t.createdAt).toLocaleDateString()}
+                          </Text>
+                        </HStack>
+                        <Box
+                          bg="bg.muted"
+                          borderRadius="full"
+                          h="3px"
+                          w="full"
+                          overflow="hidden"
+                        >
+                          <Box
+                            bg={statusBarMap[t.status]}
+                            h="100%"
+                            w={`${fillPct}%`}
+                          />
+                        </Box>
+                      </Box>
                     </VStack>
                   </Card.Body>
                   <Card.Footer pt={0} flexDirection="column" gap={2}>
                     {joined && (
                       <Badge
                         colorPalette={
-                          t.status === "completed" ? "gray" : "blue"
+                          t.status === "completed" ? "gray" : "verdigris"
                         }
                         variant="subtle"
                         width="full"
@@ -215,7 +246,7 @@ const TournamentBrowser: React.FC<Props> = ({ statusFilter, emptyMessage }) => {
                     )}
                     {full && !joined && t.status === "pending" && (
                       <Badge
-                        colorPalette="orange"
+                        colorPalette="gray"
                         variant="subtle"
                         width="full"
                         justifyContent="center"
@@ -226,7 +257,7 @@ const TournamentBrowser: React.FC<Props> = ({ statusFilter, emptyMessage }) => {
                     {canView && (
                       <Button
                         width="full"
-                        colorPalette="blue"
+                        colorPalette="crimson"
                         size="sm"
                         onClick={() => navigate(`/tournament/${t._id}`)}
                       >
@@ -235,25 +266,30 @@ const TournamentBrowser: React.FC<Props> = ({ statusFilter, emptyMessage }) => {
                       </Button>
                     )}
                     {!isAuthenticated() && t.status === "pending" && !full && (
-                      <Text
-                        fontSize="xs"
-                        color="fg.muted"
-                        textAlign="center"
+                      <HStack
                         width="full"
+                        justifyContent="center"
+                        gap={1}
+                        py={1}
                       >
-                        Sign In to Join
-                      </Text>
+                        <Box color="fg.muted" display="inline-flex">
+                          <LuLogIn size={12} />
+                        </Box>
+                        <Text fontSize="xs" color="fg.muted">
+                          Sign in to join
+                        </Text>
+                      </HStack>
                     )}
                     {joined ? (
                       <Button
                         width="full"
                         variant="outline"
                         size="sm"
-                        colorPalette="blue"
+                        colorPalette="verdigris"
                         onClick={() => navigate(`/matches#${t._id}`)}
                       >
                         <LuSwords />
-                        Matches
+                        My Matches
                       </Button>
                     ) : (
                       <Button
@@ -261,7 +297,7 @@ const TournamentBrowser: React.FC<Props> = ({ statusFilter, emptyMessage }) => {
                         variant="outline"
                         size="sm"
                         colorPalette={
-                          t.status === "completed" ? "gray" : undefined
+                          t.status === "completed" ? "brass" : "verdigris"
                         }
                         onClick={() => navigate(`/matches/spectate/${t._id}`)}
                       >

@@ -64,11 +64,12 @@ describe("SimpleBracket - drag handlers", () => {
       const [firstParticipant] = state.participants;
 
       capturedOnDragStart!({
-        active: { id: firstParticipant.id, data: { current: {} }, rect: { current: { initial: null, translated: null } } },
+        active: {
+          id: firstParticipant.id,
+          data: { current: {} },
+          rect: { current: { initial: null, translated: null } },
+        },
         activatorEvent: {} as PointerEvent,
-        collisions: null,
-        delta: { x: 0, y: 0 },
-        over: null,
       });
 
       // The component renders the participant list — no crash means state was set
@@ -80,11 +81,12 @@ describe("SimpleBracket - drag handlers", () => {
 
       expect(() => {
         capturedOnDragStart!({
-          active: { id: "unknown-id-999", data: { current: {} }, rect: { current: { initial: null, translated: null } } },
+          active: {
+            id: "unknown-id-999",
+            data: { current: {} },
+            rect: { current: { initial: null, translated: null } },
+          },
           activatorEvent: {} as PointerEvent,
-          collisions: null,
-          delta: { x: 0, y: 0 },
-          over: null,
         });
       }).not.toThrow();
     });
@@ -96,7 +98,11 @@ describe("SimpleBracket - drag handlers", () => {
 
       expect(() => {
         capturedOnDragEnd!({
-          active: { id: "p1", data: { current: {} }, rect: { current: { initial: null, translated: null } } },
+          active: {
+            id: "p1",
+            data: { current: {} },
+            rect: { current: { initial: null, translated: null } },
+          },
           over: null,
           activatorEvent: {} as PointerEvent,
           collisions: null,
@@ -114,11 +120,23 @@ describe("SimpleBracket - drag handlers", () => {
 
       if (participants.length >= 2) {
         const [p1, p2] = participants;
-        const reorderSpy = vi.spyOn(useTournamentStore.getState(), "reorderParticipants");
+        const reorderSpy = vi.spyOn(
+          useTournamentStore.getState(),
+          "reorderParticipants",
+        );
 
         capturedOnDragEnd!({
-          active: { id: p1.id, data: { current: {} }, rect: { current: { initial: null, translated: null } } },
-          over: { id: p2.id, data: { current: {} }, rect: { width: 0, height: 0, top: 0, left: 0, right: 0, bottom: 0 } },
+          active: {
+            id: p1.id,
+            data: { current: {} },
+            rect: { current: { initial: null, translated: null } },
+          },
+          over: {
+            id: p2.id,
+            data: { current: {} },
+            disabled: false,
+            rect: { width: 0, height: 0, top: 0, left: 0, right: 0, bottom: 0 },
+          },
           activatorEvent: {} as PointerEvent,
           collisions: null,
           delta: { x: 0, y: 0 },
@@ -133,11 +151,23 @@ describe("SimpleBracket - drag handlers", () => {
       renderSimpleBracket();
       const state = useTournamentStore.getState();
       const [p1] = state.participants;
-      const reorderSpy = vi.spyOn(useTournamentStore.getState(), "reorderParticipants");
+      const reorderSpy = vi.spyOn(
+        useTournamentStore.getState(),
+        "reorderParticipants",
+      );
 
       capturedOnDragEnd!({
-        active: { id: p1.id, data: { current: {} }, rect: { current: { initial: null, translated: null } } },
-        over: { id: p1.id, data: { current: {} }, rect: { width: 0, height: 0, top: 0, left: 0, right: 0, bottom: 0 } },
+        active: {
+          id: p1.id,
+          data: { current: {} },
+          rect: { current: { initial: null, translated: null } },
+        },
+        over: {
+          id: p1.id,
+          data: { current: {} },
+          disabled: false,
+          rect: { width: 0, height: 0, top: 0, left: 0, right: 0, bottom: 0 },
+        },
         activatorEvent: {} as PointerEvent,
         collisions: null,
         delta: { x: 0, y: 0 },
@@ -159,15 +189,24 @@ describe("SimpleBracket - drag handlers", () => {
       const participants = updatedState.participants;
       const rounds = updatedState.rounds;
 
-      if (rounds.length > 0 && rounds[0].matches.length > 0 && participants.length > 0) {
+      if (
+        rounds.length > 0 &&
+        rounds[0].matches.length > 0 &&
+        participants.length > 0
+      ) {
         const match = rounds[0].matches[0];
         const [firstParticipant] = participants;
 
         capturedOnDragEnd!({
-          active: { id: firstParticipant.id, data: { current: {} }, rect: { current: { initial: null, translated: null } } },
+          active: {
+            id: firstParticipant.id,
+            data: { current: {} },
+            rect: { current: { initial: null, translated: null } },
+          },
           over: {
             id: `slot-${match.id}-1`,
             data: { current: {} },
+            disabled: false,
             rect: { width: 0, height: 0, top: 0, left: 0, right: 0, bottom: 0 },
           },
           activatorEvent: {} as PointerEvent,
@@ -194,15 +233,24 @@ describe("SimpleBracket - drag handlers", () => {
       const participants = updatedState.participants;
       const rounds = updatedState.rounds;
 
-      if (rounds.length > 0 && rounds[0].matches.length > 0 && participants.length > 0) {
+      if (
+        rounds.length > 0 &&
+        rounds[0].matches.length > 0 &&
+        participants.length > 0
+      ) {
         const match = rounds[0].matches[0];
         const [firstParticipant] = participants;
 
         capturedOnDragEnd!({
-          active: { id: firstParticipant.id, data: { current: {} }, rect: { current: { initial: null, translated: null } } },
+          active: {
+            id: firstParticipant.id,
+            data: { current: {} },
+            rect: { current: { initial: null, translated: null } },
+          },
           over: {
             id: `slot-${match.id}-2`,
             data: { current: {} },
+            disabled: false,
             rect: { width: 0, height: 0, top: 0, left: 0, right: 0, bottom: 0 },
           },
           activatorEvent: {} as PointerEvent,
@@ -224,10 +272,15 @@ describe("SimpleBracket - drag handlers", () => {
       const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
       capturedOnDragEnd!({
-        active: { id: firstParticipant.id, data: { current: {} }, rect: { current: { initial: null, translated: null } } },
+        active: {
+          id: firstParticipant.id,
+          data: { current: {} },
+          rect: { current: { initial: null, translated: null } },
+        },
         over: {
           id: "slot-nonexistent-match-id-1",
           data: { current: {} },
+          disabled: false,
           rect: { width: 0, height: 0, top: 0, left: 0, right: 0, bottom: 0 },
         },
         activatorEvent: {} as PointerEvent,
@@ -244,13 +297,21 @@ describe("SimpleBracket - drag handlers", () => {
     it("does not reorder when one of the ids is not a participant", () => {
       renderSimpleBracket();
       const [firstParticipant] = useTournamentStore.getState().participants;
-      const reorderSpy = vi.spyOn(useTournamentStore.getState(), "reorderParticipants");
+      const reorderSpy = vi.spyOn(
+        useTournamentStore.getState(),
+        "reorderParticipants",
+      );
 
       capturedOnDragEnd!({
-        active: { id: firstParticipant.id, data: { current: {} }, rect: { current: { initial: null, translated: null } } },
+        active: {
+          id: firstParticipant.id,
+          data: { current: {} },
+          rect: { current: { initial: null, translated: null } },
+        },
         over: {
           id: "not-a-participant-id",
           data: { current: {} },
+          disabled: false,
           rect: { width: 0, height: 0, top: 0, left: 0, right: 0, bottom: 0 },
         },
         activatorEvent: {} as PointerEvent,

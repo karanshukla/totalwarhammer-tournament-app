@@ -4,7 +4,13 @@
  * and line 98 (checkbox onChange).
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, fireEvent, waitFor, act } from "@testing-library/react";
+import {
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+  act,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom";
 import React from "react";
@@ -106,9 +112,11 @@ describe("LoginForm – double-submit guard (line 43)", () => {
 
   it("second submit while first is in-flight does not call loginUser twice", async () => {
     let resolve: (v: Awaited<ReturnType<typeof authApi.loginUser>>) => void;
-    const slowPromise = new Promise<Awaited<ReturnType<typeof authApi.loginUser>>>(
-      (r) => { resolve = r; },
-    );
+    const slowPromise = new Promise<
+      Awaited<ReturnType<typeof authApi.loginUser>>
+    >((r) => {
+      resolve = r;
+    });
     vi.mocked(authApi.loginUser).mockReturnValue(slowPromise);
 
     renderLoginForm();

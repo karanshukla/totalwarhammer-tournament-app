@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 import { Text, VStack, Button, Box } from "@chakra-ui/react";
 import { PasswordInput } from "@/shared/ui/PasswordInput";
 import { updatePassword } from "@/features/account/api/accountApi";
@@ -79,10 +79,10 @@ const PasswordUpdateForm: React.FC = () => {
           value={confirmPassword}
           onChange={handlePasswordChange}
         />
-        {passwordError && <Text color="red.fg">{passwordError}</Text>}
+        {passwordError && <Text color="status.loss">{passwordError}</Text>}
         <Button
           type="submit"
-          colorPalette="blue"
+          colorPalette="brass"
           loading={isUpdatingPassword}
           loadingText="Updating"
           width="full"

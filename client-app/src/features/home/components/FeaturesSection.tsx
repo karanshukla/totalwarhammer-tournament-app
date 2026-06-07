@@ -6,25 +6,29 @@ const features = [
   {
     icon: LuTrophy,
     title: "Run Tournaments",
-    color: "yellow",
+    bg: "gold.subtle",
+    color: "gold.text",
     desc: "Create and manage brackets for your community with full control over format and participants.",
   },
   {
     icon: LuSwords,
     title: "Track Matches",
-    color: "red",
+    bg: "brand.subtle",
+    color: "brand.text",
     desc: "Record results, advance rounds, and follow live progress across all active tournaments.",
   },
   {
     icon: LuChartBar,
     title: "View Statistics",
-    color: "blue",
+    bg: "info.subtle",
+    color: "info.text",
     desc: "Explore win rates, top players, and faction performance across all recorded tournaments.",
   },
   {
     icon: LuShield,
     title: "Guest Friendly",
-    color: "green",
+    bg: "info.subtle",
+    color: "info.text",
     desc: "No account required to participate. Jump in as a guest and join tournaments instantly.",
   },
 ];
@@ -45,8 +49,8 @@ const FeaturesSection: React.FC = () => (
               <Box
                 p={2}
                 borderRadius="md"
-                bg={`${f.color}.subtle`}
-                color={`${f.color}.fg`}
+                bg={f.bg}
+                color={f.color}
                 fontSize="xl"
               >
                 <f.icon />

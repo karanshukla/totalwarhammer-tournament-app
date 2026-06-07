@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+﻿import React, { useEffect, useState } from "react";
 import {
   Box,
   Button,
@@ -138,7 +138,7 @@ const ResetPasswordPage: React.FC = () => {
             The password reset link is invalid or has expired. Please request a
             new password reset link.
           </Text>
-          <Button onClick={() => navigate("/")} colorPalette="blue">
+          <Button onClick={() => navigate("/")} colorPalette="brass">
             Back to Home
           </Button>
         </VStack>
@@ -156,7 +156,7 @@ const ResetPasswordPage: React.FC = () => {
           <Flex direction="column">
             <Text color="fg.muted">Enter your new password below.</Text>
             {expiryTime && (
-              <Text fontSize="sm" color="orange.fg">
+              <Text fontSize="sm" color="gold.text">
                 This link will expire at {expiryTime.toLocaleTimeString()}.
               </Text>
             )}
@@ -187,7 +187,7 @@ const ResetPasswordPage: React.FC = () => {
 
             <Button
               type="submit"
-              colorPalette="blue"
+              colorPalette="brass"
               width="full"
               loading={isResetting}
               loadingText="Resetting..."

@@ -22,7 +22,13 @@ vi.mock("@/core/api/httpClient", () => ({
 }));
 
 vi.mock("@/shared/ui/NumberInput", () => ({
-  NumberInputRoot: ({ children, onValueChange }: { children: React.ReactNode; onValueChange: (v: { value: string; valueAsNumber: number }) => void }) => (
+  NumberInputRoot: ({
+    children,
+    onValueChange,
+  }: {
+    children: React.ReactNode;
+    onValueChange: (v: { value: string; valueAsNumber: number }) => void;
+  }) => (
     <div
       data-testid="number-input-root"
       onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
@@ -35,7 +41,9 @@ vi.mock("@/shared/ui/NumberInput", () => ({
       {children}
     </div>
   ),
-  NumberInputField: () => <input data-testid="number-input-field" type="number" />,
+  NumberInputField: () => (
+    <input data-testid="number-input-field" type="number" />
+  ),
 }));
 
 import CreateTournamentForm from "@/features/tournaments/components/CreateTournamentForm";
@@ -94,9 +102,7 @@ describe("CreateTournamentForm – warning messages", () => {
     setTournamentType("Swiss System");
     setPlayerCount("3");
     await waitFor(() => {
-      expect(
-        screen.getByText(/odd number of players/i),
-      ).toBeInTheDocument();
+      expect(screen.getByText(/odd number of players/i)).toBeInTheDocument();
     });
   });
 
@@ -105,9 +111,7 @@ describe("CreateTournamentForm – warning messages", () => {
     setTournamentType("Round Robin");
     setPlayerCount("17");
     await waitFor(() => {
-      expect(
-        screen.getByText(/consider swiss instead/i),
-      ).toBeInTheDocument();
+      expect(screen.getByText(/consider swiss instead/i)).toBeInTheDocument();
     });
   });
 

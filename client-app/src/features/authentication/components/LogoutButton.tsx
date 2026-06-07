@@ -1,12 +1,12 @@
 import React, { useState, useRef } from "react";
-import { Button, Icon } from "@chakra-ui/react";
+import { Button, Icon, type ButtonProps } from "@chakra-ui/react";
 import { FiLogOut } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import { logoutUser } from "../api/authenticationApi";
 
 interface LogoutButtonProps {
-  size?: string;
-  variant?: string;
+  size?: ButtonProps["size"];
+  variant?: ButtonProps["variant"];
 }
 
 export const LogoutButton: React.FC<LogoutButtonProps> = ({
@@ -44,7 +44,7 @@ export const LogoutButton: React.FC<LogoutButtonProps> = ({
       variant={variant}
       size={size}
       onClick={handleLogout}
-      isLoading={isLoading}
+      loading={isLoading}
       loadingText="Logging out"
       disabled={isLoggingOutRef.current}
     >

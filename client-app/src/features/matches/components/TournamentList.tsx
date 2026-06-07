@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import {
   Container,
   Heading,
@@ -39,7 +39,7 @@ interface Props {
 
 const cardBg = "bg.panel";
 const borderColor = "border";
-const selectedBg = "blue.subtle";
+const selectedBg = "brass.subtle";
 
 const TournamentList: React.FC<Props> = ({
   tournaments,
@@ -85,7 +85,7 @@ const TournamentList: React.FC<Props> = ({
             />
             <Button
               size="sm"
-              colorPalette="blue"
+              colorPalette="brass"
               onClick={onFindByCode}
               loading={codeLoading}
               gap={2}
@@ -105,12 +105,12 @@ const TournamentList: React.FC<Props> = ({
         <Box
           mb={4}
           p={3}
-          bg="red.subtle"
+          bg="status.loss.subtle"
           borderRadius="md"
           borderWidth={1}
-          borderColor="red.muted"
+          borderColor="status.loss.border"
         >
-          <Text color="red.fg">{error}</Text>
+          <Text color="status.loss">{error}</Text>
         </Box>
       )}
 
@@ -125,9 +125,9 @@ const TournamentList: React.FC<Props> = ({
                 s === "all"
                   ? "gray"
                   : s === "pending"
-                    ? "yellow"
+                    ? "brass"
                     : s === "active"
-                      ? "green"
+                      ? "verdigris"
                       : "gray"
               }
               onClick={() => {
@@ -136,12 +136,7 @@ const TournamentList: React.FC<Props> = ({
               }}
             >
               {s.charAt(0).toUpperCase() + s.slice(1)}
-              <Badge
-                ml={1}
-                size="sm"
-                variant="subtle"
-                colorPalette={statusFilter === s ? "white" : "gray"}
-              >
+              <Badge ml={1} size="sm" variant="subtle" colorPalette="gray">
                 {statusCounts[s]}
               </Badge>
             </Button>
@@ -170,7 +165,7 @@ const TournamentList: React.FC<Props> = ({
                 ) : (
                   <Button
                     size="sm"
-                    colorPalette="blue"
+                    colorPalette="brass"
                     onClick={() =>
                       document.dispatchEvent(
                         new CustomEvent("auth-event", {
@@ -239,7 +234,7 @@ const TournamentList: React.FC<Props> = ({
                         </Text>
                         {t.enable40kFactions && (
                           <Badge
-                            colorPalette="purple"
+                            colorPalette="verdigris"
                             size="xs"
                             variant="subtle"
                           >

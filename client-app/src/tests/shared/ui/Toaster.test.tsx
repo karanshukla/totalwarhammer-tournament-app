@@ -57,7 +57,9 @@ describe("Toaster component", () => {
 
 describe("Toaster exported createToaster instances", () => {
   it("toaster.success can be called without throwing", () => {
-    expect(() => toaster.success({ description: "Test success" })).not.toThrow();
+    expect(() =>
+      toaster.success({ description: "Test success" }),
+    ).not.toThrow();
   });
 
   it("toaster.error can be called without throwing", () => {
@@ -69,6 +71,8 @@ describe("Toaster exported createToaster instances", () => {
   });
 
   it("mobileToaster.success can be called without throwing", () => {
-    expect(() => mobileToaster.success({ description: "Mobile test" })).not.toThrow();
+    expect(() =>
+      mobileToaster.success({ description: "Mobile test" }),
+    ).not.toThrow();
   });
 });

@@ -16,7 +16,9 @@ function makeParticipant(overrides: Partial<Participant> = {}): Participant {
   };
 }
 
-function renderDialog(props: Partial<React.ComponentProps<typeof ParticipantEditDialog>> = {}) {
+function renderDialog(
+  props: Partial<React.ComponentProps<typeof ParticipantEditDialog>> = {},
+) {
   const defaults = {
     isOpen: true,
     onClose: vi.fn(),

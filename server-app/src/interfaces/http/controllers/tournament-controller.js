@@ -357,14 +357,24 @@ export const updateParticipant = async (req, res) => {
     }
     const { name, faction } = req.body;
     if (name !== undefined) {
-      if (typeof name !== "string" || name.trim().length === 0 || name.length > 100) {
-        return res.status(400).json({ success: false, message: "Name must be between 1 and 100 characters" });
+      if (
+        typeof name !== "string" ||
+        name.trim().length === 0 ||
+        name.length > 100
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: "Name must be between 1 and 100 characters",
+        });
       }
       participant.name = name.trim();
     }
     if (faction !== undefined) {
       if (typeof faction !== "string" || faction.length > 100) {
-        return res.status(400).json({ success: false, message: "Faction must be at most 100 characters" });
+        return res.status(400).json({
+          success: false,
+          message: "Faction must be at most 100 characters",
+        });
       }
       participant.faction = faction;
     }

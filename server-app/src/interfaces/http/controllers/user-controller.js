@@ -37,7 +37,7 @@ export const userExists = async (req, res) => {
         exists: !!user,
       },
     });
-  } catch (error) {
+  } catch {
     return res.status(500).json({
       success: false,
       message: "Failed to check user existence",
@@ -341,7 +341,7 @@ export const getUserStats = async (req, res) => {
         factions,
       },
     });
-  } catch (error) {
+  } catch {
     return res.status(500).json({
       success: false,
       message: "Failed to fetch user stats",

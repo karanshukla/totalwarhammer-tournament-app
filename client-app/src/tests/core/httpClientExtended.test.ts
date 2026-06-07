@@ -1,13 +1,10 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { httpClient } from "../../core/api/httpClient";
-import { apiConfig } from "../../core/config/apiConfig";
 
 const mockFetch = vi.fn();
 vi.stubGlobal("fetch", mockFetch);
 
 describe("HttpClient - Extended Coverage", () => {
-  const baseUrl = apiConfig.baseUrl || "http://localhost:3000";
-
   beforeEach(() => {
     mockFetch.mockReset();
     httpClient.resetCsrfToken();
@@ -202,7 +199,9 @@ describe("HttpClient - Extended Coverage", () => {
 
       await httpClient.patch("/ep", { a: 1 }, { skipCsrf: true });
       expect(mockFetch).toHaveBeenCalledTimes(1);
-      expect(mockFetch.mock.calls[0][1].headers).not.toHaveProperty("X-CSRF-Token");
+      expect(mockFetch.mock.calls[0][1].headers).not.toHaveProperty(
+        "X-CSRF-Token",
+      );
     });
 
     it("should warn when CSRF token is null and not skipped", async () => {
@@ -252,7 +251,9 @@ describe("HttpClient - Extended Coverage", () => {
 
       const result = await httpClient.patch("/ep", {});
       expect(result).toEqual({ ok: true });
-      expect(mockFetch.mock.calls[3][1].headers["X-CSRF-Token"]).toBe("new-tok");
+      expect(mockFetch.mock.calls[3][1].headers["X-CSRF-Token"]).toBe(
+        "new-tok",
+      );
     });
 
     it("should throw an error when CSRF token refresh fails on retry", async () => {
@@ -265,7 +266,10 @@ describe("HttpClient - Extended Coverage", () => {
         ok: false,
         status: 403,
         statusText: "Forbidden",
-        json: async () => ({ error: "CSRF validation failed", message: "Token invalid" }),
+        json: async () => ({
+          error: "CSRF validation failed",
+          message: "Token invalid",
+        }),
       });
       // Token refresh fails - ensureCsrfToken returns null
       mockFetch.mockResolvedValueOnce({
@@ -276,7 +280,9 @@ describe("HttpClient - Extended Coverage", () => {
       });
 
       // The internal throw is caught, then handleResponse re-throws the 403 error
-      await expect(httpClient.patch("/ep", {})).rejects.toThrow("Token invalid");
+      await expect(httpClient.patch("/ep", {})).rejects.toThrow(
+        "Token invalid",
+      );
     });
 
     it("should handle 403 non-CSRF error and return response", async () => {
@@ -291,7 +297,9 @@ describe("HttpClient - Extended Coverage", () => {
         json: async () => ({ message: "Forbidden: access denied" }),
       });
 
-      await expect(httpClient.patch("/ep", {})).rejects.toThrow("Forbidden: access denied");
+      await expect(httpClient.patch("/ep", {})).rejects.toThrow(
+        "Forbidden: access denied",
+      );
     });
   });
 
@@ -321,7 +329,9 @@ describe("HttpClient - Extended Coverage", () => {
 
       const result = await httpClient.put("/resource/1", { x: 1 });
       expect(result).toEqual({ saved: true });
-      expect(mockFetch.mock.calls[3][1].headers["X-CSRF-Token"]).toBe("new-tok");
+      expect(mockFetch.mock.calls[3][1].headers["X-CSRF-Token"]).toBe(
+        "new-tok",
+      );
     });
 
     it("should throw an error when token refresh fails during PUT retry", async () => {
@@ -334,7 +344,10 @@ describe("HttpClient - Extended Coverage", () => {
         ok: false,
         status: 403,
         statusText: "Forbidden",
-        json: async () => ({ error: "CSRF validation failed", message: "Token expired" }),
+        json: async () => ({
+          error: "CSRF validation failed",
+          message: "Token expired",
+        }),
       });
       // Token refresh fails
       mockFetch.mockResolvedValueOnce({
@@ -345,7 +358,9 @@ describe("HttpClient - Extended Coverage", () => {
       });
 
       // The internal throw is caught, then handleResponse re-throws the 403 error
-      await expect(httpClient.put("/resource/1", {})).rejects.toThrow("Token expired");
+      await expect(httpClient.put("/resource/1", {})).rejects.toThrow(
+        "Token expired",
+      );
     });
 
     it("should warn when CSRF token is null for PUT", async () => {
@@ -363,7 +378,9 @@ describe("HttpClient - Extended Coverage", () => {
       });
 
       await httpClient.put("/ep", {});
-      expect(warnSpy).toHaveBeenCalledWith("Could not fetch CSRF token for PUT request");
+      expect(warnSpy).toHaveBeenCalledWith(
+        "Could not fetch CSRF token for PUT request",
+      );
       warnSpy.mockRestore();
     });
 
@@ -418,7 +435,10 @@ describe("HttpClient - Extended Coverage", () => {
         ok: false,
         status: 403,
         statusText: "Forbidden",
-        json: async () => ({ error: "CSRF validation failed", message: "CSRF expired" }),
+        json: async () => ({
+          error: "CSRF validation failed",
+          message: "CSRF expired",
+        }),
       });
       // Token refresh fails
       mockFetch.mockResolvedValueOnce({
@@ -429,7 +449,9 @@ describe("HttpClient - Extended Coverage", () => {
       });
 
       // The internal throw is caught, then handleResponse re-throws the 403 error
-      await expect(httpClient.delete("/resource/1")).rejects.toThrow("CSRF expired");
+      await expect(httpClient.delete("/resource/1")).rejects.toThrow(
+        "CSRF expired",
+      );
     });
 
     it("should warn when CSRF token is null for DELETE", async () => {
@@ -447,7 +469,9 @@ describe("HttpClient - Extended Coverage", () => {
       });
 
       await httpClient.delete("/ep");
-      expect(warnSpy).toHaveBeenCalledWith("Could not fetch CSRF token for DELETE request");
+      expect(warnSpy).toHaveBeenCalledWith(
+        "Could not fetch CSRF token for DELETE request",
+      );
       warnSpy.mockRestore();
     });
 
@@ -475,7 +499,10 @@ describe("HttpClient - Extended Coverage", () => {
         ok: false,
         status: 403,
         statusText: "Forbidden",
-        json: async () => ({ error: "CSRF validation failed", message: "Session invalid" }),
+        json: async () => ({
+          error: "CSRF validation failed",
+          message: "Session invalid",
+        }),
       });
       // Token refresh fails
       mockFetch.mockResolvedValueOnce({
@@ -486,7 +513,9 @@ describe("HttpClient - Extended Coverage", () => {
       });
 
       // The internal throw is caught, then handleResponse re-throws the 403 error
-      await expect(httpClient.post("/some-endpoint", {})).rejects.toThrow("Session invalid");
+      await expect(httpClient.post("/some-endpoint", {})).rejects.toThrow(
+        "Session invalid",
+      );
     });
 
     it("should warn when CSRF token is null for POST", async () => {
@@ -504,7 +533,9 @@ describe("HttpClient - Extended Coverage", () => {
       });
 
       await httpClient.post("/ep", {});
-      expect(warnSpy).toHaveBeenCalledWith("Could not fetch CSRF token for POST request");
+      expect(warnSpy).toHaveBeenCalledWith(
+        "Could not fetch CSRF token for POST request",
+      );
       warnSpy.mockRestore();
     });
 
@@ -523,7 +554,9 @@ describe("HttpClient - Extended Coverage", () => {
 
       await httpClient.post("/guest/create", {});
       expect(mockFetch).toHaveBeenCalledTimes(2);
-      expect(mockFetch.mock.calls[1][1].headers["X-CSRF-Token"]).toBe("guest-tok");
+      expect(mockFetch.mock.calls[1][1].headers["X-CSRF-Token"]).toBe(
+        "guest-tok",
+      );
     });
 
     it("should skip CSRF for /auth/token endpoint", async () => {
@@ -562,7 +595,9 @@ describe("HttpClient - Extended Coverage", () => {
         json: async () => ({ message: "Access denied" }),
       });
 
-      await expect(httpClient.post("/restricted", {})).rejects.toThrow("Access denied");
+      await expect(httpClient.post("/restricted", {})).rejects.toThrow(
+        "Access denied",
+      );
     });
   });
 
@@ -593,7 +628,9 @@ describe("HttpClient - Extended Coverage", () => {
         }),
       });
 
-      await expect(httpClient.get("/protected")).rejects.toThrow("Token invalid");
+      await expect(httpClient.get("/protected")).rejects.toThrow(
+        "Token invalid",
+      );
 
       // Token should be reset - next POST should fetch new CSRF token
       mockFetch.mockResolvedValueOnce({
@@ -623,7 +660,9 @@ describe("HttpClient - Extended Coverage", () => {
         },
       });
 
-      await expect(httpClient.get("/ep")).rejects.toThrow("Error 500: Internal Server Error");
+      await expect(httpClient.get("/ep")).rejects.toThrow(
+        "Error 500: Internal Server Error",
+      );
     });
 
     it("should return empty object for 204 No Content response", async () => {
@@ -660,7 +699,9 @@ describe("HttpClient - Extended Coverage", () => {
         json: async () => ({ error: "resource_missing" }),
       });
 
-      await expect(httpClient.get("/missing")).rejects.toThrow("Error 404: Not Found");
+      await expect(httpClient.get("/missing")).rejects.toThrow(
+        "Error 404: Not Found",
+      );
     });
   });
 
@@ -668,7 +709,7 @@ describe("HttpClient - Extended Coverage", () => {
     it("should append multiple params to URL", async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: async () => ([]),
+        json: async () => [],
         status: 200,
         headers: new Headers({ "content-length": "2" }),
       });

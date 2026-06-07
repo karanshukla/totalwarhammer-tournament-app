@@ -75,9 +75,7 @@ describe("TournamentLookup – View button navigation", () => {
     // The per-tournament "View" buttons are size="xs" variant="outline", distinct from "View Tournament"
     await waitFor(() => {
       const allButtons = screen.getAllByRole("button");
-      const viewBtn = allButtons.find(
-        (b) => b.textContent?.trim() === "View",
-      );
+      const viewBtn = allButtons.find((b) => b.textContent?.trim() === "View");
       if (viewBtn) userEvent.click(viewBtn);
     });
 

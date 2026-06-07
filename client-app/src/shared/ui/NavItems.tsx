@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+﻿import React, { useEffect } from "react";
 import {
   Stack,
   Text,
@@ -79,14 +79,14 @@ const NavItem: React.FC<NavItemProps> = ({
         boxSize={5}
         mr={isPortrait ? 0 : 3}
         mb={isPortrait ? 1 : 0}
-        color={isActive ? "blue.500" : "inherit"}
+        color={isActive ? "brand.text" : "inherit"}
         aria-hidden="true"
       />
       {(!isPortrait || !isMobile) && (
         <Text
           fontSize="sm"
           fontWeight={isActive ? "semibold" : "normal"}
-          color={isActive ? "blue.500" : "inherit"}
+          color={isActive ? "brand.text" : "inherit"}
         >
           {children}
           {shortcut && (
@@ -273,7 +273,7 @@ const NavItems: React.FC<NavItemsProps> = ({
       >
         Account
         {isUserGuest && isPortrait && (
-          <Badge size="sm" colorPalette="blue" ml={1}>
+          <Badge size="sm" colorPalette="brass" ml={1}>
             Guest
           </Badge>
         )}
