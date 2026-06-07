@@ -1,47 +1,48 @@
 import { createSystem, defaultConfig, defineConfig } from "@chakra-ui/react";
 
-// Light: blue-tinted subtle/muted backgrounds for warmth and character
-// Dark: deep navy instead of neutral gray for depth matching the app's blue primary
+// Light: muted army-green tints for backgrounds; sage-green borders with crimson emphasis
+// Dark: deep forest-green backgrounds; medium-green borders with crimson emphasis on active/highlighted elements
 const config = defineConfig({
   theme: {
     semanticTokens: {
       colors: {
         bg: {
           DEFAULT: {
-            value: { _light: "white", _dark: "#0f1624" },
+            value: { _light: "white", _dark: "#0c1a10" },
           },
           canvas: {
-            value: { _light: "{colors.blue.50}", _dark: "#0a1018" },
+            value: { _light: "#f2f7f2", _dark: "#081209" },
           },
           subtle: {
-            value: { _light: "{colors.blue.50}", _dark: "#141e2e" },
+            value: { _light: "#f2f7f2", _dark: "#102016" },
           },
           muted: {
-            value: { _light: "{colors.blue.100}", _dark: "#1a2640" },
+            value: { _light: "#e5eee5", _dark: "#162c1e" },
           },
           emphasized: {
-            value: { _light: "{colors.blue.200}", _dark: "#223150" },
+            value: { _light: "#cfdfcf", _dark: "#1e3a28" },
           },
           panel: {
-            value: { _light: "white", _dark: "#131c2b" },
+            value: { _light: "white", _dark: "#0e1f13" },
           },
         },
         // top-level alias used by AppShell nav areas via bg="chakra-body-bg"
         "chakra-body-bg": {
-          value: { _light: "white", _dark: "#0f1624" },
+          value: { _light: "white", _dark: "#0c1a10" },
         },
         border: {
           DEFAULT: {
-            value: { _light: "#c8d8ec", _dark: "#2a3a52" },
+            value: { _light: "#adc4ad", _dark: "#2a4030" },
           },
           muted: {
-            value: { _light: "#d8e6f4", _dark: "#1e2d44" },
+            value: { _light: "#c8dac8", _dark: "#1e3024" },
           },
           subtle: {
-            value: { _light: "#e5eff9", _dark: "#192540" },
+            value: { _light: "#ddeadd", _dark: "#162618" },
           },
+          // crimson on emphasized borders adds Warhammer flair without overwhelming
           emphasized: {
-            value: { _light: "#b0c8e4", _dark: "#364e6e" },
+            value: { _light: "#c07070", _dark: "#6a2424" },
           },
         },
       },
