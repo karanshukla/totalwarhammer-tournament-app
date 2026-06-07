@@ -69,6 +69,7 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
             fontWeight="medium"
             textAlign={isPortrait ? "left" : "center"}
             flex="1"
+            color="blue.fg"
           >
             {isPortrait ? "TW Tournament" : "Total Warhammer Tournament App"}
             {isUserGuest && !isPortrait && (

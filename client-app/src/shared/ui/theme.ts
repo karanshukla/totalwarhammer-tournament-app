@@ -1,11 +1,39 @@
 import { createSystem, defaultConfig, defineConfig } from "@chakra-ui/react";
 
-// Light: green body/nav bg + white panels (contrast), crimson borders throughout
-// Dark: deep forest-green bg + white/pale panels, dark crimson borders
+// Remap the `blue` palette to antique gold — every colorPalette="blue" component
+// (buttons, badges, active nav, info text) automatically becomes gold-themed with
+// zero component-file changes. Accessibility note: blue.contrast overridden to dark
+// text since gold (#c9a227) is too light for white text (3.2:1 vs required 4.5:1).
+const GOLD = {
+  50: "#fefce8",
+  100: "#fef9c3",
+  200: "#fef08a",
+  300: "#fde047",
+  400: "#facc15",
+  500: "#c9a227", // antique gold — solid button bg
+  600: "#a37d1a", // brass
+  700: "#7d5c10", // dark gold (light-mode fg, readable on green bg)
+  800: "#5a4008",
+  900: "#3d2b04",
+  950: "#231802", // used as contrast text on solid gold buttons
+};
+
 const config = defineConfig({
   theme: {
+    tokens: {
+      colors: {
+        // Override blue → antique gold. All colorPalette="blue" elements become gold.
+        blue: Object.fromEntries(
+          Object.entries(GOLD).map(([k, v]) => [k, { value: v }]),
+        ),
+      },
+    },
     semanticTokens: {
       colors: {
+        // Dark text on solid gold buttons for AA contrast (gold is too light for white)
+        blue: {
+          contrast: { value: "{colors.blue.950}" },
+        },
         bg: {
           // Body background is clearly green — panels (white) float above it
           DEFAULT: {
@@ -33,7 +61,7 @@ const config = defineConfig({
           value: { _light: "#d8e8d8", _dark: "#0c1a10" },
         },
         border: {
-          // All borders are crimson — gives the red presence on every card/input
+          // All borders are crimson — gives red presence on every card/input
           DEFAULT: {
             value: { _light: "#a85050", _dark: "#6e2c2c" },
           },
