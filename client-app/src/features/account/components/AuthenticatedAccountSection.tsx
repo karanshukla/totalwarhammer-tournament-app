@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import {
   Heading,
   Text,
@@ -36,7 +36,7 @@ const AuthenticatedAccountSection: React.FC = () => {
               <LuUser />
               <Text fontWeight="semibold">{user.username || "-"}</Text>
             </HStack>
-            <Badge colorPalette="blue" variant="subtle">
+            <Badge colorPalette="brass" variant="subtle">
               Registered
             </Badge>
           </HStack>

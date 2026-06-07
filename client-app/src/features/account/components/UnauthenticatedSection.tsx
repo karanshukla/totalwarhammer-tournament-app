@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import {
   CardRoot,
   VStack,
@@ -26,7 +26,7 @@ const UnauthenticatedSection: React.FC = () => {
           Sign in or create an account to manage your profile, view your match
           history, and track your tournament performance.
         </Text>
-        <Button colorPalette="blue" onClick={openAuthDrawer}>
+        <Button colorPalette="brass" onClick={openAuthDrawer}>
           Sign in / Register
         </Button>
       </VStack>

@@ -37,12 +37,12 @@ const baseProps = {
   page: 1,
   total: 0,
   pageSize: 4,
-  statusFilter: "all" as const,
+  statusFilter: "all" as "all" | "pending" | "active" | "completed",
   listLoading: false,
-  error: null,
+  error: null as string | null,
   codeInput: "",
   codeLoading: false,
-  codeError: null,
+  codeError: null as string | null,
   isAuthenticated: true,
   onSelectTournament: vi.fn(),
   onFindByCode: vi.fn(),
@@ -75,7 +75,9 @@ describe("TournamentList – unauthenticated empty state", () => {
       statusCounts: emptyStatusCounts,
       isAuthenticated: false,
     });
-    expect(screen.getByText(/sign in to view your tournaments/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/sign in to view your tournaments/i),
+    ).toBeInTheDocument();
   });
 
   it("shows Sign In button when unauthenticated and no tournaments", () => {
@@ -84,7 +86,9 @@ describe("TournamentList – unauthenticated empty state", () => {
       statusCounts: emptyStatusCounts,
       isAuthenticated: false,
     });
-    expect(screen.getByRole("button", { name: /sign in/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /sign in/i }),
+    ).toBeInTheDocument();
   });
 
   it("Sign In button dispatches auth-event custom event", async () => {
@@ -129,15 +133,22 @@ describe("TournamentList – tournament cards", () => {
     const onSelectTournament = vi.fn();
     const tournament = makeTournament({ _id: "t42", name: "Grand Slam" });
     const statusCounts = { all: 1, pending: 0, active: 1, completed: 0 };
-    renderList({ tournaments: [tournament], statusCounts, total: 1, onSelectTournament });
-    const card = screen.getByText("Grand Slam").closest("[role='article'], [data-slot='root'], .chakra-card");
+    renderList({
+      tournaments: [tournament],
+      statusCounts,
+      total: 1,
+      onSelectTournament,
+    });
     // Click the tournament card
     await userEvent.click(screen.getByText("Grand Slam"));
     expect(onSelectTournament).toHaveBeenCalled();
   });
 
   it("renders participant count for each tournament card", () => {
-    const tournament = makeTournament({ participants: [{ _id: "p1", name: "Alice", faction: "Empire" }], playerCount: 8 });
+    const tournament = makeTournament({
+      participants: [{ _id: "p1", name: "Alice", faction: "Empire" }],
+      playerCount: 8,
+    });
     const statusCounts = { all: 1, pending: 0, active: 1, completed: 0 };
     renderList({ tournaments: [tournament], statusCounts, total: 1 });
     expect(screen.getByText("1/8")).toBeInTheDocument();
@@ -146,7 +157,12 @@ describe("TournamentList – tournament cards", () => {
   it("shows loading state hint (pointer-events none)", () => {
     const tournament = makeTournament({ name: "Ongoing Cup" });
     const statusCounts = { all: 1, pending: 0, active: 1, completed: 0 };
-    renderList({ tournaments: [tournament], statusCounts, total: 1, listLoading: true });
+    renderList({
+      tournaments: [tournament],
+      statusCounts,
+      total: 1,
+      listLoading: true,
+    });
     // Just verify the tournament is rendered while loading
     expect(screen.getByText("Ongoing Cup")).toBeInTheDocument();
   });
@@ -159,7 +175,9 @@ describe("TournamentList – pagination", () => {
     const tournaments = [makeTournament()];
     const statusCounts = { all: 1, pending: 0, active: 1, completed: 0 };
     renderList({ tournaments, statusCounts, total: 1, pageSize: 4, page: 1 });
-    expect(screen.queryByRole("button", { name: /previous/i })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /previous/i }),
+    ).not.toBeInTheDocument();
   });
 
   it("shows pagination when total exceeds pageSize", () => {
@@ -168,7 +186,9 @@ describe("TournamentList – pagination", () => {
     );
     const statusCounts = { all: 8, pending: 0, active: 8, completed: 0 };
     renderList({ tournaments, statusCounts, total: 8, pageSize: 4, page: 1 });
-    expect(screen.getByRole("button", { name: /previous/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /previous/i }),
+    ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /next/i })).toBeInTheDocument();
   });
 
@@ -178,7 +198,14 @@ describe("TournamentList – pagination", () => {
       makeTournament({ _id: `t${i}`, name: `Cup ${i}` }),
     );
     const statusCounts = { all: 8, pending: 0, active: 8, completed: 0 };
-    renderList({ tournaments, statusCounts, total: 8, pageSize: 4, page: 2, onPageChange });
+    renderList({
+      tournaments,
+      statusCounts,
+      total: 8,
+      pageSize: 4,
+      page: 2,
+      onPageChange,
+    });
     await userEvent.click(screen.getByRole("button", { name: /previous/i }));
     expect(onPageChange).toHaveBeenCalledWith(1);
   });
@@ -189,7 +216,14 @@ describe("TournamentList – pagination", () => {
       makeTournament({ _id: `t${i}`, name: `Cup ${i}` }),
     );
     const statusCounts = { all: 8, pending: 0, active: 8, completed: 0 };
-    renderList({ tournaments, statusCounts, total: 8, pageSize: 4, page: 1, onPageChange });
+    renderList({
+      tournaments,
+      statusCounts,
+      total: 8,
+      pageSize: 4,
+      page: 1,
+      onPageChange,
+    });
     await userEvent.click(screen.getByRole("button", { name: /next/i }));
     expect(onPageChange).toHaveBeenCalledWith(2);
   });
@@ -208,7 +242,13 @@ describe("TournamentList – pagination", () => {
     const onPageChange = vi.fn();
     const tournaments = [makeTournament()];
     const statusCounts = { all: 1, pending: 1, active: 0, completed: 0 };
-    renderList({ tournaments, statusCounts, total: 1, onStatusFilterChange, onPageChange });
+    renderList({
+      tournaments,
+      statusCounts,
+      total: 1,
+      onStatusFilterChange,
+      onPageChange,
+    });
     await userEvent.click(screen.getByRole("button", { name: /pending/i }));
     expect(onStatusFilterChange).toHaveBeenCalledWith("pending");
     expect(onPageChange).toHaveBeenCalledWith(1);

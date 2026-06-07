@@ -22,7 +22,7 @@ const DeleteAccountSection: React.FC = () => {
   if (!confirming) {
     return (
       <Button
-        colorPalette="red"
+        colorPalette="crimson"
         variant="subtle"
         size="sm"
         onClick={() => setConfirming(true)}
@@ -37,23 +37,23 @@ const DeleteAccountSection: React.FC = () => {
       p={4}
       borderRadius="md"
       borderWidth={1}
-      borderColor="red.muted"
-      bg="red.subtle"
+      borderColor="status.loss.border"
+      bg="status.loss.subtle"
     >
       <VStack align="start" gap={3}>
-        <HStack gap={2} color="red.fg">
+        <HStack gap={2} color="status.loss">
           <LuTriangleAlert size={16} />
           <Text fontWeight="semibold" fontSize="sm">
             Are you sure?
           </Text>
         </HStack>
-        <Text fontSize="sm" color="red.fg">
+        <Text fontSize="sm" color="status.loss">
           Your login access will be removed. Tournament and match data you
           created will remain but will no longer be linked to your name.
         </Text>
         <HStack gap={2}>
           <Button
-            colorPalette="red"
+            colorPalette="crimson"
             size="sm"
             loading={isLoading}
             onClick={handleDelete}

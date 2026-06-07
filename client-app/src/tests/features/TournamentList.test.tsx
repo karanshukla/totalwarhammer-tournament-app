@@ -12,7 +12,7 @@ const baseProps = {
   page: 1,
   total: 0,
   pageSize: 12,
-  statusFilter: "all" as const,
+  statusFilter: "all" as "all" | "pending" | "active" | "completed",
   listLoading: false,
   error: null,
   codeInput: "",

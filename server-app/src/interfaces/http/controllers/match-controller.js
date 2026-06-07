@@ -165,11 +165,15 @@ export const reportResult = async (req, res) => {
       );
     };
     const isPlayer1ById = match.player1.participantId?.toString() === userId;
-    const isPlayer1ByName = !isPlayer1ById && (nameMatchP1(match.player1.name) || match.player1.name === userId);
+    const isPlayer1ByName =
+      !isPlayer1ById &&
+      (nameMatchP1(match.player1.name) || match.player1.name === userId);
     const isPlayer1 = isPlayer1ById || isPlayer1ByName;
 
     const isPlayer2ById = match.player2.participantId?.toString() === userId;
-    const isPlayer2ByName = !isPlayer2ById && (nameMatchP2(match.player2.name) || match.player2.name === userId);
+    const isPlayer2ByName =
+      !isPlayer2ById &&
+      (nameMatchP2(match.player2.name) || match.player2.name === userId);
     const isPlayer2 = isPlayer2ById || isPlayer2ByName;
 
     if (isPlayer1ByName || isPlayer2ByName) {

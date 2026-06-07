@@ -15,15 +15,18 @@ export const NumberInputRoot = React.forwardRef<
   );
 });
 
-export const NumberInputField = React.forwardRef((props, ref) => (
-  <ChakraNumberInput.Input ref={ref} {...props} />
-));
+export const NumberInputField = React.forwardRef<
+  HTMLInputElement,
+  ChakraNumberInput.InputProps
+>((props, ref) => <ChakraNumberInput.Input ref={ref} {...props} />);
 
 export const NumberInputStepper = ChakraNumberInput.Control;
 export const NumberInputControl = ChakraNumberInput.Control;
-export const NumberInputIncrementTrigger = React.forwardRef((props, ref) => (
-  <ChakraNumberInput.IncrementTrigger ref={ref} {...props} />
-));
-export const NumberInputDecrementTrigger = React.forwardRef((props, ref) => (
-  <ChakraNumberInput.DecrementTrigger ref={ref} {...props} />
-));
+export const NumberInputIncrementTrigger = React.forwardRef<
+  HTMLButtonElement,
+  ChakraNumberInput.IncrementTriggerProps
+>((props, ref) => <ChakraNumberInput.IncrementTrigger ref={ref} {...props} />);
+export const NumberInputDecrementTrigger = React.forwardRef<
+  HTMLButtonElement,
+  ChakraNumberInput.DecrementTriggerProps
+>((props, ref) => <ChakraNumberInput.DecrementTrigger ref={ref} {...props} />);

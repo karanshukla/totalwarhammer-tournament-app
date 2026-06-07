@@ -42,7 +42,9 @@ describe("SimpleBracket", () => {
 
   it("renders Add Round button from TournamentBracket", () => {
     renderSimpleBracket();
-    expect(screen.getByRole("button", { name: /add round/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /add round/i }),
+    ).toBeInTheDocument();
   });
 
   it("opens edit dialog when Edit button is clicked for a participant", async () => {
@@ -91,7 +93,9 @@ describe("SimpleBracket", () => {
 
   it("renders add participants button", () => {
     renderSimpleBracket();
-    expect(screen.getByRole("button", { name: /add participants/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /add participants/i }),
+    ).toBeInTheDocument();
   });
 
   it("adds participants on button click", async () => {

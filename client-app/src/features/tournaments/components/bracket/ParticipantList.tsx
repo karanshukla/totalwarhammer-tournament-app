@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import {
   Box,
   Text,
@@ -94,7 +94,7 @@ export function ParticipantList({
                   onClick={decrement}
                   size="sm"
                   variant="outline"
-                  isDisabled={newParticipantCount <= 1}
+                  disabled={newParticipantCount <= 1}
                 >
                   <LuMinus />
                 </Button>
@@ -105,26 +105,26 @@ export function ParticipantList({
                   onClick={increment}
                   size="sm"
                   variant="outline"
-                  isDisabled={newParticipantCount >= 100}
+                  disabled={newParticipantCount >= 100}
                 >
                   <LuPlus />
                 </Button>
               </HStack>
 
               <ButtonGroup size="sm">
-                <Button onClick={handleAddParticipants} colorPalette="blue">
+                <Button onClick={handleAddParticipants} colorPalette="brass">
                   <LuPlus /> Add Participants
                 </Button>
                 <Button
                   onClick={handleResetBracket}
-                  colorPalette="red"
+                  colorPalette="crimson"
                   variant="outline"
                 >
                   Reset Bracket
                 </Button>
                 <Button
                   onClick={handleResetParticipantsAndBracket}
-                  colorPalette="orange"
+                  colorPalette="brass"
                   variant="outline"
                 >
                   Reset All
@@ -156,13 +156,13 @@ export function ParticipantList({
                   <ButtonGroup size="xs" variant="ghost" gap={1}>
                     <Button
                       onClick={() => onEditParticipant(participant)}
-                      color="blue.fg"
+                      color="brass.fg"
                     >
                       Edit
                     </Button>
                     <Button
                       onClick={() => handleDeleteParticipant(participant.id)}
-                      color="red.fg"
+                      color="status.loss"
                     >
                       Delete
                     </Button>

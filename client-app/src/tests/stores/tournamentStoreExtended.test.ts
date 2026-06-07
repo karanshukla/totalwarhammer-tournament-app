@@ -70,7 +70,11 @@ describe("tournamentStore – updateMatchParticipant", () => {
     const firstMatch = firstRound.matches[0];
     const participant = state.participants[0];
 
-    state.updateMatchParticipant(firstMatch.id, "participant1Id", participant.id);
+    state.updateMatchParticipant(
+      firstMatch.id,
+      "participant1Id",
+      participant.id,
+    );
 
     const newState = useTournamentStore.getState();
     const updatedMatch = newState.rounds[0].matches[0];
@@ -83,7 +87,11 @@ describe("tournamentStore – updateMatchParticipant", () => {
     const firstMatch = firstRound.matches[0];
     const participant = state.participants[1];
 
-    state.updateMatchParticipant(firstMatch.id, "participant2Id", participant.id);
+    state.updateMatchParticipant(
+      firstMatch.id,
+      "participant2Id",
+      participant.id,
+    );
 
     const newState = useTournamentStore.getState();
     const updatedMatch = newState.rounds[0].matches[0];
@@ -95,7 +103,11 @@ describe("tournamentStore – updateMatchParticipant", () => {
     const firstMatch = state.rounds[0].matches[0];
     const participant = state.participants[0];
 
-    state.updateMatchParticipant(firstMatch.id, "participant1Id", participant.id);
+    state.updateMatchParticipant(
+      firstMatch.id,
+      "participant1Id",
+      participant.id,
+    );
     state.updateMatchParticipant(firstMatch.id, "participant1Id", null);
 
     const newState = useTournamentStore.getState();
@@ -112,13 +124,17 @@ describe("tournamentStore – updateMatchParticipant", () => {
     const updatedState = useTournamentStore.getState();
     const [match1, match2] = updatedState.rounds[0].matches;
     const originalMatch2P1 = match2.participant1Id;
-    const participant = updatedState.participants.find((p) => p.id !== match1.participant1Id)!;
+    const participant = updatedState.participants.find(
+      (p) => p.id !== match1.participant1Id,
+    )!;
 
     state.updateMatchParticipant(match1.id, "participant1Id", participant.id);
 
     const finalState = useTournamentStore.getState();
     // match2's participant1Id should be unchanged
-    expect(finalState.rounds[0].matches[1].participant1Id).toBe(originalMatch2P1);
+    expect(finalState.rounds[0].matches[1].participant1Id).toBe(
+      originalMatch2P1,
+    );
   });
 });
 
@@ -183,7 +199,9 @@ describe("tournamentStore – removeMatch", () => {
 
     const newState = useTournamentStore.getState();
     expect(newState.rounds[0].matches.length).toBe(initialCount - 1);
-    expect(newState.rounds[0].matches.find((m) => m.id === matchToRemove.id)).toBeUndefined();
+    expect(
+      newState.rounds[0].matches.find((m) => m.id === matchToRemove.id),
+    ).toBeUndefined();
   });
 
   it("renumbers remaining matches after removal", () => {
@@ -224,17 +242,16 @@ describe("tournamentStore – addRound sorting", () => {
     state.addRound(); // Adds "Round N"
 
     const newState = useTournamentStore.getState();
-    const lastRound = newState.rounds.at(-1)!;
-    const secondToLast = newState.rounds.at(-2)!;
     // If any round has "final" in its title, it should come after non-final rounds
     const finalsRound = newState.rounds.find((r) =>
       r.title.toLowerCase().includes("final"),
     );
     if (finalsRound) {
       const finalsIdx = newState.rounds.indexOf(finalsRound);
-      const lastNonFinalIdx = newState.rounds
-        .slice(0, finalsIdx)
-        .filter((r) => !r.title.toLowerCase().includes("final")).length - 1;
+      const lastNonFinalIdx =
+        newState.rounds
+          .slice(0, finalsIdx)
+          .filter((r) => !r.title.toLowerCase().includes("final")).length - 1;
       expect(finalsIdx).toBeGreaterThan(lastNonFinalIdx);
     }
     // Just verify rounds were added

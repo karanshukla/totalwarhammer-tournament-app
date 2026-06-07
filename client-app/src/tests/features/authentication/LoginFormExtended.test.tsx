@@ -5,7 +5,6 @@
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom";
 import React from "react";
 import { ChakraProvider, defaultSystem } from "@chakra-ui/react";
@@ -16,7 +15,9 @@ vi.mock("@/features/authentication/api/authenticationApi", () => ({
   loginUser: vi.fn(),
 }));
 
-function renderLoginForm(props: { onSuccess?: () => void; defaultIdentifier?: string } = {}) {
+function renderLoginForm(
+  props: { onSuccess?: () => void; defaultIdentifier?: string } = {},
+) {
   return render(
     <ChakraProvider value={defaultSystem}>
       <LoginForm {...props} />
@@ -42,7 +43,9 @@ describe("LoginForm – extended coverage", () => {
     fireEvent.change(screen.getByLabelText(/password/i), {
       target: { value: "password123" },
     });
-    fireEvent.submit(screen.getByRole("button", { name: /login/i }).closest("form")!);
+    fireEvent.submit(
+      screen.getByRole("button", { name: /login/i }).closest("form")!,
+    );
 
     await waitFor(() => {
       expect(onSuccess).toHaveBeenCalled();
@@ -50,7 +53,9 @@ describe("LoginForm – extended coverage", () => {
   });
 
   it("does not throw when login fails (catches error)", async () => {
-    vi.mocked(authApi.loginUser).mockRejectedValue(new Error("Invalid credentials"));
+    vi.mocked(authApi.loginUser).mockRejectedValue(
+      new Error("Invalid credentials"),
+    );
     renderLoginForm();
 
     fireEvent.change(screen.getByLabelText(/email or username/i), {
@@ -61,7 +66,9 @@ describe("LoginForm – extended coverage", () => {
     });
 
     await expect(async () => {
-      fireEvent.submit(screen.getByRole("button", { name: /login/i }).closest("form")!);
+      fireEvent.submit(
+        screen.getByRole("button", { name: /login/i }).closest("form")!,
+      );
       await waitFor(() => {
         expect(authApi.loginUser).toHaveBeenCalled();
       });
@@ -78,17 +85,23 @@ describe("LoginForm – extended coverage", () => {
     fireEvent.change(screen.getByLabelText(/password/i), {
       target: { value: "password" },
     });
-    fireEvent.submit(screen.getByRole("button", { name: /login/i }).closest("form")!);
+    fireEvent.submit(
+      screen.getByRole("button", { name: /login/i }).closest("form")!,
+    );
 
     await waitFor(() => {
       // Button should still be in the DOM (not loading indefinitely)
-      expect(screen.getByRole("button", { name: /login/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /login/i }),
+      ).toBeInTheDocument();
     });
   });
 
   it("uses defaultIdentifier to pre-fill the identifier field", () => {
     renderLoginForm({ defaultIdentifier: "admin" });
-    const input = screen.getByLabelText(/email or username/i) as HTMLInputElement;
+    const input = screen.getByLabelText(
+      /email or username/i,
+    ) as HTMLInputElement;
     expect(input.value).toBe("admin");
   });
 

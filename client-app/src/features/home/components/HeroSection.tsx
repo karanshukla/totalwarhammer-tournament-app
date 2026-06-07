@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import { HStack, Button, Text, Box, Heading, Badge } from "@chakra-ui/react";
 import { Link } from "react-router-dom";
 import { useUserStore } from "@/shared/stores/userStore";
@@ -12,7 +12,7 @@ const HeroSection: React.FC = () => {
   return (
     <Box textAlign="center" py={8}>
       <Badge
-        colorPalette="purple"
+        colorPalette="verdigris"
         mb={4}
         px={3}
         py={1}
@@ -38,7 +38,7 @@ const HeroSection: React.FC = () => {
         matchups.
       </Text>
       <HStack gap={3} justify="center">
-        <Button colorPalette="blue" size="lg" asChild>
+        <Button colorPalette="crimson" size="lg" asChild>
           <Link to="/tournaments">View Ongoing Tournaments</Link>
         </Button>
         {showCreateAccount && (

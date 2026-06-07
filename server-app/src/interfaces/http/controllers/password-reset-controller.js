@@ -41,7 +41,7 @@ export const sendPasswordResetEmail = async (req, res) => {
       success: true,
       message: "Password reset email sent successfully",
     });
-  } catch (error) {
+  } catch {
     return res.status(500).json({
       success: false,
       message: "Failed to send password reset email",
@@ -78,7 +78,7 @@ export const verifyResetToken = async (req, res) => {
         validUntil: resetToken.createdAt.getTime() + 3600000, // Token expiry time (1 hour)
       },
     });
-  } catch (error) {
+  } catch {
     return res.status(500).json({
       success: false,
       message: "Failed to verify reset token",
@@ -134,7 +134,7 @@ export const resetPassword = async (req, res) => {
       success: true,
       message: "Password has been reset successfully",
     });
-  } catch (error) {
+  } catch {
     return res.status(500).json({
       success: false,
       message: "Failed to reset password",

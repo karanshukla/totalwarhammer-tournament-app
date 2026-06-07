@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import {
   Dialog,
   Portal,
@@ -110,7 +110,7 @@ const EditParticipantDialog: React.FC<Props> = ({
                 Cancel
               </Button>
               <Button
-                colorPalette="blue"
+                colorPalette="brass"
                 onClick={onSave}
                 loading={actionLoading}
                 disabled={!participant?.name?.trim()}

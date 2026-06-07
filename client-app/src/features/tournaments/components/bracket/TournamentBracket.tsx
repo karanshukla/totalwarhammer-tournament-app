@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import {
   Box,
   Text,
@@ -51,7 +51,7 @@ export function TournamentBracket() {
           mb={4}
           onClick={onAddRound}
           size="sm"
-          colorPalette="blue"
+          colorPalette="brass"
           variant="outline"
         >
           <LuPlus /> Add Round
@@ -76,7 +76,7 @@ export function TournamentBracket() {
                 fontWeight="bold"
                 textAlign="center"
                 fontSize="md" // Kept as is, seems reasonable for round titles
-                color="blue.fg"
+                color="brass.fg"
                 pb={2}
                 borderBottom="1px solid"
                 borderColor="border"
@@ -109,7 +109,7 @@ export function TournamentBracket() {
                         size="xs"
                         onClick={() => onRemoveMatch(match.id)}
                         variant="ghost"
-                        colorPalette="red"
+                        colorPalette="crimson"
                         px={1.5} // Reduced padding for a smaller button
                       >
                         Remove
@@ -162,7 +162,7 @@ export function TournamentBracket() {
                 size="xs"
                 onClick={() => onAddMatchToRound(round.id)}
                 variant="ghost"
-                colorPalette="blue"
+                colorPalette="brass"
                 width="full"
                 mt={2}
               >

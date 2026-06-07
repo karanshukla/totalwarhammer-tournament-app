@@ -53,7 +53,7 @@ export interface Tournament {
 }
 
 export const statusColorMap: Record<string, string> = {
-  pending: "yellow",
-  active: "green",
+  pending: "brass",
+  active: "verdigris",
   completed: "gray",
 };

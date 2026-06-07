@@ -3,12 +3,12 @@ import { createAdapter as createRedisAdapter } from "@socket.io/redis-adapter";
 import mongoose from "mongoose";
 import { Server } from "socket.io";
 
-import logger from "../utils/logger.js";
-import { createRateLimiter } from "../utils/rate-limiter.js";
 import {
   getRedisClient,
   createNewRedisClient,
 } from "../services/redis-service.js";
+import logger from "../utils/logger.js";
+import { createRateLimiter } from "../utils/rate-limiter.js";
 
 const MONGO_ADAPTER_COLLECTION = "socket.io-adapter-events";
 // Capped at 1 MB — enough for burst traffic, auto-evicts old events

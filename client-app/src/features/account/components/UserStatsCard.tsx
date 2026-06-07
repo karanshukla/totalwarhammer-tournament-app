@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+﻿import React, { useEffect, useState } from "react";
 import {
   CardRoot,
   VStack,
@@ -38,27 +38,31 @@ const UserStatsCard: React.FC = () => {
             icon: LuTrophy,
             label: "Tournaments",
             value: stats?.tournamentsCreated ?? 0,
-            color: "yellow",
+            bg: "gold.subtle",
+            color: "gold.text",
           },
           {
             icon: LuSwords,
             label: "Matches",
             value: stats?.matchesPlayed ?? 0,
-            color: "red",
+            bg: "info.subtle",
+            color: "info.text",
           },
           {
             icon: LuChartBar,
             label: "Wins",
             value: stats?.wins ?? 0,
-            color: "green",
+            bg: "info.subtle",
+            color: "info.text",
           },
           {
             icon: LuShield,
             label: "Losses",
             value: stats?.losses ?? 0,
-            color: "purple",
+            bg: "brand.subtle",
+            color: "brand.text",
           },
-        ].map(({ icon: Icon, label, value, color }) => (
+        ].map(({ icon: Icon, label, value, bg, color }) => (
           <Box
             key={label}
             p={3}
@@ -70,8 +74,8 @@ const UserStatsCard: React.FC = () => {
               display="inline-flex"
               p={2}
               borderRadius="md"
-              bg={`${color}.subtle`}
-              color={`${color}.fg`}
+              bg={bg}
+              color={color}
               fontSize="lg"
               mb={2}
             >
@@ -110,7 +114,7 @@ const UserStatsCard: React.FC = () => {
               : stats!.factions.map((f) => (
                   <HStack key={f.name} justify="space-between">
                     <Text fontSize="sm">{f.name}</Text>
-                    <Badge colorPalette="blue" variant="subtle">
+                    <Badge colorPalette="brass" variant="subtle">
                       {f.count} {f.count === 1 ? "match" : "matches"}
                     </Badge>
                   </HStack>

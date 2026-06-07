@@ -93,7 +93,9 @@ describe("userStore – setUser and clearUser", () => {
   });
 
   it("setUser merges partial user data", () => {
-    useUserStore.getState().setUser({ id: "u5", email: "a@b.com", username: "alpha" });
+    useUserStore
+      .getState()
+      .setUser({ id: "u5", email: "a@b.com", username: "alpha" });
     const state = useUserStore.getState();
     expect(state.user.id).toBe("u5");
     expect(state.user.username).toBe("alpha");

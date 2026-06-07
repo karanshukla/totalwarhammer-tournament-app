@@ -1,78 +1,272 @@
 import { createSystem, defaultConfig, defineConfig } from "@chakra-ui/react";
 
-// Remap the `blue` palette to antique gold — every colorPalette="blue" component
-// (buttons, badges, active nav, info text) automatically becomes gold-themed with
-// zero component-file changes. Accessibility note: blue.contrast overridden to dark
-// text since gold (#c9a227) is too light for white text (3.2:1 vs required 4.5:1).
-const GOLD = {
-  50: "#fefce8",
-  100: "#fef9c3",
-  200: "#fef08a",
-  300: "#fde047",
-  400: "#facc15",
-  500: "#c9a227", // antique gold — solid button bg
-  600: "#a37d1a", // brass
-  700: "#7d5c10", // dark gold (light-mode fg, readable on green bg)
-  800: "#5a4008",
-  900: "#3d2b04",
-  950: "#231802", // used as contrast text on solid gold buttons
+// Crimson — Khorne / Imperial blood: primary brand, active states, focus rings
+const CRIMSON = {
+  50: { value: "#FCF1F1" },
+  100: { value: "#F8D9D9" },
+  200: { value: "#EFADAE" },
+  300: { value: "#E27D7F" },
+  400: { value: "#D24F52" },
+  500: { value: "#C1272D" },
+  600: { value: "#A11D22" },
+  700: { value: "#7C181C" },
+  800: { value: "#591316" },
+  900: { value: "#380E10" },
+};
+
+// Brass — Imperial gold: ceremonial accents, champion highlights, secondary badges
+const BRASS = {
+  50: { value: "#FBF5E6" },
+  100: { value: "#F4E6BE" },
+  200: { value: "#E9CF86" },
+  300: { value: "#DCB54E" },
+  400: { value: "#CC9E27" },
+  500: { value: "#B8860B" },
+  600: { value: "#946B0C" },
+  700: { value: "#6F510C" },
+  800: { value: "#4B370A" },
+  900: { value: "#2C2106" },
+  950: { value: "#1A1206" },
+};
+
+// Verdigris — Realm of Chaos / Necron: info accent, teal highlights
+const VERDIGRIS = {
+  50: { value: "#EAF8F6" },
+  100: { value: "#C6EEE8" },
+  200: { value: "#92DDD3" },
+  300: { value: "#54C4B8" },
+  400: { value: "#29A597" },
+  500: { value: "#14887D" },
+  600: { value: "#106D65" },
+  700: { value: "#0D524C" },
+  800: { value: "#093A36" },
+  900: { value: "#062421" },
+};
+
+// Ink — warm grimdark neutrals: backgrounds, borders, muted text
+const INK = {
+  50: { value: "#F6F4EF" },
+  100: { value: "#E9E5DC" },
+  200: { value: "#D6CFC1" },
+  300: { value: "#B7AD9B" },
+  400: { value: "#918778" },
+  500: { value: "#6B6354" },
+  600: { value: "#4F4940" },
+  700: { value: "#38332C" },
+  800: { value: "#25211B" },
+  900: { value: "#16130F" },
+  950: { value: "#0D0B08" },
 };
 
 const config = defineConfig({
   theme: {
     tokens: {
       colors: {
-        // Override blue → antique gold. All colorPalette="blue" elements become gold.
-        blue: Object.fromEntries(
-          Object.entries(GOLD).map(([k, v]) => [k, { value: v }]),
-        ),
+        crimson: CRIMSON,
+        brass: BRASS,
+        verdigris: VERDIGRIS,
+        ink: INK,
+      },
+      fonts: {
+        heading: { value: "'Cinzel', serif" },
+        body: { value: "'Barlow', system-ui, sans-serif" },
+        mono: { value: "'JetBrains Mono', monospace" },
+        cond: { value: "'Oswald', sans-serif" },
       },
     },
     semanticTokens: {
       colors: {
-        // Dark text on solid gold buttons for AA contrast (gold is too light for white)
-        blue: {
-          contrast: { value: "{colors.blue.950}" },
+        // Brass: override solid to a visible gold step — Chakra auto-generates too dark
+        brass: {
+          contrast: { value: "{colors.ink.950}" },
+          solid: {
+            value: {
+              _light: "{colors.brass.400}",
+              _dark: "{colors.brass.300}",
+            },
+          },
+          fg: {
+            value: {
+              _light: "{colors.brass.700}",
+              _dark: "{colors.brass.200}",
+            },
+          },
+          subtle: {
+            value: {
+              _light: "{colors.brass.100}",
+              _dark: "{colors.brass.900}",
+            },
+          },
+          muted: {
+            value: {
+              _light: "{colors.brass.200}",
+              _dark: "{colors.brass.800}",
+            },
+          },
+          emphasized: {
+            value: {
+              _light: "{colors.brass.300}",
+              _dark: "{colors.brass.700}",
+            },
+          },
         },
+
+        // ── Foreground / Text ────────────────────────────────────────────────
+        "fg.primary": { value: { _light: "#1C1812", _dark: "#F3EFE6" } },
+        "fg.secondary": { value: { _light: "#564E40", _dark: "#C2B9A7" } },
+        "fg.muted": { value: { _light: "#857C6C", _dark: "#94896F" } },
+
+        // ── Brand — Crimson (primary actions, active states, focus rings) ────
+        "brand.solid": {
+          value: {
+            _light: "{colors.crimson.600}",
+            _dark: "{colors.crimson.500}",
+          },
+        },
+        "brand.hover": {
+          value: {
+            _light: "{colors.crimson.700}",
+            _dark: "{colors.crimson.400}",
+          },
+        },
+        "brand.active": {
+          value: {
+            _light: "{colors.crimson.800}",
+            _dark: "{colors.crimson.600}",
+          },
+        },
+        "brand.text": {
+          value: { _light: "{colors.crimson.700}", _dark: "#E98A8C" },
+        },
+        "brand.subtle": { value: { _light: "#F7E2E0", _dark: "#33161A" } },
+        "brand.border": { value: { _light: "#E9BDBC", _dark: "#5A2024" } },
+        "brand.fg": { value: { _light: "#FFFFFF", _dark: "#FFFFFF" } },
+
+        // ── Gold — Brass (heraldic, champion, ceremonial) ────────────────────
+        "gold.solid": {
+          value: { _light: "{colors.brass.600}", _dark: "{colors.brass.400}" },
+        },
+        "gold.hover": {
+          value: { _light: "{colors.brass.700}", _dark: "{colors.brass.300}" },
+        },
+        "gold.text": {
+          value: { _light: "{colors.brass.700}", _dark: "#E3C264" },
+        },
+        "gold.subtle": { value: { _light: "#F5E7C4", _dark: "#33280E" } },
+        "gold.border": { value: { _light: "#E3CB87", _dark: "#5A4715" } },
+        "gold.fg": {
+          value: { _light: "{colors.ink.900}", _dark: "{colors.ink.800}" },
+        },
+
+        // ── Info — Verdigris (Realm of Chaos / Necron, informational UI) ─────
+        "info.solid": {
+          value: {
+            _light: "{colors.verdigris.600}",
+            _dark: "{colors.verdigris.400}",
+          },
+        },
+        "info.hover": {
+          value: {
+            _light: "{colors.verdigris.700}",
+            _dark: "{colors.verdigris.300}",
+          },
+        },
+        "info.text": {
+          value: { _light: "{colors.verdigris.700}", _dark: "#46C2B4" },
+        },
+        "info.subtle": { value: { _light: "#D4EEE9", _dark: "#0C2C29" } },
+        "info.border": { value: { _light: "#A8DCD4", _dark: "#16504A" } },
+        "info.fg": {
+          value: { _light: "#FFFFFF", _dark: "{colors.verdigris.900}" },
+        },
+
+        // ── Match Status ─────────────────────────────────────────────────────
+        "status.win": { value: { _light: "#1B7F45", _dark: "#34B86A" } },
+        "status.win.subtle": { value: { _light: "#D7EDDF", _dark: "#0E2C1A" } },
+        "status.win.border": { value: { _light: "#A7D6BA", _dark: "#1C5733" } },
+
+        "status.loss": {
+          value: { _light: "{colors.crimson.600}", _dark: "#E15A5D" },
+        },
+        "status.loss.subtle": {
+          value: { _light: "#F6DDDB", _dark: "#33161A" },
+        },
+        "status.loss.border": {
+          value: { _light: "#E9BDBC", _dark: "#5A2024" },
+        },
+
+        "status.draw": {
+          value: { _light: "{colors.brass.600}", _dark: "#D7B254" },
+        },
+        "status.draw.subtle": {
+          value: { _light: "#F4E6C2", _dark: "#33280E" },
+        },
+        "status.draw.border": {
+          value: { _light: "#E3CB87", _dark: "#5A4715" },
+        },
+
+        "status.live": {
+          value: { _light: "{colors.crimson.500}", _dark: "#FF4D52" },
+        },
+        "status.live.subtle": {
+          value: { _light: "#F6DDDB", _dark: "#3A1618" },
+        },
+
+        "status.pending": {
+          value: { _light: "{colors.ink.500}", _dark: "#9C927F" },
+        },
+        "status.pending.subtle": {
+          value: { _light: "#E7E1D3", _dark: "#221D17" },
+        },
+        "status.pending.border": {
+          value: { _light: "#CFC6B4", _dark: "#3A3328" },
+        },
+
+        // ── Backgrounds ──────────────────────────────────────────────────────
         bg: {
-          // Body background is clearly green — panels (white) float above it
           DEFAULT: {
-            value: { _light: "#d8e8d8", _dark: "#0c1a10" },
+            value: { _light: "#F1ECE1", _dark: "#100D0A" },
           },
           canvas: {
-            value: { _light: "#cfe0cf", _dark: "#081209" },
+            value: { _light: "#F1ECE1", _dark: "#100D0A" },
+          },
+          surface: {
+            value: { _light: "#FBF8F1", _dark: "#1A1611" },
           },
           subtle: {
-            value: { _light: "#d8e8d8", _dark: "#102016" },
+            value: { _light: "#E7E1D3", _dark: "#16130F" },
           },
           muted: {
-            value: { _light: "#c8dcc8", _dark: "#162c1e" },
+            value: { _light: "#D6CFC1", _dark: "#221D17" },
           },
           emphasized: {
-            value: { _light: "#b8ccb8", _dark: "#1e3a28" },
+            value: { _light: "#B7AD9B", _dark: "#332D24" },
           },
-          // Panels (cards, modals, forms) stay white in light / dark-green in dark
+          elevated: {
+            value: { _light: "#FFFFFF", _dark: "#221D17" },
+          },
           panel: {
-            value: { _light: "#ffffff", _dark: "#0e1f13" },
+            value: { _light: "#FFFFFF", _dark: "#221D17" },
           },
         },
-        // top-level alias used by AppShell nav/header via bg="chakra-body-bg"
+        // Used by AppShell nav/header via bg="chakra-body-bg"
         "chakra-body-bg": {
-          value: { _light: "#d8e8d8", _dark: "#0c1a10" },
+          value: { _light: "#F1ECE1", _dark: "#100D0A" },
         },
+
+        // ── Borders ──────────────────────────────────────────────────────────
         border: {
-          // All borders are crimson — gives red presence on every card/input
           DEFAULT: {
-            value: { _light: "#a85050", _dark: "#6e2c2c" },
+            value: { _light: "#D5CCBA", _dark: "#332D24" },
           },
           muted: {
-            value: { _light: "#c87878", _dark: "#4e2020" },
+            value: { _light: "#E4DDCD", _dark: "#262019" },
           },
           subtle: {
-            value: { _light: "#e4b0b0", _dark: "#3a1818" },
+            value: { _light: "#BEB39B", _dark: "#473F32" },
           },
           emphasized: {
-            value: { _light: "#7a1818", _dark: "#9a3c3c" },
+            value: { _light: "#918778", _dark: "#4F4940" },
           },
         },
       },

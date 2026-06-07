@@ -69,11 +69,11 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
             fontWeight="medium"
             textAlign={isPortrait ? "left" : "center"}
             flex="1"
-            color="blue.fg"
+            color="gold.text"
           >
             {isPortrait ? "TW Tournament" : "Total Warhammer Tournament App"}
             {isUserGuest && !isPortrait && (
-              <Badge colorPalette="blue" ml={2}>
+              <Badge colorPalette="brass" ml={2}>
                 Guest Mode
               </Badge>
             )}

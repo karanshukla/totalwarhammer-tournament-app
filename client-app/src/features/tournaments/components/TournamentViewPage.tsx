@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+﻿import React, { useState, useEffect, useCallback } from "react";
 import ReactMarkdown from "react-markdown";
 import { useParams, useNavigate } from "react-router-dom";
 import {
@@ -28,7 +28,9 @@ import {
   LuTrophy,
   LuSettings,
   LuFlaskConical,
+  LuCopy,
 } from "react-icons/lu";
+import { toaster } from "@/shared/ui/Toaster";
 import { httpClient } from "@/core/api/httpClient";
 import { getSocket } from "@/core/socket/socketClient";
 import { useUserStore } from "@/shared/stores/userStore";
@@ -39,8 +41,8 @@ import {
 } from "@/shared/constants/factions";
 
 const statusColorMap: Record<string, string> = {
-  pending: "yellow",
-  active: "green",
+  pending: "brass",
+  active: "verdigris",
   completed: "gray",
 };
 
@@ -279,13 +281,13 @@ const TournamentViewPage: React.FC = () => {
           mb={6}
           p={5}
           borderRadius="lg"
-          bg="yellow.subtle"
+          bg="gold.subtle"
           borderWidth={1}
-          borderColor="yellow.muted"
+          borderColor="gold.border"
           textAlign="center"
         >
           <HStack justifyContent="center" gap={3}>
-            <LuTrophy size={24} color="var(--chakra-colors-yellow-500)" />
+            <LuTrophy size={24} color="var(--chakra-colors-brass-400)" />
             <VStack gap={0}>
               <Text
                 fontSize="xs"
@@ -305,7 +307,7 @@ const TournamentViewPage: React.FC = () => {
                 </Text>
               )}
             </VStack>
-            <LuTrophy size={24} color="var(--chakra-colors-yellow-500)" />
+            <LuTrophy size={24} color="var(--chakra-colors-brass-400)" />
           </HStack>
         </Box>
       )}
@@ -322,12 +324,12 @@ const TournamentViewPage: React.FC = () => {
                 tournament.status.slice(1)}
             </Badge>
             {isOwner ? (
-              <Badge variant="outline" size="sm" colorPalette="blue">
+              <Badge variant="outline" size="sm" colorPalette="brass">
                 <LuSettings />
                 Owner
               </Badge>
             ) : isParticipant ? (
-              <Badge variant="outline" size="sm" colorPalette="green">
+              <Badge variant="outline" size="sm" colorPalette="verdigris">
                 <LuUsers />
                 Participant
               </Badge>
@@ -341,7 +343,7 @@ const TournamentViewPage: React.FC = () => {
           <HStack gap={3} color="fg.muted" fontSize="sm">
             <Text>{tournament.tournamentType}</Text>
             {tournament.enable40kFactions && (
-              <Badge colorPalette="purple" size="xs" variant="subtle">
+              <Badge colorPalette="verdigris" size="xs" variant="subtle">
                 <LuFlaskConical size={9} />
                 40K Beta
               </Badge>
@@ -351,9 +353,45 @@ const TournamentViewPage: React.FC = () => {
               {tournament.participants.length}/{tournament.playerCount} players
             </Text>
             <Text>·</Text>
-            <Text fontFamily="mono" fontWeight="bold" letterSpacing="wider">
-              Code: {tournament.code}
-            </Text>
+            <HStack gap={1} alignItems="center">
+              <Text color="fg.muted" fontSize="xs">
+                Code:
+              </Text>
+              <Box
+                px={2}
+                py="1px"
+                bg="gold.subtle"
+                color="gold.text"
+                borderRadius="sm"
+                fontSize="xs"
+                fontWeight="bold"
+                letterSpacing="widest"
+                border="1px solid"
+                borderColor="gold.border"
+                textTransform="uppercase"
+              >
+                {tournament.code}
+              </Box>
+              <Button
+                size="xs"
+                variant="ghost"
+                color="fg.muted"
+                p={1}
+                minW="auto"
+                h="auto"
+                onClick={() => {
+                  navigator.clipboard.writeText(tournament.code);
+                  toaster.create({
+                    title: "Copied!",
+                    description: "Tournament code copied to clipboard",
+                    type: "success",
+                  });
+                }}
+                aria-label="Copy tournament code"
+              >
+                <LuCopy size={12} />
+              </Button>
+            </HStack>
           </HStack>
           {tournament.description && (
             <Box
@@ -397,7 +435,7 @@ const TournamentViewPage: React.FC = () => {
                   margin: "0.5rem 0",
                 },
                 "& a": {
-                  color: "var(--chakra-colors-blue-fg)",
+                  color: "var(--chakra-colors-verdigris-fg)",
                   textDecoration: "underline",
                 },
                 "& hr": {
@@ -412,7 +450,7 @@ const TournamentViewPage: React.FC = () => {
         </VStack>
         {isOwner && (
           <Button
-            colorPalette="blue"
+            colorPalette="brass"
             size="sm"
             alignSelf="flex-start"
             onClick={() => navigate(`/matches#${tournament._id}`)}
@@ -469,7 +507,7 @@ const TournamentViewPage: React.FC = () => {
                       </VStack>
                       {alreadyJoined &&
                         (user?.username === p.name || user?.id === p.name) && (
-                          <Badge colorPalette="blue" size="sm">
+                          <Badge colorPalette="brass" size="sm">
                             You
                           </Badge>
                         )}
@@ -537,7 +575,7 @@ const TournamentViewPage: React.FC = () => {
                         {(f) => (
                           <Badge
                             key={f}
-                            colorPalette="red"
+                            colorPalette="crimson"
                             size="sm"
                             variant="subtle"
                           >
@@ -569,7 +607,7 @@ const TournamentViewPage: React.FC = () => {
             <Card.Body>
               {alreadyJoined || joinSuccess ? (
                 <VStack gap={2} py={4} alignItems="center">
-                  <Badge colorPalette="green" size="lg" px={4} py={2}>
+                  <Badge colorPalette="verdigris" size="lg" px={4} py={2}>
                     Registered
                   </Badge>
                   <Text fontSize="sm" color="fg.muted" textAlign="center">
@@ -589,13 +627,13 @@ const TournamentViewPage: React.FC = () => {
                   {joinError && (
                     <Box
                       p={3}
-                      bg="red.subtle"
+                      bg="status.loss.subtle"
                       borderRadius="md"
                       borderWidth={1}
-                      borderColor="red.muted"
+                      borderColor="status.loss.border"
                       width="full"
                     >
-                      <Text color="red.fg" fontSize="sm">
+                      <Text color="status.loss" fontSize="sm">
                         {joinError}
                       </Text>
                     </Box>
@@ -636,7 +674,7 @@ const TournamentViewPage: React.FC = () => {
                   </Field.Root>
                   <Button
                     width="full"
-                    colorPalette="blue"
+                    colorPalette="brass"
                     onClick={handleJoin}
                     loading={joining}
                   >
@@ -693,16 +731,16 @@ const TournamentViewPage: React.FC = () => {
                                   borderWidth={1}
                                   borderColor={
                                     m.status === "disputed"
-                                      ? "orange.emphasized"
+                                      ? "status.loss.border"
                                       : m.status === "completed"
-                                        ? "green.muted"
+                                        ? "status.win.border"
                                         : borderColor
                                   }
                                   bg={
                                     m.status === "disputed"
-                                      ? "orange.subtle"
+                                      ? "status.loss.subtle"
                                       : m.status === "completed"
-                                        ? "green.subtle"
+                                        ? "status.win.subtle"
                                         : mutedBg
                                   }
                                 >
@@ -712,16 +750,19 @@ const TournamentViewPage: React.FC = () => {
                                     </Text>
                                     {m.status === "completed" && (
                                       <Badge
-                                        colorPalette="green"
                                         size="sm"
                                         variant="subtle"
+                                        bg="status.win.subtle"
+                                        color="status.win"
+                                        borderColor="status.win.border"
+                                        borderWidth="1px"
                                       >
                                         Completed
                                       </Badge>
                                     )}
                                     {m.status === "disputed" && (
                                       <Badge
-                                        colorPalette="orange"
+                                        colorPalette="crimson"
                                         size="sm"
                                         variant="solid"
                                       >
@@ -730,7 +771,7 @@ const TournamentViewPage: React.FC = () => {
                                     )}
                                     {m.status === "in_progress" && (
                                       <Badge
-                                        colorPalette="blue"
+                                        colorPalette="brass"
                                         size="sm"
                                         variant="subtle"
                                       >
@@ -759,17 +800,34 @@ const TournamentViewPage: React.FC = () => {
                                     >
                                       <HStack gap={1}>
                                         {p1Won && (
-                                          <Badge colorPalette="green" size="sm">
+                                          <Badge
+                                            size="sm"
+                                            colorPalette="verdigris"
+                                            variant="solid"
+                                            fontWeight="bold"
+                                          >
                                             W
                                           </Badge>
                                         )}
                                         {m.winnerId && !p1Won && (
-                                          <Badge colorPalette="red" size="sm">
+                                          <Badge
+                                            size="sm"
+                                            bg="status.loss.subtle"
+                                            color="status.loss"
+                                            borderColor="status.loss.border"
+                                            borderWidth="1px"
+                                            fontWeight="bold"
+                                          >
                                             L
                                           </Badge>
                                         )}
                                         <Text
                                           fontWeight={p1Won ? "bold" : "medium"}
+                                          color={
+                                            m.winnerId && !p1Won
+                                              ? "fg.muted"
+                                              : undefined
+                                          }
                                         >
                                           {dn(m.player1.name)}
                                         </Text>
@@ -790,17 +848,34 @@ const TournamentViewPage: React.FC = () => {
                                     >
                                       <HStack gap={1}>
                                         {p2Won && (
-                                          <Badge colorPalette="green" size="sm">
+                                          <Badge
+                                            size="sm"
+                                            colorPalette="verdigris"
+                                            variant="solid"
+                                            fontWeight="bold"
+                                          >
                                             W
                                           </Badge>
                                         )}
                                         {m.winnerId && !p2Won && (
-                                          <Badge colorPalette="red" size="sm">
+                                          <Badge
+                                            size="sm"
+                                            bg="status.loss.subtle"
+                                            color="status.loss"
+                                            borderColor="status.loss.border"
+                                            borderWidth="1px"
+                                            fontWeight="bold"
+                                          >
                                             L
                                           </Badge>
                                         )}
                                         <Text
                                           fontWeight={p2Won ? "bold" : "medium"}
+                                          color={
+                                            m.winnerId && !p2Won
+                                              ? "fg.muted"
+                                              : undefined
+                                          }
                                         >
                                           {dn(m.player2.name)}
                                         </Text>
@@ -819,25 +894,37 @@ const TournamentViewPage: React.FC = () => {
                                       borderTopWidth={1}
                                       borderColor="border"
                                     >
-                                      <Text
-                                        fontSize="xs"
-                                        color="fg.muted"
-                                        textAlign="center"
-                                      >
-                                        Winner:{" "}
-                                        <strong>
-                                          {m.winnerId ===
-                                          m.player1.participantId
-                                            ? dn(m.player1.name)
-                                            : dn(m.player2.name)}
-                                        </strong>
-                                      </Text>
+                                      <HStack gap={1} justifyContent="center">
+                                        <Box
+                                          color="gold.text"
+                                          display="inline-flex"
+                                        >
+                                          <LuTrophy size={12} />
+                                        </Box>
+                                        <Text
+                                          fontSize="xs"
+                                          color="fg.muted"
+                                          fontWeight="medium"
+                                        >
+                                          Winner:{" "}
+                                          <Text
+                                            as="span"
+                                            color="gold.text"
+                                            fontWeight="bold"
+                                          >
+                                            {m.winnerId ===
+                                            m.player1.participantId
+                                              ? dn(m.player1.name)
+                                              : dn(m.player2.name)}
+                                          </Text>
+                                        </Text>
+                                      </HStack>
                                     </Box>
                                   )}
                                   {m.status === "disputed" && (
                                     <Text
                                       fontSize="xs"
-                                      color="orange.fg"
+                                      color="status.loss"
                                       mt={2}
                                       textAlign="center"
                                       fontWeight="medium"

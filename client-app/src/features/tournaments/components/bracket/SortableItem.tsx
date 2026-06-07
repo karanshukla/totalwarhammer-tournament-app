@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Box, Flex, Text } from "@chakra-ui/react";
@@ -37,18 +37,18 @@ export function SortableItem({ id, participant }: SortableItemProps) {
       py={1}
       px={2}
       borderRadius="sm"
-      bg={isDragging ? "blue.50" : "transparent"}
-      _dark={{ bg: isDragging ? "blue.900" : "transparent" }}
+      bg={isDragging ? "brass.50" : "transparent"}
+      _dark={{ bg: isDragging ? "brass.900" : "transparent" }}
       _hover={{ bg: hoverBg }}
       cursor="grab"
       height="100%"
       maxWidth="calc(100% - 80px)" // Space for the edit/delete buttons
     >
       <Flex align="center" height="100%">
-        <Text fontWeight="medium" fontSize="sm" noOfLines={1} flex="1">
+        <Text fontWeight="medium" fontSize="sm" lineClamp={1} flex="1">
           {participant.name}
         </Text>
-        <Text fontSize="xs" color="fg.muted" noOfLines={1} ml={2}>
+        <Text fontSize="xs" color="fg.muted" lineClamp={1} ml={2}>
           {participant.faction}
         </Text>
       </Flex>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 import { Text, VStack, Button, Input, Box } from "@chakra-ui/react";
 import { useUserStore } from "@/shared/stores/userStore";
 import { updateGuestUsername } from "@/features/authentication/api/guestApi";
@@ -55,10 +55,10 @@ const UsernameUpdateForm: React.FC<UsernameUpdateFormProps> = ({
           value={username}
           onChange={handleUsernameChange}
         />
-        {error && <Text color="red.fg">{error}</Text>}
+        {error && <Text color="status.loss">{error}</Text>}
         <Button
           type="submit"
-          colorPalette="blue"
+          colorPalette="brass"
           loading={isSubmitting}
           loadingText="Updating"
           width="full"

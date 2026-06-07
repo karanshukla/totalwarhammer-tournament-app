@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 import {
   Box,
   VStack,
@@ -201,17 +201,17 @@ const MatchesSection: React.FC<Props> = ({
               </Badge>
             )}
             {isRoundRobin && (
-              <Badge colorPalette="teal" variant="subtle">
+              <Badge colorPalette="verdigris" variant="subtle">
                 Round Robin
               </Badge>
             )}
             {isSwiss && (
-              <Badge colorPalette="purple" variant="subtle">
+              <Badge colorPalette="verdigris" variant="subtle">
                 Swiss System
               </Badge>
             )}
             {isDoubleElim && (
-              <Badge colorPalette="blue" variant="subtle">
+              <Badge colorPalette="brass" variant="subtle">
                 Double Elimination
               </Badge>
             )}
@@ -265,10 +265,10 @@ const MatchesSection: React.FC<Props> = ({
                         <Table.Cell color="fg.muted">
                           {s.faction || "-"}
                         </Table.Cell>
-                        <Table.Cell textAlign="center" color="green.fg">
+                        <Table.Cell textAlign="center" color="status.win">
                           {s.wins}
                         </Table.Cell>
-                        <Table.Cell textAlign="center" color="red.fg">
+                        <Table.Cell textAlign="center" color="status.loss">
                           {s.losses}
                         </Table.Cell>
                         <Table.Cell textAlign="center">{s.played}</Table.Cell>
@@ -290,11 +290,11 @@ const MatchesSection: React.FC<Props> = ({
                         fontSize="sm"
                         textTransform="uppercase"
                         letterSpacing="wider"
-                        color="blue.fg"
+                        color="brass.fg"
                       >
                         Winners Bracket
                       </Text>
-                      <Badge colorPalette="blue" size="sm" variant="subtle">
+                      <Badge colorPalette="brass" size="sm" variant="subtle">
                         W
                       </Badge>
                     </HStack>
@@ -372,11 +372,11 @@ const MatchesSection: React.FC<Props> = ({
                         fontSize="sm"
                         textTransform="uppercase"
                         letterSpacing="wider"
-                        color="orange.fg"
+                        color="brand.text"
                       >
                         Losers Bracket
                       </Text>
-                      <Badge colorPalette="orange" size="sm" variant="subtle">
+                      <Badge colorPalette="crimson" size="sm" variant="subtle">
                         L
                       </Badge>
                     </HStack>
@@ -455,12 +455,12 @@ const MatchesSection: React.FC<Props> = ({
                         fontSize="sm"
                         textTransform="uppercase"
                         letterSpacing="wider"
-                        color="yellow.fg"
+                        color="gold.text"
                       >
                         Grand Final
                       </Text>
                       {gfMatches.length > 1 && (
-                        <Badge colorPalette="yellow" size="sm" variant="subtle">
+                        <Badge colorPalette="brass" size="sm" variant="subtle">
                           Bracket Reset
                         </Badge>
                       )}
@@ -525,7 +525,7 @@ const MatchesSection: React.FC<Props> = ({
                         <Text
                           fontWeight="semibold"
                           fontSize="sm"
-                          color={isCurrentRound ? "blue.fg" : "fg.muted"}
+                          color={isCurrentRound ? "brass.fg" : "fg.muted"}
                           textTransform="uppercase"
                           letterSpacing="wider"
                         >
@@ -534,7 +534,11 @@ const MatchesSection: React.FC<Props> = ({
                             : `Round ${round}`}
                         </Text>
                         {isCurrentRound && !isRROrSwiss && (
-                          <Badge colorPalette="blue" size="sm" variant="subtle">
+                          <Badge
+                            colorPalette="brass"
+                            size="sm"
+                            variant="subtle"
+                          >
                             Current
                           </Badge>
                         )}
@@ -625,13 +629,13 @@ const MatchesSection: React.FC<Props> = ({
                   ? `${matches.filter((m) => m.status === "completed").length} / ${matches.length} matches`
                   : `Round ${Math.max(...matches.filter((m) => m.bracketSide !== "losers" && m.bracketSide !== "grand_final").map((m) => m.round))} of ${roundNumbers.length}`}
               </Text>
-              <Badge colorPalette="blue" variant="subtle" size="sm">
+              <Badge colorPalette="brass" variant="subtle" size="sm">
                 {matches.filter((m) => m.status === "completed").length}/{" "}
                 {matches.length} matches done
               </Badge>
             </HStack>
             <Button
-              colorPalette="blue"
+              colorPalette="brass"
               size="sm"
               onClick={onAdvanceRound}
               loading={actionLoading}

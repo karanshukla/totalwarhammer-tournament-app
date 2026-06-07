@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import {
   Dialog,
   Button,
@@ -148,7 +148,7 @@ export function ParticipantEditDialog({
                 </Button>
                 <Button
                   type="submit"
-                  colorPalette="blue"
+                  colorPalette="brass"
                   width={{ base: "full", sm: "auto" }}
                 >
                   Save
