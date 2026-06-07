@@ -13,7 +13,7 @@ A full-stack web app for organizing and running competitive Total War: Warhammer
 
 <img width="2062" height="1576" alt="Tournament creation form" src="https://github.com/user-attachments/assets/6f940c66-a7e7-4e41-8a1e-ef5cb3d44330" />
 
-<img width="1176" height="849" alt="image" src="https://github.com/user-attachments/assets/4fe9d0a9-f109-44ac-9fbf-25c9a897a89d" />
+<img width="1245" height="922" alt="image" src="https://github.com/user-attachments/assets/783f5fd6-650c-4db3-accf-fe6659dafb0b" />
 
 <img width="2112" height="1620" alt="Mobile layout with bottom navigation" src="https://github.com/user-attachments/assets/7cd700ad-8d9e-4369-83cc-68341adc2865" />
 
