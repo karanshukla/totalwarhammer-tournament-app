@@ -57,12 +57,6 @@ jobs:
         env:
           NODE_ENV: test
 
-      - name: Upload coverage to Coveralls
-        uses: coverallsapp/github-action@v2
-        with:
-          file: ./server-app/coverage/lcov.info
-          flag-name: server
-
       - name: Write coverage to job summary
         if: always()
         run: |
