@@ -3,7 +3,7 @@
 [![Client Tests](https://github.com/karanshukla/totalwarhammer-tournament-app/actions/workflows/clientTests.yml/badge.svg)](https://github.com/karanshukla/totalwarhammer-tournament-app/actions/workflows/clientTests.yml)
 [![Server Tests](https://github.com/karanshukla/totalwarhammer-tournament-app/actions/workflows/serverTests.yml/badge.svg)](https://github.com/karanshukla/totalwarhammer-tournament-app/actions/workflows/serverTests.yml)
 [![Skaven Underway Test Yes Yes](https://github.com/karanshukla/totalwarhammer-tournament-app/actions/workflows/authBoundaries.yml/badge.svg)](https://github.com/karanshukla/totalwarhammer-tournament-app/actions/workflows/authBoundaries.yml)
-[![Coverage Status](https://coveralls.io/repos/github/karanshukla/totalwarhammer-tournament-app/badge.svg)](https://coveralls.io/github/karanshukla/totalwarhammer-tournament-app)
+[![Coverage Status](https://coveralls.io/repos/github/karanshukla/totalwarhammer-tournament-app/badge.svg?branch=main)](https://coveralls.io/github/karanshukla/totalwarhammer-tournament-app?branch=main)
 [![OWASP ZAP Security Scan](https://github.com/karanshukla/totalwarhammer-tournament-app/actions/workflows/zapScan.yml/badge.svg)](https://github.com/karanshukla/totalwarhammer-tournament-app/actions/workflows/zapScan.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
