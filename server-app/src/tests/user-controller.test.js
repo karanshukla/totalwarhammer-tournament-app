@@ -8,6 +8,7 @@ const mockUserFindById = mock.fn();
 
 const mockMatchFind = mock.fn();
 const mockTournamentCountDocuments = mock.fn();
+const mockTournamentFind = mock.fn();
 
 mock.module("../domain/models/user.js", {
   defaultExport: {
@@ -26,6 +27,7 @@ mock.module("../domain/models/match.js", {
 
 mock.module("../domain/models/tournament.js", {
   defaultExport: {
+    find: mockTournamentFind,
     countDocuments: mockTournamentCountDocuments,
   },
 });
@@ -71,6 +73,7 @@ describe("user-controller", () => {
     mockUserFindByIdAndUpdate.mock.resetCalls();
     mockUserFindById.mock.resetCalls();
     mockMatchFind.mock.resetCalls();
+    mockTournamentFind.mock.resetCalls();
     mockTournamentCountDocuments.mock.resetCalls();
   });
 
@@ -281,6 +284,11 @@ describe("user-controller", () => {
       mockUserFindById.mock.mockImplementation(() => ({
         select: mock.fn(() => ({
           lean: mock.fn(async () => ({ username: "testuser" })),
+        })),
+      }));
+      mockTournamentFind.mock.mockImplementation(() => ({
+        select: mock.fn(() => ({
+          lean: mock.fn(async () => []),
         })),
       }));
       mockTournamentCountDocuments.mock.mockImplementation(async () => 3);
