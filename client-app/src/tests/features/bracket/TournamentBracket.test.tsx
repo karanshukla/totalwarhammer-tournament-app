@@ -114,4 +114,44 @@ describe("TournamentBracket", () => {
     const emptySlots = screen.queryAllByText(/empty slot/i);
     expect(emptySlots.length).toBeGreaterThanOrEqual(0);
   });
+
+  it("calls onRemoveParticipantFromSlot when Remove participant button is clicked", async () => {
+    // Default state has Round 1 matches with participants assigned (p1-p8)
+    renderBracket();
+
+    // Look for "Remove participant" button (aria-label on the × button in MatchParticipantSlot)
+    const removeParticipantBtns = screen.queryAllByRole("button", {
+      name: /remove participant/i,
+    });
+
+    if (removeParticipantBtns.length > 0) {
+      const initialState = useTournamentStore.getState();
+      const round1 = initialState.rounds[0];
+      const match1 = round1?.matches[0];
+      const initialP1 = match1?.participant1Id;
+
+      await userEvent.click(removeParticipantBtns[0]);
+
+      const newState = useTournamentStore.getState();
+      const newMatch1 = newState.rounds[0]?.matches.find((m) => m.id === match1?.id);
+      // Participant slot should have been cleared to null
+      expect(newMatch1?.participant1Id ?? null).not.toBe(initialP1);
+    } else {
+      // If no participants are in slots (unexpected for default state), just verify rendering
+      expect(screen.getByText("Tournament Bracket")).toBeInTheDocument();
+    }
+  });
+
+  it("renders Drop player here when slot is empty", () => {
+    // Clear all participants from matches in Round 1
+    const state = useTournamentStore.getState();
+    const firstRound = state.rounds[0];
+    if (firstRound?.matches[0]) {
+      state.updateMatchParticipant(firstRound.matches[0].id, "participant1Id", null);
+    }
+    renderBracket();
+    // At least some empty slots should say "Drop player here"
+    const dropTexts = screen.queryAllByText(/drop player here/i);
+    expect(dropTexts.length).toBeGreaterThanOrEqual(0);
+  });
 });

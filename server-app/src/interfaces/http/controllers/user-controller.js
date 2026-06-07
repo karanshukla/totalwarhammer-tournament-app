@@ -282,15 +282,33 @@ export const getUserStats = async (req, res) => {
 
     const username = user.username;
 
+    const non40kTournamentIds = await Tournament.find({
+      enable40kFactions: { $ne: true },
+    })
+      .select("_id")
+      .lean()
+      .then((docs) => docs.map((d) => d._id));
+
     const [tournamentsCreatedCount, matchesAsP1, matchesAsP2] =
       await Promise.all([
-        Tournament.countDocuments({ createdBy: userId }),
+        Tournament.countDocuments({
+          createdBy: userId,
+          enable40kFactions: { $ne: true },
+        }),
 
-        Match.find({ "player1.name": username, status: "completed" })
+        Match.find({
+          "player1.name": username,
+          status: "completed",
+          tournament: { $in: non40kTournamentIds },
+        })
           .select("player1 player2 winnerId tournament")
           .lean(),
 
-        Match.find({ "player2.name": username, status: "completed" })
+        Match.find({
+          "player2.name": username,
+          status: "completed",
+          tournament: { $in: non40kTournamentIds },
+        })
           .select("player1 player2 winnerId tournament")
           .lean(),
       ]);

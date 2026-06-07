@@ -36,6 +36,20 @@ export async function invalidateStatsCache() {
   }
 }
 
+// Reusable pipeline stages to join a match's tournament and exclude 40k tournaments
+const matchTo40kFreeStages = [
+  {
+    $lookup: {
+      from: "tournaments",
+      localField: "tournament",
+      foreignField: "_id",
+      as: "_tournament",
+    },
+  },
+  { $unwind: { path: "$_tournament", preserveNullAndEmptyArrays: true } },
+  { $match: { "_tournament.enable40kFactions": { $ne: true } } },
+];
+
 async function computeGlobalStats() {
   const [
     tournamentStats,
@@ -46,10 +60,15 @@ async function computeGlobalStats() {
     recentTournaments,
     recentWinners,
   ] = await Promise.all([
-    Tournament.aggregate([{ $group: { _id: "$status", count: { $sum: 1 } } }]),
+    // Exclude 40k tournaments from counts
+    Tournament.aggregate([
+      { $match: { enable40kFactions: { $ne: true } } },
+      { $group: { _id: "$status", count: { $sum: 1 } } },
+    ]),
 
     Match.aggregate([
       { $match: { status: "completed", winnerId: { $ne: null } } },
+      ...matchTo40kFreeStages,
       {
         $project: {
           winnerName: {
@@ -82,6 +101,7 @@ async function computeGlobalStats() {
 
     Match.aggregate([
       { $match: { status: "completed", winnerId: { $ne: null } } },
+      ...matchTo40kFreeStages,
       {
         $project: {
           winnerFaction: {
@@ -112,7 +132,9 @@ async function computeGlobalStats() {
       { $project: { faction: "$_id", wins: 1, _id: 0 } },
     ]),
 
+    // Exclude 40k tournaments from creator counts
     Tournament.aggregate([
+      { $match: { enable40kFactions: { $ne: true } } },
       {
         $group: {
           _id: "$createdBy",
@@ -143,9 +165,14 @@ async function computeGlobalStats() {
       },
     ]),
 
-    Match.aggregate([{ $group: { _id: "$status", count: { $sum: 1 } } }]),
+    // Exclude matches from 40k tournaments
+    Match.aggregate([
+      ...matchTo40kFreeStages,
+      { $group: { _id: "$status", count: { $sum: 1 } } },
+    ]),
 
-    Tournament.find({ status: "completed" })
+    // Exclude 40k tournaments from recent list
+    Tournament.find({ status: "completed", enable40kFactions: { $ne: true } })
       .sort({ createdAt: -1 })
       .limit(5)
       .select("name tournamentType participants playerCount createdAt")
@@ -183,7 +210,13 @@ async function computeGlobalStats() {
       {
         $unwind: { path: "$tournamentDoc", preserveNullAndEmptyArrays: true },
       },
-      { $match: { "tournamentDoc.status": "completed" } },
+      // Exclude 40k tournaments and only show completed non-40k ones
+      {
+        $match: {
+          "tournamentDoc.status": "completed",
+          "tournamentDoc.enable40kFactions": { $ne: true },
+        },
+      },
       {
         $project: {
           tournamentName: { $ifNull: ["$tournamentDoc.name", "Unknown"] },
