@@ -2,8 +2,8 @@
  * Extended coverage tests for TournamentsPage.
  * Covers tab switching, code search (success/error), hash navigation.
  */
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { render, screen, waitFor, act } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom";
 import React from "react";
@@ -218,7 +218,7 @@ describe("TournamentsPage – code search", () => {
   });
 });
 
-describe("TournamentsPage – hashchange event handling", () => {
+describe("TournamentsPage – hash navigation", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     window.location.hash = "";
