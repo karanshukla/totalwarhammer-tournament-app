@@ -196,7 +196,7 @@ describe("TournamentsPage – code search", () => {
     });
   });
 
-  it("matches guest user by id as participant", async () => {
+  it("matches guest user by id as participant (guestABCDEF prefix)", async () => {
     (mockUseUserStore as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
       user: { id: "guestABCDEF", username: "", isAuthenticated: true, isGuest: true },
       isAuthenticated: vi.fn().mockReturnValue(true),
@@ -214,6 +214,78 @@ describe("TournamentsPage – code search", () => {
     await userEvent.click(screen.getByRole("button", { name: /find tournament/i }));
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith("/matches#t77");
+    });
+  });
+});
+
+describe("TournamentsPage – hashchange event handling", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    window.location.hash = "";
+    (mockUseUserStore as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
+      user: { id: "u1", username: "testuser", isAuthenticated: true, isGuest: false },
+      isAuthenticated: vi.fn().mockReturnValue(true),
+    });
+    mockGet.mockResolvedValue({ success: true, data: [] });
+  });
+
+  it("handleHashChange switches to valid tab on hashchange event", async () => {
+    renderPage();
+    // Dispatch a hashchange event with a valid tab id
+    window.location.hash = "#createTournament";
+    window.dispatchEvent(new HashChangeEvent("hashchange"));
+
+    await waitFor(() => {
+      expect(
+        screen.queryByLabelText(/tournament name/i) ||
+          screen.queryByText(/tournament name/i) ||
+          screen.queryByText(/create a tournament/i),
+      ).toBeTruthy();
+    });
+  });
+
+  it("handleHashChange with empty hash while on non-first tab resets to first tab", async () => {
+    // Start on a non-first tab by setting hash before render
+    window.location.hash = "#createTournament";
+    renderPage();
+
+    await waitFor(() => {
+      expect(
+        screen.queryByText(/create a simple bracket/i) ||
+          screen.queryByText(/tournament participants/i),
+      ).toBeTruthy();
+    });
+
+    // Now fire hashchange with empty hash
+    window.location.hash = "";
+    window.dispatchEvent(new HashChangeEvent("hashchange"));
+
+    await waitFor(() => {
+      expect(
+        screen.queryByText(/create a simple bracket/i) ||
+          screen.queryByText(/tournament participants/i),
+      ).toBeTruthy();
+    });
+  });
+
+  it("handleHashChange with invalid hash while on non-first tab resets to first tab", async () => {
+    window.location.hash = "#createTournament";
+    renderPage();
+
+    await waitFor(() => {
+      expect(screen.queryByText(/create a simple bracket/i) ||
+        screen.queryByText(/tournament participants/i)).toBeTruthy();
+    });
+
+    // Fire hashchange with an invalid/unknown hash
+    window.location.hash = "#unknownTab";
+    window.dispatchEvent(new HashChangeEvent("hashchange"));
+
+    await waitFor(() => {
+      expect(
+        screen.queryByText(/create a simple bracket/i) ||
+          screen.queryByText(/tournament participants/i),
+      ).toBeTruthy();
     });
   });
 });

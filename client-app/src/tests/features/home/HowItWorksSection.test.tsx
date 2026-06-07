@@ -1,5 +1,6 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom";
 import React from "react";
 import { ChakraProvider, defaultSystem } from "@chakra-ui/react";
@@ -17,6 +18,38 @@ function renderSection() {
 }
 
 describe("HowItWorksSection", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("dispatches auth-event when Create Account button is clicked", async () => {
+    const dispatchSpy = vi.spyOn(document, "dispatchEvent");
+    renderSection();
+
+    const btn = screen.getByRole("button", { name: /create account/i });
+    await userEvent.click(btn);
+
+    expect(dispatchSpy).toHaveBeenCalledWith(
+      expect.objectContaining({ type: "auth-event" }),
+    );
+    dispatchSpy.mockRestore();
+  });
+
+  it("dispatches auth-event with open-drawer detail", async () => {
+    let capturedEvent: CustomEvent | null = null;
+    const handler = (e: Event) => {
+      capturedEvent = e as CustomEvent;
+    };
+    document.addEventListener("auth-event", handler);
+    renderSection();
+
+    await userEvent.click(screen.getByRole("button", { name: /create account/i }));
+
+    expect(capturedEvent).not.toBeNull();
+    expect((capturedEvent as CustomEvent).detail).toEqual({ type: "open-drawer" });
+    document.removeEventListener("auth-event", handler);
+  });
+
   it("renders the section heading", () => {
     renderSection();
     expect(screen.getByText(/How it works/i)).toBeInTheDocument();
