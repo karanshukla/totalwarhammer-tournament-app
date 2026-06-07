@@ -2,8 +2,8 @@
  * Extended coverage tests for TournamentsPage.
  * Covers tab switching, code search (success/error), hash navigation.
  */
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { render, screen, waitFor, act } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom";
 import React from "react";
@@ -215,5 +215,97 @@ describe("TournamentsPage – code search", () => {
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith("/matches#t77");
     });
+  });
+});
+
+describe("TournamentsPage – hash navigation", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    window.location.hash = "";
+    (mockUseUserStore as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
+      user: { id: "u1", username: "testuser", isAuthenticated: true, isGuest: false },
+      isAuthenticated: vi.fn().mockReturnValue(true),
+    });
+    mockGet.mockResolvedValue({ success: true, data: [] });
+  });
+
+  afterEach(() => {
+    window.location.hash = "";
+  });
+
+  it("reads valid initial hash to set the active tab", () => {
+    window.location.hash = "#createTournament";
+    renderPage();
+    expect(
+      screen.queryByText(/tournament name/i) || screen.queryByText(/create tournament/i)
+    ).not.toBeNull();
+  });
+
+  it("defaults to brackets tab when initial hash is invalid", () => {
+    window.location.hash = "#notATab";
+    renderPage();
+    expect(screen.getByText("Tournament Participants")).toBeInTheDocument();
+  });
+
+  it("updates active tab when hashchange fires with a valid tab id", async () => {
+    renderPage();
+    expect(screen.getByText("Tournament Participants")).toBeInTheDocument();
+
+    await act(async () => {
+      window.location.hash = "#createTournament";
+      window.dispatchEvent(new HashChangeEvent("hashchange"));
+    });
+
+    await waitFor(() => {
+      expect(
+        screen.queryByText(/tournament name/i) || screen.queryByText(/create tournament/i)
+      ).not.toBeNull();
+    });
+  });
+
+  it("resets to brackets tab when hashchange fires with empty hash while on another tab", async () => {
+    window.location.hash = "#createTournament";
+    renderPage();
+    await waitFor(() =>
+      expect(
+        screen.queryByText(/tournament name/i) || screen.queryByText(/create tournament/i)
+      ).not.toBeNull()
+    );
+
+    await act(async () => {
+      window.location.hash = "";
+      window.dispatchEvent(new HashChangeEvent("hashchange"));
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText("Tournament Participants")).toBeInTheDocument();
+    });
+  });
+
+  it("resets to brackets tab when hashchange fires with invalid hash while on another tab", async () => {
+    window.location.hash = "#createTournament";
+    renderPage();
+    await waitFor(() =>
+      expect(
+        screen.queryByText(/tournament name/i) || screen.queryByText(/create tournament/i)
+      ).not.toBeNull()
+    );
+
+    await act(async () => {
+      window.location.hash = "#badHash";
+      window.dispatchEvent(new HashChangeEvent("hashchange"));
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText("Tournament Participants")).toBeInTheDocument();
+    });
+  });
+
+  it("cleans up hashchange listener on unmount", async () => {
+    const { unmount } = renderPage();
+    const removeListenerSpy = vi.spyOn(window, "removeEventListener");
+    unmount();
+    expect(removeListenerSpy).toHaveBeenCalledWith("hashchange", expect.any(Function));
+    removeListenerSpy.mockRestore();
   });
 });
