@@ -71,7 +71,7 @@ jobs:
 
       - name: Generate lcov
         working-directory: ./server-app
-        run: npx --yes c8 report --reporter=lcov
+        run: npx --yes c8 report --reporter=lcov --temp-directory=./coverage
         if: always()
 
       - name: Upload to Coveralls
