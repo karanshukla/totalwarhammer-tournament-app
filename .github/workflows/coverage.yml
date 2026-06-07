@@ -1,0 +1,94 @@
+name: Coverage
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  client:
+    name: Client Coverage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: "npm"
+          cache-dependency-path: "package-lock.json"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run coverage
+        working-directory: ./client-app
+        run: npx vitest run --coverage --coverage.reporter=lcov --coverage.reporter=text
+
+      - name: Upload to Coveralls
+        uses: coverallsapp/github-action@v2
+        with:
+          file: ./client-app/coverage/lcov.info
+          flag-name: client
+          parallel: true
+
+  server:
+    name: Server Coverage
+    runs-on: ubuntu-latest
+
+    services:
+      mongodb:
+        image: mongo:6
+        ports:
+          - 27017:27017
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "npm"
+          cache-dependency-path: "package-lock.json"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests with coverage
+        working-directory: ./server-app
+        run: |
+          set -o pipefail
+          node --experimental-vm-modules \
+               --experimental-test-module-mocks \
+               --test \
+               --test-reporter=spec 2>&1 | tee /tmp/test-output.txt
+        env:
+          NODE_ENV: test
+          NODE_V8_COVERAGE: ./coverage
+
+      - name: Generate lcov
+        working-directory: ./server-app
+        run: npx --yes c8 report --reporter=lcov
+        if: always()
+
+      - name: Upload to Coveralls
+        uses: coverallsapp/github-action@v2
+        if: always()
+        with:
+          file: ./server-app/coverage/lcov.info
+          flag-name: server
+          parallel: true
+
+  finish:
+    name: Coveralls Finish
+    needs: [client, server]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Close parallel build
+        uses: coverallsapp/github-action@v2
+        with:
+          parallel-finished: true

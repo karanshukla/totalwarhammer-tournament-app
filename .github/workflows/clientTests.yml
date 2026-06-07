@@ -46,12 +46,6 @@ jobs:
         run: npx vitest run --coverage --coverage.reporter=lcov --coverage.reporter=text --coverage.reporter=json-summary
         continue-on-error: true
 
-      - name: Upload coverage to Coveralls
-        uses: coverallsapp/github-action@v2
-        with:
-          file: ./client-app/coverage/lcov.info
-          flag-name: client
-
       - name: Upload coverage artifact
         uses: actions/upload-artifact@v4
         if: always()
