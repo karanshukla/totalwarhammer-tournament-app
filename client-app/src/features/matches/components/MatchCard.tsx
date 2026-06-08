@@ -157,7 +157,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
           </Badge>
         )}
         {m.status === "pending" && (
-          <Badge colorPalette="gray" size="sm" variant="subtle">
+          <Badge colorPalette="ink" size="sm" variant="subtle">
             Pending
           </Badge>
         )}
@@ -168,8 +168,11 @@ const MatchCard: React.FC<MatchCardProps> = ({
             {p1Won && (
               <Badge
                 size="sm"
-                colorPalette="verdigris"
-                variant="solid"
+                variant="subtle"
+                bg="status.win.subtle"
+                color="status.win"
+                borderColor="status.win.border"
+                borderWidth="1px"
                 fontWeight="bold"
               >
                 W
@@ -387,7 +390,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
                 colorPalette={
                   myReport?.winnerId === m.player1.participantId
                     ? "verdigris"
-                    : "gray"
+                    : "ink"
                 }
                 variant={
                   myReport?.winnerId === m.player1.participantId
@@ -407,7 +410,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
                 colorPalette={
                   myReport?.winnerId === m.player2.participantId
                     ? "verdigris"
-                    : "gray"
+                    : "ink"
                 }
                 variant={
                   myReport?.winnerId === m.player2.participantId

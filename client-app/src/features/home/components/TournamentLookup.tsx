@@ -93,8 +93,17 @@ const TournamentLookup: React.FC = () => {
         </Card.Description>
       </Card.Header>
       <Card.Body>
-        <Flex align="start" gap={{ base: 4, lg: 8 }} direction={{ base: "column", lg: "row" }}>
-          <VStack align="stretch" gap={4} flexShrink={0} w={{ base: "full", lg: "auto" }}>
+        <Flex
+          align="start"
+          gap={{ base: 4, lg: 8 }}
+          direction={{ base: "column", lg: "row" }}
+        >
+          <VStack
+            align="stretch"
+            gap={4}
+            flexShrink={0}
+            w={{ base: "full", lg: "auto" }}
+          >
             <Field.Root invalid={!!codeError}>
               <Field.Label>Tournament Code</Field.Label>
               <Input
@@ -130,7 +139,12 @@ const TournamentLookup: React.FC = () => {
 
           {activeTournaments.length > 0 && (
             <>
-              <Separator display={{ base: "none", lg: "block" }} orientation="vertical" h="auto" alignSelf="stretch" />
+              <Separator
+                display={{ base: "none", lg: "block" }}
+                orientation="vertical"
+                h="auto"
+                alignSelf="stretch"
+              />
               <Box flex={1} minW={0} w={{ base: "full", lg: "auto" }}>
                 <Text fontWeight="semibold" mb={3} fontSize="sm">
                   Tournaments

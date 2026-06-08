@@ -225,7 +225,7 @@ const TournamentDetail: React.FC<Props> = ({
           <HStack gap={3} color="fg.muted" fontSize="sm" wrap="wrap">
             <Text>{selected.tournamentType}</Text>
             {selected.enable40kFactions && (
-              <Badge colorPalette="verdigris" size="xs" variant="subtle">
+              <Badge size="xs" variant="subtle" bg="gold.subtle" color="gold.text">
                 <LuFlaskConical size={9} />
                 40K Beta
               </Badge>
@@ -244,7 +244,7 @@ const TournamentDetail: React.FC<Props> = ({
                   size="xs"
                   variant="ghost"
                   onClick={() => handleCopyCode(selected.code)}
-                  colorPalette={codeCopied ? "verdigris" : "gray"}
+                  colorPalette={codeCopied ? "verdigris" : "ink"}
                 >
                   <LuCopy />
                   {codeCopied ? "Copied!" : "Copy"}
@@ -349,7 +349,7 @@ const TournamentDetail: React.FC<Props> = ({
                   <ReactMarkdown>{selected.description}</ReactMarkdown>
                 </Box>
               ) : isAdmin && selected.status !== "completed" ? (
-                <Text color="fg.subtle" fontSize="sm" fontStyle="italic">
+                <Text color="fg.muted" fontSize="sm" fontStyle="italic">
                   No description - click Edit Description to add one.
                 </Text>
               ) : null}

@@ -76,7 +76,7 @@ export function TournamentBracket() {
                 fontWeight="bold"
                 textAlign="center"
                 fontSize="md" // Kept as is, seems reasonable for round titles
-                color="brass.fg"
+                color="gold.text"
                 pb={2}
                 borderBottom="1px solid"
                 borderColor="border"

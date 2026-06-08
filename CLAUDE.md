@@ -62,6 +62,46 @@ This is an **npm workspace monorepo** with two packages: `client-app/` (React) a
 - **Path alias**: `@/*` maps to `src/*`
 - **Code structure**: Feature-based under `src/features/`; shared UI in `src/shared/ui/`
 
+### Design System (`client-app/src/shared/ui/theme.ts`)
+
+The Chakra UI v3 theme is defined in a single file — **not** a `theme/` directory. It exports `system` (used in `Provider.tsx`).
+
+**Colour palettes defined:** `crimson` (brand/primary), `brass` (gold/champion), `verdigris` (info/active), `ink` (neutrals).
+
+#### Semantic tokens — always use these, never raw hex
+
+| Category | Tokens |
+|----------|--------|
+| Backgrounds | `bg.canvas`, `bg.surface`, `bg.subtle`, `bg.elevated` |
+| Text | `fg.primary`, `fg.secondary`, `fg.muted` |
+| Brand (crimson) | `brand.solid`, `brand.hover`, `brand.text`, `brand.subtle`, `brand.border` |
+| Gold (brass) | `gold.solid`, `gold.text`, `gold.subtle`, `gold.border` |
+| Info (verdigris) | `info.solid`, `info.text`, `info.subtle`, `info.border` |
+| Match status | `status.win`, `status.loss`, `status.draw`, `status.live`, `status.pending` |
+
+#### Typography
+
+| Font | Token | Use |
+|------|-------|-----|
+| Cinzel | `fontFamily="heading"` | Headings, tournament names |
+| Oswald | `fontFamily="cond"` | Labels, badges, nav |
+| Barlow | `fontFamily="body"` | Body text |
+| JetBrains Mono | `fontFamily="mono"` | Scores, IDs, codes |
+
+#### Button & Badge recipes
+
+- **Buttons**: use `recipe={buttonRecipe} visual="solid|gold|info|outline"` — never `colorScheme` (v2 API)
+  - `solid` (crimson) = primary CTA (Join, Register, Submit)
+  - `gold` (brass) = champion actions (Seed Bracket)
+  - `info` (verdigris) = view/active actions (Submit Result)
+  - `outline` = secondary actions (Cancel, View Pairings)
+- **Badges**: use `recipe={badgeRecipe} status="live|win|loss|draw|pending"` — never hardcode badge colours
+
+#### Rules
+- Never use a raw hex value for a UI colour — map it to a semantic token first
+- Never use `colorScheme` prop (Chakra v2 API)
+- Faction colours in `shared/constants/factions.ts` are raw hex by design — do not tokenise them
+
 ### Server (`server-app/`)
 
 - **Node.js 24+ ESM**, Express 4, Mongoose 8, all files use `.js` extension with ES6 `import`/`export`

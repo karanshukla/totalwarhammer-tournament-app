@@ -195,7 +195,7 @@ const MatchesSection: React.FC<Props> = ({
               Matches
             </Text>
             {matches.length > 0 && !isDoubleElim && !isRROrSwiss && (
-              <Badge colorPalette="gray" variant="subtle">
+              <Badge colorPalette="ink" variant="subtle">
                 Round {Math.max(...matches.map((m) => m.round))} of{" "}
                 {roundNumbers.length}
               </Badge>
@@ -546,7 +546,7 @@ const MatchesSection: React.FC<Props> = ({
                           round < maxRound &&
                           !isRROrSwiss && (
                             <Badge
-                              colorPalette="gray"
+                              colorPalette="ink"
                               size="sm"
                               variant="subtle"
                             >

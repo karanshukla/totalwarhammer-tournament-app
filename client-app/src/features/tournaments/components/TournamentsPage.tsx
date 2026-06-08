@@ -184,7 +184,7 @@ const TournamentsPage: React.FC = () => {
               />
               <Button
                 size="sm"
-                colorPalette="brass"
+                colorPalette="verdigris"
                 onClick={handleFindByCode}
                 loading={codeLoading}
                 gap={2}
@@ -193,7 +193,7 @@ const TournamentsPage: React.FC = () => {
               </Button>
             </HStack>
             {codeError && (
-              <Text fontSize="xs" color="fg.error">
+              <Text fontSize="xs" color="status.loss">
                 {codeError}
               </Text>
             )}

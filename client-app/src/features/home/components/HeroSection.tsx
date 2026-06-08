@@ -12,7 +12,9 @@ const HeroSection: React.FC = () => {
   return (
     <Box textAlign="center" py={8}>
       <Badge
-        colorPalette="verdigris"
+        variant="subtle"
+        bg="gold.subtle"
+        color="gold.text"
         mb={4}
         px={3}
         py={1}
@@ -40,7 +42,7 @@ const HeroSection: React.FC = () => {
         matchups.
       </Text>
       <HStack gap={3} justify="center" flexWrap="wrap">
-        <Button colorPalette="crimson" size="lg" asChild>
+        <Button colorPalette="verdigris" size="lg" asChild>
           <Link to="/tournaments">View Ongoing Tournaments</Link>
         </Button>
         {showCreateAccount && (

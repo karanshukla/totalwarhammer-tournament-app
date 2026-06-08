@@ -218,7 +218,7 @@ const ContactPage: React.FC = () => {
               </Box>
               <Box p={4} borderRadius="md" borderWidth={1} borderColor="border">
                 <HStack mb={2}>
-                  <Badge colorPalette="gray">Round Robin</Badge>
+                  <Badge colorPalette="ink">Round Robin</Badge>
                 </HStack>
                 <Text fontSize="sm" color="fg.muted" mb={2}>
                   Everyone plays everyone. Most comprehensive format - the
