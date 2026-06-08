@@ -58,7 +58,7 @@ const UsernameUpdateForm: React.FC<UsernameUpdateFormProps> = ({
         {error && <Text color="status.loss">{error}</Text>}
         <Button
           type="submit"
-          colorPalette="brass"
+          colorPalette="crimson"
           loading={isSubmitting}
           loadingText="Updating"
           width="full"

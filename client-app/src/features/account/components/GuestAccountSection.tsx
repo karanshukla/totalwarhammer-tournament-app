@@ -30,7 +30,7 @@ const GuestAccountSection: React.FC = () => {
               <LuUser />
               <Text fontWeight="semibold">{user.username || "Guest"}</Text>
             </HStack>
-            <Badge colorPalette="brass" variant="subtle">
+            <Badge colorPalette="ink" variant="subtle">
               Guest
             </Badge>
           </HStack>

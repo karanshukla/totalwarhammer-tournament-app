@@ -24,19 +24,19 @@ import { httpClient } from "@/core/api/httpClient";
 import { useUserStore } from "@/shared/stores/userStore";
 
 const statusColorMap: Record<string, string> = {
-  pending: "brass",
+  pending: "ink",
   active: "verdigris",
   completed: "ink",
 };
 
 const statusAccentMap: Record<string, string> = {
-  pending: "gold.border",
+  pending: "status.pending.border",
   active: "info.border",
   completed: "border.emphasized",
 };
 
 const statusBarMap: Record<string, string> = {
-  pending: "gold.border",
+  pending: "status.pending.border",
   active: "info.border",
   completed: "border.emphasized",
 };
@@ -297,9 +297,7 @@ const TournamentBrowser: React.FC<Props> = ({ statusFilter, emptyMessage }) => {
                         width="full"
                         variant="outline"
                         size="sm"
-                        colorPalette={
-                          t.status === "completed" ? "brass" : "verdigris"
-                        }
+                        colorPalette="verdigris"
                         onClick={() => navigate(`/matches/spectate/${t._id}`)}
                       >
                         {t.status === "completed" ? <LuTrophy /> : <LuEye />}

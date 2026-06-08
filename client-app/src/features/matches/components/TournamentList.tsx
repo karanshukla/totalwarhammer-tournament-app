@@ -39,7 +39,7 @@ interface Props {
 
 const cardBg = "bg.panel";
 const borderColor = "border";
-const selectedBg = "brass.subtle";
+const selectedBg = "info.subtle";
 
 const TournamentList: React.FC<Props> = ({
   tournaments,

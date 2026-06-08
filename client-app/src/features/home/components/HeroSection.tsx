@@ -47,7 +47,7 @@ const HeroSection: React.FC = () => {
         </Button>
         {showCreateAccount && (
           <Button
-            colorPalette="brass"
+            colorPalette="crimson"
             variant="outline"
             size="lg"
             onClick={() =>

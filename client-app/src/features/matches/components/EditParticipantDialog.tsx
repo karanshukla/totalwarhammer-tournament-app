@@ -110,7 +110,7 @@ const EditParticipantDialog: React.FC<Props> = ({
                 Cancel
               </Button>
               <Button
-                colorPalette="brass"
+                colorPalette="crimson"
                 onClick={onSave}
                 loading={actionLoading}
                 disabled={!participant?.name?.trim()}

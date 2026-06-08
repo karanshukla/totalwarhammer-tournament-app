@@ -273,7 +273,7 @@ const NavItems: React.FC<NavItemsProps> = ({
       >
         Account
         {isUserGuest && isPortrait && (
-          <Badge size="sm" colorPalette="brass" ml={1}>
+          <Badge size="sm" colorPalette="ink" ml={1}>
             Guest
           </Badge>
         )}

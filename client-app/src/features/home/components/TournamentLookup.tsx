@@ -128,7 +128,7 @@ const TournamentLookup: React.FC = () => {
               )}
             </Field.Root>
             <Button
-              colorPalette="brass"
+              colorPalette="verdigris"
               onClick={handleFindByCode}
               loading={codeLoading}
               alignSelf="start"
@@ -164,8 +164,8 @@ const TournamentLookup: React.FC = () => {
                         <Box
                           p={1}
                           borderRadius="sm"
-                          bg="brass.subtle"
-                          color="brass.fg"
+                          bg="bg.subtle"
+                          color="fg.secondary"
                           flexShrink={0}
                         >
                           <LuSwords size={12} />

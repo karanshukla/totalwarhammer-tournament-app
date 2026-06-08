@@ -43,8 +43,8 @@ const HowItWorksSection: React.FC = () => (
               w={10}
               h={10}
               borderRadius="full"
-              bg="brass.subtle"
-              color="gold.text"
+              bg="bg.subtle"
+              color="fg.secondary"
               display="flex"
               alignItems="center"
               justifyContent="center"
@@ -57,8 +57,8 @@ const HowItWorksSection: React.FC = () => (
               w={5}
               h={5}
               borderRadius="full"
-              bg="brass.muted"
-              color="gold.text"
+              bg="bg.subtle"
+              color="fg.secondary"
               display="flex"
               alignItems="center"
               justifyContent="center"

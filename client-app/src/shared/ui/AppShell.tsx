@@ -73,7 +73,7 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
           >
             {isPortrait ? "TW Tournament" : "Total Warhammer Tournament App"}
             {isUserGuest && !isPortrait && (
-              <Badge colorPalette="brass" ml={2}>
+              <Badge colorPalette="ink" ml={2}>
                 Guest Mode
               </Badge>
             )}

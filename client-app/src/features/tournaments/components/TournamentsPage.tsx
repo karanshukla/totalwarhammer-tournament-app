@@ -59,18 +59,18 @@ const TournamentsPage: React.FC = () => {
     [],
   );
 
-  const activeBg = "gold.subtle";
+  const activeBg = "info.subtle";
   const inactiveBg = "bg.panel";
-  const activeBorderColor = "gold.border";
+  const activeBorderColor = "info.border";
   const inactiveBorderColor = "border";
 
-  const activeIconColor = "gold.text";
+  const activeIconColor = "info.text";
   const inactiveIconColor = "fg.secondary";
 
-  const activeTextColor = "gold.text";
+  const activeTextColor = "info.text";
   const inactiveTextColor = "fg.secondary";
 
-  const hoverActiveBorderColor = "gold.border";
+  const hoverActiveBorderColor = "info.border";
   const hoverInactiveBorderColor = "border.emphasized";
   const hoverInactiveBg = "bg.subtle";
 

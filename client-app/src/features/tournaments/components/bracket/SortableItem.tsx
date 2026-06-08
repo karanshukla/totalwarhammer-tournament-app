@@ -37,8 +37,7 @@ export function SortableItem({ id, participant }: SortableItemProps) {
       py={1}
       px={2}
       borderRadius="sm"
-      bg={isDragging ? "brass.50" : "transparent"}
-      _dark={{ bg: isDragging ? "brass.900" : "transparent" }}
+      bg={isDragging ? "info.subtle" : "transparent"}
       _hover={{ bg: hoverBg }}
       cursor="grab"
       height="100%"

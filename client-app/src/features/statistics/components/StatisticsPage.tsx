@@ -220,7 +220,7 @@ const StatisticsPage: React.FC = () => {
             label="Total Tournaments"
             value={stats.tournaments.total}
             icon={<LuTrophy />}
-            colorPalette="crimson"
+            colorPalette="brass"
           />
           <StatCard
             label="Active Tournaments"
@@ -232,7 +232,7 @@ const StatisticsPage: React.FC = () => {
             label="Matches Played"
             value={stats.matches.completed}
             icon={<LuSwords />}
-            colorPalette="brass"
+            colorPalette="crimson"
           />
           <StatCard
             label="Completed Tournaments"
@@ -331,9 +331,7 @@ const StatisticsPage: React.FC = () => {
                                   ? "gold.text"
                                   : i === 1
                                     ? "fg.secondary"
-                                    : i === 2
-                                      ? "brand.text"
-                                      : "fg.muted"
+                                    : "fg.muted"
                               }
                               w={5}
                               textAlign="right"
@@ -423,7 +421,11 @@ const StatisticsPage: React.FC = () => {
                                 size={12}
                                 color="var(--chakra-colors-gold-text)"
                               />
-                              <Text fontSize="sm" fontWeight="bold">
+                              <Text
+                                fontSize="sm"
+                                fontWeight="bold"
+                                color="gold.text"
+                              >
                                 {dn(w.winnerName)}
                               </Text>
                             </HStack>
@@ -469,7 +471,14 @@ const StatisticsPage: React.FC = () => {
                         <HStack gap={2}>
                           <Text
                             fontSize="sm"
-                            color="fg.muted"
+                            color={
+                              i === 0
+                                ? "gold.text"
+                                : i === 1
+                                  ? "fg.secondary"
+                                  : "fg.muted"
+                            }
+                            fontWeight={i < 2 ? "bold" : "normal"}
                             w={5}
                             textAlign="right"
                           >
@@ -503,7 +512,7 @@ const StatisticsPage: React.FC = () => {
           <Card.Root bg={cardBg}>
             <Card.Header>
               <HStack gap={2}>
-                <Box color="fg.secondary">
+                <Box color="info.text">
                   <LuTrophy />
                 </Box>
                 <Heading size="md">Recent Completed Tournaments</Heading>
@@ -519,6 +528,8 @@ const StatisticsPage: React.FC = () => {
                       borderRadius="md"
                       borderWidth={1}
                       borderColor="border"
+                      borderTopColor="info.border"
+                      borderTopWidth="2px"
                     >
                       <VStack alignItems="flex-start" gap={1}>
                         <Text

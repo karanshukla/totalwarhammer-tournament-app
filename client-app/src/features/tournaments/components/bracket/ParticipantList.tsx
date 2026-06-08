@@ -114,7 +114,7 @@ export function ParticipantList({
               <Flex gap={2} flexWrap="wrap">
                 <Button
                   onClick={handleAddParticipants}
-                  colorPalette="brass"
+                  colorPalette="crimson"
                   size="sm"
                 >
                   <LuPlus /> Add Participants
@@ -129,7 +129,7 @@ export function ParticipantList({
                 </Button>
                 <Button
                   onClick={handleResetParticipantsAndBracket}
-                  colorPalette="brass"
+                  colorPalette="crimson"
                   variant="outline"
                   size="sm"
                 >
@@ -162,7 +162,7 @@ export function ParticipantList({
                   <ButtonGroup size="xs" variant="ghost" gap={1}>
                     <Button
                       onClick={() => onEditParticipant(participant)}
-                      color="brass.fg"
+                      color="fg.secondary"
                     >
                       Edit
                     </Button>

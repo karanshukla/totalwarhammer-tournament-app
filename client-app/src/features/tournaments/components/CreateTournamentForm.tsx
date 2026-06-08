@@ -259,15 +259,15 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
               <Box
                 p={3}
                 borderRadius="md"
-                bg="brass.subtle"
+                bg="bg.subtle"
                 borderWidth={1}
-                borderColor="brass.muted"
+                borderColor="border"
               >
                 <HStack gap={2} alignItems="flex-start">
-                  <Box color="brass.fg" flexShrink={0} mt="1px">
+                  <Box color="fg.secondary" flexShrink={0} mt="1px">
                     <LuInfo size={14} />
                   </Box>
-                  <Text fontSize="xs" color="brass.fg">
+                  <Text fontSize="xs" color="fg.secondary">
                     Swiss System uses the{" "}
                     <Text as="span" fontWeight="semibold">
                       Blossom algorithm
@@ -416,15 +416,15 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
                             key={i}
                             p={3}
                             borderRadius="md"
-                            bg="brass.subtle"
+                            bg="bg.subtle"
                             borderWidth={1}
-                            borderColor="brass.muted"
+                            borderColor="border"
                           >
                             <HStack gap={2} alignItems="flex-start">
-                              <Box color="brass.fg" flexShrink={0} mt="1px">
+                              <Box color="fg.secondary" flexShrink={0} mt="1px">
                                 <LuInfo size={14} />
                               </Box>
-                              <Text fontSize="xs" color="brass.fg">
+                              <Text fontSize="xs" color="fg.secondary">
                                 {info}
                               </Text>
                             </HStack>
@@ -509,7 +509,7 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
                                     ? "fg"
                                     : "fg.muted"
                                 }
-                                colorPalette="brass"
+                                colorPalette="ink"
                               >
                                 WH3
                               </chakra.button>
@@ -674,7 +674,7 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
         <Card.Footer>
           <Button
             type="submit"
-            colorPalette="brass"
+            colorPalette="crimson"
             size="md"
             loading={isLoading}
             disabled={isGuest}

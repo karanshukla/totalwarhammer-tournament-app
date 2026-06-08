@@ -148,7 +148,7 @@ export function ParticipantEditDialog({
                 </Button>
                 <Button
                   type="submit"
-                  colorPalette="brass"
+                  colorPalette="crimson"
                   width={{ base: "full", sm: "auto" }}
                 >
                   Save

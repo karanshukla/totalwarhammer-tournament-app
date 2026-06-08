@@ -82,7 +82,7 @@ interface Props {
 
 const cardBg = "bg.panel";
 const borderColor = "border";
-const selectedBg = "brass.subtle";
+const selectedBg = "info.subtle";
 
 const TournamentDetail: React.FC<Props> = ({
   selected,
@@ -278,7 +278,7 @@ const TournamentDetail: React.FC<Props> = ({
               <HStack gap={2}>
                 <Button
                   size="xs"
-                  colorPalette="brass"
+                  colorPalette="crimson"
                   onClick={handleUpdateDescription}
                   loading={descriptionLoading}
                 >
@@ -374,7 +374,7 @@ const TournamentDetail: React.FC<Props> = ({
           <Button
             size="sm"
             variant="ghost"
-            colorPalette="brass"
+            colorPalette="verdigris"
             onClick={() => navigate(`/matches/spectate/${selected._id}`)}
           >
             <LuEye />
@@ -393,7 +393,7 @@ const TournamentDetail: React.FC<Props> = ({
           )}
           {canAdvance && (
             <Button
-              colorPalette="brass"
+              colorPalette="crimson"
               size="sm"
               onClick={onAdvanceRound}
               loading={actionLoading}
@@ -478,7 +478,7 @@ const TournamentDetail: React.FC<Props> = ({
                           <Button
                             size="xs"
                             variant="ghost"
-                            colorPalette="brass"
+                            colorPalette="ink"
                             onClick={() => {
                               setEditingParticipant(p);
                               setEditDialogOpen(true);
@@ -572,7 +572,7 @@ const TournamentDetail: React.FC<Props> = ({
                 </Field.Root>
                 <Button
                   width="full"
-                  colorPalette="brass"
+                  colorPalette="crimson"
                   onClick={onAddParticipant}
                   disabled={!newName.trim() || isFull}
                   loading={actionLoading}
@@ -775,7 +775,7 @@ const TournamentDetail: React.FC<Props> = ({
                           {(f) => (
                             <Badge
                               key={f}
-                              colorPalette="crimson"
+                              colorPalette="ink"
                               size="sm"
                               variant="subtle"
                             >

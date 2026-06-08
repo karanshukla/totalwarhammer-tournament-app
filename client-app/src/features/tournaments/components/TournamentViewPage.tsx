@@ -41,7 +41,7 @@ import {
 } from "@/shared/constants/factions";
 
 const statusColorMap: Record<string, string> = {
-  pending: "brass",
+  pending: "ink",
   active: "verdigris",
   completed: "ink",
 };
@@ -455,7 +455,7 @@ const TournamentViewPage: React.FC = () => {
         </VStack>
         {isOwner && (
           <Button
-            colorPalette="brass"
+            colorPalette="verdigris"
             size="sm"
             alignSelf="flex-start"
             onClick={() => navigate(`/matches#${tournament._id}`)}
@@ -512,7 +512,7 @@ const TournamentViewPage: React.FC = () => {
                       </VStack>
                       {alreadyJoined &&
                         (user?.username === p.name || user?.id === p.name) && (
-                          <Badge colorPalette="brass" size="sm">
+                          <Badge colorPalette="ink" size="sm">
                             You
                           </Badge>
                         )}
@@ -580,7 +580,7 @@ const TournamentViewPage: React.FC = () => {
                         {(f) => (
                           <Badge
                             key={f}
-                            colorPalette="crimson"
+                            colorPalette="ink"
                             size="sm"
                             variant="subtle"
                           >
@@ -776,7 +776,7 @@ const TournamentViewPage: React.FC = () => {
                                     )}
                                     {m.status === "in_progress" && (
                                       <Badge
-                                        colorPalette="brass"
+                                        colorPalette="verdigris"
                                         size="sm"
                                         variant="subtle"
                                       >
