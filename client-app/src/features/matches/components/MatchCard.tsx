@@ -152,12 +152,12 @@ const MatchCard: React.FC<MatchCardProps> = ({
           </Badge>
         )}
         {m.status === "in_progress" && (
-          <Badge colorPalette="brass" size="sm" variant="subtle">
+          <Badge colorPalette="verdigris" size="sm" variant="subtle">
             <LuClock /> In Progress
           </Badge>
         )}
         {m.status === "pending" && (
-          <Badge colorPalette="gray" size="sm" variant="subtle">
+          <Badge colorPalette="ink" size="sm" variant="subtle">
             Pending
           </Badge>
         )}
@@ -168,8 +168,11 @@ const MatchCard: React.FC<MatchCardProps> = ({
             {p1Won && (
               <Badge
                 size="sm"
-                colorPalette="verdigris"
-                variant="solid"
+                variant="subtle"
+                bg="status.win.subtle"
+                color="status.win"
+                borderColor="status.win.border"
+                borderWidth="1px"
                 fontWeight="bold"
               >
                 W
@@ -210,8 +213,11 @@ const MatchCard: React.FC<MatchCardProps> = ({
             {p2Won && (
               <Badge
                 size="sm"
-                colorPalette="verdigris"
-                variant="solid"
+                variant="subtle"
+                bg="status.win.subtle"
+                color="status.win"
+                borderColor="status.win.border"
+                borderWidth="1px"
                 fontWeight="bold"
               >
                 W
@@ -357,7 +363,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
         {isAdmin && isActive && m.player2.name !== "BYE" && (
           <Button
             size="xs"
-            colorPalette="brass"
+            colorPalette="ink"
             variant="outline"
             onClick={onStartOverride}
           >
@@ -387,7 +393,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
                 colorPalette={
                   myReport?.winnerId === m.player1.participantId
                     ? "verdigris"
-                    : "gray"
+                    : "ink"
                 }
                 variant={
                   myReport?.winnerId === m.player1.participantId
@@ -407,7 +413,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
                 colorPalette={
                   myReport?.winnerId === m.player2.participantId
                     ? "verdigris"
-                    : "gray"
+                    : "ink"
                 }
                 variant={
                   myReport?.winnerId === m.player2.participantId
@@ -470,7 +476,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
       {isOverriding && (
         <Box mt={3} pt={3} borderTopWidth={1} borderColor="border">
           <VStack gap={2} alignItems="stretch">
-            <Text fontSize="xs" color="brand.text" fontWeight="bold">
+            <Text fontSize="xs" color="fg.muted" fontWeight="bold">
               Override result
             </Text>
             <HStack gap={2}>
@@ -482,7 +488,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
                     ? "solid"
                     : "outline"
                 }
-                colorPalette="brass"
+                colorPalette="ink"
                 onClick={() => onSetOverrideWinner(m.player1.participantId)}
               >
                 {dn(m.player1.name)}
@@ -495,7 +501,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
                     ? "solid"
                     : "outline"
                 }
-                colorPalette="brass"
+                colorPalette="ink"
                 onClick={() => onSetOverrideWinner(m.player2.participantId)}
               >
                 {dn(m.player2.name)}

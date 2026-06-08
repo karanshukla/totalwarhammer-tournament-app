@@ -82,7 +82,7 @@ const PasswordUpdateForm: React.FC = () => {
         {passwordError && <Text color="status.loss">{passwordError}</Text>}
         <Button
           type="submit"
-          colorPalette="brass"
+          colorPalette="crimson"
           loading={isUpdatingPassword}
           loadingText="Updating"
           width="full"

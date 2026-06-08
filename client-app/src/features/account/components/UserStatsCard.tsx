@@ -114,7 +114,7 @@ const UserStatsCard: React.FC = () => {
               : stats!.factions.map((f) => (
                   <HStack key={f.name} justify="space-between">
                     <Text fontSize="sm">{f.name}</Text>
-                    <Badge colorPalette="brass" variant="subtle">
+                    <Badge colorPalette="ink" variant="subtle">
                       {f.count} {f.count === 1 ? "match" : "matches"}
                     </Badge>
                   </HStack>

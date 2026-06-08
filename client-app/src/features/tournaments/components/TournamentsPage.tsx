@@ -59,18 +59,18 @@ const TournamentsPage: React.FC = () => {
     [],
   );
 
-  const activeBg = "gold.subtle";
+  const activeBg = "info.subtle";
   const inactiveBg = "bg.panel";
-  const activeBorderColor = "gold.border";
+  const activeBorderColor = "info.border";
   const inactiveBorderColor = "border";
 
-  const activeIconColor = "gold.text";
+  const activeIconColor = "info.text";
   const inactiveIconColor = "fg.secondary";
 
-  const activeTextColor = "gold.text";
+  const activeTextColor = "info.text";
   const inactiveTextColor = "fg.secondary";
 
-  const hoverActiveBorderColor = "gold.border";
+  const hoverActiveBorderColor = "info.border";
   const hoverInactiveBorderColor = "border.emphasized";
   const hoverInactiveBg = "bg.subtle";
 
@@ -184,7 +184,7 @@ const TournamentsPage: React.FC = () => {
               />
               <Button
                 size="sm"
-                colorPalette="brass"
+                colorPalette="verdigris"
                 onClick={handleFindByCode}
                 loading={codeLoading}
                 gap={2}
@@ -193,7 +193,7 @@ const TournamentsPage: React.FC = () => {
               </Button>
             </HStack>
             {codeError && (
-              <Text fontSize="xs" color="fg.error">
+              <Text fontSize="xs" color="status.loss">
                 {codeError}
               </Text>
             )}

@@ -24,19 +24,19 @@ import { httpClient } from "@/core/api/httpClient";
 import { useUserStore } from "@/shared/stores/userStore";
 
 const statusColorMap: Record<string, string> = {
-  pending: "brass",
+  pending: "ink",
   active: "verdigris",
-  completed: "gray",
+  completed: "ink",
 };
 
 const statusAccentMap: Record<string, string> = {
-  pending: "brass.emphasized",
-  active: "verdigris.emphasized",
+  pending: "status.pending.border",
+  active: "info.border",
   completed: "border.emphasized",
 };
 
 const statusBarMap: Record<string, string> = {
-  pending: "gold.border",
+  pending: "status.pending.border",
   active: "info.border",
   completed: "border.emphasized",
 };
@@ -181,9 +181,10 @@ const TournamentBrowser: React.FC<Props> = ({ statusFilter, emptyMessage }) => {
                         </Text>
                         {t.enable40kFactions && (
                           <Badge
-                            colorPalette="verdigris"
                             size="xs"
                             variant="subtle"
+                            bg="gold.subtle"
+                            color="gold.text"
                           >
                             <LuFlaskConical size={9} />
                             40K Beta
@@ -235,7 +236,7 @@ const TournamentBrowser: React.FC<Props> = ({ statusFilter, emptyMessage }) => {
                     {joined && (
                       <Badge
                         colorPalette={
-                          t.status === "completed" ? "gray" : "verdigris"
+                          t.status === "completed" ? "ink" : "verdigris"
                         }
                         variant="subtle"
                         width="full"
@@ -246,7 +247,7 @@ const TournamentBrowser: React.FC<Props> = ({ statusFilter, emptyMessage }) => {
                     )}
                     {full && !joined && t.status === "pending" && (
                       <Badge
-                        colorPalette="gray"
+                        colorPalette="ink"
                         variant="subtle"
                         width="full"
                         justifyContent="center"
@@ -296,9 +297,7 @@ const TournamentBrowser: React.FC<Props> = ({ statusFilter, emptyMessage }) => {
                         width="full"
                         variant="outline"
                         size="sm"
-                        colorPalette={
-                          t.status === "completed" ? "brass" : "verdigris"
-                        }
+                        colorPalette="verdigris"
                         onClick={() => navigate(`/matches/spectate/${t._id}`)}
                       >
                         {t.status === "completed" ? <LuTrophy /> : <LuEye />}

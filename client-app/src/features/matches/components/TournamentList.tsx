@@ -39,7 +39,7 @@ interface Props {
 
 const cardBg = "bg.panel";
 const borderColor = "border";
-const selectedBg = "brass.subtle";
+const selectedBg = "info.subtle";
 
 const TournamentList: React.FC<Props> = ({
   tournaments,
@@ -85,7 +85,7 @@ const TournamentList: React.FC<Props> = ({
             />
             <Button
               size="sm"
-              colorPalette="brass"
+              colorPalette="verdigris"
               onClick={onFindByCode}
               loading={codeLoading}
               gap={2}
@@ -94,7 +94,7 @@ const TournamentList: React.FC<Props> = ({
             </Button>
           </HStack>
           {codeError && (
-            <Text fontSize="xs" color="fg.error">
+            <Text fontSize="xs" color="status.loss">
               {codeError}
             </Text>
           )}
@@ -123,12 +123,12 @@ const TournamentList: React.FC<Props> = ({
               variant={statusFilter === s ? "solid" : "outline"}
               colorPalette={
                 s === "all"
-                  ? "gray"
+                  ? "ink"
                   : s === "pending"
                     ? "brass"
                     : s === "active"
                       ? "verdigris"
-                      : "gray"
+                      : "ink"
               }
               onClick={() => {
                 onStatusFilterChange(s);
@@ -136,7 +136,7 @@ const TournamentList: React.FC<Props> = ({
               }}
             >
               {s.charAt(0).toUpperCase() + s.slice(1)}
-              <Badge ml={1} size="sm" variant="subtle" colorPalette="gray">
+              <Badge ml={1} size="sm" variant="subtle" colorPalette="ink">
                 {statusCounts[s]}
               </Badge>
             </Button>
@@ -165,7 +165,7 @@ const TournamentList: React.FC<Props> = ({
                 ) : (
                   <Button
                     size="sm"
-                    colorPalette="brass"
+                    colorPalette="crimson"
                     onClick={() =>
                       document.dispatchEvent(
                         new CustomEvent("auth-event", {
@@ -234,9 +234,10 @@ const TournamentList: React.FC<Props> = ({
                         </Text>
                         {t.enable40kFactions && (
                           <Badge
-                            colorPalette="verdigris"
                             size="xs"
                             variant="subtle"
+                            bg="gold.subtle"
+                            color="gold.text"
                           >
                             <LuFlaskConical size={9} />
                             40K Beta

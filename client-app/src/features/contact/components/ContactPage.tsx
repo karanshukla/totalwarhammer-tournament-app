@@ -128,13 +128,13 @@ const ContactPage: React.FC = () => {
                     minW={7}
                     h={7}
                     borderRadius="full"
-                    bg="brass.subtle"
+                    bg="bg.subtle"
                     display="flex"
                     alignItems="center"
                     justifyContent="center"
                     flexShrink={0}
                   >
-                    <Text fontSize="xs" fontWeight="bold" color="brass.fg">
+                    <Text fontSize="xs" fontWeight="bold" color="fg.secondary">
                       {step}
                     </Text>
                   </Box>
@@ -158,7 +158,7 @@ const ContactPage: React.FC = () => {
             <SimpleGrid columns={{ base: 1, md: 2 }} gap={4}>
               <Box p={4} borderRadius="md" borderWidth={1} borderColor="border">
                 <HStack mb={2}>
-                  <Badge colorPalette="crimson">Single Elimination</Badge>
+                  <Badge colorPalette="ink">Single Elimination</Badge>
                 </HStack>
                 <Text fontSize="sm" color="fg.muted" mb={2}>
                   Lose once and you're out. Best for quick events with a
@@ -178,7 +178,7 @@ const ContactPage: React.FC = () => {
               </Box>
               <Box p={4} borderRadius="md" borderWidth={1} borderColor="border">
                 <HStack mb={2}>
-                  <Badge colorPalette="brass">Double Elimination</Badge>
+                  <Badge colorPalette="ink">Double Elimination</Badge>
                 </HStack>
                 <Text fontSize="sm" color="fg.muted" mb={2}>
                   Two losses to be eliminated. Winners and Losers brackets run
@@ -218,7 +218,7 @@ const ContactPage: React.FC = () => {
               </Box>
               <Box p={4} borderRadius="md" borderWidth={1} borderColor="border">
                 <HStack mb={2}>
-                  <Badge colorPalette="gray">Round Robin</Badge>
+                  <Badge colorPalette="ink">Round Robin</Badge>
                 </HStack>
                 <Text fontSize="sm" color="fg.muted" mb={2}>
                   Everyone plays everyone. Most comprehensive format - the
@@ -352,14 +352,14 @@ const ContactPage: React.FC = () => {
               <Box
                 p={3}
                 borderRadius="md"
-                bg="brass.subtle"
+                bg="bg.subtle"
                 borderWidth={1}
-                borderColor="brass.muted"
+                borderColor="border"
               >
                 <Text
                   fontSize="xs"
                   fontWeight="semibold"
-                  color="brass.fg"
+                  color="fg.secondary"
                   mb={1}
                 >
                   Organiser override

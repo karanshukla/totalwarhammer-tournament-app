@@ -36,7 +36,7 @@ const AuthenticatedAccountSection: React.FC = () => {
               <LuUser />
               <Text fontWeight="semibold">{user.username || "-"}</Text>
             </HStack>
-            <Badge colorPalette="brass" variant="subtle">
+            <Badge colorPalette="ink" variant="subtle">
               Registered
             </Badge>
           </HStack>

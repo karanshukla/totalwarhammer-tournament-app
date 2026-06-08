@@ -51,7 +51,7 @@ export function TournamentBracket() {
           mb={4}
           onClick={onAddRound}
           size="sm"
-          colorPalette="brass"
+          colorPalette="ink"
           variant="outline"
         >
           <LuPlus /> Add Round
@@ -76,7 +76,7 @@ export function TournamentBracket() {
                 fontWeight="bold"
                 textAlign="center"
                 fontSize="md" // Kept as is, seems reasonable for round titles
-                color="brass.fg"
+                color="gold.text"
                 pb={2}
                 borderBottom="1px solid"
                 borderColor="border"
@@ -162,7 +162,7 @@ export function TournamentBracket() {
                 size="xs"
                 onClick={() => onAddMatchToRound(round.id)}
                 variant="ghost"
-                colorPalette="brass"
+                colorPalette="ink"
                 width="full"
                 mt={2}
               >

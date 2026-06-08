@@ -41,9 +41,9 @@ import {
 } from "@/shared/constants/factions";
 
 const statusColorMap: Record<string, string> = {
-  pending: "brass",
+  pending: "ink",
   active: "verdigris",
-  completed: "gray",
+  completed: "ink",
 };
 
 interface Participant {
@@ -287,7 +287,7 @@ const TournamentViewPage: React.FC = () => {
           textAlign="center"
         >
           <HStack justifyContent="center" gap={3}>
-            <LuTrophy size={24} color="var(--chakra-colors-brass-400)" />
+            <LuTrophy size={24} color="var(--chakra-colors-gold-text)" />
             <VStack gap={0}>
               <Text
                 fontSize="xs"
@@ -307,7 +307,7 @@ const TournamentViewPage: React.FC = () => {
                 </Text>
               )}
             </VStack>
-            <LuTrophy size={24} color="var(--chakra-colors-brass-400)" />
+            <LuTrophy size={24} color="var(--chakra-colors-gold-text)" />
           </HStack>
         </Box>
       )}
@@ -334,7 +334,7 @@ const TournamentViewPage: React.FC = () => {
                 Participant
               </Badge>
             ) : (
-              <Badge variant="outline" size="sm" colorPalette="gray">
+              <Badge variant="outline" size="sm" colorPalette="ink">
                 <LuEye />
                 Spectating
               </Badge>
@@ -343,7 +343,12 @@ const TournamentViewPage: React.FC = () => {
           <HStack gap={3} color="fg.muted" fontSize="sm">
             <Text>{tournament.tournamentType}</Text>
             {tournament.enable40kFactions && (
-              <Badge colorPalette="verdigris" size="xs" variant="subtle">
+              <Badge
+                size="xs"
+                variant="subtle"
+                bg="gold.subtle"
+                color="gold.text"
+              >
                 <LuFlaskConical size={9} />
                 40K Beta
               </Badge>
@@ -450,7 +455,7 @@ const TournamentViewPage: React.FC = () => {
         </VStack>
         {isOwner && (
           <Button
-            colorPalette="brass"
+            colorPalette="verdigris"
             size="sm"
             alignSelf="flex-start"
             onClick={() => navigate(`/matches#${tournament._id}`)}
@@ -507,7 +512,7 @@ const TournamentViewPage: React.FC = () => {
                       </VStack>
                       {alreadyJoined &&
                         (user?.username === p.name || user?.id === p.name) && (
-                          <Badge colorPalette="brass" size="sm">
+                          <Badge colorPalette="ink" size="sm">
                             You
                           </Badge>
                         )}
@@ -575,7 +580,7 @@ const TournamentViewPage: React.FC = () => {
                         {(f) => (
                           <Badge
                             key={f}
-                            colorPalette="crimson"
+                            colorPalette="ink"
                             size="sm"
                             variant="subtle"
                           >
@@ -674,7 +679,7 @@ const TournamentViewPage: React.FC = () => {
                   </Field.Root>
                   <Button
                     width="full"
-                    colorPalette="brass"
+                    colorPalette="crimson"
                     onClick={handleJoin}
                     loading={joining}
                   >
@@ -745,7 +750,7 @@ const TournamentViewPage: React.FC = () => {
                                   }
                                 >
                                   <HStack mb={2} justifyContent="space-between">
-                                    <Text fontSize="xs" color="fg.subtle">
+                                    <Text fontSize="xs" color="fg.muted">
                                       Match {m.matchNumber}
                                     </Text>
                                     {m.status === "completed" && (
@@ -771,7 +776,7 @@ const TournamentViewPage: React.FC = () => {
                                     )}
                                     {m.status === "in_progress" && (
                                       <Badge
-                                        colorPalette="brass"
+                                        colorPalette="verdigris"
                                         size="sm"
                                         variant="subtle"
                                       >
@@ -780,7 +785,7 @@ const TournamentViewPage: React.FC = () => {
                                     )}
                                     {m.status === "pending" && (
                                       <Badge
-                                        colorPalette="gray"
+                                        colorPalette="ink"
                                         size="sm"
                                         variant="subtle"
                                       >
@@ -802,8 +807,11 @@ const TournamentViewPage: React.FC = () => {
                                         {p1Won && (
                                           <Badge
                                             size="sm"
-                                            colorPalette="verdigris"
-                                            variant="solid"
+                                            variant="subtle"
+                                            bg="status.win.subtle"
+                                            color="status.win"
+                                            borderColor="status.win.border"
+                                            borderWidth="1px"
                                             fontWeight="bold"
                                           >
                                             W
@@ -850,8 +858,11 @@ const TournamentViewPage: React.FC = () => {
                                         {p2Won && (
                                           <Badge
                                             size="sm"
-                                            colorPalette="verdigris"
-                                            variant="solid"
+                                            variant="subtle"
+                                            bg="status.win.subtle"
+                                            color="status.win"
+                                            borderColor="status.win.border"
+                                            borderWidth="1px"
                                             fontWeight="bold"
                                           >
                                             W

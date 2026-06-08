@@ -43,8 +43,8 @@ const HowItWorksSection: React.FC = () => (
               w={10}
               h={10}
               borderRadius="full"
-              bg="brass.subtle"
-              color="brass.fg"
+              bg="bg.subtle"
+              color="fg.secondary"
               display="flex"
               alignItems="center"
               justifyContent="center"
@@ -57,8 +57,8 @@ const HowItWorksSection: React.FC = () => (
               w={5}
               h={5}
               borderRadius="full"
-              bg="brass.muted"
-              color="brass.fg"
+              bg="bg.subtle"
+              color="fg.secondary"
               display="flex"
               alignItems="center"
               justifyContent="center"
@@ -76,7 +76,7 @@ const HowItWorksSection: React.FC = () => (
     </Card.Body>
     <Card.Footer>
       <HStack gap={3} flexWrap="wrap">
-        <Button colorPalette="brass" asChild>
+        <Button colorPalette="verdigris" asChild>
           <Link to="/tournaments">View Ongoing Tournaments</Link>
         </Button>
         <Button

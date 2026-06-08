@@ -79,14 +79,14 @@ const NavItem: React.FC<NavItemProps> = ({
         boxSize={5}
         mr={isPortrait ? 0 : 3}
         mb={isPortrait ? 1 : 0}
-        color={isActive ? "brand.text" : "inherit"}
+        color={isActive ? "info.text" : "inherit"}
         aria-hidden="true"
       />
       {(!isPortrait || !isMobile) && (
         <Text
           fontSize="sm"
           fontWeight={isActive ? "semibold" : "normal"}
-          color={isActive ? "brand.text" : "inherit"}
+          color={isActive ? "info.text" : "inherit"}
         >
           {children}
           {shortcut && (
@@ -273,7 +273,7 @@ const NavItems: React.FC<NavItemsProps> = ({
       >
         Account
         {isUserGuest && isPortrait && (
-          <Badge size="sm" colorPalette="brass" ml={1}>
+          <Badge size="sm" colorPalette="ink" ml={1}>
             Guest
           </Badge>
         )}

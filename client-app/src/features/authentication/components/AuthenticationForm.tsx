@@ -147,7 +147,7 @@ export function AuthenticationForm() {
           >
             Continue as Guest
           </Button>
-          <Text fontSize="xs" color="fg.subtle">
+          <Text fontSize="xs" color="fg.muted">
             Guest accounts last for 48 hours. You may create brackets and
             participate in tournaments, but you cannot create a tournament or
             appear in the site leaderboards.
