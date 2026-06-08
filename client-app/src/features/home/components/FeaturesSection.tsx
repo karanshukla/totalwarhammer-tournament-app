@@ -27,8 +27,8 @@ const features = [
   {
     icon: LuShield,
     title: "Guest Friendly",
-    bg: "info.subtle",
-    color: "info.text",
+    bg: "status.win.subtle",
+    color: "status.win",
     desc: "No account required to participate. Jump in as a guest and join tournaments instantly.",
   },
 ];

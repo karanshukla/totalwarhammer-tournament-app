@@ -1,5 +1,6 @@
 ﻿import React, { useState, useEffect } from "react";
 import {
+  Flex,
   HStack,
   VStack,
   Button,
@@ -92,8 +93,8 @@ const TournamentLookup: React.FC = () => {
         </Card.Description>
       </Card.Header>
       <Card.Body>
-        <HStack align="start" gap={8}>
-          <VStack align="stretch" gap={4} flexShrink={0}>
+        <Flex align="start" gap={{ base: 4, lg: 8 }} direction={{ base: "column", lg: "row" }}>
+          <VStack align="stretch" gap={4} flexShrink={0} w={{ base: "full", lg: "auto" }}>
             <Field.Root invalid={!!codeError}>
               <Field.Label>Tournament Code</Field.Label>
               <Input
@@ -107,7 +108,7 @@ const TournamentLookup: React.FC = () => {
                 }
                 fontFamily="mono"
                 textTransform="uppercase"
-                w="2xs"
+                w={{ base: "full", lg: "2xs" }}
               />
               {codeError ? (
                 <Field.ErrorText>{codeError}</Field.ErrorText>
@@ -129,8 +130,8 @@ const TournamentLookup: React.FC = () => {
 
           {activeTournaments.length > 0 && (
             <>
-              <Separator orientation="vertical" h="auto" alignSelf="stretch" />
-              <Box flex={1} minW={0}>
+              <Separator display={{ base: "none", lg: "block" }} orientation="vertical" h="auto" alignSelf="stretch" />
+              <Box flex={1} minW={0} w={{ base: "full", lg: "auto" }}>
                 <Text fontWeight="semibold" mb={3} fontSize="sm">
                   Tournaments
                 </Text>
@@ -199,7 +200,7 @@ const TournamentLookup: React.FC = () => {
               </Box>
             </>
           )}
-        </HStack>
+        </Flex>
       </Card.Body>
     </Card.Root>
   );

@@ -75,7 +75,7 @@ const HowItWorksSection: React.FC = () => (
       </SimpleGrid>
     </Card.Body>
     <Card.Footer>
-      <HStack gap={3}>
+      <HStack gap={3} flexWrap="wrap">
         <Button colorPalette="brass" asChild>
           <Link to="/tournaments">View Ongoing Tournaments</Link>
         </Button>

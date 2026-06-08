@@ -76,7 +76,42 @@ const config = defineConfig({
     },
     semanticTokens: {
       colors: {
-        // Brass: override solid to a visible gold step — Chakra auto-generates too dark
+        // Chakra v3 auto-generates dark-mode solid from the 200 step (too light).
+        // Explicit overrides ensure correct hue at all palette steps in both modes.
+        crimson: {
+          contrast: { value: "#FFFFFF" },
+          solid: {
+            value: {
+              _light: "{colors.crimson.600}",
+              _dark: "{colors.crimson.500}",
+            },
+          },
+          fg: {
+            value: {
+              _light: "{colors.crimson.700}",
+              _dark: "{colors.crimson.200}",
+            },
+          },
+          subtle: {
+            value: {
+              _light: "{colors.crimson.100}",
+              _dark: "{colors.crimson.900}",
+            },
+          },
+          muted: {
+            value: {
+              _light: "{colors.crimson.200}",
+              _dark: "{colors.crimson.800}",
+            },
+          },
+          emphasized: {
+            value: {
+              _light: "{colors.crimson.300}",
+              _dark: "{colors.crimson.700}",
+            },
+          },
+        },
+
         brass: {
           contrast: { value: "{colors.ink.950}" },
           solid: {
@@ -107,6 +142,40 @@ const config = defineConfig({
             value: {
               _light: "{colors.brass.300}",
               _dark: "{colors.brass.700}",
+            },
+          },
+        },
+
+        verdigris: {
+          contrast: { value: "#FFFFFF" },
+          solid: {
+            value: {
+              _light: "{colors.verdigris.600}",
+              _dark: "{colors.verdigris.400}",
+            },
+          },
+          fg: {
+            value: {
+              _light: "{colors.verdigris.700}",
+              _dark: "{colors.verdigris.200}",
+            },
+          },
+          subtle: {
+            value: {
+              _light: "{colors.verdigris.100}",
+              _dark: "{colors.verdigris.900}",
+            },
+          },
+          muted: {
+            value: {
+              _light: "{colors.verdigris.200}",
+              _dark: "{colors.verdigris.800}",
+            },
+          },
+          emphasized: {
+            value: {
+              _light: "{colors.verdigris.300}",
+              _dark: "{colors.verdigris.700}",
             },
           },
         },

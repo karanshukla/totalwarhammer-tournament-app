@@ -99,14 +99,14 @@ const StatCard: React.FC<StatCardProps> = ({
   const bg = "bg.panel";
   return (
     <Card.Root bg={bg}>
-      <Card.Body>
-        <HStack gap={4}>
+      <Card.Body p={{ base: 3, md: 4 }}>
+        <VStack alignItems="flex-start" gap={2}>
           <Box
-            p={3}
-            borderRadius="lg"
+            p={2}
+            borderRadius="md"
             bg={`${colorPalette}.subtle`}
             color={`${colorPalette}.fg`}
-            fontSize="xl"
+            fontSize="lg"
           >
             {icon}
           </Box>
@@ -114,7 +114,7 @@ const StatCard: React.FC<StatCardProps> = ({
             <Text fontSize="2xl" fontWeight="bold" lineHeight="1">
               {value}
             </Text>
-            <Text fontSize="sm" color="fg.muted">
+            <Text fontSize="xs" color="fg.muted" lineHeight="tight" mt={1}>
               {label}
             </Text>
             {sub && (
@@ -123,7 +123,7 @@ const StatCard: React.FC<StatCardProps> = ({
               </Text>
             )}
           </VStack>
-        </HStack>
+        </VStack>
       </Card.Body>
     </Card.Root>
   );

@@ -19,6 +19,8 @@ const HeroSection: React.FC = () => {
         fontSize="xs"
         textTransform="uppercase"
         letterSpacing="wider"
+        whiteSpace="normal"
+        maxW="full"
       >
         Now includes beta warhammer 40k support (Dawn of War/Future Titles)
       </Badge>
@@ -37,12 +39,13 @@ const HeroSection: React.FC = () => {
         within the multiplayer community, and view statistics for recorded
         matchups.
       </Text>
-      <HStack gap={3} justify="center">
+      <HStack gap={3} justify="center" flexWrap="wrap">
         <Button colorPalette="crimson" size="lg" asChild>
           <Link to="/tournaments">View Ongoing Tournaments</Link>
         </Button>
         {showCreateAccount && (
           <Button
+            colorPalette="brass"
             variant="outline"
             size="lg"
             onClick={() =>

@@ -21,22 +21,22 @@ const tournamentTypes = [
   {
     icon: LuRepeat,
     name: "Double Elimination",
-    bg: "brand.subtle",
-    color: "brand.text",
+    bg: "gold.subtle",
+    color: "gold.text",
     desc: "Two chances to prove yourself. Losers drop to a second bracket before being eliminated.",
   },
   {
     icon: LuCircleDot,
     name: "Round Robin",
-    bg: "info.subtle",
-    color: "info.text",
+    bg: "status.win.subtle",
+    color: "status.win",
     desc: "Everyone plays everyone. The player with the most wins takes the crown.",
   },
   {
     icon: LuHash,
     name: "Swiss System",
-    bg: "gold.subtle",
-    color: "gold.text",
+    bg: "info.subtle",
+    color: "info.text",
     desc: "Paired by performance each round. No eliminations - the best record wins.",
   },
 ];

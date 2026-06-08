@@ -111,14 +111,19 @@ export function ParticipantList({
                 </Button>
               </HStack>
 
-              <ButtonGroup size="sm">
-                <Button onClick={handleAddParticipants} colorPalette="brass">
+              <Flex gap={2} flexWrap="wrap">
+                <Button
+                  onClick={handleAddParticipants}
+                  colorPalette="brass"
+                  size="sm"
+                >
                   <LuPlus /> Add Participants
                 </Button>
                 <Button
                   onClick={handleResetBracket}
                   colorPalette="crimson"
                   variant="outline"
+                  size="sm"
                 >
                   Reset Bracket
                 </Button>
@@ -126,10 +131,11 @@ export function ParticipantList({
                   onClick={handleResetParticipantsAndBracket}
                   colorPalette="brass"
                   variant="outline"
+                  size="sm"
                 >
                   Reset All
                 </Button>
-              </ButtonGroup>
+              </Flex>
             </Flex>
           </VStack>
         </Card.Root>

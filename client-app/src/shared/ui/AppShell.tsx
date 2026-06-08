@@ -110,7 +110,7 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
         )}
 
         {/* Scrollable content — fills remaining space exactly */}
-        <Box flex="1" overflowY="auto" minW={0}>
+        <Box flex="1" overflowY="auto" overflowX="hidden" minW={0}>
           {children}
         </Box>
       </Flex>
