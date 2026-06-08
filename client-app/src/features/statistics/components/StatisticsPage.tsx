@@ -452,7 +452,7 @@ const StatisticsPage: React.FC = () => {
           <Card.Root bg={cardBg}>
             <Card.Header>
               <HStack gap={2}>
-                <Box color="info.text">
+                <Box color="gold.text">
                   <LuUsers />
                 </Box>
                 <Heading size="md">Top Tournament Creators</Heading>
@@ -489,7 +489,7 @@ const StatisticsPage: React.FC = () => {
                           </Text>
                         </HStack>
                         <HStack gap={2}>
-                          <Badge colorPalette="verdigris" variant="subtle">
+                          <Badge colorPalette="brass" variant="subtle">
                             {c.tournamentsCreated} created
                           </Badge>
                           {c.completed > 0 && (
