@@ -216,7 +216,7 @@ const StatisticsPage: React.FC = () => {
             label="Total Tournaments"
             value={stats.tournaments.total}
             icon={<LuTrophy />}
-            colorPalette="brass"
+            colorPalette="crimson"
           />
           <StatCard
             label="Active Tournaments"
@@ -234,7 +234,7 @@ const StatisticsPage: React.FC = () => {
             label="Completed Tournaments"
             value={stats.tournaments.completed}
             icon={<LuCircleCheck />}
-            colorPalette="verdigris"
+            colorPalette="gray"
             sub={`of ${stats.tournaments.total} total`}
           />
         </SimpleGrid>
