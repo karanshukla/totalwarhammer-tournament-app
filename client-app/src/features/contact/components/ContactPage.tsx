@@ -43,15 +43,15 @@ const FaqItem: React.FC<FaqItemProps> = ({ question, children }) => {
         _hover={{ bg: "bg.muted" }}
       >
         <HStack justifyContent="space-between">
-          <Text fontWeight="medium" fontSize="sm">
+          <Text fontWeight="medium" fontSize="md">
             {question}
           </Text>
-          {open ? <LuChevronUp size={14} /> : <LuChevronDown size={14} />}
+          {open ? <LuChevronUp size={16} /> : <LuChevronDown size={16} />}
         </HStack>
       </Collapsible.Trigger>
       <Collapsible.Content>
         <Box px={3} pb={3} pt={1}>
-          <Text fontSize="sm" color="fg.muted">
+          <Text fontSize="md" color="fg.muted">
             {children}
           </Text>
         </Box>
@@ -134,15 +134,15 @@ const ContactPage: React.FC = () => {
                     justifyContent="center"
                     flexShrink={0}
                   >
-                    <Text fontSize="xs" fontWeight="bold" color="fg.secondary">
+                    <Text fontSize="sm" fontWeight="bold" color="fg.secondary">
                       {step}
                     </Text>
                   </Box>
                   <VStack gap={0} alignItems="flex-start">
-                    <Text fontSize="sm" fontWeight="semibold">
+                    <Text fontSize="md" fontWeight="semibold">
                       {title}
                     </Text>
-                    <Text fontSize="xs" color="fg.muted">
+                    <Text fontSize="sm" color="fg.muted">
                       {desc}
                     </Text>
                   </VStack>
@@ -160,18 +160,18 @@ const ContactPage: React.FC = () => {
                 <HStack mb={2}>
                   <Badge colorPalette="ink">Single Elimination</Badge>
                 </HStack>
-                <Text fontSize="sm" color="fg.muted" mb={2}>
+                <Text fontSize="md" color="fg.muted" mb={2}>
                   Lose once and you're out. Best for quick events with a
                   definitive winner.
                 </Text>
                 <VStack gap={1} alignItems="flex-start">
-                  <Text fontSize="xs" color="fg.muted">
+                  <Text fontSize="sm" color="fg.muted">
                     • Rounds: ⌈log₂(n)⌉
                   </Text>
-                  <Text fontSize="xs" color="fg.muted">
+                  <Text fontSize="sm" color="fg.muted">
                     • Non-power-of-2 player counts get byes in round 1
                   </Text>
-                  <Text fontSize="xs" color="fg.muted">
+                  <Text fontSize="sm" color="fg.muted">
                     • Minimum 2 players
                   </Text>
                 </VStack>
@@ -180,18 +180,18 @@ const ContactPage: React.FC = () => {
                 <HStack mb={2}>
                   <Badge colorPalette="ink">Double Elimination</Badge>
                 </HStack>
-                <Text fontSize="sm" color="fg.muted" mb={2}>
+                <Text fontSize="md" color="fg.muted" mb={2}>
                   Two losses to be eliminated. Winners and Losers brackets run
                   in parallel, meeting at the Grand Final.
                 </Text>
                 <VStack gap={1} alignItems="flex-start">
-                  <Text fontSize="xs" color="fg.muted">
+                  <Text fontSize="sm" color="fg.muted">
                     • Winners bracket → Losers bracket on first loss
                   </Text>
-                  <Text fontSize="xs" color="fg.muted">
+                  <Text fontSize="sm" color="fg.muted">
                     • Grand Final can reset if Losers finalist wins
                   </Text>
-                  <Text fontSize="xs" color="fg.muted">
+                  <Text fontSize="sm" color="fg.muted">
                     • Minimum 4 players
                   </Text>
                 </VStack>
@@ -200,18 +200,18 @@ const ContactPage: React.FC = () => {
                 <HStack mb={2}>
                   <Badge colorPalette="verdigris">Swiss System</Badge>
                 </HStack>
-                <Text fontSize="sm" color="fg.muted" mb={2}>
+                <Text fontSize="md" color="fg.muted" mb={2}>
                   Nobody is eliminated. Players are paired against others with
                   the same record each round. Best overall standings wins.
                 </Text>
                 <VStack gap={1} alignItems="flex-start">
-                  <Text fontSize="xs" color="fg.muted">
+                  <Text fontSize="sm" color="fg.muted">
                     • Rounds: ⌈log₂(n)⌉ (e.g. 8 players = 3 rounds)
                   </Text>
-                  <Text fontSize="xs" color="fg.muted">
+                  <Text fontSize="sm" color="fg.muted">
                     • Odd player counts get a bye each round
                   </Text>
-                  <Text fontSize="xs" color="fg.muted">
+                  <Text fontSize="sm" color="fg.muted">
                     • No rematches within the same tournament
                   </Text>
                 </VStack>
@@ -220,18 +220,18 @@ const ContactPage: React.FC = () => {
                 <HStack mb={2}>
                   <Badge colorPalette="ink">Round Robin</Badge>
                 </HStack>
-                <Text fontSize="sm" color="fg.muted" mb={2}>
+                <Text fontSize="md" color="fg.muted" mb={2}>
                   Everyone plays everyone. Most comprehensive format - the
                   player with the best overall record wins.
                 </Text>
                 <VStack gap={1} alignItems="flex-start">
-                  <Text fontSize="xs" color="fg.muted">
+                  <Text fontSize="sm" color="fg.muted">
                     • Rounds: n−1 (even) or n (odd players)
                   </Text>
-                  <Text fontSize="xs" color="fg.muted">
+                  <Text fontSize="sm" color="fg.muted">
                     • All matches are generated upfront
                   </Text>
-                  <Text fontSize="xs" color="fg.muted">
+                  <Text fontSize="sm" color="fg.muted">
                     • Organiser finalises after all matches complete
                   </Text>
                 </VStack>
@@ -246,27 +246,27 @@ const ContactPage: React.FC = () => {
             <VStack gap={2} alignItems="flex-start">
               <HStack>
                 <LuShieldAlert />
-                <Text fontWeight="semibold" fontSize="sm">
+                <Text fontWeight="semibold" fontSize="md">
                   Organiser (creator)
                 </Text>
               </HStack>
               <VStack gap={1} alignItems="flex-start" pl={6}>
-                <Text fontSize="xs" color="fg.muted">
+                <Text fontSize="sm" color="fg.muted">
                   • Start and delete tournaments
                 </Text>
-                <Text fontSize="xs" color="fg.muted">
+                <Text fontSize="sm" color="fg.muted">
                   • Add and remove participants
                 </Text>
-                <Text fontSize="xs" color="fg.muted">
+                <Text fontSize="sm" color="fg.muted">
                   • Record match results directly
                 </Text>
-                <Text fontSize="xs" color="fg.muted">
+                <Text fontSize="sm" color="fg.muted">
                   • Override disputed results with a reason
                 </Text>
-                <Text fontSize="xs" color="fg.muted">
+                <Text fontSize="sm" color="fg.muted">
                   • Advance rounds / finalise the tournament
                 </Text>
-                <Text fontSize="xs" color="fg.muted">
+                <Text fontSize="sm" color="fg.muted">
                   • Edit participant names and factions
                 </Text>
               </VStack>
@@ -274,26 +274,26 @@ const ContactPage: React.FC = () => {
             <VStack gap={2} alignItems="flex-start">
               <HStack>
                 <LuUser />
-                <Text fontWeight="semibold" fontSize="sm">
+                <Text fontWeight="semibold" fontSize="md">
                   Player (participant)
                 </Text>
               </HStack>
               <VStack gap={1} alignItems="flex-start" pl={6}>
-                <Text fontSize="xs" color="fg.muted">
+                <Text fontSize="sm" color="fg.muted">
                   • Join tournaments via code or tournament page
                 </Text>
-                <Text fontSize="xs" color="fg.muted">
+                <Text fontSize="sm" color="fg.muted">
                   • Report who won your match
                 </Text>
-                <Text fontSize="xs" color="fg.muted">
+                <Text fontSize="sm" color="fg.muted">
                   • If both players report the same winner, result confirms
                   automatically
                 </Text>
-                <Text fontSize="xs" color="fg.muted">
+                <Text fontSize="sm" color="fg.muted">
                   • If reports conflict, match is marked Disputed for organiser
                   resolution
                 </Text>
-                <Text fontSize="xs" color="fg.muted">
+                <Text fontSize="sm" color="fg.muted">
                   • View standings and bracket at any time
                 </Text>
               </VStack>
@@ -304,7 +304,7 @@ const ContactPage: React.FC = () => {
         {/* Result Reporting */}
         <Section icon={<LuCircleCheck />} title="Reporting Match Results">
           <VStack gap={3} align="stretch">
-            <Text fontSize="sm" color="fg.muted">
+            <Text fontSize="md" color="fg.muted">
               Match results can be submitted by players or recorded directly by
               the organiser.
             </Text>
@@ -317,14 +317,14 @@ const ContactPage: React.FC = () => {
                 borderColor="status.win.border"
               >
                 <Text
-                  fontSize="xs"
+                  fontSize="sm"
                   fontWeight="semibold"
                   color="status.win"
                   mb={1}
                 >
                   Both agree
                 </Text>
-                <Text fontSize="xs" color="fg.muted">
+                <Text fontSize="sm" color="fg.muted">
                   Both players report the same winner → match completes
                   automatically.
                 </Text>
@@ -337,14 +337,14 @@ const ContactPage: React.FC = () => {
                 borderColor="status.loss.border"
               >
                 <Text
-                  fontSize="xs"
+                  fontSize="sm"
                   fontWeight="semibold"
                   color="status.loss"
                   mb={1}
                 >
                   Conflict
                 </Text>
-                <Text fontSize="xs" color="fg.muted">
+                <Text fontSize="sm" color="fg.muted">
                   Players report different winners → match is marked Disputed.
                   Organiser resolves with an optional reason.
                 </Text>
@@ -357,14 +357,14 @@ const ContactPage: React.FC = () => {
                 borderColor="border"
               >
                 <Text
-                  fontSize="xs"
+                  fontSize="sm"
                   fontWeight="semibold"
                   color="fg.secondary"
                   mb={1}
                 >
                   Organiser override
                 </Text>
-                <Text fontSize="xs" color="fg.muted">
+                <Text fontSize="sm" color="fg.muted">
                   Organiser can override any result at any time, even completed
                   ones, with a logged reason.
                 </Text>
@@ -376,7 +376,7 @@ const ContactPage: React.FC = () => {
         {/* Join Codes */}
         <Section icon={<LuHash />} title="Join Codes">
           <VStack gap={2} align="stretch">
-            <Text fontSize="sm" color="fg.muted">
+            <Text fontSize="md" color="fg.muted">
               Every tournament has a unique 6-character join code (e.g.{" "}
               <Text as="span" fontFamily="mono" fontWeight="bold">
                 ABC123
@@ -385,13 +385,13 @@ const ContactPage: React.FC = () => {
               link.
             </Text>
             <HStack gap={4} flexWrap="wrap">
-              <Text fontSize="xs" color="fg.muted">
+              <Text fontSize="sm" color="fg.muted">
                 • Enter the code on the Home page
               </Text>
-              <Text fontSize="xs" color="fg.muted">
+              <Text fontSize="sm" color="fg.muted">
                 • Codes are case-insensitive
               </Text>
-              <Text fontSize="xs" color="fg.muted">
+              <Text fontSize="sm" color="fg.muted">
                 • Joining is only possible while the tournament is in Pending
                 status
               </Text>
@@ -402,45 +402,45 @@ const ContactPage: React.FC = () => {
         {/* Guest Users */}
         <Section icon={<LuInfo />} title="Guest vs. Registered Accounts">
           <VStack gap={2} align="stretch">
-            <Text fontSize="sm" color="fg.muted">
+            <Text fontSize="md" color="fg.muted">
               You can use the app as a guest without signing up, but there are
               some limitations:
             </Text>
             <SimpleGrid columns={{ base: 1, md: 2 }} gap={3}>
               <Box p={3} borderRadius="md" borderWidth={1} borderColor="border">
-                <Text fontSize="xs" fontWeight="semibold" mb={1}>
+                <Text fontSize="sm" fontWeight="semibold" mb={1}>
                   Guest users can:
                 </Text>
                 <VStack gap={1} alignItems="flex-start">
-                  <Text fontSize="xs" color="fg.muted">
+                  <Text fontSize="sm" color="fg.muted">
                     • Join tournaments via code
                   </Text>
-                  <Text fontSize="xs" color="fg.muted">
+                  <Text fontSize="sm" color="fg.muted">
                     • Report match results
                   </Text>
-                  <Text fontSize="xs" color="fg.muted">
+                  <Text fontSize="sm" color="fg.muted">
                     • View standings and brackets
                   </Text>
-                  <Text fontSize="xs" color="fg.muted">
+                  <Text fontSize="sm" color="fg.muted">
                     • Set a display name (Guest_XXXX by default)
                   </Text>
                 </VStack>
               </Box>
               <Box p={3} borderRadius="md" borderWidth={1} borderColor="border">
-                <Text fontSize="xs" fontWeight="semibold" mb={1}>
+                <Text fontSize="sm" fontWeight="semibold" mb={1}>
                   Registered users also can:
                 </Text>
                 <VStack gap={1} alignItems="flex-start">
-                  <Text fontSize="xs" color="fg.muted">
+                  <Text fontSize="sm" color="fg.muted">
                     • Create tournaments
                   </Text>
-                  <Text fontSize="xs" color="fg.muted">
+                  <Text fontSize="sm" color="fg.muted">
                     • Persistent account across sessions
                   </Text>
-                  <Text fontSize="xs" color="fg.muted">
+                  <Text fontSize="sm" color="fg.muted">
                     • Appear in Statistics
                   </Text>
-                  <Text fontSize="xs" color="fg.muted">
+                  <Text fontSize="sm" color="fg.muted">
                     • "Remember me" login for 30-day sessions
                   </Text>
                 </VStack>
@@ -519,7 +519,7 @@ const ContactPage: React.FC = () => {
               <HStack key={key} gap={2}>
                 <Text
                   as="kbd"
-                  fontSize="xs"
+                  fontSize="sm"
                   fontFamily="mono"
                   px={2}
                   py={1}
@@ -530,7 +530,7 @@ const ContactPage: React.FC = () => {
                 >
                   {key}
                 </Text>
-                <Text fontSize="xs" color="fg.muted">
+                <Text fontSize="sm" color="fg.muted">
                   {label}
                 </Text>
               </HStack>
