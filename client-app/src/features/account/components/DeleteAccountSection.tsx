@@ -62,6 +62,7 @@ const DeleteAccountSection: React.FC = () => {
           </Button>
           <Button
             variant="outline"
+            colorPalette="ink"
             size="sm"
             onClick={() => setConfirming(false)}
           >

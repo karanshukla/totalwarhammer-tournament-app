@@ -140,6 +140,7 @@ export function AuthenticationForm() {
           </Text>
           <Button
             variant="outline"
+            colorPalette="ink"
             width="full"
             onClick={handleGuestLogin}
             loading={formState.isCreatingGuest}
@@ -155,7 +156,8 @@ export function AuthenticationForm() {
 
           <Separator />
           <Button
-            variant="solid"
+            variant="outline"
+            colorPalette="ink"
             width="full"
             onClick={handlePasswordResetClick}
           >

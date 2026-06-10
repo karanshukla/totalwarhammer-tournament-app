@@ -264,6 +264,7 @@ const TournamentList: React.FC<Props> = ({
               <Button
                 size="sm"
                 variant="outline"
+                colorPalette="ink"
                 onClick={() => onPageChange(Math.max(1, page - 1))}
                 disabled={page === 1}
               >
@@ -275,6 +276,7 @@ const TournamentList: React.FC<Props> = ({
               <Button
                 size="sm"
                 variant="outline"
+                colorPalette="ink"
                 onClick={() => onPageChange(Math.min(totalPages, page + 1))}
                 disabled={page === totalPages}
               >

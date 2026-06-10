@@ -81,6 +81,7 @@ const HowItWorksSection: React.FC = () => (
         </Button>
         <Button
           variant="outline"
+          colorPalette="crimson"
           onClick={() =>
             document.dispatchEvent(
               new CustomEvent("auth-event", {

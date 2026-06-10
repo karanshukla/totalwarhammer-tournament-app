@@ -42,6 +42,7 @@ export const LogoutButton: React.FC<LogoutButtonProps> = ({
   return (
     <Button
       variant={variant}
+      colorPalette="ink"
       size={size}
       onClick={handleLogout}
       loading={isLoading}

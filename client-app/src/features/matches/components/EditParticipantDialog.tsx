@@ -106,7 +106,7 @@ const EditParticipantDialog: React.FC<Props> = ({
               borderColor={borderColor}
               gap={3}
             >
-              <Button variant="outline" onClick={onClose}>
+              <Button variant="outline" colorPalette="ink" onClick={onClose}>
                 Cancel
               </Button>
               <Button

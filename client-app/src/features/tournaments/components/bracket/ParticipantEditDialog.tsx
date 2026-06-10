@@ -142,6 +142,7 @@ export function ParticipantEditDialog({
                   ref={cancelRef}
                   onClick={onClose}
                   variant="outline"
+                  colorPalette="ink"
                   width={{ base: "full", sm: "auto" }}
                 >
                   Cancel
