@@ -20,7 +20,7 @@
     "format:check": "npm run format:check --workspace=client-app && npm run format:check --workspace=server-app"
   },
   "devDependencies": {
-    "concurrently": "^9.1.2",
+    "concurrently": "^10.0.3",
     "lodash": "^4.18.1"
   },
   "overrides": {
