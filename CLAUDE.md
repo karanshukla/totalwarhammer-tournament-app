@@ -16,10 +16,10 @@ npm run dev:server       # server only (nodemon)
 ### Testing
 
 ```bash
-npm run test:client              # Vitest (one-off)
-npm run test:client:watch        # Vitest watch mode
-npm run test:server              # Node test runner with coverage
-npm run test:server:watch        # Node test runner watch mode
+npm run test --workspace=client-app        # Vitest (one-off)
+npm run test:watch --workspace=client-app  # Vitest watch mode
+npm run test --workspace=server-app        # Node test runner
+npm run test:watch --workspace=server-app  # Node test runner watch mode
 ```
 
 To run a single test file (server):
@@ -72,12 +72,17 @@ The Chakra UI v3 theme is defined in a single file — **not** a `theme/` direct
 
 | Category | Tokens |
 |----------|--------|
-| Backgrounds | `bg.canvas`, `bg.surface`, `bg.subtle`, `bg.elevated` |
+| Backgrounds | `bg.canvas`, `bg.surface`, `bg.subtle`, `bg.muted`, `bg.elevated`, `bg.panel` |
+| Borders | `border` (default), `border.muted`, `border.subtle`, `border.emphasized` |
 | Text | `fg.primary`, `fg.secondary`, `fg.muted` |
-| Brand (crimson) | `brand.solid`, `brand.hover`, `brand.text`, `brand.subtle`, `brand.border` |
-| Gold (brass) | `gold.solid`, `gold.text`, `gold.subtle`, `gold.border` |
-| Info (verdigris) | `info.solid`, `info.text`, `info.subtle`, `info.border` |
-| Match status | `status.win`, `status.loss`, `status.draw`, `status.live`, `status.pending` |
+| Brand (crimson) | `brand.solid`, `brand.hover`, `brand.active`, `brand.text`, `brand.subtle`, `brand.border`, `brand.fg` |
+| Gold (brass) | `gold.solid`, `gold.hover`, `gold.text`, `gold.subtle`, `gold.border`, `gold.fg` |
+| Info (verdigris) | `info.solid`, `info.hover`, `info.text`, `info.subtle`, `info.border`, `info.fg` |
+| Match status | `status.win`, `status.win.subtle`, `status.win.border` |
+| | `status.loss`, `status.loss.subtle`, `status.loss.border` |
+| | `status.draw`, `status.draw.subtle`, `status.draw.border` |
+| | `status.live`, `status.live.subtle` |
+| | `status.pending`, `status.pending.subtle`, `status.pending.border` |
 
 #### Typography
 
@@ -88,14 +93,46 @@ The Chakra UI v3 theme is defined in a single file — **not** a `theme/` direct
 | Barlow | `fontFamily="body"` | Body text |
 | JetBrains Mono | `fontFamily="mono"` | Scores, IDs, codes |
 
-#### Button & Badge recipes
+#### Buttons & Badges
 
-- **Buttons**: use `recipe={buttonRecipe} visual="solid|gold|info|outline"` — never `colorScheme` (v2 API)
-  - `solid` (crimson) = primary CTA (Join, Register, Submit)
-  - `gold` (brass) = champion actions (Seed Bracket)
-  - `info` (verdigris) = view/active actions (Submit Result)
-  - `outline` = secondary actions (Cancel, View Pairings)
-- **Badges**: use `recipe={badgeRecipe} status="live|win|loss|draw|pending"` — never hardcode badge colours
+Chakra v3 uses `colorPalette` + `variant` — never `colorScheme` (v2 API), and there is no custom `buttonRecipe` or `badgeRecipe` in this codebase.
+
+**Buttons** — `colorPalette` maps to intent:
+- `colorPalette="crimson" variant="solid"` — primary CTA (Join, Register, Submit)
+- `colorPalette="brass" variant="solid"` — champion actions (Seed Bracket)
+- `colorPalette="verdigris" variant="outline"` — view/active actions (Submit Result)
+- `colorPalette="ink" variant="outline"` — secondary/neutral actions (Cancel, Override)
+- `variant="ghost"` — icon-only or inline controls
+
+**Badges** — use semantic token `bg`/`color`/`borderColor` props directly, or `colorPalette`:
+- Status badges in `MatchCard` use inline semantic tokens (`bg="status.win.subtle"`, `color="status.win"`, etc.) for fine-grained control
+
+#### Chakra UI v3 compound components
+
+Tooltip and Popover use the compound-component (Ark UI) API — not the v2 single-component API:
+
+```tsx
+import { Popover, Tooltip } from "@chakra-ui/react"
+
+// Popover
+<Popover.Root>
+  <Popover.Trigger asChild><Button>click</Button></Popover.Trigger>
+  <Popover.Positioner>
+    <Popover.Content>
+      <Popover.Arrow><Popover.ArrowTip /></Popover.Arrow>
+      <Popover.Body>content</Popover.Body>
+    </Popover.Content>
+  </Popover.Positioner>
+</Popover.Root>
+
+// Tooltip
+<Tooltip.Root>
+  <Tooltip.Trigger asChild><span>hover</span></Tooltip.Trigger>
+  <Tooltip.Positioner>
+    <Tooltip.Content><Tooltip.Arrow />text</Tooltip.Content>
+  </Tooltip.Positioner>
+</Tooltip.Root>
+```
 
 #### Rules
 - Never use a raw hex value for a UI colour — map it to a semantic token first
@@ -113,7 +150,7 @@ The Chakra UI v3 theme is defined in a single file — **not** a `theme/` direct
 - **CSRF**: All mutating requests require a CSRF token. The client fetches it from `GET /auth/csrf-token`; the server validates via `csrf-csrf`.
 - **Auth**: Session-based. Guest users get a UUID identity stored in session. Registered users use bcrypt-hashed passwords. A PKCE-like flow exists for OAuth-style registration.
 - **Real-time**: Socket.IO with Redis pub/sub adapter (falls back to MongoDB adapter). Match result changes broadcast to all clients watching a tournament.
-- **Match result flow**: Both participants report independently → if consensus, auto-complete + broadcast; if conflict, status becomes `disputed`; tournament creator can resolve or override.
+- **Match result flow**: Both participants report independently → if consensus, auto-complete + broadcast; if conflict, status becomes `disputed`; tournament creator can resolve or override. Overrides are stored as an array of `resultOverrides` on each match document (`{ newWinnerId, previousWinnerId, overriddenBy, reason, overriddenAt }`); the reason is surfaced on the `MatchCard` via a Popover.
 - **Environment config**: `infrastructure/config/env-loader.js` loads `.env` from the repo root; `infrastructure/config/env.js` exports values per `NODE_ENV`. Three environment profiles: `development.js`, `production.js`, `test.js`.
 
 ### Key environment variables
@@ -150,5 +187,9 @@ Log levels used across the codebase:
 GitHub Actions workflows in `.github/workflows/`:
 - `clientTests.yml` — Vitest on client changes
 - `serverTests.yml` — Node test runner with a MongoDB service container
-- `sync-main-to-dev.yml` — auto-merges main → dev after push; opens PR on conflict
+- `authBoundaries.yml` — auth/session boundary integration tests ("Skaven Underway Tests")
+- `coverage.yml` — test coverage reporting
+- `codacy.yml` — Codacy security scan
+- `zapScan.yml` — OWASP ZAP API security scan
 - `claude-code-review.yml` — automated review via Claude
+- `claude.yml` — Claude Code agent integration

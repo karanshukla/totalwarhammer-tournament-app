@@ -8,6 +8,8 @@ import {
   Badge,
   Button,
   Input,
+  Popover,
+  Separator,
 } from "@chakra-ui/react";
 import {
   LuCircleCheck,
@@ -15,6 +17,7 @@ import {
   LuSwords,
   LuShieldAlert,
   LuTrophy,
+  LuTriangleAlert,
 } from "react-icons/lu";
 
 interface MatchData {
@@ -134,33 +137,108 @@ const MatchCard: React.FC<MatchCardProps> = ({
         <Text fontSize="xs" color="fg.muted">
           Match {m.matchNumber}
         </Text>
-        {m.status === "completed" && (
-          <Badge
-            size="sm"
-            variant="subtle"
-            bg="status.win.subtle"
-            color="status.win"
-            borderColor="status.win.border"
-            borderWidth="1px"
-          >
-            <LuCircleCheck /> Completed
-          </Badge>
-        )}
-        {m.status === "disputed" && (
-          <Badge colorPalette="crimson" size="sm" variant="solid">
-            ⚠ Disputed
-          </Badge>
-        )}
-        {m.status === "in_progress" && (
-          <Badge colorPalette="verdigris" size="sm" variant="subtle">
-            <LuClock /> In Progress
-          </Badge>
-        )}
-        {m.status === "pending" && (
-          <Badge colorPalette="ink" size="sm" variant="subtle">
-            Pending
-          </Badge>
-        )}
+        <HStack gap={1}>
+          {m.resultOverrides.length > 0 && (
+            <Popover.Root>
+              <Popover.Trigger asChild>
+                <Button
+                  size="xs"
+                  variant="ghost"
+                  color="gold.text"
+                  _hover={{ bg: "gold.subtle" }}
+                  px={1}
+                  minW="auto"
+                  height="auto"
+                  py="1px"
+                >
+                  <LuTriangleAlert />
+                  {m.resultOverrides.length > 1
+                    ? `${m.resultOverrides.length}× `
+                    : ""}
+                  Overridden
+                </Button>
+              </Popover.Trigger>
+              <Popover.Positioner>
+                <Popover.Content maxW="300px">
+                  <Popover.Arrow>
+                    <Popover.ArrowTip />
+                  </Popover.Arrow>
+                  <Popover.Body p={3}>
+                    <VStack gap={2} alignItems="stretch">
+                      <Text
+                        fontSize="xs"
+                        fontWeight="bold"
+                        fontFamily="cond"
+                        color="fg.secondary"
+                        textTransform="uppercase"
+                        letterSpacing="wide"
+                      >
+                        Result Override History
+                      </Text>
+                      {m.resultOverrides.map((o, i) => {
+                        const newWinnerName =
+                          o.newWinnerId === m.player1.participantId
+                            ? dn(m.player1.name)
+                            : dn(m.player2.name);
+                        return (
+                          <Box key={i}>
+                            {i > 0 && <Separator mb={2} />}
+                            <Text fontSize="xs" color="fg.primary">
+                              Winner set to{" "}
+                              <Text as="span" fontWeight="bold">
+                                {newWinnerName}
+                              </Text>
+                            </Text>
+                            <Text
+                              fontSize="xs"
+                              color={o.reason ? "fg.muted" : "fg.muted"}
+                              fontStyle={o.reason ? "italic" : "normal"}
+                              mt="2px"
+                            >
+                              {o.reason
+                                ? `"${o.reason}"`
+                                : "No reason provided"}
+                            </Text>
+                            <Text fontSize="2xs" color="fg.muted" mt="2px">
+                              {new Date(o.overriddenAt).toLocaleString()}
+                            </Text>
+                          </Box>
+                        );
+                      })}
+                    </VStack>
+                  </Popover.Body>
+                </Popover.Content>
+              </Popover.Positioner>
+            </Popover.Root>
+          )}
+          {m.status === "completed" && (
+            <Badge
+              size="sm"
+              variant="subtle"
+              bg="status.win.subtle"
+              color="status.win"
+              borderColor="status.win.border"
+              borderWidth="1px"
+            >
+              <LuCircleCheck /> Completed
+            </Badge>
+          )}
+          {m.status === "disputed" && (
+            <Badge colorPalette="crimson" size="sm" variant="solid">
+              ⚠ Disputed
+            </Badge>
+          )}
+          {m.status === "in_progress" && (
+            <Badge colorPalette="verdigris" size="sm" variant="subtle">
+              <LuClock /> In Progress
+            </Badge>
+          )}
+          {m.status === "pending" && (
+            <Badge colorPalette="ink" size="sm" variant="subtle">
+              Pending
+            </Badge>
+          )}
+        </HStack>
       </HStack>
       <HStack gap={4} justifyContent="space-between" wrap="wrap">
         <VStack alignItems="flex-start" gap={0} flex={1}>
@@ -531,7 +609,15 @@ const MatchCard: React.FC<MatchCardProps> = ({
             </HStack>
             {m.resultOverrides.length > 0 && (
               <Text fontSize="xs" color="fg.muted">
-                {m.resultOverrides.length} previous override(s)
+                This match has been overridden{" "}
+                {m.resultOverrides.length === 1
+                  ? "once"
+                  : `${m.resultOverrides.length} times`}{" "}
+                — see the{" "}
+                <Text as="span" color="gold.text" fontStyle="italic">
+                  Overridden
+                </Text>{" "}
+                badge above for details.
               </Text>
             )}
           </VStack>
