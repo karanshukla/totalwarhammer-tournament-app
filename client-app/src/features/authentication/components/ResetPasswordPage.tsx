@@ -53,27 +53,6 @@ const ResetPasswordPage: React.FC = () => {
     resolver: zodResolver(resetPasswordFormSchema),
   });
 
-  // Extract token from URL on component mount
-  useEffect(() => {
-    const queryParams = new URLSearchParams(window.location.search);
-    const token = queryParams.get("token");
-
-    if (!token) {
-      setIsTokenValid(false);
-      setIsLoading(false);
-      toaster.create({
-        title: "Invalid Request",
-        description:
-          "No reset token found in the URL. Please request a new password reset link.",
-        type: "error",
-      });
-      return;
-    }
-
-    setResetToken(token);
-    verifyToken(token);
-  }, []);
-
   // Verify if token is valid
   const verifyToken = async (token: string) => {
     try {
@@ -95,6 +74,27 @@ const ResetPasswordPage: React.FC = () => {
       setIsLoading(false);
     }
   };
+
+  // Extract token from URL on component mount
+  useEffect(() => {
+    const queryParams = new URLSearchParams(window.location.search);
+    const token = queryParams.get("token");
+
+    if (!token) {
+      setIsTokenValid(false);
+      setIsLoading(false);
+      toaster.create({
+        title: "Invalid Request",
+        description:
+          "No reset token found in the URL. Please request a new password reset link.",
+        type: "error",
+      });
+      return;
+    }
+
+    setResetToken(token);
+    verifyToken(token);
+  }, []);
 
   // Handle form submission
   const onSubmit = async (data: ResetPasswordFormValues) => {

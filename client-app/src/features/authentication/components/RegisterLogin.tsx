@@ -87,7 +87,12 @@ export const RegisterLogin = () => {
 
   return (
     <>
-      <Button variant="outline" colorPalette="crimson" size="sm" onClick={handleClick}>
+      <Button
+        variant="outline"
+        colorPalette="crimson"
+        size="sm"
+        onClick={handleClick}
+      >
         Register/Login
       </Button>
       <drawer.Viewport />

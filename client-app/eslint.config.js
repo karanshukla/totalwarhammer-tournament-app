@@ -36,6 +36,8 @@ export default [
         "warn",
         { allowConstantExport: true },
       ],
+      "react-hooks/set-state-in-effect": "warn",
+      "react-hooks/refs": "warn",
     },
   },
   // TypeScript configuration
@@ -73,6 +75,8 @@ export default [
         "warn",
         { allowConstantExport: true },
       ],
+      "react-hooks/set-state-in-effect": "warn",
+      "react-hooks/refs": "warn",
     },
   },
 ];

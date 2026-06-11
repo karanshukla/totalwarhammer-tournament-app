@@ -225,7 +225,12 @@ const TournamentDetail: React.FC<Props> = ({
           <HStack gap={3} color="fg.muted" fontSize="sm" wrap="wrap">
             <Text>{selected.tournamentType}</Text>
             {selected.enable40kFactions && (
-              <Badge size="xs" variant="subtle" bg="gold.subtle" color="gold.text">
+              <Badge
+                size="xs"
+                variant="subtle"
+                bg="gold.subtle"
+                color="gold.text"
+              >
                 <LuFlaskConical size={9} />
                 40K Beta
               </Badge>

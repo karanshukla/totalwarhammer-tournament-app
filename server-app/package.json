@@ -51,17 +51,17 @@
     "xss": "^1.0.15"
   },
   "devDependencies": {
-    "@eslint/js": "^9.26.0",
+    "@eslint/js": "^10.0.0",
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.9",
     "@types/passport": "^1.0.17",
     "@types/passport-local": "^1.0.38",
-    "eslint": "^9.26.0",
+    "eslint": "^10.0.0",
     "eslint-config-prettier": "^10.1.2",
-    "eslint-plugin-import": "^2.31.0",
-    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-import-x": "^4.0.0",
+    "eslint-plugin-n": "^17.0.0",
     "eslint-plugin-prettier": "^5.4.0",
-    "globals": "^16.0.0",
+    "globals": "^17.0.0",
     "nodemon": "^3.1.10",
     "prettier": "^3.0.0"
   }

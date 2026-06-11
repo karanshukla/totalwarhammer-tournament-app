@@ -411,7 +411,7 @@ class HttpClient {
     if (!response.ok) {
       let errorMessage = `Error ${response.status}: ${response.statusText}`;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      let errorData: any = {};
+      let errorData: any;
 
       try {
         errorData = await response.json();
@@ -429,7 +429,7 @@ class HttpClient {
         // If parsing failed, throw with the original error
         if (e instanceof Error && e.message !== errorMessage) {
           console.error("Error parsing error response:", e);
-          throw new Error(errorMessage);
+          throw new Error(errorMessage, { cause: e });
         }
         throw e;
       }
