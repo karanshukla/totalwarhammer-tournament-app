@@ -143,7 +143,7 @@ const MatchesPage: React.FC = () => {
       const isParticipant = t.participants?.some(
         (p) => p.name.trim().toLowerCase() === lowerName || p.name === user?.id,
       );
-      navigate(isParticipant ? `#${t._id}` : `/t/${code}`);
+      navigate(isParticipant ? `/matches/${code}` : `/matches/spectate/${code}`);
       setCodeInput("");
     } catch {
       setCodeError("No tournament found with that code.");
@@ -382,7 +382,7 @@ const MatchesPage: React.FC = () => {
     async (t: Tournament) => {
       setSelected(t);
       setActionError(null);
-      navigate(`#${t._id}`);
+      navigate(t.code ? `/matches/${t.code}` : `#${t._id}`);
       if (t.status === "active" || t.status === "completed") {
         await fetchMatches(t._id);
       } else {

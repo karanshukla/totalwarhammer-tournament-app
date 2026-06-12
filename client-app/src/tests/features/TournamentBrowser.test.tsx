@@ -199,6 +199,7 @@ describe("TournamentBrowser", () => {
       data: [
         makeTournament({
           _id: "tid1",
+          code: "JOIN01",
           status: "pending",
           playerCount: 8,
           participants: [],
@@ -210,7 +211,7 @@ describe("TournamentBrowser", () => {
       screen.getByRole("button", { name: /join tournament/i }),
     );
     await user.click(screen.getByRole("button", { name: /join tournament/i }));
-    expect(mockNavigate).toHaveBeenCalledWith("/tournament/tid1");
+    expect(mockNavigate).toHaveBeenCalledWith("/matches/spectate/JOIN01");
   });
 
   it("shows Joined badge when user has already joined", async () => {
@@ -248,6 +249,7 @@ describe("TournamentBrowser", () => {
       data: [
         makeTournament({
           _id: "t42",
+          code: "T42CUP",
           status: "pending",
           participants: [{ _id: "p1", name: "testuser", faction: "Empire" }],
         }),
@@ -256,7 +258,7 @@ describe("TournamentBrowser", () => {
     renderBrowser();
     await waitFor(() => screen.getByRole("button", { name: /matches/i }));
     await user.click(screen.getByRole("button", { name: /matches/i }));
-    expect(mockNavigate).toHaveBeenCalledWith("/matches#t42");
+    expect(mockNavigate).toHaveBeenCalledWith("/matches/T42CUP");
   });
 
   it("shows Full badge when tournament is full and user is not joined", async () => {
@@ -346,7 +348,7 @@ describe("TournamentBrowser", () => {
     renderBrowser({ statusFilter: "active" });
     await waitFor(() => screen.getByRole("button", { name: /spectate/i }));
     await user.click(screen.getByRole("button", { name: /spectate/i }));
-    expect(mockNavigate).toHaveBeenCalledWith("/t/SPEC99");
+    expect(mockNavigate).toHaveBeenCalledWith("/matches/spectate/SPEC99");
   });
 
   it("shows Participated badge for completed joined tournament", async () => {

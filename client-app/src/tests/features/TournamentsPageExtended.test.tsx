@@ -170,7 +170,7 @@ describe("TournamentsPage – code search", () => {
       screen.getByRole("button", { name: /find tournament/i }),
     );
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith("/matches#t99");
+      expect(mockNavigate).toHaveBeenCalledWith("/matches/VALIDCODE");
     });
   });
 
@@ -189,7 +189,7 @@ describe("TournamentsPage – code search", () => {
       screen.getByRole("button", { name: /find tournament/i }),
     );
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith("/t/VALIDCODE");
+      expect(mockNavigate).toHaveBeenCalledWith("/matches/spectate/VALIDCODE");
     });
   });
 
@@ -254,7 +254,7 @@ describe("TournamentsPage – code search", () => {
       screen.getByRole("button", { name: /find tournament/i }),
     );
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith("/matches#t77");
+      expect(mockNavigate).toHaveBeenCalledWith("/matches/CODE");
     });
   });
 });

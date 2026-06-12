@@ -111,9 +111,9 @@ const TournamentsPage: React.FC = () => {
         );
       });
       if (isParticipant) {
-        navigate(`/matches#${t._id}`);
+        navigate(`/matches/${code}`);
       } else {
-        navigate(`/t/${code}`);
+        navigate(`/matches/spectate/${code}`);
       }
     } catch {
       setCodeError("No tournament found with that code.");

@@ -107,7 +107,7 @@ describe("TournamentLookup", () => {
     );
 
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith("/t/ABC123");
+      expect(mockNavigate).toHaveBeenCalledWith("/matches/spectate/ABC123");
     });
   });
 
@@ -141,7 +141,7 @@ describe("TournamentLookup", () => {
     );
 
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith("/matches#t456");
+      expect(mockNavigate).toHaveBeenCalledWith("/matches/XYZ789");
     });
   });
 

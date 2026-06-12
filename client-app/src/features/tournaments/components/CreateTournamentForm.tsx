@@ -137,7 +137,7 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
     try {
       const response = (await httpClient.post("/tournament", formData)) as {
         success: boolean;
-        data: { _id: string; name: string };
+        data: { _id: string; name: string; code: string };
       };
       toaster.create({
         title: "Tournament Created",
@@ -145,7 +145,7 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
         type: "success",
         action: {
           label: "Go to Tournament",
-          onClick: () => navigate(`/matches#${response.data._id}`),
+          onClick: () => navigate(`/matches/${response.data.code}`),
         },
       });
       setFormData({

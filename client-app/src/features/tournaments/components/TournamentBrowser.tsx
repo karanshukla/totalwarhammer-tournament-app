@@ -261,7 +261,7 @@ const TournamentBrowser: React.FC<Props> = ({ statusFilter, emptyMessage }) => {
                         width="full"
                         colorPalette="crimson"
                         size="sm"
-                        onClick={() => navigate(`/tournament/${t._id}`)}
+                        onClick={() => navigate(t.code ? `/matches/spectate/${t.code}` : `/tournament/${t._id}`)}
                       >
                         <LuLogIn />
                         Join Tournament
@@ -288,7 +288,7 @@ const TournamentBrowser: React.FC<Props> = ({ statusFilter, emptyMessage }) => {
                         variant="outline"
                         size="sm"
                         colorPalette="verdigris"
-                        onClick={() => navigate(`/matches#${t._id}`)}
+                        onClick={() => navigate(t.code ? `/matches/${t.code}` : `/matches#${t._id}`)}
                       >
                         <LuSwords />
                         My Matches
@@ -302,7 +302,7 @@ const TournamentBrowser: React.FC<Props> = ({ statusFilter, emptyMessage }) => {
                         onClick={() =>
                           navigate(
                             t.code
-                              ? `/t/${t.code}`
+                              ? `/matches/spectate/${t.code}`
                               : `/tournament/${t._id}`,
                           )
                         }
