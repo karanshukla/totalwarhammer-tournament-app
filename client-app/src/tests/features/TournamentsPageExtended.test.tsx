@@ -170,7 +170,7 @@ describe("TournamentsPage – code search", () => {
       screen.getByRole("button", { name: /find tournament/i }),
     );
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith("/matches/VALIDCODE");
+      expect(mockNavigate).toHaveBeenCalledWith("/matches/tournament/VALIDCODE");
     });
   });
 
@@ -254,7 +254,7 @@ describe("TournamentsPage – code search", () => {
       screen.getByRole("button", { name: /find tournament/i }),
     );
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith("/matches/CODE");
+      expect(mockNavigate).toHaveBeenCalledWith("/matches/tournament/CODE");
     });
   });
 });

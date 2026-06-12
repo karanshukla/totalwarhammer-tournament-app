@@ -69,7 +69,7 @@ const TournamentLookup: React.FC = () => {
         );
       });
       if (isParticipant) {
-        navigate(`/matches/${trimmed}`);
+        navigate(`/matches/tournament/${trimmed}`);
       } else {
         navigate(`/matches/spectate/${trimmed}`);
       }

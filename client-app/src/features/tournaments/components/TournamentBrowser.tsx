@@ -288,7 +288,7 @@ const TournamentBrowser: React.FC<Props> = ({ statusFilter, emptyMessage }) => {
                         variant="outline"
                         size="sm"
                         colorPalette="verdigris"
-                        onClick={() => navigate(t.code ? `/matches/${t.code}` : `/matches#${t._id}`)}
+                        onClick={() => navigate(t.code ? `/matches/tournament/${t.code}` : `/matches#${t._id}`)}
                       >
                         <LuSwords />
                         My Matches

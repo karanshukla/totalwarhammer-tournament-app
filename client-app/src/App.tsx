@@ -47,8 +47,7 @@ export function App() {
             path="/matches/spectate/:code"
             element={<TournamentByCode />}
           />
-          <Route path="/matches/:code" element={<TournamentByCode />} />
-          <Route path="/matches" element={<MatchesPage />} />
+          <Route path="/matches/*" element={<MatchesPage />} />
           <Route path="/statistics" element={<StatisticsPage />} />
           <Route path="/account" element={<AccountPage />} />
           <Route path="/contact" element={<ContactPage />} />

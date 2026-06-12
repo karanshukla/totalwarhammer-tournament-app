@@ -258,7 +258,7 @@ describe("TournamentBrowser", () => {
     renderBrowser();
     await waitFor(() => screen.getByRole("button", { name: /matches/i }));
     await user.click(screen.getByRole("button", { name: /matches/i }));
-    expect(mockNavigate).toHaveBeenCalledWith("/matches/T42CUP");
+    expect(mockNavigate).toHaveBeenCalledWith("/matches/tournament/T42CUP");
   });
 
   it("shows Full badge when tournament is full and user is not joined", async () => {

@@ -177,7 +177,7 @@ const TournamentViewPage: React.FC<{ id?: string }> = ({ id: propId }) => {
       });
       setJoinSuccess(true);
       await fetchTournament();
-      navigate(`/matches/${tournament.code}`);
+      navigate(`/matches/tournament/${tournament.code}`);
     } catch (err) {
       setJoinError(
         err instanceof Error ? err.message : "Failed to join tournament",
@@ -269,7 +269,7 @@ const TournamentViewPage: React.FC<{ id?: string }> = ({ id: propId }) => {
         mb={6}
         onClick={() =>
           isParticipant || isOwner
-            ? navigate(`/matches/${tournament.code}`)
+            ? navigate(`/matches/tournament/${tournament.code}`)
             : navigate(-1)
         }
       >
@@ -459,7 +459,7 @@ const TournamentViewPage: React.FC<{ id?: string }> = ({ id: propId }) => {
             colorPalette="verdigris"
             size="sm"
             alignSelf="flex-start"
-            onClick={() => navigate(`/matches/${tournament.code}`)}
+            onClick={() => navigate(`/matches/tournament/${tournament.code}`)}
           >
             <LuSettings />
             Manage Tournament
@@ -612,13 +612,24 @@ const TournamentViewPage: React.FC<{ id?: string }> = ({ id: propId }) => {
             </Card.Header>
             <Card.Body>
               {alreadyJoined || joinSuccess ? (
-                <VStack gap={2} py={4} alignItems="center">
+                <VStack gap={3} py={4} alignItems="center">
                   <Badge colorPalette="verdigris" size="lg" px={4} py={2}>
                     Registered
                   </Badge>
                   <Text fontSize="sm" color="fg.muted" textAlign="center">
                     You are registered for this tournament.
                   </Text>
+                  <Button
+                    colorPalette="crimson"
+                    size="sm"
+                    width="full"
+                    onClick={() =>
+                      navigate(`/matches/tournament/${tournament.code}`)
+                    }
+                  >
+                    <LuSwords />
+                    Go to Your Matches
+                  </Button>
                 </VStack>
               ) : isFull ? (
                 <Text color="fg.muted" textAlign="center" py={4}>

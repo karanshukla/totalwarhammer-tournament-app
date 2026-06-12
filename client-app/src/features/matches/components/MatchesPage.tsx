@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Container, VStack, Text, Spinner } from "@chakra-ui/react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useMatch } from "react-router-dom";
 import { httpClient } from "@/core/api/httpClient";
 import { getSocket } from "@/core/socket/socketClient";
 import { useUserStore } from "@/shared/stores/userStore";
@@ -45,6 +45,8 @@ const MatchesPage: React.FC = () => {
   const navigate = useNavigate();
   const { hash } = useLocation();
   const initialHashHandled = useRef(false);
+  const tournamentRoute = useMatch("/matches/tournament/:code");
+  const urlCode = tournamentRoute?.params.code?.toUpperCase() ?? null;
 
   const fetchTournaments = useCallback(async () => {
     if (!isAuthenticated()) {
@@ -143,7 +145,7 @@ const MatchesPage: React.FC = () => {
       const isParticipant = t.participants?.some(
         (p) => p.name.trim().toLowerCase() === lowerName || p.name === user?.id,
       );
-      navigate(isParticipant ? `/matches/${code}` : `/matches/spectate/${code}`);
+      navigate(isParticipant ? `/matches/tournament/${code}` : `/matches/spectate/${code}`);
       setCodeInput("");
     } catch {
       setCodeError("No tournament found with that code.");
@@ -382,7 +384,7 @@ const MatchesPage: React.FC = () => {
     async (t: Tournament) => {
       setSelected(t);
       setActionError(null);
-      navigate(t.code ? `/matches/${t.code}` : `#${t._id}`);
+      navigate(t.code ? `/matches/tournament/${t.code}` : `#${t._id}`);
       if (t.status === "active" || t.status === "completed") {
         await fetchMatches(t._id);
       } else {
@@ -405,10 +407,40 @@ const MatchesPage: React.FC = () => {
   }, [loading, tournaments, hash, handleSelectTournament]);
 
   useEffect(() => {
-    if (!hash) {
+    if (!hash && !urlCode) {
       setSelected(null);
+      setMatches([]);
     }
-  }, [hash]);
+  }, [hash, urlCode]);
+
+  // Auto-select tournament when arriving via /matches/tournament/:code
+  useEffect(() => {
+    if (!urlCode) return;
+    if (loading) return;
+    if (selected?.code?.toUpperCase() === urlCode) return;
+
+    const found = tournaments.find(
+      (t) => t.code?.toUpperCase() === urlCode,
+    );
+    if (found) {
+      setSelected(found);
+      if (found.status === "active" || found.status === "completed") {
+        fetchMatches(found._id);
+      }
+      return;
+    }
+
+    httpClient
+      .get(`/tournament/code/${urlCode}`)
+      .then((res: { success: boolean; data: Tournament }) => {
+        const t = res.data;
+        setSelected(t);
+        if (t.status === "active" || t.status === "completed") {
+          fetchMatches(t._id);
+        }
+      })
+      .catch(() => navigate("/matches", { replace: true }));
+  }, [urlCode, loading, tournaments, selected?.code, fetchMatches, navigate]);
 
   const selectedId = selected?._id;
   useEffect(() => {

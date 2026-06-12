@@ -111,7 +111,7 @@ const TournamentsPage: React.FC = () => {
         );
       });
       if (isParticipant) {
-        navigate(`/matches/${code}`);
+        navigate(`/matches/tournament/${code}`);
       } else {
         navigate(`/matches/spectate/${code}`);
       }

@@ -34,7 +34,6 @@ export const registerUser = async (
       type: "success",
     });
 
-    // Auto-login the user after successful registration
     try {
       if (data.password) {
         await loginUser({
@@ -54,7 +53,10 @@ export const registerUser = async (
       }
     } catch (loginError) {
       console.error("Auto-login after registration failed:", loginError);
-      // Don't throw error here, as registration was successful
+      toaster.create({
+        title: `Registration successful, but auto-login failed, please try logging in manually`,
+        type: "warning",
+      });
     }
 
     return responseData;

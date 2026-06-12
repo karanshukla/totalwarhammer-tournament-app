@@ -145,7 +145,7 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
         type: "success",
         action: {
           label: "Go to Tournament",
-          onClick: () => navigate(`/matches/${response.data.code}`),
+          onClick: () => navigate(`/matches/tournament/${response.data.code}`),
         },
       });
       setFormData({

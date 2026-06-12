@@ -27,17 +27,15 @@ export const createGuestUser = async (): Promise<GuestUserResponse> => {
       const now = Date.now();
       const expiresAt = responseData.data.expiresAt || now + 48 * 3600 * 1000; // Default 48 hours if not provided
 
-      // Get the store's setter directly
       const { setUser } = useUserStore.getState();
 
-      // Explicitly set all required properties for a guest user
       setUser({
         id: responseData.data.id || "",
         email: responseData.data.email || "",
         username: responseData.data.username || "",
         expiresAt: expiresAt,
         isGuest: true,
-        isAuthenticated: true, // Explicitly set as authenticated
+        isAuthenticated: true,
       });
 
       toaster.create({

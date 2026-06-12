@@ -2,9 +2,6 @@ import { toaster } from "@/shared/ui/Toaster";
 import { apiConfig } from "@/core/config/apiConfig";
 import { httpClient } from "@/core/api/httpClient";
 
-/**
- * API response interfaces
- */
 export interface PasswordResetResponse {
   success: boolean;
   message: string;
@@ -19,10 +16,6 @@ export interface TokenVerificationResponse {
   };
 }
 
-/**
- * Request password reset email for the specified user email
- * @param email User's email address
- */
 export const requestPasswordReset = async (
   email: string,
 ): Promise<PasswordResetResponse> => {
