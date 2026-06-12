@@ -174,7 +174,7 @@ describe("TournamentsPage – code search", () => {
     });
   });
 
-  it("navigates to spectate when user is not a participant", async () => {
+  it("navigates to /t/:code when user is not a participant", async () => {
     mockGet.mockResolvedValueOnce({
       success: true,
       data: {
@@ -189,7 +189,7 @@ describe("TournamentsPage – code search", () => {
       screen.getByRole("button", { name: /find tournament/i }),
     );
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith("/matches/spectate/t88");
+      expect(mockNavigate).toHaveBeenCalledWith("/t/VALIDCODE");
     });
   });
 

@@ -1,0 +1,54 @@
+import React, { useEffect, useState } from "react";
+import { useParams, useNavigate, Link } from "react-router-dom";
+import { Box, Spinner, Text, VStack, Button } from "@chakra-ui/react";
+import { httpClient } from "@/core/api/httpClient";
+
+const TournamentByCode: React.FC = () => {
+  const { code } = useParams<{ code: string }>();
+  const navigate = useNavigate();
+  const [notFound, setNotFound] = useState(false);
+
+  useEffect(() => {
+    if (!code) return;
+    httpClient
+      .get<{ success: boolean; data: { _id: string } }>(
+        `/tournament/code/${code.toUpperCase()}`,
+      )
+      .then((res) => {
+        navigate(`/tournament/${res.data._id}`, { replace: true });
+      })
+      .catch(() => {
+        setNotFound(true);
+      });
+  }, [code, navigate]);
+
+  if (notFound) {
+    return (
+      <Box textAlign="center" py={20}>
+        <VStack gap={4}>
+          <Text fontSize="2xl" fontWeight="bold" fontFamily="heading">
+            Tournament Not Found
+          </Text>
+          <Text color="fg.muted">
+            No tournament with code{" "}
+            <Text as="span" fontFamily="mono" fontWeight="bold">
+              {code?.toUpperCase()}
+            </Text>{" "}
+            exists.
+          </Text>
+          <Button colorPalette="verdigris" variant="outline" asChild>
+            <Link to="/tournaments">Browse Tournaments</Link>
+          </Button>
+        </VStack>
+      </Box>
+    );
+  }
+
+  return (
+    <Box display="flex" justifyContent="center" alignItems="center" py={20}>
+      <Spinner size="lg" />
+    </Box>
+  );
+};
+
+export default TournamentByCode;

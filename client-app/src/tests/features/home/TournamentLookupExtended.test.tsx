@@ -51,12 +51,13 @@ describe("TournamentLookup – View button navigation", () => {
     mockNavigate.mockReset();
   });
 
-  it("navigates to spectate page when View button is clicked", async () => {
+  it("navigates to /t/:code when View button is clicked and code is present", async () => {
     mockGet.mockResolvedValue({
       success: true,
       data: [
         {
           _id: "t42",
+          code: "CUP42",
           name: "Battle Cup",
           tournamentType: "Single Elimination",
           playerCount: 8,
@@ -80,16 +81,17 @@ describe("TournamentLookup – View button navigation", () => {
     });
 
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith("/matches/spectate/t42");
+      expect(mockNavigate).toHaveBeenCalledWith("/t/CUP42");
     });
   });
 
-  it("navigates to correct tournament spectate page with multiple tournaments", async () => {
+  it("navigates to correct /t/:code with multiple tournaments", async () => {
     mockGet.mockResolvedValue({
       success: true,
       data: [
         {
           _id: "t1",
+          code: "CUPA1",
           name: "Cup A",
           tournamentType: "Round Robin",
           playerCount: 4,
@@ -98,6 +100,7 @@ describe("TournamentLookup – View button navigation", () => {
         },
         {
           _id: "t2",
+          code: "CUPB2",
           name: "Cup B",
           tournamentType: "Round Robin",
           playerCount: 4,
@@ -119,7 +122,7 @@ describe("TournamentLookup – View button navigation", () => {
     if (viewBtns.length >= 2) {
       await userEvent.click(viewBtns[1]);
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith("/matches/spectate/t2");
+        expect(mockNavigate).toHaveBeenCalledWith("/t/CUPB2");
       });
     } else {
       // If only one is rendered (layout limit), just verify the structure

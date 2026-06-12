@@ -143,7 +143,7 @@ const MatchesPage: React.FC = () => {
       const isParticipant = t.participants?.some(
         (p) => p.name.trim().toLowerCase() === lowerName || p.name === user?.id,
       );
-      navigate(isParticipant ? `#${t._id}` : `/matches/spectate/${t._id}`);
+      navigate(isParticipant ? `#${t._id}` : `/t/${code}`);
       setCodeInput("");
     } catch {
       setCodeError("No tournament found with that code.");

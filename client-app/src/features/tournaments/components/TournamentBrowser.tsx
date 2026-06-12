@@ -49,6 +49,7 @@ interface Participant {
 
 interface Tournament {
   _id: string;
+  code?: string;
   name: string;
   description: string;
   playerCount: number;
@@ -298,7 +299,13 @@ const TournamentBrowser: React.FC<Props> = ({ statusFilter, emptyMessage }) => {
                         variant="outline"
                         size="sm"
                         colorPalette="verdigris"
-                        onClick={() => navigate(`/matches/spectate/${t._id}`)}
+                        onClick={() =>
+                          navigate(
+                            t.code
+                              ? `/t/${t.code}`
+                              : `/tournament/${t._id}`,
+                          )
+                        }
                       >
                         {t.status === "completed" ? <LuTrophy /> : <LuEye />}
                         {t.status === "completed" ? "View Results" : "Spectate"}
