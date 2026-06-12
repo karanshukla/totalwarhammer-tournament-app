@@ -84,8 +84,9 @@ interface Tournament {
   createdBy: string;
 }
 
-const TournamentViewPage: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
+const TournamentViewPage: React.FC<{ id?: string }> = ({ id: propId }) => {
+  const { id: paramId } = useParams<{ id: string }>();
+  const id = propId ?? paramId;
   const navigate = useNavigate();
   const { user, isAuthenticated } = useUserStore();
 
