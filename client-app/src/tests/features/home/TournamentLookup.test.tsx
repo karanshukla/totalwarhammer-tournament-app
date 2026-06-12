@@ -88,7 +88,7 @@ describe("TournamentLookup", () => {
     });
   });
 
-  it("navigates to spectate when user is not a participant", async () => {
+  it("navigates to /t/:code when user is not a participant", async () => {
     mockGet
       .mockResolvedValueOnce({ success: true, data: [] })
       .mockResolvedValueOnce({
@@ -107,7 +107,7 @@ describe("TournamentLookup", () => {
     );
 
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith("/matches/spectate/t123");
+      expect(mockNavigate).toHaveBeenCalledWith("/t/ABC123");
     });
   });
 

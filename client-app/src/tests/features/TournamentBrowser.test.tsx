@@ -329,13 +329,14 @@ describe("TournamentBrowser", () => {
     );
   });
 
-  it("navigates to spectate on Spectate click", async () => {
+  it("navigates to /t/:code on Spectate click when code is present", async () => {
     const user = userEvent.setup();
     mockGet.mockResolvedValue({
       success: true,
       data: [
         makeTournament({
           _id: "t99",
+          code: "SPEC99",
           status: "active",
           playerCount: 8,
           participants: [],
@@ -345,7 +346,7 @@ describe("TournamentBrowser", () => {
     renderBrowser({ statusFilter: "active" });
     await waitFor(() => screen.getByRole("button", { name: /spectate/i }));
     await user.click(screen.getByRole("button", { name: /spectate/i }));
-    expect(mockNavigate).toHaveBeenCalledWith("/matches/spectate/t99");
+    expect(mockNavigate).toHaveBeenCalledWith("/t/SPEC99");
   });
 
   it("shows Participated badge for completed joined tournament", async () => {
