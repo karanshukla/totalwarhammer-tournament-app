@@ -81,7 +81,7 @@ describe("TournamentLookup – View button navigation", () => {
     });
 
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith("/t/CUP42");
+      expect(mockNavigate).toHaveBeenCalledWith("/matches/spectate/CUP42");
     });
   });
 
@@ -122,7 +122,7 @@ describe("TournamentLookup – View button navigation", () => {
     if (viewBtns.length >= 2) {
       await userEvent.click(viewBtns[1]);
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith("/t/CUPB2");
+        expect(mockNavigate).toHaveBeenCalledWith("/matches/spectate/CUPB2");
       });
     } else {
       // If only one is rendered (layout limit), just verify the structure

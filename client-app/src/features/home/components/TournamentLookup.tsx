@@ -69,9 +69,9 @@ const TournamentLookup: React.FC = () => {
         );
       });
       if (isParticipant) {
-        navigate(`/matches#${t._id}`);
+        navigate(`/matches/${trimmed}`);
       } else {
-        navigate(`/t/${trimmed}`);
+        navigate(`/matches/spectate/${trimmed}`);
       }
     } catch {
       setCodeError("No tournament found with that code.");
@@ -200,7 +200,7 @@ const TournamentLookup: React.FC = () => {
                         size="xs"
                         variant="outline"
                         flexShrink={0}
-                        onClick={() => navigate(t.code ? `/t/${t.code}` : `/tournament/${t._id}`)}
+                        onClick={() => navigate(t.code ? `/matches/spectate/${t.code}` : `/tournament/${t._id}`)}
                       >
                         <LuEye /> View
                       </Button>

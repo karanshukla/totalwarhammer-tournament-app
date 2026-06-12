@@ -375,7 +375,7 @@ const TournamentDetail: React.FC<Props> = ({
             size="sm"
             variant="ghost"
             colorPalette="verdigris"
-            onClick={() => navigate(`/matches/spectate/${selected._id}`)}
+            onClick={() => navigate(`/matches/spectate/${selected.code}`)}
           >
             <LuEye />
             Spectator View

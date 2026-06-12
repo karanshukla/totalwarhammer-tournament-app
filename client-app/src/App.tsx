@@ -42,12 +42,12 @@ export function App() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/tournaments" element={<TournamentsPage />} />
-          <Route
-            path="/matches/spectate/:id"
-            element={<TournamentViewPage />}
-          />
           <Route path="/tournament/:id" element={<TournamentViewPage />} />
-          <Route path="/t/:code" element={<TournamentByCode />} />
+          <Route
+            path="/matches/spectate/:code"
+            element={<TournamentByCode />}
+          />
+          <Route path="/matches/:code" element={<TournamentByCode />} />
           <Route path="/matches" element={<MatchesPage />} />
           <Route path="/statistics" element={<StatisticsPage />} />
           <Route path="/account" element={<AccountPage />} />

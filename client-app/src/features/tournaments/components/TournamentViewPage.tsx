@@ -177,7 +177,7 @@ const TournamentViewPage: React.FC<{ id?: string }> = ({ id: propId }) => {
       });
       setJoinSuccess(true);
       await fetchTournament();
-      navigate(`/matches#${tournament._id}`);
+      navigate(`/matches/${tournament.code}`);
     } catch (err) {
       setJoinError(
         err instanceof Error ? err.message : "Failed to join tournament",
@@ -269,7 +269,7 @@ const TournamentViewPage: React.FC<{ id?: string }> = ({ id: propId }) => {
         mb={6}
         onClick={() =>
           isParticipant || isOwner
-            ? navigate(`/matches#${tournament._id}`)
+            ? navigate(`/matches/${tournament.code}`)
             : navigate(-1)
         }
       >
@@ -459,7 +459,7 @@ const TournamentViewPage: React.FC<{ id?: string }> = ({ id: propId }) => {
             colorPalette="verdigris"
             size="sm"
             alignSelf="flex-start"
-            onClick={() => navigate(`/matches#${tournament._id}`)}
+            onClick={() => navigate(`/matches/${tournament.code}`)}
           >
             <LuSettings />
             Manage Tournament
