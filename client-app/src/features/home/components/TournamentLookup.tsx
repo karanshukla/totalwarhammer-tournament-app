@@ -19,6 +19,7 @@ import { useUserStore } from "@/shared/stores/userStore";
 
 interface ActiveTournament {
   _id: string;
+  code?: string;
   name: string;
   tournamentType: string;
   playerCount: number;
@@ -70,7 +71,7 @@ const TournamentLookup: React.FC = () => {
       if (isParticipant) {
         navigate(`/matches#${t._id}`);
       } else {
-        navigate(`/matches/spectate/${t._id}`);
+        navigate(`/t/${trimmed}`);
       }
     } catch {
       setCodeError("No tournament found with that code.");
@@ -199,7 +200,7 @@ const TournamentLookup: React.FC = () => {
                         size="xs"
                         variant="outline"
                         flexShrink={0}
-                        onClick={() => navigate(`/matches/spectate/${t._id}`)}
+                        onClick={() => navigate(t.code ? `/t/${t.code}` : `/tournament/${t._id}`)}
                       >
                         <LuEye /> View
                       </Button>

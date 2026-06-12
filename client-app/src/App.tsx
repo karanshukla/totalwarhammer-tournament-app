@@ -19,6 +19,9 @@ const MatchesPage = lazyLoad(
 const TournamentViewPage = lazyLoad(
   () => import("@/features/tournaments/components/TournamentViewPage"),
 );
+const TournamentByCode = lazyLoad(
+  () => import("@/features/tournaments/components/TournamentByCode"),
+);
 const ContactPage = lazyLoad(
   () => import("@/features/contact/components/ContactPage"),
 );
@@ -44,6 +47,7 @@ export function App() {
             element={<TournamentViewPage />}
           />
           <Route path="/tournament/:id" element={<TournamentViewPage />} />
+          <Route path="/t/:code" element={<TournamentByCode />} />
           <Route path="/matches" element={<MatchesPage />} />
           <Route path="/statistics" element={<StatisticsPage />} />
           <Route path="/account" element={<AccountPage />} />

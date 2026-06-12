@@ -113,7 +113,7 @@ const TournamentsPage: React.FC = () => {
       if (isParticipant) {
         navigate(`/matches#${t._id}`);
       } else {
-        navigate(`/matches/spectate/${t._id}`);
+        navigate(`/t/${code}`);
       }
     } catch {
       setCodeError("No tournament found with that code.");
