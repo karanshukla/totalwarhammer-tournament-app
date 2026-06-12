@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { Box, Spinner, Text, VStack, Button } from "@chakra-ui/react";
 import { httpClient } from "@/core/api/httpClient";
+import TournamentViewPage from "./TournamentViewPage";
 
 const TournamentByCode: React.FC = () => {
   const { code } = useParams<{ code: string }>();
-  const navigate = useNavigate();
+  const [resolvedId, setResolvedId] = useState<string | null>(null);
   const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
@@ -14,13 +15,9 @@ const TournamentByCode: React.FC = () => {
       .get<{ success: boolean; data: { _id: string } }>(
         `/tournament/code/${code.toUpperCase()}`,
       )
-      .then((res) => {
-        navigate(`/tournament/${res.data._id}`, { replace: true });
-      })
-      .catch(() => {
-        setNotFound(true);
-      });
-  }, [code, navigate]);
+      .then((res) => setResolvedId(res.data._id))
+      .catch(() => setNotFound(true));
+  }, [code]);
 
   if (notFound) {
     return (
@@ -44,11 +41,15 @@ const TournamentByCode: React.FC = () => {
     );
   }
 
-  return (
-    <Box display="flex" justifyContent="center" alignItems="center" py={20}>
-      <Spinner size="lg" />
-    </Box>
-  );
+  if (!resolvedId) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" py={20}>
+        <Spinner size="lg" />
+      </Box>
+    );
+  }
+
+  return <TournamentViewPage id={resolvedId} />;
 };
 
 export default TournamentByCode;
