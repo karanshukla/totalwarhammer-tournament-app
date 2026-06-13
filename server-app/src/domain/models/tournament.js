@@ -26,6 +26,11 @@ const tournamentSchema = new mongoose.Schema({
   participants: {
     type: [
       {
+        userId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+          default: null,
+        },
         name: { type: String, required: true, trim: true },
         faction: { type: String, default: "" },
       },

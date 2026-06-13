@@ -48,6 +48,7 @@ const statusColorMap: Record<string, string> = {
 
 interface Participant {
   _id: string;
+  userId?: string | null;
   name: string;
   faction: string;
 }
@@ -191,11 +192,13 @@ const TournamentViewPage: React.FC<{ id?: string }> = ({ id: propId }) => {
     if (!tournament || !user) return false;
     const lowerName = user.username?.trim().toLowerCase();
     const uid = user.id;
-    return tournament.participants.some(
-      (p) =>
+    return tournament.participants.some((p) => {
+      if (p.userId) return p.userId === uid;
+      return (
         p.name === uid ||
-        (lowerName && p.name.trim().toLowerCase() === lowerName),
-    );
+        (lowerName && p.name.trim().toLowerCase() === lowerName)
+      );
+    });
   };
 
   if (loading) {

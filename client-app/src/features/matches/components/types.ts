@@ -33,6 +33,7 @@ export interface Match {
 
 export interface Participant {
   _id: string;
+  userId?: string | null;
   name: string;
   faction: string;
 }

@@ -43,6 +43,7 @@ const statusBarMap: Record<string, string> = {
 
 interface Participant {
   _id: string;
+  userId?: string | null;
   name: string;
   faction: string;
 }
@@ -105,8 +106,13 @@ const TournamentBrowser: React.FC<Props> = ({ statusFilter, emptyMessage }) => {
   }, [fetchTournaments]);
 
   const isAlreadyJoined = (tournament: Tournament) => {
-    const name = user?.username || user?.id;
-    return tournament.participants.some((p) => p.name === name);
+    if (!user) return false;
+    const uid = user.id;
+    const name = user.username || uid;
+    return tournament.participants.some((p) => {
+      if (p.userId) return p.userId === uid;
+      return p.name === name;
+    });
   };
 
   if (loading) {

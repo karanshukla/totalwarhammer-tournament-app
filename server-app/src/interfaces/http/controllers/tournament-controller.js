@@ -83,7 +83,11 @@ export const createTournament = async (req, res) => {
       createdBy: req.user.id,
       code: generateCode(),
       participants: [
-        { name: req.user.username || "Tournament Creator", faction: "" },
+        {
+          userId: req.user.id,
+          name: req.user.username || "Tournament Creator",
+          faction: "",
+        },
       ],
     });
 
@@ -151,16 +155,24 @@ export const getUserTournaments = async (req, res) => {
         : "all";
     const skip = (page - 1) * limit;
 
-    const possibleNames = [userId];
-    if (userName && userName !== userId) {
-      possibleNames.push(userName);
-    }
-
     const queryConditions = [];
     if (!isGuest) {
       queryConditions.push({ createdBy: userId });
+      if (isValidObjectId(userId)) {
+        queryConditions.push({
+          "participants.userId": new mongoose.Types.ObjectId(userId),
+        });
+      }
+      // Fallback for legacy participant records that pre-date the userId field
+      if (userName) {
+        queryConditions.push({ "participants.name": userName });
+      }
+    } else {
+      // Guests have no userId; match by name/id string only
+      const possibleNames = [userId];
+      if (userName && userName !== userId) possibleNames.push(userName);
+      queryConditions.push({ "participants.name": { $in: possibleNames } });
     }
-    queryConditions.push({ "participants.name": { $in: possibleNames } });
 
     const baseQuery = { $or: queryConditions };
     const filter =
@@ -414,16 +426,24 @@ export const joinTournament = async (req, res) => {
     const { faction } = req.body;
     const playerName =
       req.user.username || `Guest_${req.user.id.substring(0, 6)}`;
-    const alreadyJoined = tournament.participants.some(
-      (p) => p.name === playerName,
-    );
+    const alreadyJoined = req.user.isGuest
+      ? tournament.participants.some((p) => p.name === playerName)
+      : tournament.participants.some(
+          (p) =>
+            (p.userId && p.userId.toString() === req.user.id) ||
+            (!p.userId && p.name === playerName),
+        );
     if (alreadyJoined) {
       return res.status(400).json({
         success: false,
         message: "You have already joined this tournament",
       });
     }
-    tournament.participants.push({ name: playerName, faction: faction || "" });
+    tournament.participants.push({
+      userId: req.user.isGuest ? null : req.user.id,
+      name: playerName,
+      faction: faction || "",
+    });
     await tournament.save();
     emitTournamentUpdated(tournament._id.toString(), tournament);
     logger.info(

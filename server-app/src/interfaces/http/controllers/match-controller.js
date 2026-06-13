@@ -144,36 +144,43 @@ export const reportResult = async (req, res) => {
     const userName = req.user.username;
     const tournament = match.tournament;
 
+    // Look up the user's participant subdoc in the tournament to get their
+    // participant _id, which is what the match player slots reference.
+    const userParticipant = tournament.participants?.find(
+      (p) => p.userId?.toString() === userId,
+    );
+    const userParticipantSubId = userParticipant?._id?.toString();
+
     const lowerUserName = userName?.trim().toLowerCase();
-    // For guests, also check the Guest_XXXX fallback name (first 6 chars of id)
     const guestFallbackName =
       req.user.isGuest && userId
         ? `Guest_${userId.substring(0, 6)}`.toLowerCase()
         : null;
-    const nameMatchP1 = (n) => {
+    const nameMatch = (n) => {
       const ln = n.trim().toLowerCase();
       return (
         (lowerUserName && ln === lowerUserName) ||
         (guestFallbackName && ln === guestFallbackName)
       );
     };
-    const nameMatchP2 = (n) => {
-      const ln = n.trim().toLowerCase();
-      return (
-        (lowerUserName && ln === lowerUserName) ||
-        (guestFallbackName && ln === guestFallbackName)
-      );
-    };
-    const isPlayer1ById = match.player1.participantId?.toString() === userId;
+
+    // Primary: match via participant subdoc _id (stable across renames)
+    const isPlayer1ById =
+      !!userParticipantSubId &&
+      match.player1.participantId?.toString() === userParticipantSubId;
+    const isPlayer2ById =
+      !!userParticipantSubId &&
+      match.player2.participantId?.toString() === userParticipantSubId;
+
+    // Fallback: name match for guests and legacy records without userId
     const isPlayer1ByName =
       !isPlayer1ById &&
-      (nameMatchP1(match.player1.name) || match.player1.name === userId);
-    const isPlayer1 = isPlayer1ById || isPlayer1ByName;
-
-    const isPlayer2ById = match.player2.participantId?.toString() === userId;
+      (nameMatch(match.player1.name) || match.player1.name === userId);
     const isPlayer2ByName =
       !isPlayer2ById &&
-      (nameMatchP2(match.player2.name) || match.player2.name === userId);
+      (nameMatch(match.player2.name) || match.player2.name === userId);
+
+    const isPlayer1 = isPlayer1ById || isPlayer1ByName;
     const isPlayer2 = isPlayer2ById || isPlayer2ByName;
 
     if (isPlayer1ByName || isPlayer2ByName) {
