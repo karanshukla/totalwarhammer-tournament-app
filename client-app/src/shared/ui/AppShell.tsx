@@ -65,7 +65,12 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
         )}
 
         <Flex align="center" gap={2} flex="1" justify={isPortrait ? "flex-start" : "center"}>
-          <Box as="img" src="/logo.svg" alt="" h="32px" w="32px" flexShrink={0} aria-hidden="true" />
+          <Box flexShrink={0} _light={{ display: "none" }}>
+            <img src="/logo.svg" alt="" height="32" width="32" aria-hidden="true" />
+          </Box>
+          <Box flexShrink={0} _dark={{ display: "none" }}>
+            <img src="/logo-light.svg" alt="" height="32" width="32" aria-hidden="true" />
+          </Box>
           <Text
             fontWeight="medium"
             color="gold.text"
