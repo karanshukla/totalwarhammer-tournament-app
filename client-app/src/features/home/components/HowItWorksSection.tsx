@@ -26,7 +26,7 @@ const steps = [
 ];
 
 const HowItWorksSection: React.FC = () => (
-  <Card.Root variant="subtle">
+  <Card.Root bg="bg.panel">
     <Card.Header>
       <Card.Title>
         <HStack gap={2}>
@@ -43,7 +43,9 @@ const HowItWorksSection: React.FC = () => (
               w={10}
               h={10}
               borderRadius="full"
-              bg="bg.subtle"
+              bg="bg.emphasized"
+              borderWidth="1px"
+              borderColor="border.muted"
               color="fg.secondary"
               display="flex"
               alignItems="center"
@@ -57,7 +59,9 @@ const HowItWorksSection: React.FC = () => (
               w={5}
               h={5}
               borderRadius="full"
-              bg="bg.subtle"
+              bg="bg.emphasized"
+              borderWidth="1px"
+              borderColor="border.muted"
               color="fg.secondary"
               display="flex"
               alignItems="center"
@@ -67,7 +71,7 @@ const HowItWorksSection: React.FC = () => (
             >
               {i + 1}
             </Box>
-            <Text fontSize="sm" color="fg.muted">
+            <Text fontSize="sm" color="fg.secondary">
               {s.label}
             </Text>
           </VStack>
