@@ -11,6 +11,16 @@ const HeroSection: React.FC = () => {
 
   return (
     <Box textAlign="center" py={8}>
+      <Box
+        as="img"
+        src="/logo.svg"
+        alt="TW Tournament App"
+        h={{ base: "72px", md: "96px" }}
+        w={{ base: "72px", md: "96px" }}
+        mx="auto"
+        mb={4}
+        display="block"
+      />
       <Badge
         variant="subtle"
         bg="gold.subtle"

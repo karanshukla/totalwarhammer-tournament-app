@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-label="TW Tournament App logo">
+  <rect width="100" height="100" fill="#0D0B08"/>
+  <!-- Brass/gold chevron (lower) -->
+  <polyline points="8,80 50,44 92,80"
+    fill="none" stroke="#CC9E27" stroke-width="14"
+    stroke-linejoin="miter" stroke-linecap="butt"/>
+  <!-- Crimson chevron (upper) -->
+  <polyline points="8,62 50,26 92,62"
+    fill="none" stroke="#C1272D" stroke-width="14"
+    stroke-linejoin="miter" stroke-linecap="butt"/>
+</svg>

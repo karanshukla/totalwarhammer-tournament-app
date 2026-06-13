@@ -64,20 +64,19 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
           />
         )}
 
-        <Flex align="center" flex="1">
+        <Flex align="center" gap={2} flex="1" justify={isPortrait ? "flex-start" : "center"}>
+          <Box as="img" src="/logo.svg" alt="" h="32px" w="32px" flexShrink={0} aria-hidden="true" />
           <Text
             fontWeight="medium"
-            textAlign={isPortrait ? "left" : "center"}
-            flex="1"
             color="gold.text"
           >
             {isPortrait ? "TW Tournament" : "Total Warhammer Tournament App"}
-            {isUserGuest && !isPortrait && (
-              <Badge colorPalette="ink" ml={2}>
-                Guest Mode
-              </Badge>
-            )}
           </Text>
+          {isUserGuest && !isPortrait && (
+            <Badge colorPalette="ink">
+              Guest Mode
+            </Badge>
+          )}
         </Flex>
 
         <HStack gap={2} justify="flex-end" flexShrink={0}>
