@@ -1,6 +1,6 @@
 # Total War: Warhammer Tournament App
 
-<img width="924" height="300" alt="logo-wordmark" src="https://github.com/user-attachments/assets/ea5eda03-d508-42a7-820a-f68987f1cc68" />
+<img width="900" height="300" alt="logo-twt" src="https://github.com/user-attachments/assets/f7449db7-8c7b-4cd6-992b-2b748ce031cf" />
 
 [![Client Tests](https://github.com/karanshukla/totalwarhammer-tournament-app/actions/workflows/clientTests.yml/badge.svg)](https://github.com/karanshukla/totalwarhammer-tournament-app/actions/workflows/clientTests.yml)
 [![Server Tests](https://github.com/karanshukla/totalwarhammer-tournament-app/actions/workflows/serverTests.yml/badge.svg)](https://github.com/karanshukla/totalwarhammer-tournament-app/actions/workflows/serverTests.yml)
