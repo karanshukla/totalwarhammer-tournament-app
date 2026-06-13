@@ -180,7 +180,6 @@ const TournamentsPage: React.FC = () => {
                 }
                 maxW="220px"
                 size="sm"
-                fontFamily="mono"
               />
               <Button
                 size="sm"

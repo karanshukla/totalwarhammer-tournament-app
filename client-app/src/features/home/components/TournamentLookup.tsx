@@ -116,7 +116,6 @@ const TournamentLookup: React.FC = () => {
                 onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
                   e.key === "Enter" && handleFindByCode()
                 }
-                fontFamily="mono"
                 textTransform="uppercase"
                 w={{ base: "full", lg: "2xs" }}
               />
