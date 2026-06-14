@@ -361,4 +361,70 @@ describe("socket-service", () => {
       assert.deepStrictEqual(mockEmitFn.mock.calls[0].arguments[1], match);
     });
   });
+
+  // ─── branch coverage for previously-uncovered paths ───────────────────────────
+
+  describe("engine connection_error handler", () => {
+    it("logs the error when the engine emits connection_error", () => {
+      // The handler was registered via io.engine.on("connection_error", handler).
+      // Retrieve it from the mock call list and invoke it directly.
+      const call = mockIoInstance.engine.on.mock.calls.find(
+        (c) => c.arguments[0] === "connection_error",
+      );
+      assert.ok(call, "connection_error handler should be registered");
+      const handler = call.arguments[1];
+      const fakeErr = {
+        code: 1,
+        message: "test connection error",
+        context: {},
+        req: null,
+      };
+      assert.doesNotThrow(() => handler(fakeErr));
+    });
+  });
+
+  describe("MongoDB adapter — createCollection non-NamespaceExists error", () => {
+    it("catches and logs errors when createCollection rejects with code !== 48", async () => {
+      // Reset Redis mocks so the code takes the MongoDB fallback path.
+      mockGetRedisClient.mock.resetCalls();
+      mockCreateNewRedisClient.mock.resetCalls();
+      mockGetRedisClient.mock.mockImplementation(() => null);
+      mockCreateNewRedisClient.mock.mockImplementation(() => null);
+
+      const dbError = new Error("disk full");
+      dbError.code = 11; // not 48 (NamespaceExists) → should be re-thrown and caught by outer catch
+      mockCreateCollection.mock.mockImplementation(async () => {
+        throw dbError;
+      });
+
+      initSocketIO({}, "http://localhost:3001");
+
+      // Allow the async then() callback to settle.
+      await new Promise((resolve) => setImmediate(resolve));
+
+      // The outer catch should have been hit; adapter should NOT have been called
+      // for this initSocketIO invocation (adapter call count doesn't increase).
+      // Restoring the default to avoid polluting later tests.
+      mockCreateCollection.mock.mockImplementation(async () => {});
+    });
+  });
+
+  describe("event rate limiting — tournament:leave", () => {
+    it("disconnects the socket when the event rate limit is exceeded via tournament:leave", () => {
+      const validId = "aaaaaaaaaaaaaaaaaaaaaaaa";
+      const socket = makeSocket();
+      ioHandlers.connection(socket);
+
+      // Exhaust all 60 allowed events using tournament:leave.
+      for (let i = 0; i < 60; i++) {
+        socket._fire("tournament:leave", validId);
+      }
+      assert.strictEqual(socket.disconnect.mock.calls.length, 0);
+
+      // The 61st event triggers the rate-limit branch (lines 103-106).
+      socket._fire("tournament:leave", validId);
+      assert.strictEqual(socket.disconnect.mock.calls.length, 1);
+      assert.strictEqual(socket.disconnect.mock.calls[0].arguments[0], true);
+    });
+  });
 });

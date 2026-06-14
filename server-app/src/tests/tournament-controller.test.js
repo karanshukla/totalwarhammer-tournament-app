@@ -1521,4 +1521,101 @@ describe("tournament-controller", () => {
       assert.strictEqual(hasCreatedByClause, false);
     });
   });
+
+  // ─── branch coverage for previously-uncovered early returns ──────────────────
+
+  describe("getTournamentById — invalid ID branch", () => {
+    it("returns 400 for a non-ObjectId tournament ID", async () => {
+      const req = mockReq({ params: { id: "not-a-valid-objectid" } });
+      const res = mockRes();
+      await getTournamentById(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 400);
+      assert.match(
+        res.json.mock.calls[0].arguments[0].message,
+        /invalid tournament id/i,
+      );
+    });
+  });
+
+  describe("getUserTournaments — valid ObjectId userId branch", () => {
+    it("adds a participants.userId condition when userId is a valid ObjectId", async () => {
+      const validHexId = "aaaaaaaaaaaaaaaaaaaaaaaa";
+      mockTournamentFind.mock.mockImplementation(() => ({
+        sort: mock.fn(() => ({
+          skip: mock.fn(() => ({
+            limit: mock.fn(async () => []),
+          })),
+        })),
+      }));
+      mockTournamentAggregate.mock.mockImplementation(async () => []);
+      const req = mockReq({
+        user: { id: validHexId, username: "player1", isGuest: false },
+        query: {},
+      });
+      const res = mockRes();
+      await getUserTournaments(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
+      const filter = mockTournamentFind.mock.calls[0].arguments[0];
+      // isValidObjectId(validHexId) is true → participants.userId clause added
+      const hasParticipantClause = filter.$or.some(
+        (c) => c["participants.userId"] !== undefined,
+      );
+      assert.strictEqual(hasParticipantClause, true);
+    });
+  });
+
+  describe("updateParticipant — name and faction validation", () => {
+    function makeTournamentWithParticipant() {
+      const participant = { _id: "p1", name: "Alice", faction: "Empire" };
+      return {
+        _id: { toString: () => "t1" },
+        save: mock.fn(async () => {}),
+        participants: { id: mock.fn(() => participant) },
+      };
+    }
+
+    it("returns 400 when name is an empty string", async () => {
+      const t = makeTournamentWithParticipant();
+      mockTournamentFindOne.mock.mockImplementation(async () => t);
+      const req = mockReq({
+        params: { id: "t1", participantId: "p1" },
+        body: { name: "   " },
+      });
+      const res = mockRes();
+      await updateParticipant(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 400);
+      assert.match(
+        res.json.mock.calls[0].arguments[0].message,
+        /1 and 100 characters/i,
+      );
+    });
+
+    it("returns 400 when name exceeds 100 characters", async () => {
+      const t = makeTournamentWithParticipant();
+      mockTournamentFindOne.mock.mockImplementation(async () => t);
+      const req = mockReq({
+        params: { id: "t1", participantId: "p1" },
+        body: { name: "a".repeat(101) },
+      });
+      const res = mockRes();
+      await updateParticipant(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 400);
+    });
+
+    it("returns 400 when faction exceeds 100 characters", async () => {
+      const t = makeTournamentWithParticipant();
+      mockTournamentFindOne.mock.mockImplementation(async () => t);
+      const req = mockReq({
+        params: { id: "t1", participantId: "p1" },
+        body: { faction: "f".repeat(101) },
+      });
+      const res = mockRes();
+      await updateParticipant(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 400);
+      assert.match(
+        res.json.mock.calls[0].arguments[0].message,
+        /at most 100/i,
+      );
+    });
+  });
 });
