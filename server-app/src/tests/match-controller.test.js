@@ -919,4 +919,162 @@ describe("match-controller", () => {
       assert.strictEqual(mockEmitMatchUpdated.mock.calls.length, 1);
     });
   });
+
+  // ─── branch coverage for previously-uncovered early returns ──────────────────
+
+  describe("getMatchesByTournament — invalid ID branch", () => {
+    it("returns 400 for an invalid tournament ID", async () => {
+      const req = mockReq({ params: { tournamentId: "not-a-valid-id" } });
+      const res = mockRes();
+      await getMatchesByTournament(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 400);
+      assert.match(
+        res.json.mock.calls[0].arguments[0].message,
+        /invalid tournament id/i,
+      );
+    });
+  });
+
+  describe("getMatchById — invalid ID branch", () => {
+    it("returns 400 for an invalid match ID", async () => {
+      const req = mockReq({ params: { id: "not-a-valid-id" } });
+      const res = mockRes();
+      await getMatchById(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 400);
+      assert.match(
+        res.json.mock.calls[0].arguments[0].message,
+        /invalid match id/i,
+      );
+    });
+  });
+
+  describe("createMatch — pending tournament branch", () => {
+    it("returns 400 when the tournament has not been started yet", async () => {
+      mockTournamentFindOne.mock.mockImplementation(async () => ({
+        status: "pending",
+      }));
+      const req = mockReq({
+        body: {
+          tournamentId: "aaaaaaaaaaaaaaaaaaaaaaaa",
+          round: 1,
+          matchNumber: 1,
+        },
+      });
+      const res = mockRes();
+      await createMatch(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 400);
+      assert.match(
+        res.json.mock.calls[0].arguments[0].message,
+        /must be started/i,
+      );
+    });
+  });
+
+  describe("reportResult — extra branches", () => {
+    it("returns 400 when the tournament is not active", async () => {
+      const p1Id = "aaaaaaaaaaaaaaaaaaaaaaaa";
+      const match = {
+        status: "pending",
+        reportedResults: [],
+        player1: { participantId: p1Id, name: "Alice", faction: "" },
+        player2: {
+          participantId: "bbbbbbbbbbbbbbbbbbbbbbbb",
+          name: "Bob",
+          faction: "",
+        },
+        tournament: {
+          _id: { toString: () => "tttttttttttttttttttttttt" },
+          status: "pending",
+          createdBy: "cccccccccccccccccccccccc",
+        },
+        save: mock.fn(async () => {}),
+      };
+      mockMatchFindById.mock.mockImplementation(() => ({
+        populate: async () => match,
+      }));
+      const req = mockReq({
+        params: { id: "m1" },
+        body: { winnerId: p1Id },
+      });
+      const res = mockRes();
+      await reportResult(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 400);
+      assert.match(
+        res.json.mock.calls[0].arguments[0].message,
+        /not active/i,
+      );
+    });
+
+    it("covers isPlayer2 branch of reporterParticipantId ternary", async () => {
+      const p1Id = "aaaaaaaaaaaaaaaaaaaaaaaa";
+      const p2Id = "bbbbbbbbbbbbbbbbbbbbbbbb";
+      const match = {
+        status: "pending",
+        reportedResults: [],
+        player1: { participantId: p1Id, name: "Alice", faction: "" },
+        player2: { participantId: p2Id, name: "Bob", faction: "" },
+        tournament: {
+          _id: { toString: () => "tttttttttttttttttttttttt" },
+          status: "active",
+          createdBy: "cccccccccccccccccccccccc",
+          participants: [],
+        },
+        save: mock.fn(async () => {}),
+      };
+      mockMatchFindById.mock.mockImplementation(() => ({
+        populate: async () => match,
+      }));
+      // User is Bob (player2 by name) — isPlayer1=false, isPlayer2=true
+      const req = mockReq({
+        params: { id: "m1" },
+        body: { winnerId: p2Id },
+        user: { id: "user-bob", username: "Bob", isGuest: false },
+      });
+      const res = mockRes();
+      await reportResult(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
+      assert.ok(match.reportedResults.length > 0, "result should be recorded");
+      // reporterParticipantId took the isPlayer2 branch → reportedBy === p2Id
+      assert.strictEqual(
+        match.reportedResults[0].reportedBy?.toString(),
+        p2Id,
+      );
+    });
+  });
+
+  describe("resolveDispute — winner not a match player", () => {
+    it("returns 400 when winnerId is neither player1 nor player2", async () => {
+      const creatorId = "cccccccccccccccccccccccc";
+      const match = {
+        status: "disputed",
+        resultOverrides: [],
+        player1: {
+          participantId: "aaaaaaaaaaaaaaaaaaaaaaaa",
+          name: "Alice",
+        },
+        player2: {
+          participantId: "bbbbbbbbbbbbbbbbbbbbbbbb",
+          name: "Bob",
+        },
+        tournament: { status: "active", createdBy: creatorId },
+        winnerId: "aaaaaaaaaaaaaaaaaaaaaaaa",
+        save: mock.fn(async () => {}),
+      };
+      mockMatchFindById.mock.mockImplementation(() => ({
+        populate: async () => match,
+      }));
+      const req = mockReq({
+        params: { id: "m1" },
+        body: { winnerId: "dddddddddddddddddddddddd" },
+        user: { id: creatorId },
+      });
+      const res = mockRes();
+      await resolveDispute(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 400);
+      assert.match(
+        res.json.mock.calls[0].arguments[0].message,
+        /must be one of/i,
+      );
+    });
+  });
 });

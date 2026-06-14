@@ -576,4 +576,126 @@ describe("authentication-controller", () => {
       assert.strictEqual(res.status.mock.calls[0].arguments[0], 500);
     });
   });
+
+  // ─── branch coverage for previously-uncovered paths ───────────────────────────
+
+  describe("login — outer catch block", () => {
+    it("returns 500 when User.findOne throws unexpectedly", async () => {
+      mockUserFindOne.mock.mockImplementation(() => {
+        throw new Error("database connection lost");
+      });
+      const req = mockReq({
+        body: { identifier: "test@test.com", password: "pw" },
+      });
+      const res = mockRes();
+      await login(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 500);
+      assert.match(
+        res.json.mock.calls[0].arguments[0].message,
+        /failed to login/i,
+      );
+    });
+  });
+
+  describe("token — expired authorization code", () => {
+    it("returns 400 when the code has passed its 5-minute expiry window", async () => {
+      mock.timers.enable({ apis: ["Date"] });
+      try {
+        // At mocked time 0, login creates the auth code (createdAt = 0).
+        const verifier = "expiry-branch-verifier";
+        const challenge = buildCodeChallenge(verifier);
+        const user = {
+          id: "u-expiry",
+          email: "expiry@test.com",
+          username: "expiryUser",
+          validatePassword: mock.fn(async () => true),
+          toObject: mock.fn(() => ({ id: "u-expiry" })),
+        };
+        mockUserFindOne.mock.mockImplementation(() => ({
+          select: mock.fn(() => user),
+        }));
+        const loginReq = mockReq({
+          body: {
+            identifier: "expiry@test.com",
+            password: "pw",
+            codeChallenge: challenge,
+            codeChallengeMethod: "S256",
+          },
+        });
+        const loginRes = mockRes();
+        await login(loginReq, loginRes);
+        const authCode =
+          loginRes.json.mock.calls[0].arguments[0].data.authorizationCode;
+
+        // Advance mocked time by 6 minutes — past the 5-minute CODE_EXPIRATION_TIME.
+        mock.timers.tick(6 * 60 * 1000);
+
+        const tokenReq = mockReq({
+          body: {
+            grant_type: "authorization_code",
+            code: authCode,
+            code_verifier: verifier,
+          },
+        });
+        const tokenRes = mockRes();
+        await token(tokenReq, tokenRes);
+        assert.strictEqual(tokenRes.status.mock.calls[0].arguments[0], 400);
+        assert.match(
+          tokenRes.json.mock.calls[0].arguments[0].message,
+          /expired/i,
+        );
+      } finally {
+        mock.timers.reset();
+      }
+    });
+  });
+
+  describe("token — outer catch block", () => {
+    it("returns 500 when User.findById throws unexpectedly", async () => {
+      // Obtain a valid auth code via login first.
+      const verifier = "outer-catch-verifier";
+      const challenge = buildCodeChallenge(verifier);
+      const user = {
+        id: "u-outer",
+        email: "outer@test.com",
+        username: "outerUser",
+        validatePassword: mock.fn(async () => true),
+        toObject: mock.fn(() => ({ id: "u-outer" })),
+      };
+      mockUserFindOne.mock.mockImplementation(() => ({
+        select: mock.fn(() => user),
+      }));
+      const loginReq = mockReq({
+        body: {
+          identifier: "outer@test.com",
+          password: "pw",
+          codeChallenge: challenge,
+          codeChallengeMethod: "S256",
+        },
+      });
+      const loginRes = mockRes();
+      await login(loginReq, loginRes);
+      const authCode =
+        loginRes.json.mock.calls[0].arguments[0].data.authorizationCode;
+
+      // Make findById throw to trigger the outer catch in the token handler.
+      mockUserFindById.mock.mockImplementation(async () => {
+        throw new Error("DB failure during token exchange");
+      });
+      const tokenReq = mockReq({
+        body: {
+          grant_type: "authorization_code",
+          code: authCode,
+          code_verifier: verifier,
+        },
+      });
+      const tokenRes = mockRes();
+      await token(tokenReq, tokenRes);
+      assert.strictEqual(tokenRes.status.mock.calls[0].arguments[0], 500);
+      assert.match(
+        tokenRes.json.mock.calls[0].arguments[0].message,
+        /failed to authenticate/i,
+      );
+    });
+  });
 });
