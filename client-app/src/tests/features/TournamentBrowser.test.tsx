@@ -483,4 +483,25 @@ describe("TournamentBrowser", () => {
     await user.click(screen.getByRole("button", { name: /view results/i }));
     expect(mockNavigate).toHaveBeenCalledWith("/tournament/nocode4");
   });
+
+  it("treats user as not joined when user object is null", async () => {
+    (mockUseUserStore as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
+      user: null,
+      isAuthenticated: vi.fn().mockReturnValue(false),
+    });
+    mockGet.mockResolvedValue({
+      success: true,
+      data: [
+        makeTournament({
+          status: "pending",
+          playerCount: 8,
+          participants: [{ _id: "p1", name: "someone", faction: "Empire" }],
+        }),
+      ],
+    });
+    renderBrowser();
+    await waitFor(() =>
+      expect(screen.getByText(/sign in to join/i)).toBeInTheDocument(),
+    );
+  });
 });

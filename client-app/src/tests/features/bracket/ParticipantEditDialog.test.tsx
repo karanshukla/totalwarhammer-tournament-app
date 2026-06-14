@@ -105,6 +105,14 @@ describe("ParticipantEditDialog", () => {
     expect(onParticipantChange).not.toHaveBeenCalled();
   });
 
+  it("does not call onParticipantChange on name change when participant is null", () => {
+    const onParticipantChange = vi.fn();
+    renderDialog({ participant: null, onParticipantChange });
+    const inputs = screen.getAllByRole("textbox");
+    fireEvent.change(inputs[0], { target: { value: "New Name" } });
+    expect(onParticipantChange).not.toHaveBeenCalled();
+  });
+
   it("shows 40k factions when enable40kFactions is true", () => {
     renderDialog({ enable40kFactions: true });
     const select = screen.getByRole("combobox");
@@ -126,4 +134,5 @@ describe("ParticipantEditDialog", () => {
     expect(screen.getByRole("button", { name: /cancel/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /save/i })).toBeInTheDocument();
   });
+
 });
