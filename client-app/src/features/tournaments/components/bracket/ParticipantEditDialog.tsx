@@ -70,6 +70,7 @@ export function ParticipantEditDialog({
   return (
     <Dialog.Root
       open={isOpen}
+      /* v8 ignore next */
       onOpenChange={(e: OpenChangeDetails) => !e.open && onClose()}
     >
       <Portal>

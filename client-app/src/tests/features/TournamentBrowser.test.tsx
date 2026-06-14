@@ -380,4 +380,128 @@ describe("TournamentBrowser", () => {
       expect(screen.getByText("Nothing found.")).toBeInTheDocument(),
     );
   });
+
+  it("recognises user as joined when participant has matching userId", async () => {
+    (mockUseUserStore as unknown as ReturnType<typeof vi.fn>).mockReturnValue(
+      makeUser({ user: { id: "uid-789", username: "myuser", isAuthenticated: true, isGuest: false } }),
+    );
+    mockGet.mockResolvedValue({
+      success: true,
+      data: [
+        makeTournament({
+          status: "active",
+          participants: [
+            { _id: "p1", userId: "uid-789", name: "othername", faction: "Chaos" },
+          ],
+        }),
+      ],
+    });
+    renderBrowser({ statusFilter: "active" });
+    await waitFor(() =>
+      expect(screen.getByText(/joined/i)).toBeInTheDocument(),
+    );
+  });
+
+  it("navigates to /tournament/:id on Join click when tournament has no code", async () => {
+    const user = userEvent.setup();
+    mockGet.mockResolvedValue({
+      success: true,
+      data: [
+        makeTournament({
+          _id: "nocode1",
+          status: "pending",
+          playerCount: 8,
+          participants: [],
+        }),
+      ],
+    });
+    renderBrowser();
+    await waitFor(() =>
+      screen.getByRole("button", { name: /join tournament/i }),
+    );
+    await user.click(screen.getByRole("button", { name: /join tournament/i }));
+    expect(mockNavigate).toHaveBeenCalledWith("/tournament/nocode1");
+  });
+
+  it("navigates to /matches#:id on My Matches click when tournament has no code", async () => {
+    const user = userEvent.setup();
+    (mockUseUserStore as unknown as ReturnType<typeof vi.fn>).mockReturnValue(
+      makeUser(),
+    );
+    mockGet.mockResolvedValue({
+      success: true,
+      data: [
+        makeTournament({
+          _id: "nocode2",
+          status: "pending",
+          participants: [{ _id: "p1", name: "testuser", faction: "Empire" }],
+        }),
+      ],
+    });
+    renderBrowser();
+    await waitFor(() => screen.getByRole("button", { name: /matches/i }));
+    await user.click(screen.getByRole("button", { name: /matches/i }));
+    expect(mockNavigate).toHaveBeenCalledWith("/matches#nocode2");
+  });
+
+  it("navigates to /tournament/:id on Spectate click when tournament has no code", async () => {
+    const user = userEvent.setup();
+    mockGet.mockResolvedValue({
+      success: true,
+      data: [
+        makeTournament({
+          _id: "nocode3",
+          status: "active",
+          playerCount: 8,
+          participants: [],
+        }),
+      ],
+    });
+    renderBrowser({ statusFilter: "active" });
+    await waitFor(() => screen.getByRole("button", { name: /spectate/i }));
+    await user.click(screen.getByRole("button", { name: /spectate/i }));
+    expect(mockNavigate).toHaveBeenCalledWith("/tournament/nocode3");
+  });
+
+  it("navigates to /tournament/:id on View Results click when tournament has no code", async () => {
+    const user = userEvent.setup();
+    mockGet.mockResolvedValue({
+      success: true,
+      data: [
+        makeTournament({
+          _id: "nocode4",
+          status: "completed",
+          playerCount: 8,
+          participants: [],
+        }),
+      ],
+    });
+    renderBrowser({ statusFilter: "completed" });
+    await waitFor(() =>
+      screen.getByRole("button", { name: /view results/i }),
+    );
+    await user.click(screen.getByRole("button", { name: /view results/i }));
+    expect(mockNavigate).toHaveBeenCalledWith("/tournament/nocode4");
+  });
+
+  it("treats user as not joined when user object is null", async () => {
+    (mockUseUserStore as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
+      user: null,
+      isAuthenticated: vi.fn().mockReturnValue(false),
+    });
+    mockGet.mockResolvedValue({
+      success: true,
+      data: [
+        makeTournament({
+          status: "pending",
+          playerCount: 8,
+          participants: [{ _id: "p1", name: "someone", faction: "Empire" }],
+        }),
+      ],
+    });
+    renderBrowser();
+    await waitFor(() =>
+      expect(screen.getByText(/sign in to join/i)).toBeInTheDocument(),
+    );
+  });
 });

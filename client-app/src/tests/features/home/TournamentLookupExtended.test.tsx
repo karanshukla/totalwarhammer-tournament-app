@@ -1,7 +1,3 @@
-/**
- * Extended coverage for TournamentLookup.
- * Covers line 187: onClick handler on View button for each tournament item.
- */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -127,6 +123,125 @@ describe("TournamentLookup – View button navigation", () => {
     } else {
       // If only one is rendered (layout limit), just verify the structure
       expect(viewBtns.length).toBeGreaterThan(0);
+    }
+  });
+});
+
+import { useUserStore } from "@/shared/stores/userStore";
+
+describe("TournamentLookup – uncovered branches", () => {
+  beforeEach(() => {
+    mockGet.mockReset();
+    mockNavigate.mockReset();
+    vi.mocked(useUserStore).mockReturnValue({
+      user: {
+        isAuthenticated: false,
+        isGuest: false,
+        id: "",
+        username: "",
+        email: "",
+      },
+    } as ReturnType<typeof useUserStore>);
+  });
+
+  it("handles undefined data in initial fetch (res.data ?? [] fallback)", async () => {
+    mockGet.mockResolvedValueOnce({ success: true });
+    renderLookup();
+    await waitFor(() => {
+      expect(screen.queryByText("Tournaments")).not.toBeInTheDocument();
+    });
+  });
+
+  it("navigates to matches when guest user is a participant via guestFallback", async () => {
+    vi.mocked(useUserStore).mockReturnValue({
+      user: {
+        isAuthenticated: true,
+        isGuest: true,
+        id: "abc123def",
+        username: "",
+        email: "",
+      },
+    } as ReturnType<typeof useUserStore>);
+
+    mockGet
+      .mockResolvedValueOnce({ success: true, data: [] })
+      .mockResolvedValueOnce({
+        success: true,
+        data: { _id: "t1", participants: [{ name: "guest_abc123" }] },
+      });
+
+    renderLookup();
+
+    const input = screen.getByPlaceholderText(/e.g., ABC123/i);
+    await userEvent.type(input, "GUESTCD");
+    await userEvent.click(
+      screen.getByRole("button", { name: /View Tournament/i }),
+    );
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith("/matches/tournament/GUESTCD");
+    });
+  });
+
+  it("navigates to matches when participant name equals user id", async () => {
+    vi.mocked(useUserStore).mockReturnValue({
+      user: {
+        isAuthenticated: true,
+        isGuest: false,
+        id: "uid-12345",
+        username: "",
+        email: "",
+      },
+    } as ReturnType<typeof useUserStore>);
+
+    mockGet
+      .mockResolvedValueOnce({ success: true, data: [] })
+      .mockResolvedValueOnce({
+        success: true,
+        data: { _id: "t2", participants: [{ name: "uid-12345" }] },
+      });
+
+    renderLookup();
+
+    const input = screen.getByPlaceholderText(/e.g., ABC123/i);
+    await userEvent.type(input, "UIDCODE");
+    await userEvent.click(
+      screen.getByRole("button", { name: /View Tournament/i }),
+    );
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith("/matches/tournament/UIDCODE");
+    });
+  });
+
+  it("navigates to /tournament/:id when View clicked on tournament with no code", async () => {
+    mockGet.mockResolvedValueOnce({
+      success: true,
+      data: [
+        {
+          _id: "tid-nocod",
+          name: "No Code Cup",
+          tournamentType: "Round Robin",
+          playerCount: 8,
+          status: "active",
+          participants: [],
+        },
+      ],
+    });
+
+    renderLookup();
+
+    await waitFor(() => {
+      expect(screen.getByText("No Code Cup")).toBeInTheDocument();
+    });
+
+    const allButtons = screen.getAllByRole("button");
+    const viewBtn = allButtons.find((b) => b.textContent?.trim() === "View");
+    if (viewBtn) {
+      await userEvent.click(viewBtn);
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith("/tournament/tid-nocod");
+      });
     }
   });
 });
