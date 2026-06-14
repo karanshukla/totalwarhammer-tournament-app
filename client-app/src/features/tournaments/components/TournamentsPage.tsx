@@ -151,8 +151,8 @@ const TournamentsPage: React.FC = () => {
 
     window.addEventListener("hashchange", handleHashChange);
 
+    /* c8 ignore next 3 — Effect 1 always sets the hash before this Effect 2 check runs */
     if (window.location.hash.replace("#", "") !== activeTab) {
-      /* c8 ignore next — Effect 1 always sets the hash before this Effect 2 check runs */
       window.location.hash = `#${activeTab}`;
     }
 
