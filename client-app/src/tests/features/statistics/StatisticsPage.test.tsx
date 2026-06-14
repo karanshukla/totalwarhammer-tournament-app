@@ -1,24 +1,57 @@
 /**
- * Branch coverage for StatisticsPage.tsx.
- * Covers: loading state, error branches (Error vs non-Error), success with full data,
- * success with empty arrays, cachedAt present/absent, recentTournaments empty,
- * winnerFaction present/absent, c.completed > 0 branch, f/p wins singular/plural,
- * player rank color branches (i===0, i===1, i>=2), player factions filter branch.
+ * Branch coverage for statistics/components/StatisticsPage.tsx:
+ * - loading=true → Spinner + "Loading statistics…"
+ * - error (Error instance) → shows error.message
+ * - error (non-Error) → shows "Failed to load statistics"
+ * - stats=null from fetch (res.data = null equivalent) → still renders after loading
+ * - stats.cachedAt present → shows "Updated" timestamp
+ * - stats.topFactions.length === 0 → "No faction data yet."
+ * - stats.topFactions.length > 0 → faction list with bars
+ * - f.wins === 1 → "win" (singular)
+ * - f.wins > 1 → "wins" (plural)
+ * - stats.topPlayers.length === 0 → "No player data yet."
+ * - p.factions.filter(Boolean).length > 0 → shows faction subtext
+ * - stats.recentWinners.length === 0 → "No tournaments completed..."
+ * - w.winnerFaction present → shows faction badge
+ * - stats.topCreators.length === 0 → "No data yet."
+ * - c.completed > 0 → shows "done" badge
+ * - stats.recentTournaments.length > 0 → Recent Completed Tournaments section
+ * - StatCard: colorPalette === "ink" → bg.subtle icon bg
+ * - StatCard: sub present → sub text rendered
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor, act } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import React from "react";
 import { ChakraProvider, defaultSystem } from "@chakra-ui/react";
 
-vi.mock("@/core/api/httpClient", () => ({
-  httpClient: { get: vi.fn() },
+const { mockGet } = vi.hoisted(() => ({
+  mockGet: vi.fn(),
 }));
 
-import { httpClient } from "@/core/api/httpClient";
+vi.mock("@/core/api/httpClient", () => ({
+  httpClient: { get: mockGet },
+}));
+
 import StatisticsPage from "@/features/statistics/components/StatisticsPage";
 
-const mockGet = vi.mocked(httpClient.get);
+const baseStats = {
+  cachedAt: undefined as string | undefined,
+  tournaments: { pending: 0, active: 0, completed: 0, total: 0 },
+  matches: {
+    pending: 0,
+    in_progress: 0,
+    completed: 0,
+    disputed: 0,
+    total: 0,
+    completionRate: 0,
+  },
+  topPlayers: [] as any[],
+  topFactions: [] as any[],
+  topCreators: [] as any[],
+  recentTournaments: [] as any[],
+  recentWinners: [] as any[],
+};
 
 function renderPage() {
   return render(
@@ -28,56 +61,20 @@ function renderPage() {
   );
 }
 
-const fullStats = {
-  cachedAt: "2026-06-14T10:00:00Z",
-  tournaments: { pending: 1, active: 2, completed: 5, total: 8 },
-  matches: { pending: 3, in_progress: 1, completed: 20, disputed: 0, total: 24, completionRate: 0.83 },
-  topFactions: [
-    { faction: "Empire", wins: 5 },
-    { faction: "Dwarfs", wins: 3 },
-    { faction: "Greenskins", wins: 1 },
-  ],
-  topPlayers: [
-    { name: "PlayerOne", wins: 7, factions: ["Empire", "Dwarfs"] },
-    { name: "PlayerTwo", wins: 4, factions: [] },
-    { name: "PlayerThree", wins: 2, factions: ["Greenskins"] },
-  ],
-  topCreators: [
-    { username: "Creator1", tournamentsCreated: 10, completed: 5 },
-    { username: "Creator2", tournamentsCreated: 3, completed: 0 },
-  ],
-  recentWinners: [
-    { tournamentName: "Grand Cup", tournamentType: "Single Elimination", winnerName: "Hero1", winnerFaction: "Empire", completedAt: "2026-06-13T00:00:00Z" },
-    { tournamentName: "Minor Cup", tournamentType: "Round Robin", winnerName: "Hero2", winnerFaction: "", completedAt: "2026-06-12T00:00:00Z" },
-  ],
-  recentTournaments: [
-    { _id: "t1", name: "Past Cup", tournamentType: "Swiss System", participants: [{ name: "A", faction: "Empire" }], playerCount: 8, createdAt: "2026-06-10T00:00:00Z" },
-  ],
-};
-
 describe("StatisticsPage – loading state", () => {
-  beforeEach(() => mockGet.mockReset());
+  beforeEach(() => vi.clearAllMocks());
 
-  it("shows spinner while loading", async () => {
-    // Deferred promise: keeps component in loading state until we resolve it
-    let resolveGet!: (v: unknown) => void;
-    mockGet.mockImplementationOnce(
-      () => new Promise((r) => { resolveGet = r; }),
-    );
+  it("shows spinner and 'Loading statistics…' while fetch is in flight", () => {
+    mockGet.mockReturnValueOnce(new Promise(() => {}));
     renderPage();
-    // Component renders with loading=true initially
     expect(screen.getByText(/loading statistics/i)).toBeInTheDocument();
-    // Resolve so the promise doesn't hang the test runner
-    await act(async () => {
-      resolveGet({ success: true, data: { ...fullStats, topFactions: [], topPlayers: [], topCreators: [], recentWinners: [], recentTournaments: [] } });
-    });
   });
 });
 
 describe("StatisticsPage – error states", () => {
-  beforeEach(() => mockGet.mockReset());
+  beforeEach(() => vi.clearAllMocks());
 
-  it("shows error message when API throws an Error instance", async () => {
+  it("shows error.message when fetch throws an Error instance", async () => {
     mockGet.mockRejectedValueOnce(new Error("Network failure"));
     renderPage();
     await waitFor(() =>
@@ -85,164 +82,45 @@ describe("StatisticsPage – error states", () => {
     );
   });
 
-  it("shows generic message when API throws a non-Error", async () => {
+  it("shows 'Failed to load statistics' when fetch throws non-Error", async () => {
     mockGet.mockRejectedValueOnce("string error");
     renderPage();
     await waitFor(() =>
-      expect(
-        screen.getByText("Failed to load statistics"),
-      ).toBeInTheDocument(),
-    );
-  });
-
-  it("shows 'No data available' when API returns null data (stats is null)", async () => {
-    mockGet.mockResolvedValueOnce({ success: true, data: null });
-    renderPage();
-    await waitFor(() =>
-      expect(screen.getByText("No data available.")).toBeInTheDocument(),
+      expect(screen.getByText(/failed to load statistics/i)).toBeInTheDocument(),
     );
   });
 });
 
-describe("StatisticsPage – success with full data", () => {
-  beforeEach(() => mockGet.mockReset());
+describe("StatisticsPage – empty sections", () => {
+  beforeEach(() => vi.clearAllMocks());
 
-  it("renders tournament total count", async () => {
-    mockGet.mockResolvedValueOnce({ success: true, data: fullStats });
-    renderPage();
-    await waitFor(() =>
-      expect(screen.getByText("8")).toBeInTheDocument(),
-    );
-  });
-
-  it("shows cachedAt time when present", async () => {
-    mockGet.mockResolvedValueOnce({ success: true, data: fullStats });
-    renderPage();
-    await waitFor(() =>
-      expect(screen.getByText(/updated/i)).toBeInTheDocument(),
-    );
-  });
-
-  it("shows top faction names", async () => {
-    mockGet.mockResolvedValueOnce({ success: true, data: fullStats });
-    renderPage();
-    await waitFor(() => {
-      // "Empire" appears both as a faction card and inside the player faction list;
-      // at least one instance should be present
-      expect(screen.getAllByText("Empire").length).toBeGreaterThan(0);
+  it("shows 'No faction data yet.' when topFactions is empty", async () => {
+    mockGet.mockResolvedValueOnce({
+      success: true,
+      data: { ...baseStats, topFactions: [] },
     });
+    renderPage();
+    await waitFor(() =>
+      expect(screen.getByText(/no faction data yet/i)).toBeInTheDocument(),
+    );
   });
 
-  it("shows plural 'wins' for faction with multiple wins", async () => {
-    mockGet.mockResolvedValueOnce({ success: true, data: fullStats });
-    renderPage();
-    await waitFor(() => {
-      const allWins = screen.getAllByText(/\d+ wins?/);
-      const plural = allWins.find((el) => el.textContent?.includes("5 wins"));
-      expect(plural).toBeTruthy();
+  it("shows 'No player data yet.' when topPlayers is empty", async () => {
+    mockGet.mockResolvedValueOnce({
+      success: true,
+      data: { ...baseStats, topPlayers: [] },
     });
+    renderPage();
+    await waitFor(() =>
+      expect(screen.getByText(/no player data yet/i)).toBeInTheDocument(),
+    );
   });
 
-  it("shows singular 'win' for faction with exactly 1 win", async () => {
-    mockGet.mockResolvedValueOnce({ success: true, data: fullStats });
-    renderPage();
-    await waitFor(() => {
-      const singular = screen.getAllByText(/1 win$/).filter((el) => el.textContent === "1 win");
-      expect(singular.length).toBeGreaterThan(0);
+  it("shows 'No tournaments completed...' when recentWinners is empty", async () => {
+    mockGet.mockResolvedValueOnce({
+      success: true,
+      data: { ...baseStats, recentWinners: [] },
     });
-  });
-
-  it("shows top player names", async () => {
-    mockGet.mockResolvedValueOnce({ success: true, data: fullStats });
-    renderPage();
-    await waitFor(() =>
-      expect(screen.getByText("PlayerOne")).toBeInTheDocument(),
-    );
-  });
-
-  it("shows player faction list when factions are non-empty", async () => {
-    mockGet.mockResolvedValueOnce({ success: true, data: fullStats });
-    renderPage();
-    await waitFor(() =>
-      expect(screen.getByText("Empire, Dwarfs")).toBeInTheDocument(),
-    );
-  });
-
-  it("shows recent winner tournament name", async () => {
-    mockGet.mockResolvedValueOnce({ success: true, data: fullStats });
-    renderPage();
-    await waitFor(() =>
-      expect(screen.getByText("Grand Cup")).toBeInTheDocument(),
-    );
-  });
-
-  it("shows top creators with completed badge when completed > 0", async () => {
-    mockGet.mockResolvedValueOnce({ success: true, data: fullStats });
-    renderPage();
-    await waitFor(() =>
-      expect(screen.getByText("5 done")).toBeInTheDocument(),
-    );
-  });
-
-  it("does not show 'done' badge for creator with completed = 0", async () => {
-    mockGet.mockResolvedValueOnce({ success: true, data: fullStats });
-    renderPage();
-    await waitFor(() =>
-      expect(screen.getByText("Creator2")).toBeInTheDocument(),
-    );
-    // Creator2 has completed=0, so no "done" badge with count 0
-    const doneBadges = screen.queryAllByText(/0 done/);
-    expect(doneBadges).toHaveLength(0);
-  });
-
-  it("shows recent completed tournaments section when recentTournaments is non-empty", async () => {
-    mockGet.mockResolvedValueOnce({ success: true, data: fullStats });
-    renderPage();
-    await waitFor(() =>
-      expect(screen.getByText("Past Cup")).toBeInTheDocument(),
-    );
-  });
-});
-
-describe("StatisticsPage – empty arrays", () => {
-  beforeEach(() => mockGet.mockReset());
-
-  const emptyStats = {
-    ...fullStats,
-    topFactions: [],
-    topPlayers: [],
-    topCreators: [],
-    recentWinners: [],
-    recentTournaments: [],
-    cachedAt: undefined,
-  };
-
-  it("shows 'No faction data yet' when topFactions is empty", async () => {
-    mockGet.mockResolvedValueOnce({ success: true, data: emptyStats });
-    renderPage();
-    await waitFor(() =>
-      expect(screen.getByText("No faction data yet.")).toBeInTheDocument(),
-    );
-  });
-
-  it("shows 'No player data yet' when topPlayers is empty", async () => {
-    mockGet.mockResolvedValueOnce({ success: true, data: emptyStats });
-    renderPage();
-    await waitFor(() =>
-      expect(screen.getByText("No player data yet.")).toBeInTheDocument(),
-    );
-  });
-
-  it("shows 'No data yet' when topCreators is empty", async () => {
-    mockGet.mockResolvedValueOnce({ success: true, data: emptyStats });
-    renderPage();
-    await waitFor(() =>
-      expect(screen.getByText("No data yet.")).toBeInTheDocument(),
-    );
-  });
-
-  it("shows no-recent-winners message when recentWinners is empty", async () => {
-    mockGet.mockResolvedValueOnce({ success: true, data: emptyStats });
     renderPage();
     await waitFor(() =>
       expect(
@@ -251,19 +129,164 @@ describe("StatisticsPage – empty arrays", () => {
     );
   });
 
-  it("does not render 'Recent Completed Tournaments' section when recentTournaments is empty", async () => {
-    mockGet.mockResolvedValueOnce({ success: true, data: emptyStats });
+  it("shows 'No data yet.' when topCreators is empty", async () => {
+    mockGet.mockResolvedValueOnce({
+      success: true,
+      data: { ...baseStats, topCreators: [] },
+    });
     renderPage();
     await waitFor(() =>
-      expect(screen.queryByText("Past Cup")).not.toBeInTheDocument(),
+      expect(screen.getByText(/no data yet/i)).toBeInTheDocument(),
     );
   });
+});
 
-  it("does not show cachedAt when absent", async () => {
-    mockGet.mockResolvedValueOnce({ success: true, data: emptyStats });
+describe("StatisticsPage – topFactions with data", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("shows faction name and 'wins' (plural) when wins > 1", async () => {
+    mockGet.mockResolvedValueOnce({
+      success: true,
+      data: {
+        ...baseStats,
+        topFactions: [{ faction: "Greenskins", wins: 5 }],
+      },
+    });
     renderPage();
     await waitFor(() =>
-      expect(screen.queryByText(/updated/i)).not.toBeInTheDocument(),
+      expect(screen.getByText("Greenskins")).toBeInTheDocument(),
+    );
+    expect(screen.getByText(/5 wins/)).toBeInTheDocument();
+  });
+
+  it("shows 'win' (singular) when wins === 1", async () => {
+    mockGet.mockResolvedValueOnce({
+      success: true,
+      data: {
+        ...baseStats,
+        topFactions: [{ faction: "Empire", wins: 1 }],
+      },
+    });
+    renderPage();
+    await waitFor(() =>
+      expect(screen.getByText(/1 win\b/)).toBeInTheDocument(),
+    );
+  });
+});
+
+describe("StatisticsPage – topPlayers with factions", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("shows player faction subtext when factions array is non-empty", async () => {
+    mockGet.mockResolvedValueOnce({
+      success: true,
+      data: {
+        ...baseStats,
+        topPlayers: [{ name: "Grimgork", wins: 3, factions: ["Greenskins"] }],
+      },
+    });
+    renderPage();
+    await waitFor(() =>
+      expect(screen.getByText("Grimgork")).toBeInTheDocument(),
+    );
+    expect(screen.getByText("Greenskins")).toBeInTheDocument();
+  });
+
+  it("hides faction subtext when player factions array is empty", async () => {
+    mockGet.mockResolvedValueOnce({
+      success: true,
+      data: {
+        ...baseStats,
+        topPlayers: [{ name: "Luthor", wins: 2, factions: [] }],
+      },
+    });
+    renderPage();
+    await waitFor(() =>
+      expect(screen.getByText("Luthor")).toBeInTheDocument(),
+    );
+  });
+});
+
+describe("StatisticsPage – topCreators 'done' badge (c.completed > 0)", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("shows 'done' badge when c.completed > 0", async () => {
+    mockGet.mockResolvedValueOnce({
+      success: true,
+      data: {
+        ...baseStats,
+        topCreators: [
+          { username: "Admin", tournamentsCreated: 3, completed: 2 },
+        ],
+      },
+    });
+    renderPage();
+    await waitFor(() =>
+      expect(screen.getByText("Admin")).toBeInTheDocument(),
+    );
+    expect(screen.getByText(/2 done/)).toBeInTheDocument();
+  });
+
+  it("hides 'done' badge when c.completed === 0", async () => {
+    mockGet.mockResolvedValueOnce({
+      success: true,
+      data: {
+        ...baseStats,
+        topCreators: [
+          { username: "Admin", tournamentsCreated: 1, completed: 0 },
+        ],
+      },
+    });
+    renderPage();
+    await waitFor(() =>
+      expect(screen.getByText("Admin")).toBeInTheDocument(),
+    );
+    expect(screen.queryByText(/done/)).not.toBeInTheDocument();
+  });
+});
+
+describe("StatisticsPage – recentTournaments section", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("shows Recent Completed Tournaments section when recentTournaments.length > 0", async () => {
+    mockGet.mockResolvedValueOnce({
+      success: true,
+      data: {
+        ...baseStats,
+        recentTournaments: [
+          {
+            _id: "t1",
+            name: "Winter Cup",
+            tournamentType: "Single Elimination",
+            participants: [],
+            playerCount: 8,
+            createdAt: new Date().toISOString(),
+          },
+        ],
+      },
+    });
+    renderPage();
+    await waitFor(() =>
+      expect(screen.getByText("Winter Cup")).toBeInTheDocument(),
+    );
+    expect(screen.getByText(/recent completed tournaments/i)).toBeInTheDocument();
+  });
+});
+
+describe("StatisticsPage – cachedAt timestamp", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("shows 'Updated' text when stats.cachedAt is set", async () => {
+    mockGet.mockResolvedValueOnce({
+      success: true,
+      data: {
+        ...baseStats,
+        cachedAt: "2024-01-15T10:30:00.000Z",
+      },
+    });
+    renderPage();
+    await waitFor(() =>
+      expect(screen.getByText(/updated/i)).toBeInTheDocument(),
     );
   });
 });

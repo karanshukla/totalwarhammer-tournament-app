@@ -1,9 +1,12 @@
 /**
- * Branch coverage for UsernameUpdateForm.tsx:
- * - Line 21: `if (error) setError("")` — clears error on re-type when error exists
- * - Line 27: `!username || username.length < 3` — validation failure
- * - Line 33: `if (isGuest)` — true (guest) → updateGuestUsername; false → updateAuthUsername
- * - Line 40: `if (error instanceof Error)` — true: uses error.message; false: generic message
+ * Branch coverage for account/components/UsernameUpdateForm.tsx:
+ * - user.username || "" → initial input value (empty when no username)
+ * - validation: !username || username.length < 3 → shows error message
+ * - isGuest=true → calls updateGuestUsername
+ * - isGuest=false → calls updateAuthUsername
+ * - catch: error instanceof Error → shows error.message
+ * - catch: error NOT instanceof Error → shows "Failed to update username"
+ * - handleUsernameChange: if (error) setError("") → clears error on re-type
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
@@ -11,28 +14,38 @@ import "@testing-library/jest-dom";
 import React from "react";
 import { ChakraProvider, defaultSystem } from "@chakra-ui/react";
 
+const {
+  mockUpdateGuestUsername,
+  mockUpdateAuthUsername,
+  mockUseUserStore,
+} = vi.hoisted(() => ({
+  mockUpdateGuestUsername: vi.fn(),
+  mockUpdateAuthUsername: vi.fn(),
+  mockUseUserStore: vi.fn(),
+}));
+
 vi.mock("@/features/authentication/api/guestApi", () => ({
-  updateGuestUsername: vi.fn(),
+  updateGuestUsername: mockUpdateGuestUsername,
 }));
 
 vi.mock("@/features/account/api/accountApi", () => ({
-  updateUsername: vi.fn(),
+  updateUsername: mockUpdateAuthUsername,
 }));
 
 vi.mock("@/shared/stores/userStore", () => ({
-  useUserStore: vi.fn((selector: (state: { user: { username: string } }) => unknown) =>
-    selector({ user: { username: "TestUser" } }),
-  ),
+  useUserStore: (selector: (state: any) => any) => mockUseUserStore(selector),
 }));
 
-import { updateGuestUsername } from "@/features/authentication/api/guestApi";
-import { updateUsername } from "@/features/account/api/accountApi";
 import UsernameUpdateForm from "@/features/account/components/UsernameUpdateForm";
 
-const mockUpdateGuestUsername = vi.mocked(updateGuestUsername);
-const mockUpdateUsername = vi.mocked(updateUsername);
+function setupStore(username = "Grimgork") {
+  mockUseUserStore.mockImplementation((selector: (state: any) => any) =>
+    selector({ user: { username } }),
+  );
+}
 
-function renderForm(isGuest = false) {
+function renderForm(username = "Grimgork", isGuest = false) {
+  setupStore(username);
   return render(
     <ChakraProvider value={defaultSystem}>
       <UsernameUpdateForm isGuest={isGuest} />
@@ -40,125 +53,107 @@ function renderForm(isGuest = false) {
   );
 }
 
-describe("UsernameUpdateForm – validation branch (line 27)", () => {
+describe("UsernameUpdateForm – initial value (user.username || '')", () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it("shows validation error when username is empty", async () => {
-    renderForm();
-    const input = screen.getByPlaceholderText(/enter your new username/i);
-    fireEvent.change(input, { target: { value: "" } });
-    fireEvent.submit(input.closest("form")!);
-
-    await waitFor(() =>
-      expect(
-        screen.getByText(/at least 3 characters/i),
-      ).toBeInTheDocument(),
-    );
-    expect(mockUpdateGuestUsername).not.toHaveBeenCalled();
+  it("initialises input with user.username when set", () => {
+    renderForm("Grimgork");
+    expect(screen.getByPlaceholderText(/new username/i)).toHaveValue("Grimgork");
   });
 
-  it("shows validation error when username is fewer than 3 chars", async () => {
-    renderForm();
-    const input = screen.getByPlaceholderText(/enter your new username/i);
-    fireEvent.change(input, { target: { value: "ab" } });
-    fireEvent.submit(input.closest("form")!);
+  it("initialises input as empty string when user.username is falsy", () => {
+    renderForm("");
+    expect(screen.getByPlaceholderText(/new username/i)).toHaveValue("");
+  });
+});
 
+describe("UsernameUpdateForm – validation error (!username || length < 3)", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("shows error when username is empty on submit", async () => {
+    renderForm("");
+    fireEvent.submit(screen.getByRole("button", { name: /update username/i }));
     await waitFor(() =>
       expect(
-        screen.getByText(/at least 3 characters/i),
+        screen.getByText(/usernames must be at least 3 characters/i),
+      ).toBeInTheDocument(),
+    );
+    expect(mockUpdateAuthUsername).not.toHaveBeenCalled();
+  });
+
+  it("shows error when username is shorter than 3 chars", async () => {
+    renderForm("");
+    fireEvent.change(screen.getByPlaceholderText(/new username/i), {
+      target: { value: "ab" },
+    });
+    fireEvent.submit(screen.getByRole("button", { name: /update username/i }));
+    await waitFor(() =>
+      expect(
+        screen.getByText(/usernames must be at least 3 characters/i),
       ).toBeInTheDocument(),
     );
   });
 });
 
-describe("UsernameUpdateForm – error clearing on change (line 21)", () => {
+describe("UsernameUpdateForm – clears error on re-type (if error setError(''))", () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it("clears error when user types after an error is shown", async () => {
-    renderForm();
-    const input = screen.getByPlaceholderText(/enter your new username/i);
-
-    // Trigger validation error
-    fireEvent.change(input, { target: { value: "a" } });
-    fireEvent.submit(input.closest("form")!);
+  it("clears validation error when user types again", async () => {
+    renderForm("");
+    fireEvent.submit(screen.getByRole("button", { name: /update username/i }));
     await waitFor(() =>
-      expect(screen.getByText(/at least 3 characters/i)).toBeInTheDocument(),
+      expect(
+        screen.getByText(/usernames must be at least 3 characters/i),
+      ).toBeInTheDocument(),
     );
-
-    // Now type more text → error should be cleared
-    fireEvent.change(input, { target: { value: "ab" } });
-    // The error clearing happens synchronously via setError("") in handleUsernameChange
-    expect(screen.queryByText(/at least 3 characters/i)).not.toBeInTheDocument();
+    fireEvent.change(screen.getByPlaceholderText(/new username/i), {
+      target: { value: "NewName" },
+    });
+    expect(
+      screen.queryByText(/usernames must be at least 3 characters/i),
+    ).not.toBeInTheDocument();
   });
 });
 
-describe("UsernameUpdateForm – isGuest branch (line 33)", () => {
+describe("UsernameUpdateForm – isGuest branch", () => {
   beforeEach(() => vi.clearAllMocks());
 
   it("calls updateGuestUsername when isGuest=true", async () => {
-    mockUpdateGuestUsername.mockResolvedValueOnce({
-      success: true,
-      message: "ok",
-      data: { id: "g1", username: "GuestUser", email: "", isGuest: true, expiresAt: Date.now() + 1000 },
-    });
-
-    renderForm(true);
-    const input = screen.getByPlaceholderText(/enter your new username/i);
-    fireEvent.change(input, { target: { value: "GuestUser" } });
-    fireEvent.submit(input.closest("form")!);
-
-    await waitFor(() =>
-      expect(mockUpdateGuestUsername).toHaveBeenCalledWith("GuestUser"),
-    );
-    expect(mockUpdateUsername).not.toHaveBeenCalled();
+    mockUpdateGuestUsername.mockResolvedValueOnce({ success: true });
+    renderForm("Grimgork", true);
+    fireEvent.submit(screen.getByRole("button", { name: /update username/i }));
+    await waitFor(() => expect(mockUpdateGuestUsername).toHaveBeenCalledWith("Grimgork"));
+    expect(mockUpdateAuthUsername).not.toHaveBeenCalled();
   });
 
   it("calls updateUsername (auth) when isGuest=false", async () => {
-    mockUpdateUsername.mockResolvedValueOnce({
-      success: true,
-      message: "ok",
-      data: { id: "u1", username: "AuthUser", email: "a@b.com" },
-    });
-
-    renderForm(false);
-    const input = screen.getByPlaceholderText(/enter your new username/i);
-    fireEvent.change(input, { target: { value: "AuthUser" } });
-    fireEvent.submit(input.closest("form")!);
-
-    await waitFor(() =>
-      expect(mockUpdateUsername).toHaveBeenCalledWith("AuthUser"),
-    );
+    mockUpdateAuthUsername.mockResolvedValueOnce({ success: true });
+    renderForm("Grimgork", false);
+    fireEvent.submit(screen.getByRole("button", { name: /update username/i }));
+    await waitFor(() => expect(mockUpdateAuthUsername).toHaveBeenCalledWith("Grimgork"));
     expect(mockUpdateGuestUsername).not.toHaveBeenCalled();
   });
 });
 
-describe("UsernameUpdateForm – error type branch in catch (line 40)", () => {
+describe("UsernameUpdateForm – catch Error instanceof branches", () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it("shows error.message when catch receives an Error instance (line 40 true)", async () => {
-    mockUpdateUsername.mockRejectedValueOnce(new Error("Name already taken"));
-
-    renderForm(false);
-    const input = screen.getByPlaceholderText(/enter your new username/i);
-    fireEvent.change(input, { target: { value: "TakenName" } });
-    fireEvent.submit(input.closest("form")!);
-
+  it("shows error.message when caught error is an Error instance", async () => {
+    mockUpdateAuthUsername.mockRejectedValueOnce(new Error("Username taken"));
+    renderForm("Grimgork", false);
+    fireEvent.submit(screen.getByRole("button", { name: /update username/i }));
     await waitFor(() =>
-      expect(screen.getByText("Name already taken")).toBeInTheDocument(),
+      expect(screen.getByText("Username taken")).toBeInTheDocument(),
     );
   });
 
-  it("shows generic message when catch receives non-Error (line 40 false)", async () => {
-    mockUpdateUsername.mockRejectedValueOnce("plain string error");
-
-    renderForm(false);
-    const input = screen.getByPlaceholderText(/enter your new username/i);
-    fireEvent.change(input, { target: { value: "SomeName" } });
-    fireEvent.submit(input.closest("form")!);
-
+  it("shows generic message when caught error is not an Error instance", async () => {
+    mockUpdateAuthUsername.mockRejectedValueOnce("some string error");
+    renderForm("Grimgork", false);
+    fireEvent.submit(screen.getByRole("button", { name: /update username/i }));
     await waitFor(() =>
       expect(
-        screen.getByText("Failed to update username"),
+        screen.getByText(/failed to update username/i),
       ).toBeInTheDocument(),
     );
   });
