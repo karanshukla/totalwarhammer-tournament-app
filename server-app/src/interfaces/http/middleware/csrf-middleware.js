@@ -2,6 +2,7 @@ import { doubleCsrf } from "csrf-csrf";
 
 import logger from "../../../infrastructure/utils/logger.js";
 
+/* c8 ignore next 4 */
 if (process.env.NODE_ENV === "production" && !process.env.CSRF_SECRET) {
   logger.error("CSRF_SECRET is not set in production environment");
   process.exit(1);
