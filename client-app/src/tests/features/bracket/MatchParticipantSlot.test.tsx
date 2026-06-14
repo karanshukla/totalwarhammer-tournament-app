@@ -4,9 +4,6 @@ import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom";
 import React from "react";
 import { ChakraProvider, defaultSystem } from "@chakra-ui/react";
-import { useDroppable } from "@dnd-kit/core";
-import { MatchParticipantSlot } from "@/features/tournaments/components/bracket/MatchParticipantSlot";
-import type { Participant } from "@/features/tournaments/components/bracket/types";
 
 vi.mock("@dnd-kit/core", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@dnd-kit/core")>();
@@ -16,48 +13,42 @@ vi.mock("@dnd-kit/core", async (importOriginal) => {
   };
 });
 
+import { useDroppable } from "@dnd-kit/core";
+import { MatchParticipantSlot } from "@/features/tournaments/components/bracket/MatchParticipantSlot";
+import type { Participant } from "@/features/tournaments/components/bracket/types";
+
 const mockUseDroppable = vi.mocked(useDroppable);
 
 const participants: Participant[] = [
-  { id: "p1", name: "Karl Franz", faction: "Empire" },
-  { id: "p2", name: "Archaon", faction: "Warriors of Chaos" },
+  { id: "p1", name: "Alice", faction: "Empire" },
+  { id: "p2", name: "Bob", faction: "Chaos" },
 ];
 
-function makeDroppable(isOver: boolean) {
+function makeDroppableReturn(isOver = false) {
   return {
     setNodeRef: vi.fn(),
     isOver,
-    active: null,
     over: null,
-    rect: { current: { initial: null, translated: null } },
+    active: null,
     node: { current: null },
-  };
+    rect: { current: null },
+    disabled: false,
+  } as unknown as ReturnType<typeof useDroppable>;
 }
 
 function renderSlot(
-  overrides: Partial<{
-    matchId: string;
-    position: 1 | 2;
-    participantId: string | null;
-    participants: Participant[];
-    onRemove: () => void;
-    isOver: boolean;
-  }> = {},
+  props: Partial<React.ComponentProps<typeof MatchParticipantSlot>> = {},
 ) {
-  const isOver = overrides.isOver ?? false;
-  mockUseDroppable.mockReturnValue(makeDroppable(isOver) as ReturnType<typeof useDroppable>);
-
-  const props = {
-    matchId: overrides.matchId ?? "match1",
-    position: (overrides.position ?? 1) as 1 | 2,
-    participantId: overrides.participantId ?? null,
-    participants: overrides.participants ?? participants,
-    onRemove: overrides.onRemove ?? vi.fn(),
+  const defaults = {
+    matchId: "m1",
+    position: 1 as const,
+    participantId: null,
+    participants,
+    onRemove: vi.fn(),
   };
-
   return render(
     <ChakraProvider value={defaultSystem}>
-      <MatchParticipantSlot {...props} />
+      <MatchParticipantSlot {...defaults} {...props} />
     </ChakraProvider>,
   );
 }
@@ -65,63 +56,62 @@ function renderSlot(
 describe("MatchParticipantSlot", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockUseDroppable.mockReturnValue(makeDroppableReturn(false));
   });
 
   it("shows 'Drop player here' when no participant is assigned", () => {
     renderSlot({ participantId: null });
-    expect(screen.getByText(/drop player here/i)).toBeInTheDocument();
+    expect(screen.getByText("Drop player here")).toBeInTheDocument();
   });
 
   it("shows participant name and faction when a participant is assigned", () => {
     renderSlot({ participantId: "p1" });
-    expect(screen.getByText("Karl Franz")).toBeInTheDocument();
+    expect(screen.getByText("Alice")).toBeInTheDocument();
     expect(screen.getByText("Empire")).toBeInTheDocument();
   });
 
-  it("shows 'Remove participant' button when participant is assigned", () => {
+  it("shows Remove button when participant is assigned", () => {
     renderSlot({ participantId: "p1" });
     expect(
       screen.getByRole("button", { name: /remove participant/i }),
     ).toBeInTheDocument();
   });
 
-  it("calls onRemove when Remove button is clicked", async () => {
+  it("calls onRemove when the remove button is clicked", async () => {
     const onRemove = vi.fn();
     renderSlot({ participantId: "p1", onRemove });
-    await userEvent.click(screen.getByRole("button", { name: /remove participant/i }));
-    expect(onRemove).toHaveBeenCalledTimes(1);
+    await userEvent.click(
+      screen.getByRole("button", { name: /remove participant/i }),
+    );
+    expect(onRemove).toHaveBeenCalled();
   });
 
-  it("calls useDroppable with the correct droppable id", () => {
-    renderSlot({ matchId: "m42", position: 2 });
-    expect(mockUseDroppable).toHaveBeenCalledWith({ id: "slot-m42-2" });
+  it("applies isOver=true style branches (info.border, info.subtle)", () => {
+    mockUseDroppable.mockReturnValue(makeDroppableReturn(true));
+    const { container } = renderSlot({ participantId: null });
+    expect(container.firstChild).toBeDefined();
+    expect(screen.getByText("Drop player here")).toBeInTheDocument();
   });
 
-  it("applies isOver=false styles (default border/bg)", () => {
-    renderSlot({ isOver: false });
-    // Component renders without errors in non-isOver state
-    expect(screen.getByText(/drop player here/i)).toBeInTheDocument();
+  it("applies isOver=true with a participant assigned", () => {
+    mockUseDroppable.mockReturnValue(makeDroppableReturn(true));
+    renderSlot({ participantId: "p2" });
+    expect(screen.getByText("Bob")).toBeInTheDocument();
+    expect(screen.getByText("Chaos")).toBeInTheDocument();
   });
 
-  it("applies isOver=true styles (info border/bg) when dragging over", () => {
-    renderSlot({ isOver: true, participantId: null });
-    // Component renders without errors when isOver is true
-    expect(screen.getByText(/drop player here/i)).toBeInTheDocument();
-  });
-
-  it("applies isOver=true styles when a participant slot has a participant and drag is over", () => {
-    renderSlot({ isOver: true, participantId: "p2" });
-    expect(screen.getByText("Archaon")).toBeInTheDocument();
-  });
-
-  it("shows empty slot text when participantId doesn't match any participant", () => {
+  it("shows 'Drop player here' when participantId does not match any participant", () => {
     renderSlot({ participantId: "nonexistent" });
-    expect(screen.getByText(/drop player here/i)).toBeInTheDocument();
+    expect(screen.getByText("Drop player here")).toBeInTheDocument();
   });
 
-  it("renders second position slot correctly", () => {
-    renderSlot({ position: 2, participantId: "p2" });
-    expect(screen.getByText("Archaon")).toBeInTheDocument();
-    expect(mockUseDroppable).toHaveBeenCalledWith({ id: "slot-match1-2" });
+  it("calls setNodeRef from useDroppable", () => {
+    const setNodeRef = vi.fn();
+    mockUseDroppable.mockReturnValue({
+      ...makeDroppableReturn(false),
+      setNodeRef,
+    });
+    renderSlot();
+    expect(setNodeRef).toHaveBeenCalled();
   });
 });

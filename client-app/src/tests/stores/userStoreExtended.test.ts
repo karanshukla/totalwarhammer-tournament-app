@@ -67,6 +67,11 @@ describe("userStore – isAuthenticated with expiry", () => {
     });
     expect(useUserStore.getState().isAuthenticated()).toBe(true);
   });
+
+  it("returns false immediately when user.isAuthenticated is false", () => {
+    useUserStore.getState().clearUser();
+    expect(useUserStore.getState().isAuthenticated()).toBe(false);
+  });
 });
 
 describe("userStore – isGuestUser", () => {

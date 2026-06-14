@@ -322,5 +322,38 @@ describe("SimpleBracket - drag handlers", () => {
       expect(reorderSpy).not.toHaveBeenCalled();
       reorderSpy.mockRestore();
     });
+
+    it("does nothing when slot position is neither '1' nor '2'", () => {
+      renderSimpleBracket();
+      const state = useTournamentStore.getState();
+      const [firstParticipant] = state.participants;
+      const firstMatch = state.rounds[0]?.matches[0];
+      if (!firstMatch) return;
+
+      const updateSpy = vi.spyOn(
+        useTournamentStore.getState(),
+        "updateMatchParticipant",
+      );
+
+      capturedOnDragEnd!({
+        active: {
+          id: firstParticipant.id,
+          data: { current: {} },
+          rect: { current: { initial: null, translated: null } },
+        },
+        over: {
+          id: `slot-${firstMatch.id}-9`,
+          data: { current: {} },
+          disabled: false,
+          rect: { width: 0, height: 0, top: 0, left: 0, right: 0, bottom: 0 },
+        },
+        activatorEvent: {} as PointerEvent,
+        collisions: null,
+        delta: { x: 0, y: 0 },
+      });
+
+      expect(updateSpy).not.toHaveBeenCalled();
+      updateSpy.mockRestore();
+    });
   });
 });

@@ -139,8 +139,7 @@ const SimpleBracket = () => {
           participant={editingParticipant}
           onParticipantChange={setEditingParticipant} // Pass the state setter directly
           onSave={() => {
-            /* c8 ignore next 3 — editingParticipant is always truthy here because
-               ParticipantEditDialog only renders inside {editingParticipant && (...)} */
+            /* v8 ignore next */
             if (editingParticipant) {
               saveParticipantEdits(editingParticipant);
             }
