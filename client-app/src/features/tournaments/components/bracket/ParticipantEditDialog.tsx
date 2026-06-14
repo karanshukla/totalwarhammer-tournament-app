@@ -70,6 +70,7 @@ export function ParticipantEditDialog({
   return (
     <Dialog.Root
       open={isOpen}
+      /* c8 ignore next — Ark UI onOpenChange is framework-internal; not triggerable in happy-dom */
       onOpenChange={(e: OpenChangeDetails) => !e.open && onClose()}
     >
       <Portal>
