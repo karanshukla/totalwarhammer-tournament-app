@@ -1,5 +1,5 @@
 {
-    "name": "TW Tournament App",
+    "name": "Total War: Warhammer Tournament Organiser",
     "short_name": "TW Tournament",
     "icons": [
         {
@@ -13,7 +13,7 @@
             "type": "image/png"
         }
     ],
-    "theme_color": "#ffffff",
-    "background_color": "#ffffff",
+    "theme_color": "#1a0a0a",
+    "background_color": "#1a0a0a",
     "display": "standalone"
 }

@@ -41,7 +41,11 @@
         -Last-Modified
     }
 
-    @html path /
+    @html {
+        not path /assets/*
+        not path /api/*
+        not path /socket.io*
+    }
     header @html Cache-Control "no-cache, no-store, must-revalidate"
 
     @hashed_assets path_regexp /assets/.*\.[A-Za-z0-9_-]+\.(js|css|woff2?)$
