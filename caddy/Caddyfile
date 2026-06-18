@@ -48,6 +48,9 @@
     }
     header @html Cache-Control "no-cache, no-store, must-revalidate"
 
+    @backend path /api/* /socket.io*
+    header @backend Cache-Control "no-store, no-cache, must-revalidate"
+
     @hashed_assets path_regexp /assets/.*\.[A-Za-z0-9_-]+\.(js|css|woff2?)$
     header @hashed_assets Cache-Control "public, max-age=31536000, immutable"
 
