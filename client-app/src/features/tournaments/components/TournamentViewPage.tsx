@@ -451,6 +451,11 @@ const TournamentViewPage: React.FC<{ id?: string }> = ({ id: propId }) => {
                   borderColor: "var(--chakra-colors-border)",
                   margin: "0.75rem 0",
                 },
+                "& img": {
+                  maxWidth: "100%",
+                  height: "auto",
+                  borderRadius: "4px",
+                },
               }}
             >
               <ReactMarkdown>{tournament.description}</ReactMarkdown>
