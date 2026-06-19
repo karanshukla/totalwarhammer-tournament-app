@@ -349,6 +349,11 @@ const TournamentDetail: React.FC<Props> = ({
                       color: "var(--chakra-colors-verdigris-fg)",
                       textDecoration: "underline",
                     },
+                    "& img": {
+                      maxWidth: "100%",
+                      height: "auto",
+                      borderRadius: "4px",
+                    },
                   }}
                 >
                   <ReactMarkdown>{selected.description}</ReactMarkdown>
