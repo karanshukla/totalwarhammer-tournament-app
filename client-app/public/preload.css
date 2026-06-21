@@ -12,3 +12,10 @@ html.dark body {
 .body-hidden {
   display: none;
 }
+
+@media (prefers-color-scheme: dark) {
+  html:not(.light),
+  html:not(.light) body {
+    background-color: #100D0A;
+  }
+}
