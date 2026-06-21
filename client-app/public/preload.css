@@ -1,3 +1,14 @@
+html,
+body {
+  background-color: #F1ECE1;
+  margin: 0;
+}
+
+html.dark,
+html.dark body {
+  background-color: #100D0A;
+}
+
 .body-hidden {
   display: none;
 }
