@@ -30,7 +30,7 @@ func main() {
 
 	fmt.Printf("running script: %s\n", abs)
 
-	cmd := exec.Command("mongosh", "--nodb", "--norc", mongoURI, "--file", abs)
+	cmd := exec.Command("mongosh", "--norc", mongoURI, "--file", abs)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
