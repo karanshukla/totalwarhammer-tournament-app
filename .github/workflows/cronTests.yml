@@ -1,0 +1,54 @@
+name: Cron Runner Tests
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "cron/**"
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "cron/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-run:
+    name: Build cron image and run example script
+    runs-on: ubuntu-latest
+
+    services:
+      mongodb:
+        image: mongo:6
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --eval 'db.runCommand({ ping: 1 })'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build cron Docker image
+        run: docker build -t cron-runner ./cron
+
+      - name: Run example script against test MongoDB
+        run: |
+          docker run --rm \
+            --network host \
+            -e MONGO_URI="mongodb://localhost:27017/twt-app" \
+            -e SCRIPT_PATH="scripts/example.js" \
+            cron-runner
+
+      - name: Run delete-guest-accounts script against test MongoDB
+        run: |
+          docker run --rm \
+            --network host \
+            -e MONGO_URI="mongodb://localhost:27017/twt-app" \
+            -e SCRIPT_PATH="scripts/delete-guest-accounts.js" \
+            cron-runner
