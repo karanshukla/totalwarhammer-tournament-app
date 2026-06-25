@@ -6,14 +6,16 @@
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const { mockPost, mockClearUser, mockToasterCreate } = vi.hoisted(() => ({
-  mockPost: vi.fn(),
-  mockClearUser: vi.fn(),
-  mockToasterCreate: vi.fn(),
-}));
+const { mockPost, mockClearUser, mockToasterCreate, mockResetCsrfToken } =
+  vi.hoisted(() => ({
+    mockPost: vi.fn(),
+    mockClearUser: vi.fn(),
+    mockToasterCreate: vi.fn(),
+    mockResetCsrfToken: vi.fn(),
+  }));
 
 vi.mock("@/core/api/httpClient", () => ({
-  httpClient: { post: mockPost },
+  httpClient: { post: mockPost, resetCsrfToken: mockResetCsrfToken },
 }));
 
 vi.mock("@/shared/stores/userStore", () => ({
@@ -41,6 +43,7 @@ describe("logoutUser – success path (response.success=true)", () => {
     mockPost.mockResolvedValueOnce({ success: true, message: "logged out" });
     const result = await logoutUser();
     expect(mockClearUser).toHaveBeenCalled();
+    expect(mockResetCsrfToken).toHaveBeenCalled();
     expect(mockToasterCreate).toHaveBeenCalledWith(
       expect.objectContaining({ type: "success" }),
     );
@@ -69,6 +72,7 @@ describe("logoutUser – catch path", () => {
     mockPost.mockRejectedValueOnce(new Error("Server down"));
     const result = await logoutUser();
     expect(mockClearUser).toHaveBeenCalled();
+    expect(mockResetCsrfToken).toHaveBeenCalled();
     expect(mockToasterCreate).toHaveBeenCalledWith(
       expect.objectContaining({ type: "warning" }),
     );

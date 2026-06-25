@@ -79,6 +79,7 @@ const csrfErrorHandler = (err, req, res, next) => {
     });
     return res.status(403).json({
       success: false,
+      error: "CSRF validation failed",
       message: "Invalid or missing CSRF token",
     });
   }

@@ -159,14 +159,18 @@ class HttpClient {
     });
 
     if (response.status === 403) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let errorData: any = null;
       try {
-        const errorData = await response.json();
+        errorData = await response.json();
+      } catch {
+        // body unparseable — fall through to handleResponse
+      }
 
+      if (errorData !== null) {
         if (errorData.error === "CSRF validation failed") {
           this.csrfToken = null;
-
           token = await this.ensureCsrfToken();
-
           if (token) {
             const retryResponse = await fetch(url, {
               method: "POST",
@@ -179,14 +183,16 @@ class HttpClient {
               },
               body: data ? JSON.stringify(data) : undefined,
             });
-
             return this.handleResponse<T>(retryResponse);
-          } else {
-            throw new Error("Could not refresh CSRF token after failure");
           }
+          throw new Error(
+            errorData.message || "Could not refresh CSRF token after failure",
+          );
         }
-      } catch (e) {
-        console.error("Error handling CSRF retry:", e);
+        // Non-CSRF 403 — body already consumed, throw with the message we read.
+        throw new Error(
+          errorData.message || `Error ${response.status}: ${response.statusText}`,
+        );
       }
     }
 
@@ -228,14 +234,18 @@ class HttpClient {
     });
 
     if (response.status === 403) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let errorData: any = null;
       try {
-        const errorData = await response.json();
+        errorData = await response.json();
+      } catch {
+        // body unparseable — fall through to handleResponse
+      }
 
+      if (errorData !== null) {
         if (errorData.error === "CSRF validation failed") {
           this.csrfToken = null;
-
           token = await this.ensureCsrfToken();
-
           if (token) {
             const retryResponse = await fetch(url, {
               method: "PUT",
@@ -248,14 +258,15 @@ class HttpClient {
               },
               body: data ? JSON.stringify(data) : undefined,
             });
-
             return this.handleResponse<T>(retryResponse);
-          } else {
-            throw new Error("Could not refresh CSRF token after failure");
           }
+          throw new Error(
+            errorData.message || "Could not refresh CSRF token after failure",
+          );
         }
-      } catch (e) {
-        console.error("Error handling CSRF retry:", e);
+        throw new Error(
+          errorData.message || `Error ${response.status}: ${response.statusText}`,
+        );
       }
     }
 
@@ -297,14 +308,18 @@ class HttpClient {
     });
 
     if (response.status === 403) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let errorData: any = null;
       try {
-        const errorData = await response.json();
+        errorData = await response.json();
+      } catch {
+        // body unparseable — fall through to handleResponse
+      }
 
+      if (errorData !== null) {
         if (errorData.error === "CSRF validation failed") {
           this.csrfToken = null;
-
           token = await this.ensureCsrfToken();
-
           if (token) {
             const retryResponse = await fetch(url, {
               method: "PATCH",
@@ -317,14 +332,15 @@ class HttpClient {
               },
               body: data ? JSON.stringify(data) : undefined,
             });
-
             return this.handleResponse<T>(retryResponse);
-          } else {
-            throw new Error("Could not refresh CSRF token after failure");
           }
+          throw new Error(
+            errorData.message || "Could not refresh CSRF token after failure",
+          );
         }
-      } catch (e) {
-        console.error("Error handling CSRF retry:", e);
+        throw new Error(
+          errorData.message || `Error ${response.status}: ${response.statusText}`,
+        );
       }
     }
 
@@ -361,14 +377,18 @@ class HttpClient {
     });
 
     if (response.status === 403) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let errorData: any = null;
       try {
-        const errorData = await response.json();
+        errorData = await response.json();
+      } catch {
+        // body unparseable — fall through to handleResponse
+      }
 
+      if (errorData !== null) {
         if (errorData.error === "CSRF validation failed") {
           this.csrfToken = null;
-
           token = await this.ensureCsrfToken();
-
           if (token) {
             const retryResponse = await fetch(url, {
               method: "DELETE",
@@ -380,14 +400,15 @@ class HttpClient {
                 ...requestOptions.headers,
               },
             });
-
             return this.handleResponse<T>(retryResponse);
-          } else {
-            throw new Error("Could not refresh CSRF token after failure");
           }
+          throw new Error(
+            errorData.message || "Could not refresh CSRF token after failure",
+          );
         }
-      } catch (e) {
-        console.error("Error handling CSRF retry:", e);
+        throw new Error(
+          errorData.message || `Error ${response.status}: ${response.statusText}`,
+        );
       }
     }
 
