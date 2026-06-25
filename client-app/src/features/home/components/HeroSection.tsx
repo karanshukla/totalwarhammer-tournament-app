@@ -49,7 +49,7 @@ const HeroSection: React.FC = () => {
       </Text>
       <HStack gap={3} justify="center" flexWrap="wrap">
         <Button colorPalette="verdigris" size="lg" asChild>
-          <Link to="/tournaments">View Ongoing Tournaments</Link>
+          <Link to="/tournaments#currentTournaments">View Ongoing Tournaments</Link>
         </Button>
         {showCreateAccount && (
           <Button

@@ -81,7 +81,7 @@ const HowItWorksSection: React.FC = () => (
     <Card.Footer>
       <HStack gap={3} flexWrap="wrap">
         <Button colorPalette="verdigris" asChild>
-          <Link to="/tournaments">View Ongoing Tournaments</Link>
+          <Link to="/tournaments#currentTournaments">View Ongoing Tournaments</Link>
         </Button>
         <Button
           variant="outline"

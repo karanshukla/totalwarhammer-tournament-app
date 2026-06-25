@@ -208,7 +208,7 @@ const TournamentLookup: React.FC = () => {
                 </VStack>
                 {activeTournaments.length > 6 && (
                   <Button variant="ghost" size="sm" mt={2} asChild>
-                    <Link to="/tournaments">View all tournaments</Link>
+                    <Link to="/tournaments#currentTournaments">View all tournaments</Link>
                   </Button>
                 )}
               </Box>
