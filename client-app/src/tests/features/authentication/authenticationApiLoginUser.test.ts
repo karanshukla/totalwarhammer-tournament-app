@@ -20,6 +20,7 @@ const {
   mockInitiatePKCEFlow,
   mockVerifyAuthState,
   mockGetAndClearCodeVerifier,
+  mockResetCsrfToken,
 } = vi.hoisted(() => ({
   mockPost: vi.fn(),
   mockSetUser: vi.fn(),
@@ -28,10 +29,11 @@ const {
   mockInitiatePKCEFlow: vi.fn(),
   mockVerifyAuthState: vi.fn(),
   mockGetAndClearCodeVerifier: vi.fn(),
+  mockResetCsrfToken: vi.fn(),
 }));
 
 vi.mock("@/core/api/httpClient", () => ({
-  httpClient: { post: mockPost },
+  httpClient: { post: mockPost, resetCsrfToken: mockResetCsrfToken },
 }));
 
 vi.mock("@/shared/stores/userStore", () => ({
@@ -92,6 +94,7 @@ describe("loginUser – success path (no authorizationCode, no state in response
         isGuest: false,
       }),
     );
+    expect(mockResetCsrfToken).toHaveBeenCalled();
     expect(mockToasterCreate).toHaveBeenCalledWith(
       expect.objectContaining({ type: "success" }),
     );

@@ -84,6 +84,10 @@ export const loginUser = async (data: LoginData): Promise<LoginResponse> => {
         isGuest: false,
       });
 
+      // The new session has a different session ID (Passport regenerates on login),
+      // so any cached CSRF token from the previous session is now invalid.
+      httpClient.resetCsrfToken();
+
       toaster.create({
         title: `Successfully logged in as ${
           responseData.data?.username ||
@@ -151,6 +155,9 @@ export const logoutUser = async (): Promise<{
     // Always clear the local user state, even if server response fails
     const { clearUser } = useUserStore.getState();
     clearUser();
+    // The server session is now destroyed; clear the cached CSRF token so the
+    // next user to log in gets a fresh one for their new session.
+    httpClient.resetCsrfToken();
 
     if (response.success) {
       toaster.create({
@@ -165,6 +172,7 @@ export const logoutUser = async (): Promise<{
     // Still clear the user state even on error
     const { clearUser } = useUserStore.getState();
     clearUser();
+    httpClient.resetCsrfToken();
 
     toaster.create({
       title: "Logout Issue",
