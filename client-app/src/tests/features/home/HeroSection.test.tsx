@@ -86,11 +86,11 @@ describe("HeroSection", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("View Ongoing Tournaments link points to /tournaments", () => {
+  it("View Ongoing Tournaments link points to /tournaments#currentTournaments", () => {
     renderHero();
     const link = screen.getByRole("link", {
       name: /View Ongoing Tournaments/i,
     });
-    expect(link).toHaveAttribute("href", "/tournaments");
+    expect(link).toHaveAttribute("href", "/tournaments#currentTournaments");
   });
 });
