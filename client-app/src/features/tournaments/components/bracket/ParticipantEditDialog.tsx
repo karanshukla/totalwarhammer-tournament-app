@@ -1,12 +1,14 @@
-﻿import React from "react";
+﻿import React, { useMemo } from "react";
 import {
   Dialog,
   Button,
   Field,
   Input,
   VStack,
-  chakra,
   Portal,
+  Select,
+  createListCollection,
+  chakra,
 } from "@chakra-ui/react";
 import { Participant } from "./types";
 import {
@@ -38,26 +40,28 @@ export function ParticipantEditDialog({
   const cancelRef = React.useRef<HTMLButtonElement>(null);
   const bgColor = "bg.panel";
   const borderColor = "border";
-  const inputBgColor = "bg";
+  const inputBgColor = "bg.subtle";
 
   const factionList = enable40kFactions
     ? warhammer40kFactions
     : warhammer3Factions;
+
+  const factionCollection = useMemo(
+    () =>
+      createListCollection({
+        items: [
+          { label: "Select Faction", value: "" },
+          ...factionList.map((f) => ({ label: f, value: f })),
+        ],
+      }),
+    [factionList],
+  );
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (participant) {
       onParticipantChange({
         ...participant,
         name: e.target.value,
-      });
-    }
-  };
-
-  const handleFactionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    if (participant) {
-      onParticipantChange({
-        ...participant,
-        faction: e.target.value,
       });
     }
   };
@@ -111,24 +115,40 @@ export function ParticipantEditDialog({
                     <Field.Label mb={1} fontWeight="medium">
                       Faction
                     </Field.Label>
-                    <chakra.select
-                      value={participant?.faction || ""}
-                      onChange={handleFactionChange}
-                      width="100%"
-                      bg={inputBgColor}
-                      borderWidth="1px"
-                      borderColor={borderColor}
-                      borderRadius="md"
-                      color="fg"
-                      p={2}
+                    <Select.Root
+                      collection={factionCollection}
+                      value={[participant?.faction || ""]}
+                      onValueChange={(e) =>
+                        participant &&
+                        onParticipantChange({
+                          ...participant,
+                          faction: e.value[0] ?? "",
+                        })
+                      }
+                      w="full"
                     >
-                      <option value="">Select Faction</option>
-                      {factionList.map((faction) => (
-                        <option key={faction} value={faction}>
-                          {faction}
-                        </option>
-                      ))}
-                    </chakra.select>
+                      <Select.HiddenSelect />
+                      <Select.Control>
+                        <Select.Trigger>
+                          <Select.ValueText placeholder="Select Faction" />
+                        </Select.Trigger>
+                        <Select.IndicatorGroup>
+                          <Select.Indicator />
+                        </Select.IndicatorGroup>
+                      </Select.Control>
+                      <Portal>
+                        <Select.Positioner>
+                          <Select.Content>
+                            {factionCollection.items.map((item) => (
+                              <Select.Item key={item.value} item={item}>
+                                {item.label}
+                                <Select.ItemIndicator />
+                              </Select.Item>
+                            ))}
+                          </Select.Content>
+                        </Select.Positioner>
+                      </Portal>
+                    </Select.Root>
                   </Field.Root>
                 </VStack>
               </Dialog.Body>

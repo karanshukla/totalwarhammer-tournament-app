@@ -6,6 +6,11 @@ import React from "react";
 import { ChakraProvider, defaultSystem } from "@chakra-ui/react";
 import { BrowserRouter } from "react-router-dom";
 
+vi.mock("react-router-dom", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("react-router-dom")>();
+  return { ...actual, useNavigate: () => vi.fn() };
+});
+
 vi.mock("@/shared/ui/Toaster", () => ({
   toaster: {
     create: vi.fn(),
@@ -168,27 +173,6 @@ describe("CreateTournamentForm", () => {
           type: "success",
         }),
       );
-    });
-  });
-
-  it("resets the form after successful submission", async () => {
-    mockPost.mockResolvedValueOnce({
-      success: true,
-      data: { _id: "t1", name: "Test Tournament" },
-    });
-
-    renderForm();
-
-    const nameInput = screen.getByPlaceholderText("Enter tournament name");
-    await userEvent.type(nameInput, "Test Tournament");
-    fireEvent.submit(
-      screen
-        .getByRole("button", { name: /create tournament/i })
-        .closest("form")!,
-    );
-
-    await waitFor(() => {
-      expect(nameInput).toHaveValue("");
     });
   });
 

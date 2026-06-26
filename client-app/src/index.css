@@ -1,0 +1,25 @@
+/*
+  Placed outside any @layer so it beats Chakra's @layer recipes styles.
+  Makes form inputs visually distinct from card/panel backgrounds in both
+  light and dark mode via Chakra's CSS custom properties.
+*/
+input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]):not([type="color"]):not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="image"]) {
+  background-color: var(--chakra-colors-bg-subtle);
+}
+
+textarea {
+  background-color: var(--chakra-colors-bg-subtle);
+}
+
+select {
+  background-color: var(--chakra-colors-bg-subtle);
+}
+
+/* Ark UI Select compound component (Chakra v3) */
+[data-scope="select"][data-part="trigger"] {
+  background-color: var(--chakra-colors-bg-subtle);
+}
+
+[data-scope="select"][data-part="content"] {
+  background-color: var(--chakra-colors-bg-elevated);
+}

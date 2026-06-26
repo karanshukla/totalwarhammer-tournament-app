@@ -1,3 +1,4 @@
+import "./index.css";
 import { Provider } from "@/shared/ui/Provider";
 import React from "react";
 import ReactDOM from "react-dom/client";

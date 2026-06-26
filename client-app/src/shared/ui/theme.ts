@@ -60,6 +60,26 @@ const INK = {
 
 const config = defineConfig({
   theme: {
+    recipes: {
+      button: {
+        variants: {
+          variant: {
+            outline: {
+              bg: "bg.emphasized",
+            },
+          },
+        },
+      },
+      badge: {
+        variants: {
+          variant: {
+            outline: {
+              bg: "bg.emphasized",
+            },
+          },
+        },
+      },
+    },
     tokens: {
       colors: {
         crimson: CRIMSON,

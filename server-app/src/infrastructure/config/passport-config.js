@@ -4,7 +4,7 @@ import User from "../../domain/models/user.js";
 import logger from "../utils/logger.js";
 
 passport.serializeUser((user, done) => {
-  done(null, user._id?.toString() || user.id);
+  done(null, String(user._id || user.id));
 });
 
 passport.deserializeUser(async (id, done) => {

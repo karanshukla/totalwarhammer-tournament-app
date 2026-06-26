@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useCallback } from "react";
+﻿import React, { useState, useEffect, useCallback, useMemo } from "react";
 import ReactMarkdown from "react-markdown";
 import { useParams, useNavigate } from "react-router-dom";
 import {
@@ -17,7 +17,9 @@ import {
   For,
   Input,
   Field,
-  chakra,
+  Select,
+  Portal,
+  createListCollection,
 } from "@chakra-ui/react";
 import {
   LuChevronLeft,
@@ -96,6 +98,21 @@ const TournamentViewPage: React.FC<{ id?: string }> = ({ id: propId }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [joinFaction, setJoinFaction] = useState("");
+  const joinFactionCollection = useMemo(
+    () =>
+      createListCollection({
+        items: [
+          { label: "No Faction", value: "" },
+          ...(tournament?.enable40kFactions
+            ? warhammer40kFactions
+            : warhammer3Factions
+          )
+            .filter((f) => !tournament?.bannedFactions.includes(f))
+            .map((f) => ({ label: f, value: f })),
+        ],
+      }),
+    [tournament?.enable40kFactions, tournament?.bannedFactions],
+  );
   const [joining, setJoining] = useState(false);
   const [joinError, setJoinError] = useState<string | null>(null);
   const [joinSuccess, setJoinSuccess] = useState(false);
@@ -670,32 +687,35 @@ const TournamentViewPage: React.FC<{ id?: string }> = ({ id: propId }) => {
                         (optional)
                       </Text>
                     </Field.Label>
-                    <chakra.select
-                      value={joinFaction}
-                      onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-                        setJoinFaction(e.target.value)
-                      }
+                    <Select.Root
+                      collection={joinFactionCollection}
+                      value={[joinFaction]}
+                      onValueChange={(e) => setJoinFaction(e.value[0] ?? "")}
                       w="full"
-                      borderRadius="md"
-                      borderWidth="1px"
-                      borderColor="border"
-                      bg="bg.panel"
-                      fontSize="sm"
-                      color="fg"
-                      p={2}
+                      size="sm"
                     >
-                      <option value="">No Faction</option>
-                      {(tournament.enable40kFactions
-                        ? warhammer40kFactions
-                        : warhammer3Factions
-                      )
-                        .filter((f) => !tournament.bannedFactions.includes(f))
-                        .map((f) => (
-                          <option key={f} value={f}>
-                            {f}
-                          </option>
-                        ))}
-                    </chakra.select>
+                      <Select.HiddenSelect />
+                      <Select.Control>
+                        <Select.Trigger>
+                          <Select.ValueText placeholder="No Faction" />
+                        </Select.Trigger>
+                        <Select.IndicatorGroup>
+                          <Select.Indicator />
+                        </Select.IndicatorGroup>
+                      </Select.Control>
+                      <Portal>
+                        <Select.Positioner>
+                          <Select.Content>
+                            {joinFactionCollection.items.map((item) => (
+                              <Select.Item key={item.value} item={item}>
+                                {item.label}
+                                <Select.ItemIndicator />
+                              </Select.Item>
+                            ))}
+                          </Select.Content>
+                        </Select.Positioner>
+                      </Portal>
+                    </Select.Root>
                   </Field.Root>
                   <Button
                     width="full"

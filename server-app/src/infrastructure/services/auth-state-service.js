@@ -56,7 +56,7 @@ class AuthStateService {
     }
 
     const sessionUser = {
-      id: userData._id || userData.id,
+      id: String(userData._id || userData.id),
       email: userData.email,
       username: userData.username,
       role: userData.role || "user",

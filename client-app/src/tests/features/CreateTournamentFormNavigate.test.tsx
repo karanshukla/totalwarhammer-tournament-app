@@ -1,12 +1,3 @@
-/**
- * Branch coverage for CreateTournamentForm.tsx line 148:
- *   `onClick: () => navigate(\`/matches/tournament/${response.data.code}\`)`
- *
- * The toast action's onClick callback is never directly tested in existing tests
- * (toaster is mocked, so the action is captured but never invoked).
- * This test extracts the callback from toaster.create's captured arguments
- * and calls it to verify navigate is called with the correct path.
- */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import "@testing-library/jest-dom";
@@ -44,12 +35,10 @@ vi.mock("@/shared/ui/NumberInput", () => ({
   NumberInputField: () => <input data-testid="number-input-field" />,
 }));
 
-import { toaster } from "@/shared/ui/Toaster";
 import { httpClient } from "@/core/api/httpClient";
 import CreateTournamentForm from "@/features/tournaments/components/CreateTournamentForm";
 
 const mockPost = vi.mocked(httpClient.post);
-const mockToasterCreate = vi.mocked(toaster.create);
 
 function renderForm() {
   return render(
@@ -61,14 +50,13 @@ function renderForm() {
   );
 }
 
-describe("CreateTournamentForm – toast action navigate (line 148)", () => {
+describe("CreateTournamentForm – navigate on creation", () => {
   beforeEach(() => {
     mockPost.mockReset();
-    mockToasterCreate.mockReset();
     mockNavigate.mockReset();
   });
 
-  it("toast action onClick navigates to tournament matches page (line 148)", async () => {
+  it("navigates to the tournament matches page after successful creation", async () => {
     mockPost.mockResolvedValueOnce({
       success: true,
       data: { _id: "t1", name: "Battle Cup", code: "BTC123" },
@@ -76,29 +64,16 @@ describe("CreateTournamentForm – toast action navigate (line 148)", () => {
 
     renderForm();
 
-    await fireEvent.submit(
+    fireEvent.submit(
       screen.getByRole("button", { name: /create tournament/i }).closest("form")!,
     );
 
     await waitFor(() => {
-      expect(mockToasterCreate).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith("/matches/tournament/BTC123");
     });
-
-    // Extract the action onClick from the captured toaster.create call
-    const createCall = mockToasterCreate.mock.calls[0][0] as {
-      action?: { onClick?: () => void };
-    };
-
-    expect(createCall.action).toBeDefined();
-    expect(createCall.action?.onClick).toBeInstanceOf(Function);
-
-    // Invoke the callback — this is the branch at line 148
-    createCall.action!.onClick!();
-
-    expect(mockNavigate).toHaveBeenCalledWith("/matches/tournament/BTC123");
   });
 
-  it("toast action navigate uses the code from the response", async () => {
+  it("uses the code from the response when navigating", async () => {
     mockPost.mockResolvedValueOnce({
       success: true,
       data: { _id: "t2", name: "Other Cup", code: "OTH999" },
@@ -106,19 +81,28 @@ describe("CreateTournamentForm – toast action navigate (line 148)", () => {
 
     renderForm();
 
-    await fireEvent.submit(
+    fireEvent.submit(
       screen.getByRole("button", { name: /create tournament/i }).closest("form")!,
     );
 
     await waitFor(() => {
-      expect(mockToasterCreate).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith("/matches/tournament/OTH999");
+    });
+  });
+
+  it("does not navigate when creation fails", async () => {
+    mockPost.mockRejectedValueOnce(new Error("Server error"));
+
+    renderForm();
+
+    fireEvent.submit(
+      screen.getByRole("button", { name: /create tournament/i }).closest("form")!,
+    );
+
+    await waitFor(() => {
+      expect(mockPost).toHaveBeenCalled();
     });
 
-    const createCall = mockToasterCreate.mock.calls[0][0] as {
-      action?: { onClick?: () => void };
-    };
-    createCall.action!.onClick!();
-
-    expect(mockNavigate).toHaveBeenCalledWith("/matches/tournament/OTH999");
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 });

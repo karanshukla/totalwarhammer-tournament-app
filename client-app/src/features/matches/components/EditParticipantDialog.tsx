@@ -1,4 +1,4 @@
-﻿import React from "react";
+﻿import React, { useMemo } from "react";
 import {
   Dialog,
   Portal,
@@ -6,7 +6,8 @@ import {
   Input,
   Button,
   VStack,
-  chakra,
+  Select,
+  createListCollection,
 } from "@chakra-ui/react";
 import {
   warhammer3Factions,
@@ -38,6 +39,17 @@ const EditParticipantDialog: React.FC<Props> = ({
   const factionList = enable40kFactions
     ? warhammer40kFactions
     : warhammer3Factions;
+
+  const factionCollection = useMemo(
+    () =>
+      createListCollection({
+        items: [
+          { label: "No Faction", value: "" },
+          ...factionList.map((f) => ({ label: f, value: f })),
+        ],
+      }),
+    [factionList],
+  );
 
   return (
     <Dialog.Root
@@ -73,31 +85,41 @@ const EditParticipantDialog: React.FC<Props> = ({
                 </Field.Root>
                 <Field.Root>
                   <Field.Label>Faction</Field.Label>
-                  <chakra.select
-                    value={participant?.faction ?? ""}
-                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                  <Select.Root
+                    collection={factionCollection}
+                    value={[participant?.faction ?? ""]}
+                    onValueChange={(e) =>
                       participant &&
                       onParticipantChange({
                         ...participant,
-                        faction: e.target.value,
+                        faction: e.value[0] ?? "",
                       })
                     }
                     w="full"
-                    borderRadius="md"
-                    borderWidth="1px"
-                    borderColor="border"
-                    bg="bg.panel"
-                    fontSize="sm"
-                    color="fg"
-                    p={2}
+                    size="sm"
                   >
-                    <option value="">No Faction</option>
-                    {factionList.map((f) => (
-                      <option key={f} value={f}>
-                        {f}
-                      </option>
-                    ))}
-                  </chakra.select>
+                    <Select.HiddenSelect />
+                    <Select.Control>
+                      <Select.Trigger>
+                        <Select.ValueText placeholder="No Faction" />
+                      </Select.Trigger>
+                      <Select.IndicatorGroup>
+                        <Select.Indicator />
+                      </Select.IndicatorGroup>
+                    </Select.Control>
+                    <Portal>
+                      <Select.Positioner>
+                        <Select.Content>
+                          {factionCollection.items.map((item) => (
+                            <Select.Item key={item.value} item={item}>
+                              {item.label}
+                              <Select.ItemIndicator />
+                            </Select.Item>
+                          ))}
+                        </Select.Content>
+                      </Select.Positioner>
+                    </Portal>
+                  </Select.Root>
                 </Field.Root>
               </VStack>
             </Dialog.Body>

@@ -9,10 +9,13 @@ import {
   SimpleGrid,
   Input,
   Card,
-  chakra,
   Box,
   HStack,
   Badge,
+  Select,
+  Portal,
+  createListCollection,
+  chakra,
 } from "@chakra-ui/react";
 import {
   LuTriangleAlert,
@@ -35,6 +38,10 @@ const tournamentTypes = [
   "Round Robin",
   "Swiss System",
 ];
+
+const tournamentTypeCollection = createListCollection({
+  items: tournamentTypes.map((t) => ({ label: t, value: t })),
+});
 
 interface CreateTournamentFormProps {
   isGuest?: boolean;
@@ -143,19 +150,8 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
         title: "Tournament Created",
         description: `"${response.data.name}" created successfully.`,
         type: "success",
-        action: {
-          label: "Go to Tournament",
-          onClick: () => navigate(`/matches/tournament/${response.data.code}`),
-        },
       });
-      setFormData({
-        name: "",
-        description: "",
-        playerCount: 8,
-        tournamentType: tournamentTypes[0],
-        bannedFactions: [],
-        enable40kFactions: false,
-      });
+      navigate(`/matches/tournament/${response.data.code}`);
     } catch (err) {
       toaster.create({
         title: "Failed to Create Tournament",
@@ -185,30 +181,39 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
 
               <Field.Root required>
                 <Field.Label>Tournament Type</Field.Label>
-                <chakra.select
-                  name="tournamentType"
-                  value={formData.tournamentType}
-                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                <Select.Root
+                  collection={tournamentTypeCollection}
+                  value={[formData.tournamentType]}
+                  onValueChange={(e) =>
                     setFormData((prev) => ({
                       ...prev,
-                      tournamentType: e.target.value,
+                      tournamentType: e.value[0] ?? tournamentTypes[0],
                     }))
                   }
                   w="full"
-                  borderRadius="md"
-                  borderWidth="1px"
-                  borderColor="border"
-                  bg="bg.panel"
-                  fontSize="md"
-                  color="fg"
-                  p={2}
                 >
-                  {tournamentTypes.map((type) => (
-                    <option key={type} value={type}>
-                      {type}
-                    </option>
-                  ))}
-                </chakra.select>
+                  <Select.HiddenSelect name="tournamentType" />
+                  <Select.Control>
+                    <Select.Trigger>
+                      <Select.ValueText />
+                    </Select.Trigger>
+                    <Select.IndicatorGroup>
+                      <Select.Indicator />
+                    </Select.IndicatorGroup>
+                  </Select.Control>
+                  <Portal>
+                    <Select.Positioner>
+                      <Select.Content>
+                        {tournamentTypeCollection.items.map((item) => (
+                          <Select.Item key={item.value} item={item}>
+                            {item.label}
+                            <Select.ItemIndicator />
+                          </Select.Item>
+                        ))}
+                      </Select.Content>
+                    </Select.Positioner>
+                  </Portal>
+                </Select.Root>
               </Field.Root>
 
               <Field.Root required>
@@ -305,11 +310,19 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
                             p={2}
                             borderRadius="md"
                             borderWidth="1px"
-                            borderColor="border"
+                            borderColor={
+                              isChecked ? "brand.border" : "border.subtle"
+                            }
                             cursor="pointer"
                             minW={0}
-                            _hover={{ bg: "bg.muted" }}
-                            transition="background 0.2s"
+                            bg={isChecked ? "brand.subtle" : "bg.subtle"}
+                            _hover={{
+                              bg: isChecked ? "brand.subtle" : "bg.emphasized",
+                              borderColor: isChecked
+                                ? "brand.border"
+                                : "border.emphasized",
+                            }}
+                            transition="all 0.15s"
                             onClick={() => handleFactionClick(faction)}
                           >
                             <input

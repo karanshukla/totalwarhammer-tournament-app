@@ -1,4 +1,4 @@
-﻿import React, { useState } from "react";
+﻿import React, { useState, useMemo } from "react";
 import ReactMarkdown from "react-markdown";
 import {
   Container,
@@ -15,8 +15,10 @@ import {
   Field,
   Separator,
   For,
-  chakra,
   Textarea,
+  Select,
+  Portal,
+  createListCollection,
 } from "@chakra-ui/react";
 import {
   LuTrophy,
@@ -123,6 +125,21 @@ const TournamentDetail: React.FC<Props> = ({
     (selected.createdBy === user.id ||
       selected.createdBy?.toString() === user.id?.toString());
   const isFull = selected.participants.length >= selected.playerCount;
+  const newFactionCollection = useMemo(
+    () =>
+      createListCollection({
+        items: [
+          { label: "No Faction", value: "" },
+          ...(selected.enable40kFactions
+            ? warhammer40kFactions
+            : warhammer3Factions
+          )
+            .filter((f) => !selected.bannedFactions.includes(f))
+            .map((f) => ({ label: f, value: f })),
+        ],
+      }),
+    [selected.enable40kFactions, selected.bannedFactions],
+  );
   const canStart =
     isAdmin &&
     selected.status === "pending" &&
@@ -552,33 +569,36 @@ const TournamentDetail: React.FC<Props> = ({
                       (optional)
                     </Text>
                   </Field.Label>
-                  <chakra.select
-                    value={newFaction}
-                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-                      onSetNewFaction(e.target.value)
-                    }
+                  <Select.Root
+                    collection={newFactionCollection}
+                    value={[newFaction]}
+                    onValueChange={(e) => onSetNewFaction(e.value[0] ?? "")}
                     disabled={isFull}
                     w="full"
-                    borderRadius="md"
-                    borderWidth="1px"
-                    borderColor="border"
-                    bg="bg.panel"
-                    fontSize="sm"
-                    color="fg"
-                    p={2}
+                    size="sm"
                   >
-                    <option value="">No Faction</option>
-                    {(selected.enable40kFactions
-                      ? warhammer40kFactions
-                      : warhammer3Factions
-                    )
-                      .filter((f) => !selected.bannedFactions.includes(f))
-                      .map((f) => (
-                        <option key={f} value={f}>
-                          {f}
-                        </option>
-                      ))}
-                  </chakra.select>
+                    <Select.HiddenSelect />
+                    <Select.Control>
+                      <Select.Trigger>
+                        <Select.ValueText placeholder="No Faction" />
+                      </Select.Trigger>
+                      <Select.IndicatorGroup>
+                        <Select.Indicator />
+                      </Select.IndicatorGroup>
+                    </Select.Control>
+                    <Portal>
+                      <Select.Positioner>
+                        <Select.Content>
+                          {newFactionCollection.items.map((item) => (
+                            <Select.Item key={item.value} item={item}>
+                              {item.label}
+                              <Select.ItemIndicator />
+                            </Select.Item>
+                          ))}
+                        </Select.Content>
+                      </Select.Positioner>
+                    </Portal>
+                  </Select.Root>
                 </Field.Root>
                 <Button
                   width="full"
@@ -825,7 +845,7 @@ const TournamentDetail: React.FC<Props> = ({
                 gridColumn={{ lg: "1 / -1" }}
               >
                 <HStack justifyContent="center" gap={3}>
-                  <LuTrophy size={24} color="var(--chakra-colors-brass-400)" />
+                  <LuTrophy size={24} color="var(--chakra-colors-gold-text)" />
                   <VStack gap={0}>
                     <Text
                       fontSize="xs"
@@ -845,7 +865,7 @@ const TournamentDetail: React.FC<Props> = ({
                       </Text>
                     )}
                   </VStack>
-                  <LuTrophy size={24} color="var(--chakra-colors-brass-400)" />
+                  <LuTrophy size={24} color="var(--chakra-colors-gold-text)" />
                 </HStack>
               </Box>
             );
