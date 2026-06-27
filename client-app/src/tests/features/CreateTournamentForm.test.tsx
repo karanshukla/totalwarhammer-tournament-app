@@ -79,16 +79,15 @@ describe("CreateTournamentForm", () => {
     ).toBeInTheDocument();
   });
 
-  it("renders all tournament type options", () => {
+  it("renders all tournament type options", async () => {
     renderForm();
-    const select = screen.getByRole("combobox");
-    const options = Array.from(select.querySelectorAll("option")).map(
-      (o) => o.textContent,
-    );
-    expect(options).toContain("Single Elimination");
-    expect(options).toContain("Double Elimination");
-    expect(options).toContain("Round Robin");
-    expect(options).toContain("Swiss System");
+    await userEvent.click(screen.getByRole("combobox"));
+    const options = await screen.findAllByRole("option");
+    const names = options.map((o) => o.textContent);
+    expect(names).toContain("Single Elimination");
+    expect(names).toContain("Double Elimination");
+    expect(names).toContain("Round Robin");
+    expect(names).toContain("Swiss System");
   });
 
   it("renders faction checkboxes", () => {
@@ -116,9 +115,10 @@ describe("CreateTournamentForm", () => {
 
   it("updates the tournament type on selection", async () => {
     renderForm();
-    const select = screen.getByRole("combobox");
-    await userEvent.selectOptions(select, "Round Robin");
-    expect(select).toHaveValue("Round Robin");
+    const trigger = screen.getByRole("combobox");
+    await userEvent.click(trigger);
+    await userEvent.click(await screen.findByRole("option", { name: "Round Robin" }));
+    expect(trigger).toHaveTextContent("Round Robin");
   });
 
   it("calls httpClient.post with form data on submit", async () => {

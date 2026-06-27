@@ -86,12 +86,17 @@ describe("ParticipantEditDialog", () => {
     expect(inputs[0]).toHaveValue("");
   });
 
-  it("calls onParticipantChange on faction select change", () => {
+  it("calls onParticipantChange on faction select change", async () => {
+    const user = userEvent.setup({ pointerEventsCheck: 0 });
     const onParticipantChange = vi.fn();
     const participant = makeParticipant({ faction: "Empire" });
     renderDialog({ participant, onParticipantChange });
-    const select = screen.getByRole("combobox");
-    fireEvent.change(select, { target: { value: "Dwarfs" } });
+    await user.click(screen.getByRole("combobox"));
+    const matches = await screen.findAllByRole("option", {
+      name: "Dwarfs",
+      hidden: true,
+    });
+    await user.click(matches.find((el) => el.tagName !== "OPTION")!);
     expect(onParticipantChange).toHaveBeenCalledWith(
       expect.objectContaining({ faction: "Dwarfs" }),
     );
@@ -113,20 +118,24 @@ describe("ParticipantEditDialog", () => {
     expect(onParticipantChange).not.toHaveBeenCalled();
   });
 
-  it("shows 40k factions when enable40kFactions is true", () => {
+  it("shows 40k factions when enable40kFactions is true", async () => {
+    const user = userEvent.setup({ pointerEventsCheck: 0 });
     renderDialog({ enable40kFactions: true });
-    const select = screen.getByRole("combobox");
-    expect(select).toBeInTheDocument();
-    // 40k specific faction check - just verify options are present
-    const options = select.querySelectorAll("option");
+    await user.click(screen.getByRole("combobox"));
+    const options = await screen.findAllByRole("option", { hidden: true });
     expect(options.length).toBeGreaterThan(1);
+    const names = options.map((o) => o.textContent);
+    expect(names.some((n) => n?.includes("Adeptus Astartes"))).toBe(true);
   });
 
-  it("shows warhammer3 factions by default", () => {
+  it("shows warhammer3 factions by default", async () => {
+    const user = userEvent.setup({ pointerEventsCheck: 0 });
     renderDialog({ enable40kFactions: false });
-    const select = screen.getByRole("combobox");
-    const options = select.querySelectorAll("option");
+    await user.click(screen.getByRole("combobox"));
+    const options = await screen.findAllByRole("option", { hidden: true });
     expect(options.length).toBeGreaterThan(1);
+    const names = options.map((o) => o.textContent);
+    expect(names.some((n) => n?.includes("Empire"))).toBe(true);
   });
 
   it("renders Cancel and Save buttons", () => {
@@ -134,5 +143,4 @@ describe("ParticipantEditDialog", () => {
     expect(screen.getByRole("button", { name: /cancel/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /save/i })).toBeInTheDocument();
   });
-
 });

@@ -8,6 +8,7 @@
  */
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom";
 import React from "react";
 import { ChakraProvider, defaultSystem } from "@chakra-ui/react";
@@ -44,10 +45,11 @@ function renderDialog({
 }
 
 describe("EditParticipantDialog – enable40kFactions=false (default)", () => {
-  it("renders Warhammer 3 factions (contains 'Greenskins' option)", () => {
+  it("renders Warhammer 3 factions (contains 'Greenskins' option)", async () => {
+    const user = userEvent.setup({ pointerEventsCheck: 0 });
     renderDialog({ enable40kFactions: false });
-    // Warhammer 3 factions include "Greenskins", not 40k factions like "Space Marines"
-    const options = screen.getAllByRole("option");
+    await user.click(screen.getByRole("combobox"));
+    const options = await screen.findAllByRole("option", { hidden: true });
     const optionValues = options.map((o) => o.textContent);
     expect(optionValues.some((v) => v?.includes("Greenskins"))).toBe(true);
     expect(optionValues.some((v) => v?.includes("Space Marines"))).toBe(false);
@@ -55,13 +57,13 @@ describe("EditParticipantDialog – enable40kFactions=false (default)", () => {
 });
 
 describe("EditParticipantDialog – enable40kFactions=true", () => {
-  it("renders Warhammer 40k factions (contains 'Adeptus Astartes' option)", () => {
+  it("renders Warhammer 40k factions (contains 'Adeptus Astartes' option)", async () => {
+    const user = userEvent.setup({ pointerEventsCheck: 0 });
     renderDialog({ enable40kFactions: true });
-    const options = screen.getAllByRole("option");
+    await user.click(screen.getByRole("combobox"));
+    const options = await screen.findAllByRole("option", { hidden: true });
     const optionValues = options.map((o) => o.textContent);
-    // 40k has "Adeptus Astartes" (not "Space Marines")
     expect(optionValues.some((v) => v?.includes("Adeptus Astartes"))).toBe(true);
-    // wh3-only faction "Bretonnia" should NOT appear
     expect(optionValues.some((v) => v?.includes("Bretonnia"))).toBe(false);
   });
 });

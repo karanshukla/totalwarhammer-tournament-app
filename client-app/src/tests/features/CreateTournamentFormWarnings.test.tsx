@@ -8,6 +8,7 @@
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom";
 import React from "react";
 import { ChakraProvider, defaultSystem } from "@chakra-ui/react";
@@ -58,18 +59,14 @@ function renderForm() {
   );
 }
 
-function getTournamentTypeSelect() {
-  return screen.getByRole("combobox");
-}
-
 function setPlayerCount(value: string) {
-  // Fire change on the inner input so the event bubbles up to the div's onChange handler
   const input = screen.getByTestId("number-input-field");
   fireEvent.change(input, { target: { value } });
 }
 
-function setTournamentType(type: string) {
-  fireEvent.change(getTournamentTypeSelect(), { target: { value: type } });
+async function setTournamentType(type: string) {
+  await userEvent.click(screen.getByRole("combobox"));
+  await userEvent.click(await screen.findByRole("option", { name: type }));
 }
 
 describe("CreateTournamentForm – warning messages", () => {
@@ -79,7 +76,7 @@ describe("CreateTournamentForm – warning messages", () => {
 
   it("shows 'Need at least 2 players' for Single Elimination with 1 player", async () => {
     renderForm();
-    setTournamentType("Single Elimination");
+    await setTournamentType("Single Elimination");
     setPlayerCount("1");
     await waitFor(() => {
       expect(screen.getByText(/need at least 2 players/i)).toBeInTheDocument();
@@ -88,7 +85,7 @@ describe("CreateTournamentForm – warning messages", () => {
 
   it("shows info about byes for Double Elimination with non-power-of-2 players", async () => {
     renderForm();
-    setTournamentType("Double Elimination");
+    await setTournamentType("Double Elimination");
     setPlayerCount("3");
     await waitFor(() => {
       expect(
@@ -99,7 +96,7 @@ describe("CreateTournamentForm – warning messages", () => {
 
   it("shows warning for Swiss System with odd player count", async () => {
     renderForm();
-    setTournamentType("Swiss System");
+    await setTournamentType("Swiss System");
     setPlayerCount("3");
     await waitFor(() => {
       expect(screen.getByText(/odd number of players/i)).toBeInTheDocument();
@@ -108,7 +105,7 @@ describe("CreateTournamentForm – warning messages", () => {
 
   it("shows warning for Round Robin with > 16 players", async () => {
     renderForm();
-    setTournamentType("Round Robin");
+    await setTournamentType("Round Robin");
     setPlayerCount("17");
     await waitFor(() => {
       expect(screen.getByText(/consider swiss instead/i)).toBeInTheDocument();
@@ -117,7 +114,7 @@ describe("CreateTournamentForm – warning messages", () => {
 
   it("shows Swiss info message (rounds count) for even player count", async () => {
     renderForm();
-    setTournamentType("Swiss System");
+    await setTournamentType("Swiss System");
     setPlayerCount("4");
     await waitFor(() => {
       expect(screen.getByText(/will run/i)).toBeInTheDocument();
@@ -126,7 +123,7 @@ describe("CreateTournamentForm – warning messages", () => {
 
   it("shows Round Robin info (rounds and matches) for valid player count", async () => {
     renderForm();
-    setTournamentType("Round Robin");
+    await setTournamentType("Round Robin");
     setPlayerCount("4");
     await waitFor(() => {
       expect(screen.getByText(/round.*match.*\/round/i)).toBeInTheDocument();
@@ -135,7 +132,7 @@ describe("CreateTournamentForm – warning messages", () => {
 
   it("shows Double Elimination warning for < 4 players", async () => {
     renderForm();
-    setTournamentType("Double Elimination");
+    await setTournamentType("Double Elimination");
     setPlayerCount("2");
     await waitFor(() => {
       expect(
@@ -146,7 +143,7 @@ describe("CreateTournamentForm – warning messages", () => {
 
   it("shows Round Robin warning for < 3 players", async () => {
     renderForm();
-    setTournamentType("Round Robin");
+    await setTournamentType("Round Robin");
     setPlayerCount("2");
     await waitFor(() => {
       expect(

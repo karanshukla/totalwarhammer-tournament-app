@@ -41,16 +41,24 @@ describe("ParticipantEditDialog – branch coverage", () => {
     vi.clearAllMocks();
   });
 
-  it("renders with warhammer3 factions when enable40kFactions is false (line 43 false branch)", () => {
+  it("renders with warhammer3 factions when enable40kFactions is false (line 43 false branch)", async () => {
+    const user = userEvent.setup({ pointerEventsCheck: 0 });
     renderDialog({ enable40kFactions: false });
-    // Empire is a warhammer3 faction — select option should exist
-    expect(screen.getByText("Empire")).toBeInTheDocument();
+    await user.click(screen.getByRole("combobox"));
+    expect(
+      await screen.findByRole("option", { name: "Empire", hidden: true }),
+    ).toBeInTheDocument();
   });
 
-  it("renders with 40k factions when enable40kFactions is true (line 43 true branch)", () => {
+  it("renders with 40k factions when enable40kFactions is true (line 43 true branch)", async () => {
+    const user = userEvent.setup({ pointerEventsCheck: 0 });
     renderDialog({ enable40kFactions: true });
-    // Adeptus Astartes is a 40k faction; Empire should not be present
-    expect(screen.getByText("Adeptus Astartes")).toBeInTheDocument();
+    await user.click(screen.getByRole("combobox"));
+    const matches = await screen.findAllByRole("option", {
+      name: "Adeptus Astartes",
+      hidden: true,
+    });
+    expect(matches.length).toBeGreaterThan(0);
   });
 
   it("onSave is called when Save button is clicked", async () => {

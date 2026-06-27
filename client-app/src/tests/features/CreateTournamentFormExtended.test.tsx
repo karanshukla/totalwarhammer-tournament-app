@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom";
 import React from "react";
 import { ChakraProvider, defaultSystem } from "@chakra-ui/react";
@@ -51,10 +52,9 @@ describe("CreateTournamentForm - extended coverage", () => {
   });
 
   describe("tournament type warnings and info messages", () => {
-    const selectTournamentType = (type: string) => {
-      fireEvent.change(screen.getByRole("combobox"), {
-        target: { value: type },
-      });
+    const selectTournamentType = async (type: string) => {
+      await userEvent.click(screen.getByRole("combobox"));
+      await userEvent.click(await screen.findByRole("option", { name: type }));
     };
 
     const setPlayerCount = (count: number) => {
@@ -63,63 +63,63 @@ describe("CreateTournamentForm - extended coverage", () => {
     };
 
     describe("Swiss System", () => {
-      it("shows rounds info message for Swiss System", () => {
+      it("shows rounds info message for Swiss System", async () => {
         renderForm();
-        selectTournamentType("Swiss System");
+        await selectTournamentType("Swiss System");
         // Default 8 players: ceil(log2(8)) = 3 rounds
         expect(screen.getByText(/will run 3 rounds/i)).toBeInTheDocument();
       });
 
-      it("shows bye warning for odd player count with Swiss System", () => {
+      it("shows bye warning for odd player count with Swiss System", async () => {
         renderForm();
-        selectTournamentType("Swiss System");
+        await selectTournamentType("Swiss System");
         setPlayerCount(7);
         expect(screen.getByText(/odd number of players/i)).toBeInTheDocument();
       });
 
-      it("shows correct rounds for Swiss System with 2 players", () => {
+      it("shows correct rounds for Swiss System with 2 players", async () => {
         renderForm();
-        selectTournamentType("Swiss System");
+        await selectTournamentType("Swiss System");
         setPlayerCount(2);
         expect(screen.getByText(/will run 1 round/i)).toBeInTheDocument();
       });
 
-      it("shows info box for Swiss System algorithm", () => {
+      it("shows info box for Swiss System algorithm", async () => {
         renderForm();
-        selectTournamentType("Swiss System");
+        await selectTournamentType("Swiss System");
         expect(screen.getByText(/blossom algorithm/i)).toBeInTheDocument();
       });
     });
 
     describe("Round Robin", () => {
-      it("shows rounds and matches info for Round Robin with even players", () => {
+      it("shows rounds and matches info for Round Robin with even players", async () => {
         renderForm();
-        selectTournamentType("Round Robin");
+        await selectTournamentType("Round Robin");
         // Default 8 players: 7 rounds, 4 matches/round
         expect(
           screen.getByText(/7 rounds, 4 matches\/round/i),
         ).toBeInTheDocument();
       });
 
-      it("shows bye info for Round Robin with odd players", () => {
+      it("shows bye info for Round Robin with odd players", async () => {
         renderForm();
-        selectTournamentType("Round Robin");
+        await selectTournamentType("Round Robin");
         setPlayerCount(5);
         // 5 players: 5 rounds, 2 matches/round, 1 bye per round
         expect(screen.getByText(/1 bye per round/i)).toBeInTheDocument();
       });
 
-      it("shows warning for Round Robin with many players (>16)", () => {
+      it("shows warning for Round Robin with many players (>16)", async () => {
         renderForm();
-        selectTournamentType("Round Robin");
+        await selectTournamentType("Round Robin");
         setPlayerCount(20);
         // 20 players: 19 rounds, 10 matches/round = 190 total - triggers warning
         expect(screen.getByText(/consider swiss instead/i)).toBeInTheDocument();
       });
 
-      it("shows warning when Round Robin has fewer than 3 players", () => {
+      it("shows warning when Round Robin has fewer than 3 players", async () => {
         renderForm();
-        selectTournamentType("Round Robin");
+        await selectTournamentType("Round Robin");
         setPlayerCount(2);
         expect(
           screen.getByText(/works best with 3 or more players/i),
@@ -128,25 +128,25 @@ describe("CreateTournamentForm - extended coverage", () => {
     });
 
     describe("Single Elimination", () => {
-      it("shows bye warning when player count is not a power of 2", () => {
+      it("shows bye warning when player count is not a power of 2", async () => {
         renderForm();
-        selectTournamentType("Single Elimination");
+        await selectTournamentType("Single Elimination");
         setPlayerCount(5);
         expect(
           screen.getByText(/5 players is not a power of 2/i),
         ).toBeInTheDocument();
       });
 
-      it("shows no warnings when player count is a power of 2", () => {
+      it("shows no warnings when player count is a power of 2", async () => {
         renderForm();
-        selectTournamentType("Single Elimination");
+        await selectTournamentType("Single Elimination");
         setPlayerCount(8);
         expect(screen.queryByText(/not a power of 2/i)).not.toBeInTheDocument();
       });
 
-      it("shows warning when fewer than 2 players", () => {
+      it("shows warning when fewer than 2 players", async () => {
         renderForm();
-        selectTournamentType("Single Elimination");
+        await selectTournamentType("Single Elimination");
         setPlayerCount(1);
         expect(
           screen.getByText(/need at least 2 players/i),
@@ -155,25 +155,25 @@ describe("CreateTournamentForm - extended coverage", () => {
     });
 
     describe("Double Elimination", () => {
-      it("shows warning when fewer than 4 players", () => {
+      it("shows warning when fewer than 4 players", async () => {
         renderForm();
-        selectTournamentType("Double Elimination");
+        await selectTournamentType("Double Elimination");
         setPlayerCount(3);
         expect(
           screen.getByText(/requires at least 4 players/i),
         ).toBeInTheDocument();
       });
 
-      it("shows info when player count is not a power of 2", () => {
+      it("shows info when player count is not a power of 2", async () => {
         renderForm();
-        selectTournamentType("Double Elimination");
+        await selectTournamentType("Double Elimination");
         setPlayerCount(5);
         expect(screen.getByText(/not a power of 2/i)).toBeInTheDocument();
       });
 
-      it("shows no warnings for 8 players Double Elimination", () => {
+      it("shows no warnings for 8 players Double Elimination", async () => {
         renderForm();
-        selectTournamentType("Double Elimination");
+        await selectTournamentType("Double Elimination");
         setPlayerCount(8);
         expect(screen.queryByText(/not a power of 2/i)).not.toBeInTheDocument();
         expect(
