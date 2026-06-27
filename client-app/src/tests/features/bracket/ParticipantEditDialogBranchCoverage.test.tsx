@@ -45,9 +45,11 @@ describe("ParticipantEditDialog – branch coverage", () => {
     const user = userEvent.setup({ pointerEventsCheck: 0 });
     renderDialog({ enable40kFactions: false });
     await user.click(screen.getByRole("combobox"));
-    expect(
-      await screen.findByRole("option", { name: "Empire", hidden: true }),
-    ).toBeInTheDocument();
+    const matches = await screen.findAllByRole("option", {
+      name: "Empire",
+      hidden: true,
+    });
+    expect(matches.length).toBeGreaterThan(0);
   });
 
   it("renders with 40k factions when enable40kFactions is true (line 43 true branch)", async () => {
