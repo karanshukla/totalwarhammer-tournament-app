@@ -144,7 +144,8 @@ const NavItem: React.FC<NavItemProps> = ({
     );
   }
 
-  // Default case (no link)
+  // Default case (no link) — all NavItems in this file use `to` or `toExternal`, so this branch is unreachable in practice
+  /* v8 ignore next */
   return <Box {...commonProps}>{content}</Box>;
 };
 
