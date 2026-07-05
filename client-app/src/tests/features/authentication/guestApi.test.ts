@@ -30,7 +30,10 @@ vi.mock("@/shared/ui/Toaster", () => ({
   toaster: { create: mockToasterCreate },
 }));
 
-import { createGuestUser, updateGuestUsername } from "@/features/authentication/api/guestApi";
+import {
+  createGuestUser,
+  updateGuestUsername,
+} from "@/features/authentication/api/guestApi";
 
 describe("createGuestUser", () => {
   beforeEach(() => {
@@ -41,12 +44,22 @@ describe("createGuestUser", () => {
     const futureTime = Date.now() + 1000;
     mockPost.mockResolvedValueOnce({
       success: true,
-      data: { id: "u1", username: "g1", email: "", isGuest: true, expiresAt: futureTime },
+      data: {
+        id: "u1",
+        username: "g1",
+        email: "",
+        isGuest: true,
+        expiresAt: futureTime,
+      },
     });
     const result = await createGuestUser();
     expect(result.success).toBe(true);
-    expect(mockSetUser).toHaveBeenCalledWith(expect.objectContaining({ expiresAt: futureTime }));
-    expect(mockToasterCreate).toHaveBeenCalledWith(expect.objectContaining({ type: "success" }));
+    expect(mockSetUser).toHaveBeenCalledWith(
+      expect.objectContaining({ expiresAt: futureTime }),
+    );
+    expect(mockToasterCreate).toHaveBeenCalledWith(
+      expect.objectContaining({ type: "success" }),
+    );
   });
 
   it("falls back to 48h default when expiresAt is missing (line 28 false)", async () => {
@@ -57,20 +70,46 @@ describe("createGuestUser", () => {
     });
     await createGuestUser();
     const callArg = mockSetUser.mock.calls[0][0];
-    expect(callArg.expiresAt).toBeGreaterThanOrEqual(before + 48 * 3600 * 1000 - 100);
+    expect(callArg.expiresAt).toBeGreaterThanOrEqual(
+      before + 48 * 3600 * 1000 - 100,
+    );
+  });
+
+  it("falls back to empty strings when id and username are absent", async () => {
+    mockPost.mockResolvedValueOnce({
+      success: true,
+      data: {
+        id: "",
+        username: "",
+        email: "",
+        isGuest: true,
+        expiresAt: Date.now() + 1000,
+      },
+    });
+    await createGuestUser();
+    expect(mockSetUser).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "", username: "", email: "" }),
+    );
   });
 
   it("throws when success=false (line 47 else branch)", async () => {
     mockPost.mockResolvedValueOnce({ success: false, message: "no" });
-    await expect(createGuestUser()).rejects.toThrow("Failed to create guest user account");
-    expect(mockToasterCreate).toHaveBeenCalledWith(expect.objectContaining({ type: "error" }));
+    await expect(createGuestUser()).rejects.toThrow(
+      "Failed to create guest user account",
+    );
+    expect(mockToasterCreate).toHaveBeenCalledWith(
+      expect.objectContaining({ type: "error" }),
+    );
   });
 
   it("uses error.message in toast for Error instance in catch (line 55 true)", async () => {
     mockPost.mockRejectedValueOnce(new Error("Network failure"));
     await expect(createGuestUser()).rejects.toThrow("Network failure");
     expect(mockToasterCreate).toHaveBeenCalledWith(
-      expect.objectContaining({ description: "Network failure", type: "error" }),
+      expect.objectContaining({
+        description: "Network failure",
+        type: "error",
+      }),
     );
   });
 
@@ -78,7 +117,10 @@ describe("createGuestUser", () => {
     mockPost.mockRejectedValueOnce("plain string error");
     await expect(createGuestUser()).rejects.toBe("plain string error");
     expect(mockToasterCreate).toHaveBeenCalledWith(
-      expect.objectContaining({ description: "An error occurred", type: "error" }),
+      expect.objectContaining({
+        description: "An error occurred",
+        type: "error",
+      }),
     );
   });
 });
@@ -96,7 +138,9 @@ describe("updateGuestUsername", () => {
     const result = await updateGuestUsername("newname");
     expect(result.success).toBe(true);
     expect(mockSetUser).toHaveBeenCalledWith({ username: "newname" });
-    expect(mockToasterCreate).toHaveBeenCalledWith(expect.objectContaining({ type: "success" }));
+    expect(mockToasterCreate).toHaveBeenCalledWith(
+      expect.objectContaining({ type: "success" }),
+    );
   });
 
   it("throws when success=false (else branch)", async () => {
@@ -104,12 +148,16 @@ describe("updateGuestUsername", () => {
     await expect(updateGuestUsername("x")).rejects.toThrow(
       "Failed to update guest user account",
     );
-    expect(mockToasterCreate).toHaveBeenCalledWith(expect.objectContaining({ type: "error" }));
+    expect(mockToasterCreate).toHaveBeenCalledWith(
+      expect.objectContaining({ type: "error" }),
+    );
   });
 
   it("uses error.message in toast for Error instance in catch", async () => {
     mockPost.mockRejectedValueOnce(new Error("Username taken"));
-    await expect(updateGuestUsername("taken")).rejects.toThrow("Username taken");
+    await expect(updateGuestUsername("taken")).rejects.toThrow(
+      "Username taken",
+    );
     expect(mockToasterCreate).toHaveBeenCalledWith(
       expect.objectContaining({ description: "Username taken", type: "error" }),
     );
@@ -119,7 +167,10 @@ describe("updateGuestUsername", () => {
     mockPost.mockRejectedValueOnce(42);
     await expect(updateGuestUsername("x")).rejects.toBe(42);
     expect(mockToasterCreate).toHaveBeenCalledWith(
-      expect.objectContaining({ description: "An error occurred", type: "error" }),
+      expect.objectContaining({
+        description: "An error occurred",
+        type: "error",
+      }),
     );
   });
 });
