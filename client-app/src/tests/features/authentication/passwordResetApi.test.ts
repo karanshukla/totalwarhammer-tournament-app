@@ -46,8 +46,13 @@ describe("requestPasswordReset", () => {
   });
 
   it("throws and shows error toast when success=false (else branch)", async () => {
-    mockPost.mockResolvedValueOnce({ success: false, message: "No user found" });
-    await expect(requestPasswordReset("x@y.com")).rejects.toThrow("No user found");
+    mockPost.mockResolvedValueOnce({
+      success: false,
+      message: "No user found",
+    });
+    await expect(requestPasswordReset("x@y.com")).rejects.toThrow(
+      "No user found",
+    );
     expect(mockToasterCreate).toHaveBeenCalledWith(
       expect.objectContaining({ type: "error", description: "No user found" }),
     );
@@ -55,7 +60,9 @@ describe("requestPasswordReset", () => {
 
   it("shows generic error description for non-Error in catch (line 46 false)", async () => {
     mockPost.mockRejectedValueOnce("network glitch");
-    await expect(requestPasswordReset("x@y.com")).rejects.toBe("network glitch");
+    await expect(requestPasswordReset("x@y.com")).rejects.toBe(
+      "network glitch",
+    );
     expect(mockToasterCreate).toHaveBeenCalledWith(
       expect.objectContaining({
         type: "error",
@@ -64,13 +71,23 @@ describe("requestPasswordReset", () => {
       }),
     );
   });
+
+  it("throws the default message when success=false and message is absent (line 37 fallback)", async () => {
+    mockPost.mockResolvedValueOnce({ success: false });
+    await expect(requestPasswordReset("x@y.com")).rejects.toThrow(
+      "Failed to send password reset email",
+    );
+  });
 });
 
 describe("verifyResetToken", () => {
   beforeEach(() => vi.clearAllMocks());
 
   it("returns response without showing a toast on success", async () => {
-    mockPost.mockResolvedValueOnce({ success: true, data: { userId: "u1", validUntil: 9999 } });
+    mockPost.mockResolvedValueOnce({
+      success: true,
+      data: { userId: "u1", validUntil: 9999 },
+    });
     const result = await verifyResetToken("tok123");
     expect(result.success).toBe(true);
     expect(result.data?.userId).toBe("u1");
@@ -99,8 +116,13 @@ describe("resetPassword", () => {
   });
 
   it("throws and shows error toast with message when success=false (Error instance)", async () => {
-    mockPost.mockResolvedValueOnce({ success: false, message: "Token invalid" });
-    await expect(resetPassword("bad-tok", "newpass")).rejects.toThrow("Token invalid");
+    mockPost.mockResolvedValueOnce({
+      success: false,
+      message: "Token invalid",
+    });
+    await expect(resetPassword("bad-tok", "newpass")).rejects.toThrow(
+      "Token invalid",
+    );
     expect(mockToasterCreate).toHaveBeenCalledWith(
       expect.objectContaining({ type: "error", description: "Token invalid" }),
     );
@@ -112,8 +134,16 @@ describe("resetPassword", () => {
     expect(mockToasterCreate).toHaveBeenCalledWith(
       expect.objectContaining({
         type: "error",
-        description: "There was an error resetting your password. Please try again.",
+        description:
+          "There was an error resetting your password. Please try again.",
       }),
+    );
+  });
+
+  it("throws the default message when success=false and message is absent (line 103 fallback)", async () => {
+    mockPost.mockResolvedValueOnce({ success: false });
+    await expect(resetPassword("tok", "newpass")).rejects.toThrow(
+      "Failed to reset password",
     );
   });
 });

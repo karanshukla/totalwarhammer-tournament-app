@@ -68,7 +68,10 @@ import { loginUser } from "@/features/authentication/api/authenticationApi";
 
 // Helper defaults
 const defaultPKCE = { codeChallenge: "challenge123", state: "state-abc" };
-const baseLoginData = { identifier: "grimgork@waaagh.com", password: "Waaagh1!" };
+const baseLoginData = {
+  identifier: "grimgork@waaagh.com",
+  password: "Waaagh1!",
+};
 
 describe("loginUser – success path (no authorizationCode, no state in response)", () => {
   beforeEach(() => {
@@ -132,6 +135,59 @@ describe("loginUser – success path (no authorizationCode, no state in response
   });
 });
 
+describe("loginUser – success path with falsy user fields", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockInitiatePKCEFlow.mockResolvedValue(defaultPKCE);
+  });
+
+  it("falls back to empty strings for id/email/username when data fields are absent", async () => {
+    mockPost.mockResolvedValueOnce({
+      success: true,
+      message: "ok",
+      data: {},
+    });
+
+    await loginUser(baseLoginData);
+
+    expect(mockSetUser).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "", email: "", username: "" }),
+    );
+  });
+
+  it("uses the response email in the success toast title when username is absent", async () => {
+    mockPost.mockResolvedValueOnce({
+      success: true,
+      message: "ok",
+      data: { id: "u1", email: "g@g.com" },
+    });
+
+    await loginUser(baseLoginData);
+
+    expect(mockToasterCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: "Successfully logged in as g@g.com",
+      }),
+    );
+  });
+
+  it("uses the submitted identifier in the success toast title when username and email are absent", async () => {
+    mockPost.mockResolvedValueOnce({
+      success: true,
+      message: "ok",
+      data: {},
+    });
+
+    await loginUser(baseLoginData);
+
+    expect(mockToasterCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: `Successfully logged in as ${baseLoginData.identifier}`,
+      }),
+    );
+  });
+});
+
 describe("loginUser – success path with rememberMe=true", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -184,7 +240,12 @@ describe("loginUser – success path with state validation passing", () => {
     mockPost.mockResolvedValueOnce({
       success: true,
       message: "ok",
-      data: { id: "u1", email: "g@g.com", username: "Grimgork", state: "state-abc" },
+      data: {
+        id: "u1",
+        email: "g@g.com",
+        username: "Grimgork",
+        state: "state-abc",
+      },
     });
 
     await expect(loginUser(baseLoginData)).resolves.toBeDefined();
@@ -203,7 +264,12 @@ describe("loginUser – state validation failing", () => {
     mockPost.mockResolvedValueOnce({
       success: true,
       message: "ok",
-      data: { id: "u1", email: "g@g.com", username: "Grimgork", state: "tampered-state" },
+      data: {
+        id: "u1",
+        email: "g@g.com",
+        username: "Grimgork",
+        state: "tampered-state",
+      },
     });
 
     await expect(loginUser(baseLoginData)).rejects.toThrow(
@@ -216,7 +282,12 @@ describe("loginUser – state validation failing", () => {
     mockPost.mockResolvedValueOnce({
       success: true,
       message: "ok",
-      data: { id: "u1", email: "g@g.com", username: "Grimgork", state: "bad-state" },
+      data: {
+        id: "u1",
+        email: "g@g.com",
+        username: "Grimgork",
+        state: "bad-state",
+      },
     });
 
     await loginUser(baseLoginData).catch(() => {});
@@ -249,7 +320,12 @@ describe("loginUser – authorizationCode + codeVerifier found", () => {
     mockPost.mockResolvedValueOnce({
       success: true,
       message: "token ok",
-      data: { id: "u1", email: "g@g.com", username: "Grimgork", expiresAt: 9999 },
+      data: {
+        id: "u1",
+        email: "g@g.com",
+        username: "Grimgork",
+        expiresAt: 9999,
+      },
     });
 
     await loginUser(baseLoginData);
@@ -350,6 +426,18 @@ describe("loginUser – responseData.success = false", () => {
       expect.objectContaining({ description: "Account locked" }),
     );
   });
+
+  it("uses the default description when the server provides no message", async () => {
+    mockPost.mockResolvedValueOnce({ success: false });
+
+    await loginUser(baseLoginData);
+
+    expect(mockToasterCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        description: "Invalid credentials or server error",
+      }),
+    );
+  });
 });
 
 describe("loginUser – httpClient.post throws", () => {
@@ -418,7 +506,9 @@ describe("loginUser – exchangeCodeForToken internal error", () => {
     // Second post (token exchange) fails
     mockPost.mockRejectedValueOnce(new Error("Token exchange failed"));
 
-    await expect(loginUser(baseLoginData)).rejects.toThrow("Token exchange failed");
+    await expect(loginUser(baseLoginData)).rejects.toThrow(
+      "Token exchange failed",
+    );
     expect(mockToasterCreate).toHaveBeenCalledWith(
       expect.objectContaining({ title: "Login Failed", type: "error" }),
     );

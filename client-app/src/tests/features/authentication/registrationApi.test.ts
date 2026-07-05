@@ -13,13 +13,14 @@
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const { mockPost, mockGet, mockSetUser, mockToasterCreate, mockLoginUser } = vi.hoisted(() => ({
-  mockPost: vi.fn(),
-  mockGet: vi.fn(),
-  mockSetUser: vi.fn(),
-  mockToasterCreate: vi.fn(),
-  mockLoginUser: vi.fn(),
-}));
+const { mockPost, mockGet, mockSetUser, mockToasterCreate, mockLoginUser } =
+  vi.hoisted(() => ({
+    mockPost: vi.fn(),
+    mockGet: vi.fn(),
+    mockSetUser: vi.fn(),
+    mockToasterCreate: vi.fn(),
+    mockLoginUser: vi.fn(),
+  }));
 
 vi.mock("@/core/api/httpClient", () => ({
   httpClient: { post: mockPost, get: mockGet },
@@ -37,7 +38,10 @@ vi.mock("@/features/authentication/api/authenticationApi", () => ({
   loginUser: mockLoginUser,
 }));
 
-import { registerUser, userExists } from "@/features/authentication/api/registrationApi";
+import {
+  registerUser,
+  userExists,
+} from "@/features/authentication/api/registrationApi";
 
 describe("registerUser", () => {
   beforeEach(() => vi.clearAllMocks());
@@ -58,7 +62,9 @@ describe("registerUser", () => {
       identifier: "g@g.com",
       password: "hunter123",
     });
-    expect(mockToasterCreate).toHaveBeenCalledWith(expect.objectContaining({ type: "success" }));
+    expect(mockToasterCreate).toHaveBeenCalledWith(
+      expect.objectContaining({ type: "success" }),
+    );
   });
 
   it("sets user directly when no password is provided (line 43 else branch)", async () => {
@@ -73,13 +79,29 @@ describe("registerUser", () => {
     );
   });
 
+  it("falls back to an empty id when responseData.data is absent (line 48 fallback)", async () => {
+    mockPost.mockResolvedValueOnce({ success: true });
+    await registerUser({ username: "NoData", email: "nd@g.com" });
+    expect(mockSetUser).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: "",
+        username: "NoData",
+        email: "nd@g.com",
+      }),
+    );
+  });
+
   it("shows warning toast when auto-login throws (inner catch line 54)", async () => {
     mockPost.mockResolvedValueOnce({
       success: true,
       data: { id: "u3", username: "AutoFail", email: "af@g.com" },
     });
     mockLoginUser.mockRejectedValueOnce(new Error("Login error"));
-    await registerUser({ username: "AutoFail", email: "af@g.com", password: "pass1234" });
+    await registerUser({
+      username: "AutoFail",
+      email: "af@g.com",
+      password: "pass1234",
+    });
     expect(mockToasterCreate).toHaveBeenCalledWith(
       expect.objectContaining({ type: "warning" }),
     );
