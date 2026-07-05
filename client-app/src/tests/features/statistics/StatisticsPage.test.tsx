@@ -86,7 +86,17 @@ describe("StatisticsPage – error states", () => {
     mockGet.mockRejectedValueOnce("string error");
     renderPage();
     await waitFor(() =>
-      expect(screen.getByText(/failed to load statistics/i)).toBeInTheDocument(),
+      expect(
+        screen.getByText(/failed to load statistics/i),
+      ).toBeInTheDocument(),
+    );
+  });
+
+  it("shows 'No data available.' when stats is null and no error was set", async () => {
+    mockGet.mockResolvedValueOnce({ success: true, data: null });
+    renderPage();
+    await waitFor(() =>
+      expect(screen.getByText(/no data available/i)).toBeInTheDocument(),
     );
   });
 });
@@ -201,9 +211,88 @@ describe("StatisticsPage – topPlayers with factions", () => {
       },
     });
     renderPage();
+    await waitFor(() => expect(screen.getByText("Luthor")).toBeInTheDocument());
+  });
+});
+
+describe("StatisticsPage – topPlayers rank styling by index", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("styles rank #1/#2/#3+ differently and shows singular 'win' at rank #1", async () => {
+    mockGet.mockResolvedValueOnce({
+      success: true,
+      data: {
+        ...baseStats,
+        topPlayers: [
+          { name: "Grimgork", wins: 1, factions: [] },
+          { name: "Karl Franz", wins: 5, factions: [] },
+          { name: "Teclis", wins: 3, factions: [] },
+          { name: "Luthor", wins: 2, factions: [] },
+        ],
+      },
+    });
+    renderPage();
     await waitFor(() =>
-      expect(screen.getByText("Luthor")).toBeInTheDocument(),
+      expect(screen.getByText("Grimgork")).toBeInTheDocument(),
     );
+    expect(screen.getByText("Karl Franz")).toBeInTheDocument();
+    expect(screen.getByText("Teclis")).toBeInTheDocument();
+    expect(screen.getByText("Luthor")).toBeInTheDocument();
+    expect(screen.getByText(/1 win\b/)).toBeInTheDocument();
+  });
+});
+
+describe("StatisticsPage – topCreators rank styling by index", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("styles rank #1/#2/#3+ differently", async () => {
+    mockGet.mockResolvedValueOnce({
+      success: true,
+      data: {
+        ...baseStats,
+        topCreators: [
+          { username: "Admin", tournamentsCreated: 5, completed: 3 },
+          { username: "Runner-up", tournamentsCreated: 3, completed: 1 },
+          { username: "ThirdPlace", tournamentsCreated: 1, completed: 0 },
+        ],
+      },
+    });
+    renderPage();
+    await waitFor(() => expect(screen.getByText("Admin")).toBeInTheDocument());
+    expect(screen.getByText("Runner-up")).toBeInTheDocument();
+    expect(screen.getByText("ThirdPlace")).toBeInTheDocument();
+  });
+});
+
+describe("StatisticsPage – recentWinners with data", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("renders a separator between entries after the first (i > 0) and shows the faction badge", async () => {
+    mockGet.mockResolvedValueOnce({
+      success: true,
+      data: {
+        ...baseStats,
+        recentWinners: [
+          {
+            tournamentName: "Waaagh Cup",
+            tournamentType: "Single Elimination",
+            winnerName: "Grimgork",
+            winnerFaction: "Greenskins",
+          },
+          {
+            tournamentName: "Empire Open",
+            tournamentType: "Round Robin",
+            winnerName: "Karl Franz",
+          },
+        ],
+      },
+    });
+    renderPage();
+    await waitFor(() =>
+      expect(screen.getByText("Waaagh Cup")).toBeInTheDocument(),
+    );
+    expect(screen.getByText("Empire Open")).toBeInTheDocument();
+    expect(screen.getByText("Greenskins")).toBeInTheDocument();
   });
 });
 
@@ -221,9 +310,7 @@ describe("StatisticsPage – topCreators 'done' badge (c.completed > 0)", () => 
       },
     });
     renderPage();
-    await waitFor(() =>
-      expect(screen.getByText("Admin")).toBeInTheDocument(),
-    );
+    await waitFor(() => expect(screen.getByText("Admin")).toBeInTheDocument());
     expect(screen.getByText(/2 done/)).toBeInTheDocument();
   });
 
@@ -238,9 +325,7 @@ describe("StatisticsPage – topCreators 'done' badge (c.completed > 0)", () => 
       },
     });
     renderPage();
-    await waitFor(() =>
-      expect(screen.getByText("Admin")).toBeInTheDocument(),
-    );
+    await waitFor(() => expect(screen.getByText("Admin")).toBeInTheDocument());
     expect(screen.queryByText(/done/)).not.toBeInTheDocument();
   });
 });
@@ -269,7 +354,9 @@ describe("StatisticsPage – recentTournaments section", () => {
     await waitFor(() =>
       expect(screen.getByText("Winter Cup")).toBeInTheDocument(),
     );
-    expect(screen.getByText(/recent completed tournaments/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/recent completed tournaments/i),
+    ).toBeInTheDocument();
   });
 });
 

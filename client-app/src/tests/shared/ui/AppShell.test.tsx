@@ -106,6 +106,39 @@ describe("AppShell – guest mode badge (isUserGuest && !isPortrait)", () => {
   });
 });
 
+describe("AppShell – portrait mode (isPortrait=true)", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("shows the short 'TW Tournament' title instead of the full app name", () => {
+    renderShell(true, false);
+    expect(screen.getByText("TW Tournament")).toBeInTheDocument();
+    expect(
+      screen.queryByText("Total Warhammer Tournament App"),
+    ).not.toBeInTheDocument();
+  });
+
+  it("hides the 'Guest Mode' badge even when the user is a guest", () => {
+    renderShell(true, true, true);
+    expect(screen.queryByText(/guest mode/i)).not.toBeInTheDocument();
+  });
+
+  it("renders the bottom nav (NavItems) instead of the sidebar", () => {
+    renderShell(true, false);
+    expect(screen.getByTestId("nav-items")).toBeInTheDocument();
+  });
+});
+
+describe("AppShell – desktop mode shows the full app name", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("shows 'Total Warhammer Tournament App' when not portrait", () => {
+    renderShell(false, false);
+    expect(
+      screen.getByText("Total Warhammer Tournament App"),
+    ).toBeInTheDocument();
+  });
+});
+
 describe("AppShell – renders children", () => {
   beforeEach(() => vi.clearAllMocks());
 

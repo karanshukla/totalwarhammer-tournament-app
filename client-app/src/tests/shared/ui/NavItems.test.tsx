@@ -101,15 +101,38 @@ describe("NavItems – NavItem keyboard navigation (Enter/Space)", () => {
 
   it("triggers navigation on Enter key press", () => {
     renderNav({ isPortrait: false });
-    const homeItem = screen.getByText(/home/i).closest('[role]') ?? screen.getByText(/home/i).parentElement!;
+    const homeItem =
+      screen.getByText(/home/i).closest("[role]") ??
+      screen.getByText(/home/i).parentElement!;
     fireEvent.keyDown(homeItem, { key: "Enter" });
     expect(mockNavigate).toHaveBeenCalledWith("/");
   });
 
   it("triggers navigation on Space key press", () => {
     renderNav({ isPortrait: false });
-    const matchesItem = screen.getByText(/matches/i).closest('[role]') ?? screen.getByText(/matches/i).parentElement!;
+    const matchesItem =
+      screen.getByText(/matches/i).closest("[role]") ??
+      screen.getByText(/matches/i).parentElement!;
     fireEvent.keyDown(matchesItem, { key: " " });
     expect(mockNavigate).toHaveBeenCalledWith("/matches");
+  });
+
+  it("does nothing on an unrelated key press (e.g. Tab)", () => {
+    renderNav({ isPortrait: false });
+    const homeItem =
+      screen.getByText(/home/i).closest("[role]") ??
+      screen.getByText(/home/i).parentElement!;
+    fireEvent.keyDown(homeItem, { key: "Tab" });
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+});
+
+describe("NavItems – portrait + mobile (isPortrait && isMobile)", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("visually hides labels but keeps them accessible when portrait and mobile", () => {
+    renderNav({ isPortrait: true, isMobile: true });
+    // Text is present for screen readers via VisuallyHidden, not visibly rendered as normal Text
+    expect(screen.getByText(/home/i)).toBeInTheDocument();
   });
 });
