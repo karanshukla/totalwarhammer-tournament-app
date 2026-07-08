@@ -85,8 +85,10 @@ describe("EditParticipantDialog – Select onValueChange triggers onParticipantC
     const empirOption = options.find((o) => o.textContent?.includes("Empire"));
     if (empirOption) {
       await user.click(empirOption);
-      expect(onParticipantChange).toHaveBeenCalledWith(
-        expect.objectContaining({ faction: "Empire" }),
+      await waitFor(() =>
+        expect(onParticipantChange).toHaveBeenCalledWith(
+          expect.objectContaining({ faction: "Empire" }),
+        ),
       );
     } else {
       // If we can't find Empire, just verify some option was available
@@ -101,6 +103,7 @@ describe("EditParticipantDialog – onOpenChange(e.open=false) calls onClose", (
     const onClose = vi.fn();
     renderDialog({ onClose });
 
+    await screen.findByRole("dialog");
     await user.keyboard("{Escape}");
 
     await waitFor(() => expect(onClose).toHaveBeenCalledTimes(1));
