@@ -5,7 +5,7 @@
  * - Catch path: logoutUser rejects → still navigate("/")
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, act } from "@testing-library/react";
+import { render, screen, act, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom";
 import React from "react";
@@ -66,21 +66,31 @@ describe("LogoutButton – double-click guard (line 21 true branch)", () => {
   it("ignores second click while logout is in progress", async () => {
     let resolve!: () => void;
     mockLogoutUser.mockImplementationOnce(
-      () => new Promise<void>((r) => { resolve = r; }),
+      () =>
+        new Promise<void>((r) => {
+          resolve = r;
+        }),
     );
 
     renderButton();
     const btn = screen.getByRole("button", { name: /logout/i });
 
-    // First click — starts the in-flight logout
-    await userEvent.click(btn);
-    // Second click should hit the guard and return early
-    await userEvent.click(btn);
+    // Fire both clicks inside a single act() batch so React doesn't get a
+    // chance to commit the disabled-button re-render in between — this is
+    // what actually exercises the isLoggingOutRef guard (line 21-22), rather
+    // than the DOM's native disabled-button click suppression.
+    act(() => {
+      fireEvent.click(btn);
+      fireEvent.click(btn);
+    });
 
-    // logoutUser should only be called once
+    // logoutUser should only be called once — the second invocation returned
+    // early via the in-progress guard.
     expect(mockLogoutUser).toHaveBeenCalledTimes(1);
 
     // Resolve the in-flight promise so the component can clean up
-    await act(async () => { resolve(); });
+    await act(async () => {
+      resolve();
+    });
   });
 });

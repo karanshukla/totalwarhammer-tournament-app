@@ -95,6 +95,18 @@ describe("EditParticipantDialog – Select onValueChange triggers onParticipantC
   });
 });
 
+describe("EditParticipantDialog – onOpenChange(e.open=false) calls onClose", () => {
+  it("calls onClose when Escape is pressed while the dialog is open", async () => {
+    const user = userEvent.setup();
+    const onClose = vi.fn();
+    renderDialog({ onClose });
+
+    await user.keyboard("{Escape}");
+
+    await waitFor(() => expect(onClose).toHaveBeenCalledTimes(1));
+  });
+});
+
 describe("EditParticipantDialog – Save button while loading", () => {
   it("renders buttons in loading state when actionLoading=true", () => {
     renderDialog({ actionLoading: true });
