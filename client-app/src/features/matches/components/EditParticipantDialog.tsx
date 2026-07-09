@@ -51,15 +51,17 @@ const EditParticipantDialog: React.FC<Props> = ({
     [factionList],
   );
 
+  const handleOpenChange = (e: { open: boolean }) => {
+    // This dialog is only ever rendered while `open` is true (controlled by
+    // the parent); Ark UI's internal close triggers (Escape, backdrop click)
+    // only ever request open:false, so open:true here is unreachable.
+    /* v8 ignore next */
+    if (e.open) return;
+    onClose();
+  };
+
   return (
-    <Dialog.Root
-      open={open}
-      onOpenChange={(e: { open: boolean }) => {
-        if (!e.open) {
-          onClose();
-        }
-      }}
-    >
+    <Dialog.Root open={open} onOpenChange={handleOpenChange}>
       <Portal>
         <Dialog.Backdrop />
         <Dialog.Positioner>
@@ -92,6 +94,10 @@ const EditParticipantDialog: React.FC<Props> = ({
                       participant &&
                       onParticipantChange({
                         ...participant,
+                        // This is a single-select with no clear affordance, so
+                        // e.value always has exactly one entry in practice;
+                        // the fallback guards the type (string[] -> string).
+                        /* v8 ignore next */
                         faction: e.value[0] ?? "",
                       })
                     }

@@ -40,7 +40,10 @@ const {
     mockPost: vi.fn(),
     mockDelete: vi.fn(),
     mockCheckSessionStatus: vi.fn(),
-    mockGetState: vi.fn(() => ({ setUser: mockSetUser, clearUser: mockClearUser })),
+    mockGetState: vi.fn(() => ({
+      setUser: mockSetUser,
+      clearUser: mockClearUser,
+    })),
     mockSetUser,
     mockClearUser,
     mockToasterCreate: vi.fn(),
@@ -142,11 +145,27 @@ describe("updateUsername", () => {
     );
   });
 
+  it("falls back to the passed-in username when responseData.data is absent", async () => {
+    mockPost.mockResolvedValueOnce({ success: true, message: "ok" });
+    await updateUsername("FallbackName");
+    expect(mockSetUser).toHaveBeenCalledWith({ username: "FallbackName" });
+  });
+
+  it("throws the default message when responseData.success=false and message is absent", async () => {
+    mockPost.mockResolvedValueOnce({ success: false });
+    await expect(updateUsername("x")).rejects.toThrow(
+      "Failed to update username",
+    );
+  });
+
   it("toaster shows Error.message on Error throw from post", async () => {
     mockPost.mockRejectedValueOnce(new Error("Connection refused"));
     await expect(updateUsername("x")).rejects.toThrow();
     expect(mockToasterCreate).toHaveBeenCalledWith(
-      expect.objectContaining({ description: "Connection refused", type: "error" }),
+      expect.objectContaining({
+        description: "Connection refused",
+        type: "error",
+      }),
     );
   });
 
@@ -154,7 +173,10 @@ describe("updateUsername", () => {
     mockPost.mockRejectedValueOnce("some string error");
     await expect(updateUsername("x")).rejects.toThrow();
     expect(mockToasterCreate).toHaveBeenCalledWith(
-      expect.objectContaining({ description: "An error occurred", type: "error" }),
+      expect.objectContaining({
+        description: "An error occurred",
+        type: "error",
+      }),
     );
   });
 });
@@ -172,8 +194,16 @@ describe("deleteAccount", () => {
   });
 
   it("throws when responseData.success=false", async () => {
-    mockDelete.mockResolvedValueOnce({ success: false, message: "Cannot delete" });
+    mockDelete.mockResolvedValueOnce({
+      success: false,
+      message: "Cannot delete",
+    });
     await expect(deleteAccount()).rejects.toThrow("Cannot delete");
+  });
+
+  it("throws the default message when responseData.success=false and message is absent", async () => {
+    mockDelete.mockResolvedValueOnce({ success: false });
+    await expect(deleteAccount()).rejects.toThrow("Failed to delete account");
   });
 
   it("toaster shows error on catch", async () => {
@@ -181,6 +211,17 @@ describe("deleteAccount", () => {
     await expect(deleteAccount()).rejects.toThrow();
     expect(mockToasterCreate).toHaveBeenCalledWith(
       expect.objectContaining({ type: "error" }),
+    );
+  });
+
+  it("toaster shows 'An error occurred' on non-Error throw", async () => {
+    mockDelete.mockRejectedValueOnce("some string error");
+    await expect(deleteAccount()).rejects.toBe("some string error");
+    expect(mockToasterCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        description: "An error occurred",
+        type: "error",
+      }),
     );
   });
 });
@@ -203,8 +244,18 @@ describe("updatePassword", () => {
   });
 
   it("throws when responseData.success=false", async () => {
-    mockPost.mockResolvedValueOnce({ success: false, message: "Wrong password" });
+    mockPost.mockResolvedValueOnce({
+      success: false,
+      message: "Wrong password",
+    });
     await expect(updatePassword(pwData)).rejects.toThrow("Wrong password");
+  });
+
+  it("throws the default message when responseData.success=false and message is absent", async () => {
+    mockPost.mockResolvedValueOnce({ success: false });
+    await expect(updatePassword(pwData)).rejects.toThrow(
+      "Failed to update password",
+    );
   });
 
   it("toaster shows Error.message on Error throw", async () => {
@@ -219,7 +270,10 @@ describe("updatePassword", () => {
     mockPost.mockRejectedValueOnce(42);
     await expect(updatePassword(pwData)).rejects.toThrow();
     expect(mockToasterCreate).toHaveBeenCalledWith(
-      expect.objectContaining({ description: "An error occurred", type: "error" }),
+      expect.objectContaining({
+        description: "An error occurred",
+        type: "error",
+      }),
     );
   });
 });
