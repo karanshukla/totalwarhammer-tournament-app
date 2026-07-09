@@ -10,8 +10,8 @@
   "scripts": {
     "start": "node app.js",
     "dev": "nodemon app.js",
-    "lint": "eslint . --ext .js",
-    "lint:fix": "eslint . --ext .js --fix",
+    "lint": "oxlint .",
+    "lint:fix": "oxlint . --fix",
     "format": "prettier --write \"src/**/*.js\" \"app.js\"",
     "format:check": "prettier --check \"src/**/*.js\" \"app.js\"",
     "test": "node --experimental-vm-modules --experimental-test-module-mocks --test",
@@ -51,18 +51,12 @@
     "xss": "^1.0.15"
   },
   "devDependencies": {
-    "@eslint/js": "^10.0.1",
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/passport": "^1.0.17",
     "@types/passport-local": "^1.0.38",
-    "eslint": "^10.5.0",
-    "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-import-x": "^4.16.2",
-    "eslint-plugin-n": "^18.1.0",
-    "eslint-plugin-prettier": "^5.5.6",
-    "globals": "^17.6.0",
     "nodemon": "^3.1.14",
+    "oxlint": "^1.73.0",
     "prettier": "^3.8.4"
   }
 }
