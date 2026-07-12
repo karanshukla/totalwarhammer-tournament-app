@@ -58,7 +58,10 @@ describe("csrfErrorHandler", () => {
   it("returns 403 when err is invalidCsrfTokenError", () => {
     let status403 = false;
     const res = {
-      status: (s) => { status403 = s === 403; return res; },
+      status: (s) => {
+        status403 = s === 403;
+        return res;
+      },
       json: () => res,
     };
     const req = { method: "POST", path: "/api/x", headers: {} };
@@ -74,6 +77,25 @@ describe("csrfErrorHandler", () => {
       passedErr = e;
     });
     assert.strictEqual(passedErr, err);
+  });
+
+  it("reports hasSession true when the request has a session with an id", () => {
+    let status403 = false;
+    const res = {
+      status: (s) => {
+        status403 = s === 403;
+        return res;
+      },
+      json: () => res,
+    };
+    const req = {
+      method: "POST",
+      path: "/api/x",
+      headers: {},
+      session: { id: "sess-1" },
+    };
+    csrfErrorHandler(invalidCsrfTokenError, req, res, () => {});
+    assert.strictEqual(status403, true);
   });
 });
 
