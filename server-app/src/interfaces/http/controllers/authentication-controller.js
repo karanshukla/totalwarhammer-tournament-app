@@ -363,13 +363,14 @@ function timingSafeEqual(a, b) {
     const bufA = Buffer.from(a, "utf8");
     const bufB = Buffer.from(b, "utf8");
     return crypto.timingSafeEqual(bufA, bufB);
+    /* c8 ignore start -- ascii-only base64url strings cannot cause crypto.timingSafeEqual to throw; this fallback is unreachable in practice */
     // eslint-disable-next-line no-unused-vars
   } catch (err) {
-    /* c8 ignore next 6 -- ascii-only base64url strings cannot cause crypto.timingSafeEqual to throw; this fallback is unreachable in practice */
     let result = 0;
     for (let i = 0; i < a.length; i++) {
       result |= a.charCodeAt(i) ^ b.charCodeAt(i);
     }
     return result === 0;
   }
+  /* c8 ignore stop */
 }

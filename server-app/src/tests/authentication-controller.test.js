@@ -357,6 +357,55 @@ describe("authentication-controller", () => {
       assert.strictEqual(mockCreateUserAuthState.mock.calls.length, 1);
     });
 
+    it("should return expiresAt from cookie.expires when present on token exchange", async () => {
+      const verifier = "secure-verifier-for-expires-test";
+      const challenge = buildCodeChallenge(verifier);
+      const user = {
+        id: "u2e",
+        email: "pkce-expires@test.com",
+        username: "pkceexpiresuser",
+        validatePassword: mock.fn(async () => true),
+        toObject: mock.fn(() => ({ id: "u2e" })),
+      };
+
+      mockUserFindOne.mock.mockImplementation(() => ({
+        select: mock.fn(() => user),
+      }));
+      const loginReq = mockReq({
+        body: {
+          identifier: "pkce-expires@test.com",
+          password: "pw",
+          codeChallenge: challenge,
+          codeChallengeMethod: "S256",
+        },
+      });
+      const loginRes = mockRes();
+      await login(loginReq, loginRes);
+      const authCode =
+        loginRes.json.mock.calls[0].arguments[0].data.authorizationCode;
+
+      mockUserFindById.mock.mockImplementation(async () => ({
+        ...user,
+        toObject: user.toObject,
+      }));
+      const expires = new Date(Date.now() + 3600000);
+      const tokenReq = mockReq({
+        body: {
+          grant_type: "authorization_code",
+          code: authCode,
+          code_verifier: verifier,
+        },
+        session: { cookie: { expires, maxAge: 3600000 } },
+      });
+      const tokenRes = mockRes();
+      await token(tokenReq, tokenRes);
+      assert.strictEqual(tokenRes.status.mock.calls[0].arguments[0], 200);
+      assert.strictEqual(
+        tokenRes.json.mock.calls[0].arguments[0].data.expiresAt,
+        expires.getTime(),
+      );
+    });
+
     it("should return 400 when auth code is replayed", async () => {
       const verifier = "replay-test-verifier-string";
       const challenge = buildCodeChallenge(verifier);

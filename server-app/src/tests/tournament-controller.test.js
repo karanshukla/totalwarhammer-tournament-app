@@ -428,6 +428,19 @@ describe("tournament-controller", () => {
       assert.strictEqual(t.participants[0].name, "Alice");
       assert.strictEqual(t.save.mock.calls.length, 1);
     });
+
+    it("should default faction to an empty string when not provided", async () => {
+      const t = makePendingTournament();
+      mockTournamentFindOne.mock.mockImplementation(async () => t);
+      const req = mockReq({
+        params: { id: "t1" },
+        body: { name: "Alice" },
+      });
+      const res = mockRes();
+      await addParticipant(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
+      assert.strictEqual(t.participants[0].faction, "");
+    });
   });
 
   describe("removeParticipant", () => {
@@ -544,6 +557,64 @@ describe("tournament-controller", () => {
       await joinTournament(req, res);
       assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
       assert.ok(t.participants[0].name.startsWith("Guest_"));
+    });
+
+    it("should store a null userId and use guest name-matching for already-joined check when isGuest", async () => {
+      const t = {
+        _id: { toString: () => "t1" },
+        status: "pending",
+        playerCount: 8,
+        participants: [{ name: "Guest_abcdef" }],
+        save: mock.fn(async () => {}),
+      };
+      mockTournamentFindById.mock.mockImplementation(async () => t);
+      const req = mockReq({
+        params: { id: "t1" },
+        body: {},
+        user: { id: "abcdef123456", username: undefined, isGuest: true },
+      });
+      const res = mockRes();
+      await joinTournament(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 400);
+    });
+
+    it("should join as a guest and store a null userId on the participant", async () => {
+      const t = {
+        _id: { toString: () => "t1" },
+        status: "pending",
+        playerCount: 8,
+        participants: [],
+        save: mock.fn(async () => {}),
+      };
+      mockTournamentFindById.mock.mockImplementation(async () => t);
+      const req = mockReq({
+        params: { id: "t1" },
+        body: {},
+        user: { id: "abcdef123456", username: undefined, isGuest: true },
+      });
+      const res = mockRes();
+      await joinTournament(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
+      assert.strictEqual(t.participants[0].userId, null);
+    });
+
+    it("should detect already-joined via matching userId (non-guest)", async () => {
+      const t = {
+        _id: { toString: () => "t1" },
+        status: "pending",
+        playerCount: 8,
+        participants: [{ userId: "u1", name: "Someone Else" }],
+        save: mock.fn(async () => {}),
+      };
+      mockTournamentFindById.mock.mockImplementation(async () => t);
+      const req = mockReq({
+        params: { id: "t1" },
+        body: {},
+        user: { id: "u1", username: "tester", isGuest: false },
+      });
+      const res = mockRes();
+      await joinTournament(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 400);
     });
   });
 
@@ -1022,6 +1093,26 @@ describe("tournament-controller", () => {
       assert.strictEqual(mockEmitMatchesAppended.mock.calls.length, 1);
     });
 
+    it("Double Elimination: handles an empty winners bracket and a populated grand final", async () => {
+      const t = makeActiveTournament({ tournamentType: "Double Elimination" });
+      mockTournamentFindOne.mock.mockImplementation(async () => t);
+      mockMatchFind.mock.mockImplementation(() => ({
+        sort: mock.fn(async () => [
+          { round: 1, bracketSide: "losers", status: "completed" },
+          { round: 1, bracketSide: "grand_final", status: "completed" },
+        ]),
+      }));
+      mockDoubleElimAdvance.mock.mockImplementation(() => ({
+        completed: true,
+        docs: [],
+      }));
+      const req = mockReq({ params: { id: "t1" } });
+      const res = mockRes();
+      await advanceRound(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
+      assert.strictEqual(res.json.mock.calls[0].arguments[0].completed, true);
+    });
+
     it("Single Elimination: returns 400 when current round has incomplete matches", async () => {
       const t = makeActiveTournament();
       mockTournamentFindOne.mock.mockImplementation(async () => t);
@@ -1470,6 +1561,28 @@ describe("tournament-controller", () => {
         "XYZ999",
       );
     });
+
+    it("should fall back to the original tournament when the re-fetch also finds nothing", async () => {
+      const codelessTournament = {
+        _id: "aaaaaaaaaaaaaaaaaaaaaaaa",
+        name: "no code",
+        code: "",
+      };
+      let findByIdCallCount = 0;
+      mockTournamentFindById.mock.mockImplementation(async () => {
+        findByIdCallCount++;
+        return findByIdCallCount === 1 ? codelessTournament : null;
+      });
+      mockTournamentFindOneAndUpdate.mock.mockImplementation(async () => null);
+      const req = mockReq({ params: { id: "aaaaaaaaaaaaaaaaaaaaaaaa" } });
+      const res = mockRes();
+      await getTournamentById(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
+      assert.strictEqual(
+        res.json.mock.calls[0].arguments[0].data,
+        codelessTournament,
+      );
+    });
   });
 
   // ── getUserTournaments extra paths ────────────────────────────────────────────
@@ -1612,10 +1725,7 @@ describe("tournament-controller", () => {
       const res = mockRes();
       await updateParticipant(req, res);
       assert.strictEqual(res.status.mock.calls[0].arguments[0], 400);
-      assert.match(
-        res.json.mock.calls[0].arguments[0].message,
-        /at most 100/i,
-      );
+      assert.match(res.json.mock.calls[0].arguments[0].message, /at most 100/i);
     });
   });
 });

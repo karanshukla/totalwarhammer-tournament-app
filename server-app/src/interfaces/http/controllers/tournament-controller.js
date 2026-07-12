@@ -194,7 +194,8 @@ export const getUserTournaments = async (req, res) => {
 
     const total =
       status && status !== "all"
-        ? (statusCounts[status] ?? 0)
+        ? /* c8 ignore next -- status is constrained to allowedStatuses, whose members are exactly the pre-initialized statusCounts keys, so statusCounts[status] is never undefined */
+          (statusCounts[status] ?? 0)
         : statusCounts.all;
 
     const withCodes = await Promise.all(tournaments.map(ensureCode));
