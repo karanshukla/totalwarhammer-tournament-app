@@ -65,6 +65,22 @@ describe("guest-controller", () => {
       assert.ok(data.username.startsWith("Guest_"));
       assert.strictEqual(data.isGuest, true);
     });
+
+    it("should default expiresAt to 48 hours when cookie.maxAge is unset", async () => {
+      const beforeCall = Date.now();
+      const req = mockReq({
+        session: {
+          cookie: {},
+          save: mock.fn((cb) => cb()),
+          touch: mock.fn(),
+        },
+      });
+      const res = mockRes();
+      await createGuestUser(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
+      const data = res.json.mock.calls[0].arguments[0].data;
+      assert.ok(data.expiresAt >= beforeCall + 48 * 60 * 60 * 1000);
+    });
   });
 
   describe("updateGuestUsername", () => {

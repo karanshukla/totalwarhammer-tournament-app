@@ -315,6 +315,20 @@ describe("AuthStateService", () => {
       assert.strictEqual(saveMock.mock.calls.length, 1);
     });
 
+    it("should log an error when session.save fails", () => {
+      const saveMock = mock.fn((callback) => callback(new Error("disk full")));
+      const req = createMockRequest({
+        session: {
+          save: saveMock,
+          cookie: {},
+        },
+      });
+
+      // Should not throw — the save error is only logged
+      authStateService.createGuestAuthState(req, "guest123");
+      assert.strictEqual(saveMock.mock.calls.length, 1);
+    });
+
     it("should handle missing save method", () => {
       const req = createMockRequest({
         session: { cookie: {} },
