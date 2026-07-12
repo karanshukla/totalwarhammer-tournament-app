@@ -164,6 +164,25 @@ describe("user-controller", () => {
       );
     });
 
+    it("should return 500 when session.save fails", async () => {
+      mockUserFindOne.mock.mockImplementation(() => null);
+      mockUserFindByIdAndUpdate.mock.mockImplementation(async (id) => ({
+        id,
+        username: "new",
+        email: "e@t.com",
+      }));
+      const req = mockReq({
+        body: { username: "new" },
+        session: {
+          user: {},
+          save: mock.fn((cb) => cb(new Error("save failed"))),
+        },
+      });
+      const res = mockRes();
+      await updateUsername(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 500);
+    });
+
     it("should pass a plain string value to $set, not a query operator", async () => {
       mockUserFindOne.mock.mockImplementation(() => null);
       let capturedUpdate;

@@ -84,6 +84,21 @@ describe("JwtService", () => {
         guest: "48h",
       });
     });
+
+    it("should fall back to literal defaults when no config or env vars are set", () => {
+      delete process.env.JWT_EXPIRES_IN;
+      delete process.env.JWT_REMEMBER_ME_EXPIRES_IN;
+      delete process.env.JWT_GUEST_EXPIRES_IN;
+
+      const jwtService = new JwtService();
+
+      assert.strictEqual(jwtService.defaultExpiresIn, "1h");
+      assert.deepStrictEqual(jwtService.tokenExpiration, {
+        standard: "1h",
+        rememberMe: "30d",
+        guest: "48h",
+      });
+    });
   });
 
   // Note: sign/verify/decode inside JwtService are captured via destructuring at
@@ -125,6 +140,18 @@ describe("JwtService", () => {
       // Should not throw — falls back to defaultExpiresIn
       const token = svc.generateToken({ userId: "u3" }, "unknown");
       assert.ok(typeof token === "string");
+    });
+
+    it("should throw when no expiration time is defined for the token type", () => {
+      const svc = new JwtService();
+      // Neither the per-type entry nor the default fallback can normally be
+      // falsy (the constructor always resolves defaultExpiresIn to a truthy
+      // string), so force the defensive branch by clearing both directly.
+      svc.tokenExpiration.standard = null;
+      svc.defaultExpiresIn = null;
+      assert.throws(() => svc.generateToken({ userId: "u4" }), {
+        message: "No expiration time defined for token type: standard",
+      });
     });
   });
 

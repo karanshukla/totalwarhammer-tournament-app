@@ -75,7 +75,12 @@ describe("authenticateSession", () => {
   it("returns 401 when authenticated but getCurrentUser returns null", () => {
     mockIsAuthenticated.mock.mockImplementation(() => true);
     mockGetCurrentUser.mock.mockImplementation(() => null);
-    const req = { path: "/x", method: "GET", session: { id: "s1" }, headers: {} };
+    const req = {
+      path: "/x",
+      method: "GET",
+      session: { id: "s1" },
+      headers: {},
+    };
     const res = mockRes();
     const next = mock.fn();
     authenticateSession(req, res, next);
@@ -85,7 +90,10 @@ describe("authenticateSession", () => {
 
   it("calls next() when authenticated and user exists", () => {
     mockIsAuthenticated.mock.mockImplementation(() => true);
-    mockGetCurrentUser.mock.mockImplementation(() => ({ id: "u1", username: "hero" }));
+    mockGetCurrentUser.mock.mockImplementation(() => ({
+      id: "u1",
+      username: "hero",
+    }));
     const req = { path: "/x", method: "GET", session: {}, headers: {} };
     const res = mockRes();
     const next = mock.fn();
@@ -127,6 +135,31 @@ describe("authenticateGuestSession", () => {
     authenticateGuestSession(req, res, next);
     assert.strictEqual(next.mock.calls.length, 1);
     assert.strictEqual(req.user.id, "g1");
+  });
+
+  it("logs 'Present' when a cookie header exists and lists header keys", () => {
+    const req = {
+      session: { user: { id: "g1", isGuest: true }, isGuest: true },
+      headers: { cookie: "sid=abc", "user-agent": "test" },
+    };
+    const res = mockRes();
+    const next = mock.fn();
+    authenticateGuestSession(req, res, next);
+    assert.strictEqual(next.mock.calls.length, 1);
+  });
+
+  it("logs an empty header list when req.headers is falsy", () => {
+    // Use an empty string (falsy, but property access doesn't throw via
+    // auto-boxing) rather than undefined/null, since line 70 dereferences
+    // req.headers.cookie without optional chaining.
+    const req = {
+      session: { user: { id: "g1", isGuest: true }, isGuest: true },
+      headers: "",
+    };
+    const res = mockRes();
+    const next = mock.fn();
+    authenticateGuestSession(req, res, next);
+    assert.strictEqual(next.mock.calls.length, 1);
   });
 
   it("fixes missing isGuest flag on user when session.isGuest is true", () => {
