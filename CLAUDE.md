@@ -48,6 +48,10 @@ docker-compose up --build   # full stack (client, server, MongoDB, Redis, Caddy)
 docker-compose down
 ```
 
+## Code comments
+
+Don't add comments above functions or inline unless the WHY is genuinely non-obvious (a hidden constraint, a subtle invariant, a workaround for a specific bug). Well-named identifiers should make the WHAT self-evident. Before reaching for a comment, check whether the explanation can instead be expressed through abstraction or encapsulation — e.g. business logic embedded in a controller should move to a self-commenting, domain-named method in `domain/` or `infrastructure/` rather than being explained in a comment. Favor human-readable, domain-driven names and logical flow over prose explanations, while keeping code legible to agents working in this repo.
+
 ## Architecture
 
 This is an **npm workspace monorepo** with two packages: `client-app/` (React) and `server-app/` (Express). Root scripts delegate to both via `--workspaces`.
