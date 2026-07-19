@@ -2,11 +2,13 @@ import { doubleCsrf } from "csrf-csrf";
 
 import logger from "../../../infrastructure/utils/logger.js";
 
-/* c8 ignore next 4 */
+// process.exit() cannot be exercised in-process without killing the test runner.
+/* node:coverage disable */
 if (process.env.NODE_ENV === "production" && !process.env.CSRF_SECRET) {
   logger.error("CSRF_SECRET is not set in production environment");
   process.exit(1);
 }
+/* node:coverage enable */
 
 const CSRF_SECRET =
   process.env.CSRF_SECRET ||

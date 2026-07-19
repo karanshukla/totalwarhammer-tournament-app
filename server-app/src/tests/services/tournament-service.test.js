@@ -855,4 +855,74 @@ describe("doubleElimAdvance bracket reset", () => {
     }
     assert.ok(done, "tournament should reach completed state");
   });
+
+  it("returns 'Grand final not yet completed' when the GF match is still pending", () => {
+    const tid = "t_gf_pending";
+    const allMatches = [
+      {
+        round: 1,
+        matchNumber: 1,
+        bracketSide: "grand_final",
+        status: "pending",
+        player1: { participantId: "p1", name: "Alice" },
+        player2: { participantId: "p2", name: "Bob" },
+        winnerId: null,
+      },
+    ];
+
+    const result = doubleElimAdvance(tid, allMatches);
+
+    assert.deepStrictEqual(result, {
+      completed: false,
+      docs: [],
+      message: "Grand final not yet completed",
+    });
+  });
+
+  it("returns 'Not all current round matches are complete' while the WB round is in progress and no GF exists", () => {
+    const tid = "t_wb_in_progress";
+    const allMatches = [
+      {
+        round: 1,
+        matchNumber: 1,
+        bracketSide: "winners",
+        status: "completed",
+        player1: { participantId: "p1", name: "Alice" },
+        player2: { participantId: "p2", name: "Bob" },
+        winnerId: "p1",
+      },
+      {
+        round: 1,
+        matchNumber: 2,
+        bracketSide: "winners",
+        status: "pending",
+        player1: { participantId: "p3", name: "Carol" },
+        player2: { participantId: "p4", name: "Dave" },
+        winnerId: null,
+      },
+    ];
+
+    const result = doubleElimAdvance(tid, allMatches);
+
+    assert.deepStrictEqual(result, {
+      completed: false,
+      docs: [],
+      message: "Not all current round matches are complete",
+    });
+  });
+});
+
+describe("swissStart bye handling", () => {
+  it("creates a completed bye match for the odd participant out", () => {
+    const tid = "t_swiss_odd";
+    const matches = swissStart(tid, makeParticipants(3));
+
+    assert.strictEqual(matches.length, 2);
+    const bye = matches.find((m) => m.player2.name === "BYE");
+    assert.ok(bye, "expected a bye match among the round 1 pairings");
+    assert.strictEqual(bye.status, "completed");
+    assert.strictEqual(bye.winnerId, bye.player1.participantId);
+    assert.strictEqual(bye.loserId, null);
+    assert.strictEqual(bye.player2.participantId, null);
+  });
 });

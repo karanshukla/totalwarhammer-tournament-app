@@ -11,7 +11,9 @@ const authorizationCodes = new Map();
 
 // Cleanup interval for expired authorization codes (runs every 15 minutes)
 const CODE_EXPIRATION_TIME = 5 * 60 * 1000; // 5 minutes
-/* c8 ignore next 11 -- background cleanup timer fires every 15 min; exercising it requires timer mocking at module-load time which is incompatible with the existing test-file import order */
+// Background cleanup timer fires every 15 min; exercising it requires timer mocking
+// at module-load time, which is incompatible with the existing test-file import order.
+/* node:coverage disable */
 setInterval(
   () => {
     const now = Date.now();
@@ -26,6 +28,7 @@ setInterval(
   },
   15 * 60 * 1000,
 ).unref();
+/* node:coverage enable */
 
 /** @type {import('express').RequestHandler} */
 export const login = async (req, res) => {
@@ -347,15 +350,17 @@ function generateCodeChallenge(codeVerifier) {
  * @returns {boolean} - True if strings are equal
  */
 function timingSafeEqual(a, b) {
-  /* c8 ignore next 3 -- generateCodeChallenge always returns a string; non-string input is unreachable */
+  // generateCodeChallenge always returns a same-length string; non-string input
+  // and length mismatches are unreachable in practice.
+  /* node:coverage disable */
   if (typeof a !== "string" || typeof b !== "string") {
     return false;
   }
 
-  /* c8 ignore next 3 -- S256 base64url challenges are always the same fixed length; length mismatch is unreachable */
   if (a.length !== b.length) {
     return false;
   }
+  /* node:coverage enable */
 
   // For node.js environment, we can use the built-in crypto.timingSafeEqual
   // but for browsers or if that's not available, implement a more basic version
@@ -363,14 +368,14 @@ function timingSafeEqual(a, b) {
     const bufA = Buffer.from(a, "utf8");
     const bufB = Buffer.from(b, "utf8");
     return crypto.timingSafeEqual(bufA, bufB);
-    /* c8 ignore start -- ascii-only base64url strings cannot cause crypto.timingSafeEqual to throw; this fallback is unreachable in practice */
-    // eslint-disable-next-line no-unused-vars
-  } catch (err) {
+    // ascii-only base64url strings cannot cause crypto.timingSafeEqual to throw;
+    // this fallback is unreachable in practice.
+    /* node:coverage ignore next 7 */
+  } catch {
     let result = 0;
     for (let i = 0; i < a.length; i++) {
       result |= a.charCodeAt(i) ^ b.charCodeAt(i);
     }
     return result === 0;
   }
-  /* c8 ignore stop */
 }
