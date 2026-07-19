@@ -1,7 +1,6 @@
 import { createAdapter as createMongoAdapter } from "@socket.io/mongo-adapter";
 import { createAdapter as createRedisAdapter } from "@socket.io/redis-adapter";
 import mongoose from "mongoose";
-/* c8 ignore next 7 -- ESM static imports below are replaced by mock.module() in tests; v8 marks multi-line import declarations as uncovered when the real module is never loaded */
 import { Server } from "socket.io";
 
 import {
