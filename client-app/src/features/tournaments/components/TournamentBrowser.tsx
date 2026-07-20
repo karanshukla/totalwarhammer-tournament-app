@@ -32,7 +32,7 @@ const statusColorMap: Record<string, string> = {
 const statusAccentMap: Record<string, string> = {
   pending: "status.pending.border",
   active: "info.border",
-  completed: "border.emphasized",
+  completed: "gold.border",
 };
 
 const statusBarMap: Record<string, string> = {
@@ -79,7 +79,7 @@ const TournamentBrowser: React.FC<Props> = ({ statusFilter, emptyMessage }) => {
   const { user, isAuthenticated } = useUserStore();
   const navigate = useNavigate();
   const cardBg = "bg.panel";
-  const borderColor = "border";
+  const borderColor = "border.subtle";
 
   const fetchTournaments = useCallback(async () => {
     setLoading(true);
@@ -167,6 +167,8 @@ const TournamentBrowser: React.FC<Props> = ({ statusFilter, emptyMessage }) => {
                   borderTopWidth="2px"
                   display="flex"
                   flexDirection="column"
+                  transition="all 0.15s ease"
+                  _hover={{ bg: "bg.elevated", shadow: "md" }}
                 >
                   <Card.Body flex={1}>
                     <VStack alignItems="flex-start" gap={2}>

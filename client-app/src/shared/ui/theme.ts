@@ -332,7 +332,7 @@ const config = defineConfig({
             value: { _light: "#B7AD9B", _dark: "#332D24" },
           },
           elevated: {
-            value: { _light: "#FFFFFF", _dark: "#221D17" },
+            value: { _light: "#FFFFFF", _dark: "#2A241C" },
           },
           panel: {
             value: { _light: "#FFFFFF", _dark: "#221D17" },
