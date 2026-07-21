@@ -332,10 +332,10 @@ const config = defineConfig({
             value: { _light: "#B7AD9B", _dark: "#332D24" },
           },
           elevated: {
-            value: { _light: "#FFFFFF", _dark: "#2A241C" },
+            value: { _light: "#FFFFFF", _dark: "#38332C" },
           },
           panel: {
-            value: { _light: "#FFFFFF", _dark: "#221D17" },
+            value: { _light: "#FBF8F1", _dark: "#2A241C" },
           },
         },
         // Used by AppShell nav/header via bg="chakra-body-bg"
