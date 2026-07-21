@@ -118,7 +118,9 @@ const TournamentViewPage: React.FC<{ id?: string }> = ({ id: propId }) => {
   const [joinSuccess, setJoinSuccess] = useState(false);
 
   const cardBg = "bg.panel";
-  const borderColor = "border";
+  // border.subtle (#BEB39B light / #473F32 dark) is the clearly-visible step;
+  // the default border token washes into bg.panel in both modes.
+  const borderColor = "border.subtle";
   const mutedBg = "bg.subtle";
 
   const fetchTournament = useCallback(
@@ -500,7 +502,7 @@ const TournamentViewPage: React.FC<{ id?: string }> = ({ id: propId }) => {
         gap={6}
       >
         {/* Participants */}
-        <Card.Root bg={cardBg}>
+        <Card.Root bg={cardBg} borderColor={borderColor} shadow="sm">
           <Card.Header>
             <HStack gap={2}>
               <LuUsers />
@@ -551,7 +553,7 @@ const TournamentViewPage: React.FC<{ id?: string }> = ({ id: propId }) => {
         </Card.Root>
 
         {/* Tournament Info */}
-        <Card.Root bg={cardBg}>
+        <Card.Root bg={cardBg} borderColor={borderColor} shadow="sm">
           <Card.Header>
             <HStack gap={2}>
               <LuTrophy />
@@ -624,7 +626,7 @@ const TournamentViewPage: React.FC<{ id?: string }> = ({ id: propId }) => {
 
         {/* Join panel — only shown when pending and user can/could join */}
         {isPending && (
-          <Card.Root bg={cardBg}>
+          <Card.Root bg={cardBg} borderColor={borderColor} shadow="sm">
             <Card.Header>
               <HStack gap={2}>
                 <LuLogIn />
@@ -734,7 +736,12 @@ const TournamentViewPage: React.FC<{ id?: string }> = ({ id: propId }) => {
 
         {/* Matches — active/completed */}
         {(isActive || tournament.status === "completed") && (
-          <Card.Root gridColumn={{ lg: "1 / -1" }} bg={cardBg}>
+          <Card.Root
+            gridColumn={{ lg: "1 / -1" }}
+            bg={cardBg}
+            borderColor={borderColor}
+            shadow="sm"
+          >
             <Card.Header>
               <HStack gap={2}>
                 <LuSwords />
