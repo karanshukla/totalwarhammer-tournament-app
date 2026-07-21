@@ -20,6 +20,11 @@ import {
 import { toaster } from "@/shared/ui/Toaster";
 import { useTournamentStore } from "@/shared/stores/tournamentStore";
 
+// Matches the `slot-${matchId}-${position}` id produced by
+// MatchParticipantSlot's useDroppable(). Validating it here means a future
+// change to the slot id scheme fails loudly instead of silently no-op'ing.
+const SLOT_ID_PATTERN = /^slot-(.+)-(1|2)$/;
+
 const SimpleBracket = () => {
   const store = useTournamentStore();
 
@@ -65,30 +70,39 @@ const SimpleBracket = () => {
     const activeId = active.id as string;
     const overId = over.id as string;
 
-    if (overId.startsWith("slot-")) {
-      const parts = overId.split("-");
-      const matchId = parts[1];
-      const positionString = parts[2]; // "1" or "2"
+    const slotMatch = SLOT_ID_PATTERN.exec(overId);
+    if (slotMatch) {
+      const matchId = slotMatch[1];
+      const positionString = slotMatch[2]; // "1" or "2"
 
-      let matchExists = false;
-      for (const round of storeRounds) {
-        if (round.matches.some((m) => m.id === matchId)) {
-          matchExists = true;
-          break;
-        }
-      }
+      const matchExists = storeRounds.some((round) =>
+        round.matches.some((m) => m.id === matchId),
+      );
 
-      if (matchExists) {
-        if (positionString === "1") {
-          store.updateMatchParticipant(matchId, "participant1Id", activeId);
-        } else if (positionString === "2") {
-          store.updateMatchParticipant(matchId, "participant2Id", activeId);
-        }
-      } else {
+      if (!matchExists) {
+        // The target match can disappear between dragStart and dragEnd (e.g. a
+        // round/match deleted mid-drag). Surface it to the user, don't just log.
         console.error(
           `Could not find match with id: ${matchId} from slotId: ${overId}`,
         );
+        toaster.error({
+          title: "Drop target unavailable",
+          description: "That match no longer exists.",
+        });
+      } else if (positionString === "1") {
+        store.updateMatchParticipant(matchId, "participant1Id", activeId);
+      } else if (positionString === "2") {
+        store.updateMatchParticipant(matchId, "participant2Id", activeId);
       }
+    } else if (overId.startsWith("slot-")) {
+      // Looked like a slot but didn't match the `slot-<matchId>-<position>`
+      // contract — a future ID scheme change would land here. Fail clearly
+      // rather than silently no-op'ing on unvalidated string parsing.
+      console.error(`Unrecognized slot id format: ${overId}`);
+      toaster.error({
+        title: "Invalid drop target",
+        description: "That drop target could not be read.",
+      });
     } else if (activeId !== overId) {
       const isActiveParticipant = storeParticipants.some(
         (p) => p.id === activeId,

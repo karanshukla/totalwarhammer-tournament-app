@@ -11,6 +11,8 @@ vi.mock("@/shared/ui/Toaster", () => ({
   toaster: { success: vi.fn(), info: vi.fn(), error: vi.fn() },
 }));
 
+import { toaster } from "@/shared/ui/Toaster";
+
 // Capture DndContext event callbacks so we can call them directly in tests
 let capturedOnDragStart: ((event: DragStartEvent) => void) | null = null;
 let capturedOnDragEnd: ((event: DragEndEvent) => void) | null = null;
@@ -354,6 +356,98 @@ describe("SimpleBracket - drag handlers", () => {
 
       expect(updateSpy).not.toHaveBeenCalled();
       updateSpy.mockRestore();
+    });
+  });
+
+  describe("handleDragEnd – user feedback (issue #178)", () => {
+    it("shows a visible error toast when the target match was deleted mid-drag", () => {
+      renderSimpleBracket();
+      const [firstParticipant] = useTournamentStore.getState().participants;
+
+      capturedOnDragEnd!({
+        active: {
+          id: firstParticipant.id,
+          data: { current: {} },
+          rect: { current: { initial: null, translated: null } },
+        },
+        over: {
+          id: "slot-nonexistent-match-id-1",
+          data: { current: {} },
+          disabled: false,
+          rect: { width: 0, height: 0, top: 0, left: 0, right: 0, bottom: 0 },
+        },
+        activatorEvent: {} as PointerEvent,
+        collisions: null,
+        delta: { x: 0, y: 0 },
+      });
+
+      expect(toaster.error).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: "Drop target unavailable",
+          description: "That match no longer exists.",
+        }),
+      );
+    });
+
+    it("shows a visible error toast when the slot id has an unrecognized shape", () => {
+      renderSimpleBracket();
+      const [firstParticipant] = useTournamentStore.getState().participants;
+
+      // `slot-matchId-x` — position is not 1 or 2, so it doesn't match the
+      // validated `slot-<matchId>-<position>` contract.
+      capturedOnDragEnd!({
+        active: {
+          id: firstParticipant.id,
+          data: { current: {} },
+          rect: { current: { initial: null, translated: null } },
+        },
+        over: {
+          id: "slot-match-42-x",
+          data: { current: {} },
+          disabled: false,
+          rect: { width: 0, height: 0, top: 0, left: 0, right: 0, bottom: 0 },
+        },
+        activatorEvent: {} as PointerEvent,
+        collisions: null,
+        delta: { x: 0, y: 0 },
+      });
+
+      expect(toaster.error).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: "Invalid drop target",
+          description: "That drop target could not be read.",
+        }),
+      );
+    });
+
+    it("does not show an error toast for a valid successful drop on position 1", () => {
+      const store = useTournamentStore.getState();
+      store.addRound();
+      renderSimpleBracket();
+
+      const state = useTournamentStore.getState();
+      const [firstParticipant] = state.participants;
+      const match = state.rounds[0]?.matches[0];
+      if (!match) return;
+
+      capturedOnDragEnd!({
+        active: {
+          id: firstParticipant.id,
+          data: { current: {} },
+          rect: { current: { initial: null, translated: null } },
+        },
+        over: {
+          id: `slot-${match.id}-1`,
+          data: { current: {} },
+          disabled: false,
+          rect: { width: 0, height: 0, top: 0, left: 0, right: 0, bottom: 0 },
+        },
+        activatorEvent: {} as PointerEvent,
+        collisions: null,
+        delta: { x: 0, y: 0 },
+      });
+
+      expect(toaster.error).not.toHaveBeenCalled();
     });
   });
 });
