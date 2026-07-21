@@ -78,7 +78,9 @@ const TournamentBrowser: React.FC<Props> = ({ statusFilter, emptyMessage }) => {
 
   const { user, isAuthenticated } = useUserStore();
   const navigate = useNavigate();
-  const cardBg = "bg.panel";
+  // Cards render inside a bg.panel container (TournamentsPage's Card.Root),
+  // so they need the next rung up the ladder to read as distinct at rest.
+  const cardBg = "bg.elevated";
   const borderColor = "border.subtle";
 
   const fetchTournaments = useCallback(async () => {
@@ -168,7 +170,7 @@ const TournamentBrowser: React.FC<Props> = ({ statusFilter, emptyMessage }) => {
                   display="flex"
                   flexDirection="column"
                   transition="all 0.15s ease"
-                  _hover={{ bg: "bg.elevated", shadow: "md" }}
+                  _hover={{ borderColor: "border.emphasized", shadow: "md" }}
                 >
                   <Card.Body flex={1}>
                     <VStack alignItems="flex-start" gap={2}>
