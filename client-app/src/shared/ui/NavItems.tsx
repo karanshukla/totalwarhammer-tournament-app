@@ -7,6 +7,10 @@ import {
   Box,
   Badge,
   VisuallyHidden,
+  Popover,
+  Portal,
+  useDisclosure,
+  VStack,
 } from "@chakra-ui/react";
 import {
   FiHome,
@@ -17,6 +21,7 @@ import {
   FiHelpCircle,
   FiLock,
   FiShield,
+  FiMenu,
 } from "react-icons/fi";
 import { Link, useNavigate } from "react-router-dom";
 import { LuSword } from "react-icons/lu";
@@ -162,6 +167,71 @@ interface NavItemsProps {
   isUserGuest: boolean;
 }
 
+// The links that don't fit in the mobile bottom tab bar (Help, Terms, Privacy,
+// Source Code) plus the footer text. Rendered in the desktop sidebar and, on
+// mobile, inside the burger overflow drawer — so both surfaces stay in sync.
+const OverflowNavItems: React.FC<{ currentPath: string }> = ({
+  currentPath,
+}) => (
+  <>
+    <Separator />
+    <NavItem
+      icon={FiHelpCircle}
+      to="/contact"
+      isActive={currentPath === "/contact"}
+      isPortrait={false}
+      isMobile={false}
+      shortcut={KEYBOARD_SHORTCUTS.help}
+    >
+      Get Help
+    </NavItem>
+    <NavItem
+      icon={FiLock}
+      to="/terms"
+      isActive={currentPath === "/terms"}
+      isPortrait={false}
+      isMobile={false}
+      shortcut={KEYBOARD_SHORTCUTS.terms}
+    >
+      Terms of Use
+    </NavItem>
+    <NavItem
+      icon={FiShield}
+      to="/privacy"
+      isActive={currentPath === "/privacy"}
+      isPortrait={false}
+      isMobile={false}
+      shortcut={KEYBOARD_SHORTCUTS.privacy}
+    >
+      Privacy Policy
+    </NavItem>
+    <NavItem
+      icon={FiGithub}
+      toExternal="https://github.com/karanshukla/totalwarhammer-tournament-app"
+      isPortrait={false}
+      isMobile={false}
+      shortcut={KEYBOARD_SHORTCUTS.source}
+    >
+      Source Code
+    </NavItem>
+    <Separator />
+    <Box mt="auto" pb={4} w="full" textAlign="center">
+      <Text fontSize="xs" color="fg.muted">
+        &copy; {new Date().getFullYear()} TW Tournament App. All rights
+        reserved.
+      </Text>
+      <Text
+        fontSize="xs"
+        color="fg.muted"
+        mt={1}
+        display={{ base: "none", md: "block" }}
+      >
+        This is a work in progress app. Thanks for trying it out!
+      </Text>
+    </Box>
+  </>
+);
+
 const NavItems: React.FC<NavItemsProps> = ({
   isPortrait,
   isMobile,
@@ -169,6 +239,11 @@ const NavItems: React.FC<NavItemsProps> = ({
   isUserGuest,
 }) => {
   const navigate = useNavigate();
+  const {
+    open: isOverflowOpen,
+    onOpen: onOverflowOpen,
+    onClose: onOverflowClose,
+  } = useDisclosure();
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -285,64 +360,106 @@ const NavItems: React.FC<NavItemsProps> = ({
           </Badge>
         )}
       </NavItem>
-      {!isPortrait && (
-        <>
-          <Separator />
-          <NavItem
-            icon={FiHelpCircle}
-            to="/contact"
-            isActive={currentPath === "/contact"}
-            isPortrait={isPortrait}
-            isMobile={isMobile}
-            shortcut={KEYBOARD_SHORTCUTS.help}
-          >
-            Get Help
-          </NavItem>
-          <NavItem
-            icon={FiLock}
-            to="/terms"
-            isActive={currentPath === "/terms"}
-            isPortrait={isPortrait}
-            isMobile={isMobile}
-            shortcut={KEYBOARD_SHORTCUTS.terms}
-          >
-            Terms of Use
-          </NavItem>
-          <NavItem
-            icon={FiShield}
-            to="/privacy"
-            isActive={currentPath === "/privacy"}
-            isPortrait={isPortrait}
-            isMobile={isMobile}
-            shortcut={KEYBOARD_SHORTCUTS.privacy}
-          >
-            Privacy Policy
-          </NavItem>
-          <NavItem
-            icon={FiGithub}
-            toExternal="https://github.com/karanshukla/totalwarhammer-tournament-app"
-            isPortrait={isPortrait}
-            isMobile={isMobile}
-            shortcut={KEYBOARD_SHORTCUTS.source}
-          >
-            Source Code
-          </NavItem>
-          <Separator />
-          <Box mt="auto" pb={4} w="full" textAlign="center">
-            <Text fontSize="xs" color="fg.muted">
-              &copy; {new Date().getFullYear()} TW Tournament App. All rights
-              reserved.
-            </Text>
-            <Text
-              fontSize="xs"
-              color="fg.muted"
-              mt={1}
-              display={{ base: "none", md: "block" }}
+      {!isPortrait && <OverflowNavItems currentPath={currentPath} />}
+      {isPortrait && (
+        <Popover.Root
+          open={isOverflowOpen}
+          onOpenChange={(e) => !e.open && onOverflowClose()}
+          positioning={{ placement: "top" }}
+        >
+          <Popover.Trigger asChild>
+            <VStack
+              gap={1}
+              align="center"
+              justify="center"
+              flex="1"
+              role="button"
+              tabIndex={0}
+              aria-label="Open more navigation options"
+              aria-haspopup="dialog"
+              aria-expanded={isOverflowOpen}
+              cursor="pointer"
+              borderRadius="md"
+              px={2}
+              py={1}
+              color={isOverflowOpen ? "info.text" : "inherit"}
+              bg={isOverflowOpen ? "bg.muted" : "transparent"}
+              _hover={{ bg: "bg.muted" }}
+              transition="all 0.2s"
+              onClick={onOverflowOpen}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  onOverflowOpen();
+                }
+              }}
             >
-              This is a work in progress app. Thanks for trying it out!
-            </Text>
-          </Box>
-        </>
+              <Icon as={FiMenu} boxSize={5} aria-hidden="true" />
+              <VisuallyHidden>More</VisuallyHidden>
+            </VStack>
+          </Popover.Trigger>
+          <Portal>
+            <Popover.Positioner>
+              <Popover.Content w="240px">
+                <Popover.Arrow>
+                  <Popover.ArrowTip />
+                </Popover.Arrow>
+                <Popover.Body p={2}>
+                  <Stack
+                    gap={1}
+                    direction="column"
+                    onClick={() => onOverflowClose()}
+                  >
+                    <NavItem
+                      icon={FiHelpCircle}
+                      to="/contact"
+                      isActive={currentPath === "/contact"}
+                      isPortrait={false}
+                      isMobile={false}
+                    >
+                      Get Help
+                    </NavItem>
+                    <NavItem
+                      icon={FiLock}
+                      to="/terms"
+                      isActive={currentPath === "/terms"}
+                      isPortrait={false}
+                      isMobile={false}
+                    >
+                      Terms of Use
+                    </NavItem>
+                    <NavItem
+                      icon={FiShield}
+                      to="/privacy"
+                      isActive={currentPath === "/privacy"}
+                      isPortrait={false}
+                      isMobile={false}
+                    >
+                      Privacy Policy
+                    </NavItem>
+                    <NavItem
+                      icon={FiGithub}
+                      toExternal="https://github.com/karanshukla/totalwarhammer-tournament-app"
+                      isPortrait={false}
+                      isMobile={false}
+                    >
+                      Source Code
+                    </NavItem>
+                    <Separator my={1} />
+                    <Text
+                      fontSize="xs"
+                      color="fg.muted"
+                      textAlign="center"
+                      px={2}
+                    >
+                      &copy; {new Date().getFullYear()} TW Tournament App.
+                    </Text>
+                  </Stack>
+                </Popover.Body>
+              </Popover.Content>
+            </Popover.Positioner>
+          </Portal>
+        </Popover.Root>
       )}
     </Stack>
   );
