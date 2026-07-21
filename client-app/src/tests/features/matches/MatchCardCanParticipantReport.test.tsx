@@ -14,6 +14,7 @@ import "@testing-library/jest-dom";
 import React from "react";
 import { ChakraProvider, defaultSystem } from "@chakra-ui/react";
 import MatchCard from "@/features/matches/components/MatchCard";
+import type { Match } from "@/features/matches/components/types";
 
 type MatchStatus = "pending" | "in_progress" | "completed" | "disputed";
 type BracketSide = "winners" | "losers" | "grand_final" | null;
@@ -77,7 +78,7 @@ function renderCard(
   return render(
     <ChakraProvider value={defaultSystem}>
       <MatchCard
-        m={{ ...baseMatch, ...matchOverrides } as any}
+        m={{ ...baseMatch, ...matchOverrides } as unknown as Match}
         {...baseProps}
         {...propOverrides}
       />
@@ -95,8 +96,12 @@ describe("MatchCard – canParticipantReport=true, no previous report", () => {
 
   it("renders both player name 'won' buttons", () => {
     renderCard();
-    expect(screen.getByRole("button", { name: /grimgork won/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /luthor won/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /grimgork won/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /luthor won/i }),
+    ).toBeInTheDocument();
   });
 
   it("calls onReportResult with player1 participantId when player1 button clicked", () => {
@@ -119,22 +124,36 @@ describe("MatchCard – canParticipantReport=true, myReport on player1", () => {
     renderCard(
       {},
       {
-        myReport: { reportedBy: "p1", reportedByName: "Grimgork", winnerId: "p1" },
+        myReport: {
+          reportedBy: "p1",
+          reportedByName: "Grimgork",
+          winnerId: "p1",
+        },
       },
     );
-    expect(screen.getByText(/change your reported winner:/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/change your reported winner:/i),
+    ).toBeInTheDocument();
   });
 
   it("renders both player buttons even when myReport is set (player1 as selected winner)", () => {
     renderCard(
       {},
       {
-        myReport: { reportedBy: "p1", reportedByName: "Grimgork", winnerId: "p1" },
+        myReport: {
+          reportedBy: "p1",
+          reportedByName: "Grimgork",
+          winnerId: "p1",
+        },
       },
     );
     // Both buttons should be present
-    expect(screen.getByRole("button", { name: /grimgork won/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /luthor won/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /grimgork won/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /luthor won/i }),
+    ).toBeInTheDocument();
   });
 });
 
@@ -147,11 +166,19 @@ describe("MatchCard – canParticipantReport=true, myReport on player2", () => {
       {
         isP2: true,
         isP1: false,
-        myReport: { reportedBy: "p2", reportedByName: "Luthor", winnerId: "p2" },
+        myReport: {
+          reportedBy: "p2",
+          reportedByName: "Luthor",
+          winnerId: "p2",
+        },
       },
     );
-    expect(screen.getByText(/change your reported winner:/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /luthor won/i })).toBeInTheDocument();
+    expect(
+      screen.getByText(/change your reported winner:/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /luthor won/i }),
+    ).toBeInTheDocument();
   });
 });
 

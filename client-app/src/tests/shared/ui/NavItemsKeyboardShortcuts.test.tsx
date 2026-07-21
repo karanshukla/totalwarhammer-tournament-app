@@ -3,7 +3,7 @@
  * Covers the document-level Alt+key handlers in the NavItems useEffect.
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, fireEvent, cleanup } from "@testing-library/react";
+import { render, fireEvent, cleanup } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import React from "react";
 import { ChakraProvider, defaultSystem } from "@chakra-ui/react";
@@ -19,9 +19,7 @@ vi.mock("react-router-dom", async (importOriginal) => {
 
 import NavItems from "@/shared/ui/NavItems";
 
-function renderNav(
-  props: Partial<React.ComponentProps<typeof NavItems>> = {},
-) {
+function renderNav(props: Partial<React.ComponentProps<typeof NavItems>> = {}) {
   return render(
     <MemoryRouter>
       <ChakraProvider value={defaultSystem}>

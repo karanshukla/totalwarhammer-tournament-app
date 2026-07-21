@@ -15,9 +15,7 @@ import { ChakraProvider, defaultSystem } from "@chakra-ui/react";
 import { lazyLoad } from "@/shared/utils/LazyLoad";
 
 function wrap(ui: React.ReactElement) {
-  return render(
-    <ChakraProvider value={defaultSystem}>{ui}</ChakraProvider>,
-  );
+  return render(<ChakraProvider value={defaultSystem}>{ui}</ChakraProvider>);
 }
 
 describe("lazyLoad – default loading fallback (Spinner)", () => {
@@ -47,9 +45,7 @@ describe("lazyLoad – default error fallback", () => {
 
   it("shows 'Failed to load component' when the lazy import throws", async () => {
     // Suppress console.error from the ErrorBoundary
-    const consoleSpy = vi
-      .spyOn(console, "error")
-      .mockImplementation(() => {});
+    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
     const BrokenComponent = React.lazy(() =>
       Promise.reject(new Error("chunk load error")),
@@ -57,14 +53,15 @@ describe("lazyLoad – default error fallback", () => {
 
     // Use lazyLoad's ErrorBoundary by wrapping a failing component
     const LazyComp = lazyLoad(
-      () => Promise.reject(new Error("chunk load error")) as any,
+      () =>
+        Promise.reject(new Error("chunk load error")) as unknown as Promise<{
+          default: React.ComponentType;
+        }>,
     );
     wrap(<LazyComp />);
 
     await waitFor(() =>
-      expect(
-        screen.getByText(/failed to load component/i),
-      ).toBeInTheDocument(),
+      expect(screen.getByText(/failed to load component/i)).toBeInTheDocument(),
     );
     consoleSpy.mockRestore();
   });
@@ -72,12 +69,13 @@ describe("lazyLoad – default error fallback", () => {
 
 describe("lazyLoad – custom error fallback", () => {
   it("shows custom error element when lazy import fails", async () => {
-    const consoleSpy = vi
-      .spyOn(console, "error")
-      .mockImplementation(() => {});
+    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
     const LazyComp = lazyLoad(
-      () => Promise.reject(new Error("import error")) as any,
+      () =>
+        Promise.reject(new Error("import error")) as unknown as Promise<{
+          default: React.ComponentType;
+        }>,
       { errorFallback: <div data-testid="custom-error">Oops!</div> },
     );
     wrap(<LazyComp />);

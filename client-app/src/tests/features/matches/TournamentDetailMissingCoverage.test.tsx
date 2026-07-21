@@ -65,7 +65,7 @@ vi.mock("@/shared/ui/Toaster", () => ({
 }));
 
 import TournamentDetail from "@/features/matches/components/TournamentDetail";
-import type { Match } from "@/features/matches/components/types";
+import type { Match, Tournament } from "@/features/matches/components/types";
 
 // ─── Shared fixtures ──────────────────────────────────────────────────────────
 
@@ -142,7 +142,7 @@ function renderDetail(
     <MemoryRouter>
       <ChakraProvider value={defaultSystem}>
         <TournamentDetail
-          selected={selected as any}
+          selected={selected as unknown as Tournament}
           matches={matches}
           user={extraProps.user ?? null}
           newName={extraProps.newName ?? ""}
@@ -339,15 +339,11 @@ describe("TournamentDetail – Tournament Info inline copy-code button", () => {
   });
 
   it("copies code and shows toaster when Copy button in Tournament Info is clicked", async () => {
-    const { toaster } = await import("@/shared/ui/Toaster");
     // Render as non-admin so we see Tournament Info card (not Add Participant panel)
     renderDetail({ status: "active" }, { user: null });
 
     // The Tournament Info card has a copy button
     const copyButtons = screen.getAllByRole("button");
-    const smallCopyBtn = copyButtons.find(
-      (b) => !b.textContent?.includes("Copy") && b.querySelector("svg"),
-    );
     // Just verify the copy button exists; clipboard interaction is tested in Extended
     expect(copyButtons.length).toBeGreaterThan(0);
   });
@@ -369,7 +365,9 @@ describe("TournamentDetail – handleUpdateParticipant via EditParticipantDialog
     expect(screen.queryByTestId("edit-dialog")).not.toBeInTheDocument();
 
     // There may be multiple participants → use the first edit button
-    const editBtns = screen.getAllByRole("button", { name: /edit participant/i });
+    const editBtns = screen.getAllByRole("button", {
+      name: /edit participant/i,
+    });
     fireEvent.click(editBtns[0]);
 
     expect(screen.getByTestId("edit-dialog")).toBeInTheDocument();
@@ -381,7 +379,9 @@ describe("TournamentDetail – handleUpdateParticipant via EditParticipantDialog
     renderDetail({ status: "pending" }, { user: adminUser, onSaveParticipant });
 
     // Open dialog
-    const editBtns = screen.getAllByRole("button", { name: /edit participant/i });
+    const editBtns = screen.getAllByRole("button", {
+      name: /edit participant/i,
+    });
     fireEvent.click(editBtns[0]);
     expect(screen.getByTestId("edit-dialog")).toBeInTheDocument();
 
@@ -401,7 +401,9 @@ describe("TournamentDetail – handleUpdateParticipant via EditParticipantDialog
     renderDetail({ status: "pending" }, { user: adminUser });
 
     // Open the dialog
-    const editBtns = screen.getAllByRole("button", { name: /edit participant/i });
+    const editBtns = screen.getAllByRole("button", {
+      name: /edit participant/i,
+    });
     fireEvent.click(editBtns[0]);
     expect(screen.getByTestId("edit-dialog")).toBeInTheDocument();
 
@@ -424,25 +426,23 @@ describe("TournamentDetail – Champion section without faction", () => {
         round: 1,
         // Use a unique name that doesn't conflict with any label text
         player1: { participantId: "p1", name: "VladVonCarstein", faction: "" },
-        player2: { participantId: "p2", name: "Mannfred", faction: "Vampire Counts" },
+        player2: {
+          participantId: "p2",
+          name: "Mannfred",
+          faction: "Vampire Counts",
+        },
         winnerId: "p1",
         status: "completed",
       }),
     ];
 
-    renderDetail(
-      { status: "completed" },
-      {},
-      matches,
-    );
+    renderDetail({ status: "completed" }, {}, matches);
 
     // Winner name appears in champion banner
     expect(screen.getAllByText("VladVonCarstein").length).toBeGreaterThan(0);
     // Loser's faction should not appear (loser faction is not displayed in champion section)
     // The champion has an empty faction, so no faction text in the champion section
-    expect(
-      screen.queryByText(/vampire counts/i),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByText(/vampire counts/i)).not.toBeInTheDocument();
   });
 });
 
@@ -453,8 +453,6 @@ describe("TournamentDetail – No description placeholder", () => {
 
   it("shows 'No description' message when isAdmin, no description, and not completed", () => {
     renderDetail({ status: "active", description: "" }, { user: adminUser });
-    expect(
-      screen.getByText(/no description/i),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/no description/i)).toBeInTheDocument();
   });
 });

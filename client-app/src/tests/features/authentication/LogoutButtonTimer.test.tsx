@@ -9,9 +9,8 @@
  * loading button has aria-disabled=true which userEvent respects. Using fireEvent
  * bypasses that check and actually reaches the guard branch.
  */
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, act } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom";
 import React from "react";
 import { ChakraProvider, defaultSystem } from "@chakra-ui/react";
@@ -51,7 +50,10 @@ describe("LogoutButton – double-click guard rapid synchronous clicks (line 22)
   it("hits the early return (line 22) when two clicks fire before first re-render", async () => {
     let resolveLogout!: () => void;
     mockLogoutUser.mockImplementation(
-      () => new Promise<void>((r) => { resolveLogout = r; }),
+      () =>
+        new Promise<void>((r) => {
+          resolveLogout = r;
+        }),
     );
 
     renderButton();
@@ -65,7 +67,9 @@ describe("LogoutButton – double-click guard rapid synchronous clicks (line 22)
 
     expect(mockLogoutUser).toHaveBeenCalledTimes(1);
 
-    await act(async () => { resolveLogout(); });
+    await act(async () => {
+      resolveLogout();
+    });
   });
 });
 

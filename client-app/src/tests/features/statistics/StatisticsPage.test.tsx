@@ -46,11 +46,11 @@ const baseStats = {
     total: 0,
     completionRate: 0,
   },
-  topPlayers: [] as any[],
-  topFactions: [] as any[],
-  topCreators: [] as any[],
-  recentTournaments: [] as any[],
-  recentWinners: [] as any[],
+  topPlayers: [] as unknown[],
+  topFactions: [] as unknown[],
+  topCreators: [] as unknown[],
+  recentTournaments: [] as unknown[],
+  recentWinners: [] as unknown[],
 };
 
 function renderPage() {

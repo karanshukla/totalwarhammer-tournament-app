@@ -58,9 +58,11 @@ describe("NavItems – desktop (!isPortrait)", () => {
 describe("NavItems – portrait mode (isPortrait=true)", () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it("does NOT show Terms of Use in portrait mode", () => {
+  it("does NOT show Terms of Use visibly in portrait mode until the overflow menu opens", () => {
     renderNav({ isPortrait: true });
-    expect(screen.queryByText(/terms of use/i)).not.toBeInTheDocument();
+    // The overflow items live inside a closed popover: present for the popover
+    // machinery but not visible to the user until opened.
+    expect(screen.queryByText(/terms of use/i)).not.toBeVisible();
   });
 
   it("shows Guest badge on Account item when isUserGuest=true in portrait", () => {
@@ -134,5 +136,92 @@ describe("NavItems – portrait + mobile (isPortrait && isMobile)", () => {
     renderNav({ isPortrait: true, isMobile: true });
     // Text is present for screen readers via VisuallyHidden, not visibly rendered as normal Text
     expect(screen.getByText(/home/i)).toBeInTheDocument();
+  });
+});
+
+describe("NavItems – mobile burger/overflow menu (issue #147)", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("shows a burger overflow trigger in the portrait (mobile) layout", () => {
+    renderNav({ isPortrait: true, isMobile: true });
+    expect(
+      screen.getByRole("button", { name: /open more navigation options/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("does NOT show the burger trigger in the desktop layout", () => {
+    renderNav({ isPortrait: false, isMobile: false });
+    expect(
+      screen.queryByRole("button", { name: /open more navigation options/i }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("keeps the five primary tab-bar items in portrait mode", () => {
+    renderNav({ isPortrait: true, isMobile: true });
+    for (const label of [
+      "Home",
+      "Tournaments",
+      "Matches",
+      "Statistics",
+      "Account",
+    ]) {
+      expect(
+        screen.getByRole("button", { name: new RegExp(label, "i") }),
+      ).toBeInTheDocument();
+    }
+  });
+
+  it("surfaces Help, Terms, Privacy, and Source Code when the burger menu opens", async () => {
+    renderNav({ isPortrait: true, isMobile: true });
+    const trigger = screen.getByRole("button", {
+      name: /open more navigation options/i,
+    });
+    await userEvent.click(trigger);
+
+    expect(await screen.findByText(/get help/i)).toBeVisible();
+    expect(screen.getByText(/terms of use/i)).toBeVisible();
+    expect(screen.getByText(/privacy policy/i)).toBeVisible();
+    expect(screen.getByText(/source code/i)).toBeVisible();
+  });
+
+  it("shows the footer copyright text inside the opened menu", async () => {
+    renderNav({ isPortrait: true, isMobile: true });
+    await userEvent.click(
+      screen.getByRole("button", { name: /open more navigation options/i }),
+    );
+    expect(await screen.findByText(/TW Tournament App/i)).toBeVisible();
+  });
+
+  it("navigates when an overflow item is clicked (Get Help)", async () => {
+    renderNav({ isPortrait: true, isMobile: true });
+    await userEvent.click(
+      screen.getByRole("button", { name: /open more navigation options/i }),
+    );
+    await userEvent.click(await screen.findByText(/get help/i));
+    expect(mockNavigate).toHaveBeenCalledWith("/contact");
+  });
+
+  it("opens the Source Code external link in a new tab", async () => {
+    window.open = mockWindowOpen;
+    renderNav({ isPortrait: true, isMobile: true });
+    await userEvent.click(
+      screen.getByRole("button", { name: /open more navigation options/i }),
+    );
+    await userEvent.click(await screen.findByText(/source code/i));
+    expect(mockWindowOpen).toHaveBeenCalledWith(
+      expect.stringContaining("github.com"),
+      "_blank",
+    );
+  });
+
+  it("closes the menu after navigating from an overflow item", async () => {
+    renderNav({ isPortrait: true, isMobile: true });
+    await userEvent.click(
+      screen.getByRole("button", { name: /open more navigation options/i }),
+    );
+    const help = await screen.findByText(/get help/i);
+    await userEvent.click(help);
+    // Menu collapsed: the overflow labels are no longer visible.
+    expect(screen.queryByText(/privacy policy/i)).not.toBeVisible();
   });
 });

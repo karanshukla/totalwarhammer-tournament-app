@@ -14,7 +14,7 @@
  * - urlCode auto-select when tournament NOT in list → fetches from API
  * - handleSelectTournament for non-active/non-completed tournament
  */
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import React from "react";
@@ -67,9 +67,10 @@ vi.mock("@/shared/ui/Toaster", () => ({
 }));
 
 vi.mock("react-router-dom", async () => {
-  const actual = await vi.importActual<typeof import("react-router-dom")>(
-    "react-router-dom",
-  );
+  const actual =
+    await vi.importActual<typeof import("react-router-dom")>(
+      "react-router-dom",
+    );
   return {
     ...actual,
     useNavigate: () => mockNavigate,
@@ -87,7 +88,14 @@ vi.mock("@/features/matches/components/TournamentList", () => ({
     onStatusFilterChange,
     onSelectTournament,
     tournaments,
-  }: any) => (
+  }: {
+    onFindByCode: () => void;
+    onCodeInputChange: (value: string) => void;
+    codeError?: string;
+    onStatusFilterChange: (status: string) => void;
+    onSelectTournament: (t: { _id: string; name: string }) => void;
+    tournaments?: { _id: string; name: string }[];
+  }) => (
     <div data-testid="tournament-list">
       <input
         data-testid="code-input"
@@ -103,7 +111,7 @@ vi.mock("@/features/matches/components/TournamentList", () => ({
       >
         Filter Active
       </button>
-      {tournaments?.map((t: any) => (
+      {tournaments?.map((t) => (
         <button
           key={t._id}
           data-testid={`select-${t._id}`}
@@ -128,7 +136,23 @@ vi.mock("@/features/matches/components/TournamentDetail", () => ({
     onSaveParticipant,
     onSaveDescription,
     selected,
-  }: any) => (
+  }: {
+    onBack: () => void;
+    onStart: () => void;
+    onAddParticipant: () => void;
+    onOverrideResult: (
+      matchId: string,
+      winnerId: string,
+      reason: string,
+    ) => Promise<void>;
+    onSaveParticipant: (participant: {
+      _id: string;
+      name: string;
+      faction: string;
+    }) => Promise<void>;
+    onSaveDescription: (description: string) => Promise<void>;
+    selected?: { _id: string };
+  }) => (
     <div data-testid="tournament-detail">
       <button data-testid="trigger-back" onClick={onBack}>
         Back
@@ -195,7 +219,11 @@ const fakeSocket = {
   off: vi.fn(),
 };
 
-function makeStore(isAuthenticated: boolean, userId = "u1", username = "Grimgork") {
+function makeStore(
+  isAuthenticated: boolean,
+  userId = "u1",
+  username = "Grimgork",
+) {
   return {
     user: { id: userId, username, isAuthenticated, isGuest: false },
     isAuthenticated: () => isAuthenticated,

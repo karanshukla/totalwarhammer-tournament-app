@@ -27,10 +27,7 @@ vi.mock("@/features/matches/components/MatchCard", () => ({
     onCancelOverride?: () => void;
   }) => (
     <div data-testid={`match-card-${m._id}`}>
-      <button
-        data-testid={`start-override-${m._id}`}
-        onClick={onStartOverride}
-      >
+      <button data-testid={`start-override-${m._id}`} onClick={onStartOverride}>
         StartOverride
       </button>
       <button
@@ -44,18 +41,21 @@ vi.mock("@/features/matches/components/MatchCard", () => ({
 }));
 
 import MatchesSection from "@/features/matches/components/MatchesSection";
+import type { Match, Tournament } from "@/features/matches/components/types";
 
 type MatchStatus = "pending" | "in_progress" | "completed" | "disputed";
 type BracketSide = "winners" | "losers" | "grand_final" | null;
 
-function makeMatch(overrides: {
-  _id?: string;
-  round?: number;
-  matchNumber?: number;
-  status?: MatchStatus;
-  winnerId?: string | null;
-  bracketSide?: BracketSide;
-} = {}) {
+function makeMatch(
+  overrides: {
+    _id?: string;
+    round?: number;
+    matchNumber?: number;
+    status?: MatchStatus;
+    winnerId?: string | null;
+    bracketSide?: BracketSide;
+  } = {},
+) {
   return {
     _id: overrides._id ?? "m1",
     round: overrides.round ?? 1,
@@ -119,8 +119,8 @@ function renderSection(
   return render(
     <ChakraProvider value={defaultSystem}>
       <MatchesSection
-        matches={matches as any}
-        selected={tournament as any}
+        matches={matches as unknown as Match[]}
+        selected={tournament as unknown as Tournament}
         {...baseProps}
         {...propOverrides}
       />
@@ -136,7 +136,12 @@ describe("MatchesSection – losers bracket onStartOverride callback body", () =
   it("invokes losers bracket onStartOverride when button clicked (~line 403 area)", () => {
     const matches = [
       makeMatch({ _id: "wb1", bracketSide: "winners", round: 1 }),
-      makeMatch({ _id: "lb1", bracketSide: "losers", round: 1, matchNumber: 2 }),
+      makeMatch({
+        _id: "lb1",
+        bracketSide: "losers",
+        round: 1,
+        matchNumber: 2,
+      }),
     ];
     renderSection(matches);
 
@@ -150,7 +155,12 @@ describe("MatchesSection – losers bracket onStartOverride callback body", () =
   it("invokes losers bracket onCancelOverride when button clicked", () => {
     const matches = [
       makeMatch({ _id: "wb1", bracketSide: "winners", round: 1 }),
-      makeMatch({ _id: "lb1", bracketSide: "losers", round: 1, matchNumber: 2 }),
+      makeMatch({
+        _id: "lb1",
+        bracketSide: "losers",
+        round: 1,
+        matchNumber: 2,
+      }),
     ];
     renderSection(matches);
 
@@ -167,7 +177,12 @@ describe("MatchesSection – grand final onStartOverride callback body (~lines 5
   it("invokes grand final onStartOverride when button clicked", () => {
     const matches = [
       makeMatch({ _id: "wb1", bracketSide: "winners", round: 1 }),
-      makeMatch({ _id: "gf1", bracketSide: "grand_final", round: 99, matchNumber: 3 }),
+      makeMatch({
+        _id: "gf1",
+        bracketSide: "grand_final",
+        round: 99,
+        matchNumber: 3,
+      }),
     ];
     renderSection(matches);
 
@@ -178,7 +193,12 @@ describe("MatchesSection – grand final onStartOverride callback body (~lines 5
   it("invokes grand final onCancelOverride when button clicked", () => {
     const matches = [
       makeMatch({ _id: "wb1", bracketSide: "winners", round: 1 }),
-      makeMatch({ _id: "gf1", bracketSide: "grand_final", round: 99, matchNumber: 3 }),
+      makeMatch({
+        _id: "gf1",
+        bracketSide: "grand_final",
+        round: 99,
+        matchNumber: 3,
+      }),
     ];
     renderSection(matches);
 
@@ -227,7 +247,9 @@ describe("MatchesSection – handleOverrideConfirm guard", () => {
     // With our mock, we can't call it directly — but the guard is tested by the fact that
     // onOverrideResult is never called when no override is in progress.
     const onOverrideResult = vi.fn().mockResolvedValue(undefined);
-    const matches = [makeMatch({ _id: "m1", bracketSide: "winners", round: 1 })];
+    const matches = [
+      makeMatch({ _id: "m1", bracketSide: "winners", round: 1 }),
+    ];
     renderSection(matches, makeTournament(), { onOverrideResult });
     // Nothing triggered override → onOverrideResult not called
     await waitFor(() => {

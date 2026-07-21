@@ -17,6 +17,7 @@ import "@testing-library/jest-dom";
 import React from "react";
 import { ChakraProvider, defaultSystem } from "@chakra-ui/react";
 import MatchesSection from "@/features/matches/components/MatchesSection";
+import type { Match, Tournament } from "@/features/matches/components/types";
 
 vi.mock("@/features/matches/components/MatchCard", () => ({
   default: ({ m }: { m: { matchNumber: number } }) => (
@@ -27,14 +28,16 @@ vi.mock("@/features/matches/components/MatchCard", () => ({
 type MatchStatus = "pending" | "in_progress" | "completed" | "disputed";
 type BracketSide = "winners" | "losers" | "grand_final" | null;
 
-function makeMatch(overrides: Partial<{
-  _id: string;
-  round: number;
-  matchNumber: number;
-  status: MatchStatus;
-  winnerId: string | null;
-  bracketSide: BracketSide;
-}> = {}) {
+function makeMatch(
+  overrides: Partial<{
+    _id: string;
+    round: number;
+    matchNumber: number;
+    status: MatchStatus;
+    winnerId: string | null;
+    bracketSide: BracketSide;
+  }> = {},
+) {
   return {
     _id: overrides._id ?? "m1",
     round: overrides.round ?? 1,
@@ -93,8 +96,8 @@ function renderSection(
   return render(
     <ChakraProvider value={defaultSystem}>
       <MatchesSection
-        matches={matches as any}
-        selected={tournament as any}
+        matches={matches as unknown as Match[]}
+        selected={tournament as unknown as Tournament}
         {...baseProps}
         {...props}
       />
@@ -122,7 +125,13 @@ describe("MatchesSection – Single Elimination badges", () => {
   it("shows 'Current' badge for the highest round when isActive", () => {
     renderSection(
       [
-        makeMatch({ _id: "m1", round: 1, matchNumber: 1, status: "completed", winnerId: "p1" }),
+        makeMatch({
+          _id: "m1",
+          round: 1,
+          matchNumber: 1,
+          status: "completed",
+          winnerId: "p1",
+        }),
         makeMatch({ _id: "m2", round: 2, matchNumber: 2, status: "pending" }),
       ],
       makeTournament("Single Elimination"),
@@ -134,7 +143,13 @@ describe("MatchesSection – Single Elimination badges", () => {
   it("shows 'Completed' badge for rounds before the max round", () => {
     renderSection(
       [
-        makeMatch({ _id: "m1", round: 1, matchNumber: 1, status: "completed", winnerId: "p1" }),
+        makeMatch({
+          _id: "m1",
+          round: 1,
+          matchNumber: 1,
+          status: "completed",
+          winnerId: "p1",
+        }),
         makeMatch({ _id: "m2", round: 2, matchNumber: 2, status: "pending" }),
       ],
       makeTournament("Single Elimination"),
@@ -200,8 +215,18 @@ describe("MatchesSection – Double Elimination", () => {
   it("shows Losers Bracket section when losers matches exist", () => {
     renderSection(
       [
-        makeMatch({ _id: "m1", round: 1, matchNumber: 1, bracketSide: "winners" }),
-        makeMatch({ _id: "m2", round: 1, matchNumber: 2, bracketSide: "losers" }),
+        makeMatch({
+          _id: "m1",
+          round: 1,
+          matchNumber: 1,
+          bracketSide: "winners",
+        }),
+        makeMatch({
+          _id: "m2",
+          round: 1,
+          matchNumber: 2,
+          bracketSide: "losers",
+        }),
       ],
       makeTournament("Double Elimination"),
     );
@@ -211,8 +236,18 @@ describe("MatchesSection – Double Elimination", () => {
   it("shows 'Grand Final' section when grand_final matches exist", () => {
     renderSection(
       [
-        makeMatch({ _id: "m1", round: 1, matchNumber: 1, bracketSide: "winners" }),
-        makeMatch({ _id: "m2", round: 99, matchNumber: 2, bracketSide: "grand_final" }),
+        makeMatch({
+          _id: "m1",
+          round: 1,
+          matchNumber: 1,
+          bracketSide: "winners",
+        }),
+        makeMatch({
+          _id: "m2",
+          round: 99,
+          matchNumber: 2,
+          bracketSide: "grand_final",
+        }),
       ],
       makeTournament("Double Elimination"),
     );
@@ -222,9 +257,24 @@ describe("MatchesSection – Double Elimination", () => {
   it("shows 'Bracket Reset' badge when gfMatches.length > 1", () => {
     renderSection(
       [
-        makeMatch({ _id: "m1", round: 1, matchNumber: 1, bracketSide: "winners" }),
-        makeMatch({ _id: "m2", round: 99, matchNumber: 2, bracketSide: "grand_final" }),
-        makeMatch({ _id: "m3", round: 100, matchNumber: 3, bracketSide: "grand_final" }),
+        makeMatch({
+          _id: "m1",
+          round: 1,
+          matchNumber: 1,
+          bracketSide: "winners",
+        }),
+        makeMatch({
+          _id: "m2",
+          round: 99,
+          matchNumber: 2,
+          bracketSide: "grand_final",
+        }),
+        makeMatch({
+          _id: "m3",
+          round: 100,
+          matchNumber: 3,
+          bracketSide: "grand_final",
+        }),
       ],
       makeTournament("Double Elimination"),
     );
@@ -236,23 +286,30 @@ describe("MatchesSection – admin footer", () => {
   beforeEach(() => vi.clearAllMocks());
 
   it("shows footer with 'Advance Round' when isAdmin && isActive && matches.length > 0", () => {
-    renderSection([makeMatch()], makeTournament(), { isAdmin: true, isActive: true });
-    expect(screen.getByRole("button", { name: /advance round/i })).toBeInTheDocument();
+    renderSection([makeMatch()], makeTournament(), {
+      isAdmin: true,
+      isActive: true,
+    });
+    expect(
+      screen.getByRole("button", { name: /advance round/i }),
+    ).toBeInTheDocument();
   });
 
   it("shows 'Finalize Tournament' button for Round Robin", () => {
-    renderSection(
-      [makeMatch()],
-      makeTournament("Round Robin"),
-      { isAdmin: true, isActive: true },
-    );
+    renderSection([makeMatch()], makeTournament("Round Robin"), {
+      isAdmin: true,
+      isActive: true,
+    });
     expect(
       screen.getByRole("button", { name: /finalize tournament/i }),
     ).toBeInTheDocument();
   });
 
   it("does not show footer when isAdmin=false", () => {
-    renderSection([makeMatch()], makeTournament(), { isAdmin: false, isActive: true });
+    renderSection([makeMatch()], makeTournament(), {
+      isAdmin: false,
+      isActive: true,
+    });
     expect(
       screen.queryByRole("button", { name: /advance round/i }),
     ).not.toBeInTheDocument();

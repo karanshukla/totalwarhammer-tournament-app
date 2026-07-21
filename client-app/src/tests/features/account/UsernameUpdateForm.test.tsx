@@ -14,15 +14,12 @@ import "@testing-library/jest-dom";
 import React from "react";
 import { ChakraProvider, defaultSystem } from "@chakra-ui/react";
 
-const {
-  mockUpdateGuestUsername,
-  mockUpdateAuthUsername,
-  mockUseUserStore,
-} = vi.hoisted(() => ({
-  mockUpdateGuestUsername: vi.fn(),
-  mockUpdateAuthUsername: vi.fn(),
-  mockUseUserStore: vi.fn(),
-}));
+const { mockUpdateGuestUsername, mockUpdateAuthUsername, mockUseUserStore } =
+  vi.hoisted(() => ({
+    mockUpdateGuestUsername: vi.fn(),
+    mockUpdateAuthUsername: vi.fn(),
+    mockUseUserStore: vi.fn(),
+  }));
 
 vi.mock("@/features/authentication/api/guestApi", () => ({
   updateGuestUsername: mockUpdateGuestUsername,
@@ -32,15 +29,19 @@ vi.mock("@/features/account/api/accountApi", () => ({
   updateUsername: mockUpdateAuthUsername,
 }));
 
+type MockUserState = { user: { username: string } };
+
 vi.mock("@/shared/stores/userStore", () => ({
-  useUserStore: (selector: (state: any) => any) => mockUseUserStore(selector),
+  useUserStore: <T,>(selector: (state: MockUserState) => T) =>
+    mockUseUserStore(selector),
 }));
 
 import UsernameUpdateForm from "@/features/account/components/UsernameUpdateForm";
 
 function setupStore(username = "Grimgork") {
-  mockUseUserStore.mockImplementation((selector: (state: any) => any) =>
-    selector({ user: { username } }),
+  mockUseUserStore.mockImplementation(
+    <T,>(selector: (state: MockUserState) => T) =>
+      selector({ user: { username } }),
   );
 }
 
@@ -58,7 +59,9 @@ describe("UsernameUpdateForm – initial value (user.username || '')", () => {
 
   it("initialises input with user.username when set", () => {
     renderForm("Grimgork");
-    expect(screen.getByPlaceholderText(/new username/i)).toHaveValue("Grimgork");
+    expect(screen.getByPlaceholderText(/new username/i)).toHaveValue(
+      "Grimgork",
+    );
   });
 
   it("initialises input as empty string when user.username is falsy", () => {
@@ -122,7 +125,9 @@ describe("UsernameUpdateForm – isGuest branch", () => {
     mockUpdateGuestUsername.mockResolvedValueOnce({ success: true });
     renderForm("Grimgork", true);
     fireEvent.submit(screen.getByRole("button", { name: /update username/i }));
-    await waitFor(() => expect(mockUpdateGuestUsername).toHaveBeenCalledWith("Grimgork"));
+    await waitFor(() =>
+      expect(mockUpdateGuestUsername).toHaveBeenCalledWith("Grimgork"),
+    );
     expect(mockUpdateAuthUsername).not.toHaveBeenCalled();
   });
 
@@ -130,7 +135,9 @@ describe("UsernameUpdateForm – isGuest branch", () => {
     mockUpdateAuthUsername.mockResolvedValueOnce({ success: true });
     renderForm("Grimgork", false);
     fireEvent.submit(screen.getByRole("button", { name: /update username/i }));
-    await waitFor(() => expect(mockUpdateAuthUsername).toHaveBeenCalledWith("Grimgork"));
+    await waitFor(() =>
+      expect(mockUpdateAuthUsername).toHaveBeenCalledWith("Grimgork"),
+    );
     expect(mockUpdateGuestUsername).not.toHaveBeenCalled();
   });
 });

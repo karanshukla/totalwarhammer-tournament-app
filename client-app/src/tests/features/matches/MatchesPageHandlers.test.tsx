@@ -71,9 +71,10 @@ vi.mock("@/shared/ui/Toaster", () => ({
 }));
 
 vi.mock("react-router-dom", async () => {
-  const actual = await vi.importActual<typeof import("react-router-dom")>(
-    "react-router-dom",
-  );
+  const actual =
+    await vi.importActual<typeof import("react-router-dom")>(
+      "react-router-dom",
+    );
   return {
     ...actual,
     useNavigate: () => mockNavigate,
@@ -84,7 +85,15 @@ vi.mock("react-router-dom", async () => {
 // TournamentList mock – exposes handler props as interactive elements
 // ---------------------------------------------------------------------------
 vi.mock("@/features/matches/components/TournamentList", () => ({
-  default: ({ onFindByCode, onCodeInputChange, codeError }: any) => (
+  default: ({
+    onFindByCode,
+    onCodeInputChange,
+    codeError,
+  }: {
+    onFindByCode: () => void;
+    onCodeInputChange: (value: string) => void;
+    codeError?: string;
+  }) => (
     <div data-testid="tournament-list">
       <input
         data-testid="code-input"
@@ -115,7 +124,28 @@ vi.mock("@/features/matches/components/TournamentDetail", () => ({
     onOverrideResult,
     onSaveDescription,
     onSaveParticipant,
-  }: any) => (
+  }: {
+    onBack: () => void;
+    onStart: () => void;
+    onDelete: () => void;
+    onRecordResult: (matchId: string, winnerId: string) => void;
+    onReportResult: (matchId: string, winnerId: string) => void;
+    onAdvanceRound: () => void;
+    onAddParticipant: () => void;
+    onRemoveParticipant: (participantId: string) => void;
+    onResolveDispute: (matchId: string, winnerId: string) => void;
+    onOverrideResult: (
+      matchId: string,
+      winnerId: string,
+      reason: string,
+    ) => Promise<void>;
+    onSaveDescription: (description: string) => Promise<void>;
+    onSaveParticipant: (participant: {
+      _id: string;
+      name: string;
+      faction: string;
+    }) => Promise<void>;
+  }) => (
     <div data-testid="tournament-detail">
       <button data-testid="trigger-back" onClick={onBack}>
         Back
@@ -211,7 +241,11 @@ const fakeSocket = {
   off: vi.fn(),
 };
 
-function makeStore(isAuthenticated: boolean, userId = "u1", username = "Grimgork") {
+function makeStore(
+  isAuthenticated: boolean,
+  userId = "u1",
+  username = "Grimgork",
+) {
   return {
     user: { id: userId, username, isAuthenticated, isGuest: false },
     isAuthenticated: () => isAuthenticated,
@@ -394,9 +428,7 @@ describe("MatchesPage – urlCode auto-select with tournament in list", () => {
       expect(screen.getByTestId("tournament-detail")).toBeInTheDocument();
     });
 
-    expect(mockGet).toHaveBeenCalledWith(
-      "/match/tournament/t1",
-    );
+    expect(mockGet).toHaveBeenCalledWith("/match/tournament/t1");
   });
 });
 
@@ -558,9 +590,7 @@ describe("MatchesPage – TournamentDetail handlers", () => {
     fireEvent.click(screen.getByTestId("trigger-remove"));
 
     await waitFor(() => {
-      expect(mockDelete).toHaveBeenCalledWith(
-        "/tournament/t1/participants/p1",
-      );
+      expect(mockDelete).toHaveBeenCalledWith("/tournament/t1/participants/p1");
     });
   });
 
