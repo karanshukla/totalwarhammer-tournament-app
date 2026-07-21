@@ -13,7 +13,13 @@
  * - Finalize Tournament label for Round Robin
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent, waitFor, act } from "@testing-library/react";
+import {
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+  act,
+} from "@testing-library/react";
 import "@testing-library/jest-dom";
 import React from "react";
 import { ChakraProvider, defaultSystem } from "@chakra-ui/react";
@@ -46,7 +52,7 @@ vi.mock("@/shared/ui/Toaster", () => ({
 }));
 
 import TournamentDetail from "@/features/matches/components/TournamentDetail";
-import type { Match } from "@/features/matches/components/types";
+import type { Match, Tournament } from "@/features/matches/components/types";
 
 // ─── Shared test fixtures ─────────────────────────────────────────────────────
 
@@ -59,7 +65,12 @@ const baseTournament = {
   tournamentType: "Single Elimination",
   bannedFactions: [] as string[],
   enable40kFactions: false,
-  participants: [] as { _id: string; name: string; faction: string; userId?: string | null }[],
+  participants: [] as {
+    _id: string;
+    name: string;
+    faction: string;
+    userId?: string | null;
+  }[],
   status: "pending" as "pending" | "active" | "completed",
   createdAt: new Date().toISOString(),
   createdBy: "u1",
@@ -108,7 +119,7 @@ function renderDetail(
     <MemoryRouter>
       <ChakraProvider value={defaultSystem}>
         <TournamentDetail
-          selected={selected as any}
+          selected={selected as unknown as Tournament}
           matches={matches}
           user={null}
           newName=""
@@ -146,7 +157,9 @@ describe("TournamentDetail – handleCopyCode", () => {
     const copyBtn = screen.getByRole("button", { name: /^copy$/i });
     fireEvent.click(copyBtn);
     await waitFor(() =>
-      expect(screen.getByRole("button", { name: /copied!/i })).toBeInTheDocument(),
+      expect(
+        screen.getByRole("button", { name: /copied!/i }),
+      ).toBeInTheDocument(),
     );
   });
 
@@ -157,10 +170,16 @@ describe("TournamentDetail – handleCopyCode", () => {
       const copyBtn = screen.getByRole("button", { name: /^copy$/i });
       fireEvent.click(copyBtn);
       // 'Copied!' should appear immediately (synchronous state update)
-      expect(screen.getByRole("button", { name: /copied!/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /copied!/i }),
+      ).toBeInTheDocument();
       // Advance past the 2000ms timeout
-      act(() => { vi.advanceTimersByTime(2100); });
-      expect(screen.getByRole("button", { name: /^copy$/i })).toBeInTheDocument();
+      act(() => {
+        vi.advanceTimersByTime(2100);
+      });
+      expect(
+        screen.getByRole("button", { name: /^copy$/i }),
+      ).toBeInTheDocument();
     } finally {
       vi.useRealTimers();
     }
@@ -210,7 +229,9 @@ describe("TournamentDetail – cancel editing description", () => {
     );
 
     fireEvent.click(screen.getByRole("button", { name: /edit description/i }));
-    expect(screen.getByPlaceholderText(/tournament description/i)).toBeInTheDocument();
+    expect(
+      screen.getByPlaceholderText(/tournament description/i),
+    ).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: /^cancel$/i }));
 
@@ -373,18 +394,30 @@ describe("TournamentDetail – Current Round in Tournament Info", () => {
   it("shows 'Current Round' row when active and matches exist (non-Round Robin)", () => {
     const match: Match = { ...baseMatch, bracketSide: null };
     // Non-admin → Tournament Info card is rendered
-    renderDetail({ status: "active", tournamentType: "Single Elimination" }, { user: null }, [match]);
+    renderDetail(
+      { status: "active", tournamentType: "Single Elimination" },
+      { user: null },
+      [match],
+    );
     expect(screen.getByText("Current Round")).toBeInTheDocument();
   });
 
   it("does NOT show 'Current Round' for Round Robin type", () => {
     const match: Match = { ...baseMatch, bracketSide: null };
-    renderDetail({ status: "active", tournamentType: "Round Robin" }, { user: null }, [match]);
+    renderDetail(
+      { status: "active", tournamentType: "Round Robin" },
+      { user: null },
+      [match],
+    );
     expect(screen.queryByText("Current Round")).not.toBeInTheDocument();
   });
 
   it("does NOT show 'Current Round' when there are no matches", () => {
-    renderDetail({ status: "active", tournamentType: "Single Elimination" }, { user: null }, []);
+    renderDetail(
+      { status: "active", tournamentType: "Single Elimination" },
+      { user: null },
+      [],
+    );
     expect(screen.queryByText("Current Round")).not.toBeInTheDocument();
   });
 });
@@ -429,7 +462,9 @@ describe("TournamentDetail – admin remove participant button", () => {
       { user: { id: "u1", username: "Admin" }, onRemoveParticipant },
     );
 
-    const removeBtn = screen.getByRole("button", { name: /remove participant/i });
+    const removeBtn = screen.getByRole("button", {
+      name: /remove participant/i,
+    });
     fireEvent.click(removeBtn);
     expect(onRemoveParticipant).toHaveBeenCalledWith("p1");
   });

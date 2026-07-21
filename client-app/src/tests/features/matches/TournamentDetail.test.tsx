@@ -50,6 +50,7 @@ vi.mock("@/shared/ui/Toaster", () => ({
 }));
 
 import TournamentDetail from "@/features/matches/components/TournamentDetail";
+import type { Tournament } from "@/features/matches/components/types";
 
 const baseTournament = {
   _id: "t1",
@@ -60,7 +61,12 @@ const baseTournament = {
   tournamentType: "Single Elimination",
   bannedFactions: [] as string[],
   enable40kFactions: false,
-  participants: [] as { _id: string; name: string; faction: string; userId?: string | null }[],
+  participants: [] as {
+    _id: string;
+    name: string;
+    faction: string;
+    userId?: string | null;
+  }[],
   status: "pending" as "pending" | "active" | "completed",
   createdAt: new Date().toISOString(),
   createdBy: "u1",
@@ -92,7 +98,7 @@ function renderDetail(
     <MemoryRouter>
       <ChakraProvider value={defaultSystem}>
         <TournamentDetail
-          selected={selected as any}
+          selected={selected as unknown as Tournament}
           matches={[]}
           user={null}
           newName=""
@@ -135,8 +141,13 @@ describe("TournamentDetail – admin + pending: Add Participant panel", () => {
   beforeEach(() => vi.clearAllMocks());
 
   it("shows Add Participant panel for admin in pending state", () => {
-    renderDetail({ status: "pending" }, { user: { id: "u1", username: "Admin" } });
-    expect(screen.getByRole("heading", { name: "Add Participant" })).toBeInTheDocument();
+    renderDetail(
+      { status: "pending" },
+      { user: { id: "u1", username: "Admin" } },
+    );
+    expect(
+      screen.getByRole("heading", { name: "Add Participant" }),
+    ).toBeInTheDocument();
   });
 
   it("shows 'Tournament is full' when isFull", () => {
