@@ -165,6 +165,16 @@ describe("stats-service", () => {
       assert.ok("tournaments" in result);
     });
 
+    it("swallows the error when writing the computed stats back to Redis fails", async () => {
+      mockRedisSet.mock.mockImplementation(async () => {
+        throw new Error("Redis write failed");
+      });
+
+      await assert.doesNotReject(() => getGlobalStats());
+      // redis.set() is fire-and-forget; let its rejection settle before moving on.
+      await new Promise((resolve) => setImmediate(resolve));
+    });
+
     it("shapes tournament counts correctly from aggregate results", async () => {
       mockTournamentAggregate.mock.mockImplementation(async () => [
         { _id: "pending", count: 2 },
