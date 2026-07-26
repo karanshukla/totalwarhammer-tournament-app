@@ -52,6 +52,21 @@ describe("EmailService", () => {
     assert.equal(sentEmailData.html, "<p>Test content</p>");
   });
 
+  it("uses explicit from/to addresses instead of the defaults when provided", async () => {
+    const emailData = {
+      from: "custom@twtournament.app",
+      to: "recipient@example.com",
+      subject: "Test Email",
+      html: "<p>Test content</p>",
+    };
+
+    await emailService.sendEmail(emailData);
+
+    const sentEmailData = mockSendFn.mock.calls[0].arguments[0];
+    assert.equal(sentEmailData.from, "custom@twtournament.app");
+    assert.equal(sentEmailData.to, "recipient@example.com");
+  });
+
   it("should throw when subject is missing", async () => {
     await assert.rejects(
       async () => await emailService.sendEmail({ html: "<p>Test</p>" }),
@@ -68,6 +83,20 @@ describe("EmailService", () => {
     );
 
     assert.equal(mockSendFn.mock.callCount(), 0);
+  });
+
+  it("returns a null messageId when the success response has no data", async () => {
+    mockSendFn.mock.mockImplementation(() =>
+      Promise.resolve({ data: null, error: null }),
+    );
+
+    const result = await emailService.sendEmail({
+      subject: "Test",
+      html: "<p>Test</p>",
+    });
+
+    assert.equal(result.success, true);
+    assert.equal(result.messageId, null);
   });
 
   it("should return failure response when the API returns an error object", async () => {

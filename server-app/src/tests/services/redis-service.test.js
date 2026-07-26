@@ -3,7 +3,10 @@ import { describe, it, mock } from "node:test";
 
 // ── Redis package mock ────────────────────────────────────────────────────────
 const mockConnect = mock.fn(async () => {});
-const mockOn = mock.fn();
+const errorHandlers = [];
+const mockOn = mock.fn((event, handler) => {
+  if (event === "error") errorHandlers.push(handler);
+});
 const mockClient = { connect: mockConnect, on: mockOn };
 const mockCreateClient = mock.fn(() => mockClient);
 
@@ -11,8 +14,9 @@ mock.module("redis", {
   namedExports: { createClient: mockCreateClient },
 });
 
+const mockLoggerError = mock.fn();
 mock.module("../../infrastructure/utils/logger.js", {
-  defaultExport: { error: mock.fn(), info: mock.fn() },
+  defaultExport: { error: mockLoggerError, info: mock.fn() },
 });
 
 const { getRedisClient, createNewRedisClient } =
@@ -93,6 +97,40 @@ describe("redis-service", () => {
       const singletonAgain = getRedisClient();
 
       assert.strictEqual(singleton, singletonAgain);
+    });
+
+    it("logs an error when the client emits an error event", () => {
+      process.env.REDIS_URL = "redis://localhost:6379";
+      const callsBefore = mockLoggerError.mock.calls.length;
+
+      createNewRedisClient();
+      const failure = new Error("connection reset");
+      errorHandlers.at(-1)(failure);
+
+      assert.strictEqual(mockLoggerError.mock.calls.length, callsBefore + 1);
+      assert.match(
+        mockLoggerError.mock.calls.at(-1).arguments[0],
+        /connection reset/,
+      );
+    });
+
+    it("logs an error when the initial connect() rejects", async () => {
+      process.env.REDIS_URL = "redis://localhost:6379";
+      const failure = new Error("ECONNREFUSED");
+      mockConnect.mock.mockImplementationOnce(async () => {
+        throw failure;
+      });
+      const callsBefore = mockLoggerError.mock.calls.length;
+
+      createNewRedisClient();
+      // The connect() rejection is handled asynchronously via .catch().
+      await new Promise((resolve) => setImmediate(resolve));
+
+      assert.strictEqual(mockLoggerError.mock.calls.length, callsBefore + 1);
+      assert.match(
+        mockLoggerError.mock.calls.at(-1).arguments[0],
+        /ECONNREFUSED/,
+      );
     });
   });
 });
