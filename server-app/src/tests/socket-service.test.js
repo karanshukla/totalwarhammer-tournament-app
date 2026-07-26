@@ -199,6 +199,27 @@ describe("socket-service", () => {
         );
       });
     });
+
+    describe("adapter initialization — only one Redis client available", () => {
+      it("falls back to the MongoDB adapter when only the pub client is available", async () => {
+        mockGetRedisClient.mock.resetCalls();
+        mockCreateNewRedisClient.mock.resetCalls();
+        mockCreateRedisAdapter.mock.resetCalls();
+        mockCreateMongoAdapter.mock.resetCalls();
+        mockIoInstance.adapter.mock.resetCalls();
+        mockGetRedisClient.mock.mockImplementation(() => ({}));
+        mockCreateNewRedisClient.mock.mockImplementation(() => null);
+
+        initSocketIO({}, "http://localhost:3001");
+        await new Promise((resolve) => setImmediate(resolve));
+
+        assert.strictEqual(mockCreateRedisAdapter.mock.calls.length, 0);
+        assert.strictEqual(mockCreateMongoAdapter.mock.calls.length, 1);
+
+        mockGetRedisClient.mock.mockImplementation(() => null);
+        mockCreateNewRedisClient.mock.mockImplementation(() => null);
+      });
+    });
   });
 
   describe("room management (connection handler)", () => {
@@ -218,6 +239,13 @@ describe("socket-service", () => {
       const socket = makeSocket();
       ioHandlers.connection(socket);
       socket._fire("tournament:join", "not-an-objectid");
+      assert.strictEqual(socket.join.mock.calls.length, 0);
+    });
+
+    it("ignores tournament:join with a non-string id", () => {
+      const socket = makeSocket();
+      ioHandlers.connection(socket);
+      socket._fire("tournament:join", 12345);
       assert.strictEqual(socket.join.mock.calls.length, 0);
     });
 
@@ -380,6 +408,31 @@ describe("socket-service", () => {
         req: null,
       };
       assert.doesNotThrow(() => handler(fakeErr));
+    });
+  });
+
+  describe("MongoDB adapter — collection already exists (NamespaceExists)", () => {
+    it("silently continues when createCollection rejects with code 48", async () => {
+      mockGetRedisClient.mock.resetCalls();
+      mockCreateNewRedisClient.mock.resetCalls();
+      mockGetRedisClient.mock.mockImplementation(() => null);
+      mockCreateNewRedisClient.mock.mockImplementation(() => null);
+      mockIoInstance.adapter.mock.resetCalls();
+      mockCreateMongoAdapter.mock.resetCalls();
+
+      const namespaceExistsError = new Error("collection already exists");
+      namespaceExistsError.code = 48;
+      mockCreateCollection.mock.mockImplementation(async () => {
+        throw namespaceExistsError;
+      });
+
+      initSocketIO({}, "http://localhost:3001");
+      await new Promise((resolve) => setImmediate(resolve));
+
+      assert.strictEqual(mockCreateMongoAdapter.mock.calls.length, 1);
+      assert.strictEqual(mockIoInstance.adapter.mock.calls.length, 1);
+
+      mockCreateCollection.mock.mockImplementation(async () => {});
     });
   });
 

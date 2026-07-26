@@ -97,6 +97,43 @@ describe("AuthStateService", () => {
 
       assert.strictEqual(loginMock.mock.calls.length, 1);
     });
+
+    it("falls back to userData.id when _id is absent", async () => {
+      const req = createMockRequest({ session: { cookie: {} } });
+
+      await authStateService.createUserAuthState(req, {
+        id: "guest-fallback-id",
+        username: "testuser",
+      });
+
+      assert.strictEqual(req.session.user.id, "guest-fallback-id");
+    });
+
+    it("marks the session user as a guest when userData.isGuest is true", async () => {
+      const req = createMockRequest({ session: { cookie: {} } });
+
+      await authStateService.createUserAuthState(req, {
+        _id: "123",
+        username: "testuser",
+        isGuest: true,
+      });
+
+      assert.strictEqual(req.session.user.isGuest, true);
+    });
+
+    it("stores a null fingerprint when no user-agent header is present", async () => {
+      const req = createMockRequest({
+        session: { cookie: {} },
+        userAgent: null,
+      });
+
+      await authStateService.createUserAuthState(req, {
+        _id: "123",
+        username: "testuser",
+      });
+
+      assert.strictEqual(req.session.fingerprint, null);
+    });
   });
 
   describe("getCurrentUser", () => {
@@ -182,6 +219,21 @@ describe("AuthStateService", () => {
       assert.strictEqual(authStateService.isAuthenticated(req), false);
     });
 
+    it("should return false when the OS family changes but the browser stays the same", () => {
+      const CHROME_ON_MAC =
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
+      const req = createMockRequest({
+        session: {
+          isAuthenticated: true,
+          user: { id: "123" },
+          fingerprint: { browser: "Chrome", os: "Windows" },
+        },
+        userAgent: CHROME_ON_MAC,
+      });
+
+      assert.strictEqual(authStateService.isAuthenticated(req), false);
+    });
+
     it("should return true when UA version changes but browser family is the same", () => {
       const CHROME_NEWER =
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36";
@@ -192,6 +244,30 @@ describe("AuthStateService", () => {
           fingerprint: { browser: "Chrome", os: "Windows" },
         },
         userAgent: CHROME_NEWER,
+      });
+
+      assert.strictEqual(authStateService.isAuthenticated(req), true);
+    });
+
+    it("should return true when no fingerprint was stored on the session", () => {
+      const req = createMockRequest({
+        session: {
+          isAuthenticated: true,
+          user: { id: "123" },
+        },
+      });
+
+      assert.strictEqual(authStateService.isAuthenticated(req), true);
+    });
+
+    it("should return true when the current request has no user-agent header", () => {
+      const req = createMockRequest({
+        session: {
+          isAuthenticated: true,
+          user: { id: "123" },
+          fingerprint: { browser: "Chrome", os: "Windows" },
+        },
+        userAgent: null,
       });
 
       assert.strictEqual(authStateService.isAuthenticated(req), true);
@@ -222,6 +298,31 @@ describe("AuthStateService", () => {
       });
 
       assert.strictEqual(authStateService.isAuthenticated(req), false);
+    });
+
+    it("should return false for guest whose user data has no id", () => {
+      const req = createMockRequest({
+        session: {
+          isAuthenticated: true,
+          isGuest: true,
+          user: {},
+          fingerprint: { browser: "Chrome", os: "Windows" },
+        },
+      });
+
+      assert.strictEqual(authStateService.isAuthenticated(req), false);
+    });
+
+    it("should detect a guest session flagged only via session.user.isGuest", () => {
+      const req = createMockRequest({
+        session: {
+          isAuthenticated: true,
+          user: { id: "123", isGuest: true },
+          fingerprint: { browser: "Chrome", os: "Windows" },
+        },
+      });
+
+      assert.strictEqual(authStateService.isAuthenticated(req), true);
     });
 
     it("should return false when guest browser family changes", () => {
@@ -278,6 +379,15 @@ describe("AuthStateService", () => {
       authStateService.clearAuthState(req);
 
       assert.strictEqual(destroyMock.mock.calls.length, 1);
+    });
+
+    it("should handle missing callback when req.logout is present", () => {
+      const logoutMock = mock.fn((cb) => cb());
+      const req = { logout: logoutMock };
+
+      authStateService.clearAuthState(req);
+
+      assert.strictEqual(logoutMock.mock.calls.length, 1);
     });
   });
 
