@@ -291,6 +291,46 @@ describe("TournamentDetail – Edit Description panel", () => {
     );
   });
 
+  it("cancels editing on Escape, hiding the textarea (issue #144)", async () => {
+    renderDetail(
+      { status: "pending", description: "" },
+      { user: { id: "u1", username: "Admin" } },
+    );
+    fireEvent.click(screen.getByRole("button", { name: /edit description/i }));
+    await waitFor(() =>
+      expect(
+        screen.getByPlaceholderText(/tournament description/i),
+      ).toBeInTheDocument(),
+    );
+
+    fireEvent.keyDown(document, { key: "Escape" });
+
+    await waitFor(() =>
+      expect(
+        screen.queryByPlaceholderText(/tournament description/i),
+      ).not.toBeInTheDocument(),
+    );
+    // The Edit button reappears once the editor is closed.
+    expect(
+      screen.getByRole("button", { name: /edit description/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("does not cancel on Escape when the editor is closed (issue #144)", () => {
+    renderDetail(
+      { status: "pending", description: "" },
+      { user: { id: "u1", username: "Admin" } },
+    );
+    fireEvent.keyDown(document, { key: "Escape" });
+    // Editor never opened, so the textarea is absent and Edit button present.
+    expect(
+      screen.queryByPlaceholderText(/tournament description/i),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /edit description/i }),
+    ).toBeInTheDocument();
+  });
+
   it("shows rendered markdown when description is set and not editing", () => {
     renderDetail(
       { status: "active", description: "# My Tournament" },

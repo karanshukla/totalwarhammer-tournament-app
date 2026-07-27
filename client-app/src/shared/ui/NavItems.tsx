@@ -278,6 +278,13 @@ const NavItems: React.FC<NavItemsProps> = ({
             navigate("/terms");
             break;
           case "8":
+            // Alt+8 = Privacy (see KEYBOARD_SHORTCUTS.privacy). Previously this
+            // branch opened GitHub and Alt+9 (Source) was a dead binding — both
+            // are corrected here so each shortcut matches its label.
+            event.preventDefault();
+            navigate("/privacy");
+            break;
+          case "9":
             event.preventDefault();
             window.open(
               "https://github.com/karanshukla/totalwarhammer-tournament-app",
