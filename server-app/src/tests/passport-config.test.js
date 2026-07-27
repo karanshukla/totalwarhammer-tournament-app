@@ -48,6 +48,7 @@ describe("passport-config", () => {
         id: "u1",
         email: "a@example.com",
         username: "alice",
+        passwordChangedAt: null,
       }));
       mockFindById.mock.mockImplementationOnce(() => ({ select }));
 
@@ -65,8 +66,28 @@ describe("passport-config", () => {
           username: "alice",
           role: "user",
           isGuest: false,
+          passwordChangedAt: null,
         },
       ]);
+    });
+
+    it("includes passwordChangedAt when the user has one set (issue #101)", async () => {
+      const changedAt = new Date("2026-01-01T00:00:00Z");
+      const select = mock.fn(async () => ({
+        id: "u1",
+        email: "a@example.com",
+        username: "alice",
+        passwordChangedAt: changedAt,
+      }));
+      mockFindById.mock.mockImplementationOnce(() => ({ select }));
+
+      const done = mock.fn();
+      await deserializeUserCallback("u1", done);
+
+      assert.strictEqual(
+        done.mock.calls[0].arguments[1].passwordChangedAt,
+        changedAt,
+      );
     });
 
     it("calls done(null, false) and logs when the user is not found", async () => {

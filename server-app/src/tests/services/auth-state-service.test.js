@@ -61,6 +61,17 @@ describe("AuthStateService", () => {
       );
     });
 
+    it("stamps session.authAt so password-change invalidation can be enforced (issue #101)", async () => {
+      const req = createMockRequest({ session: { cookie: {} } });
+
+      await authStateService.createUserAuthState(req, {
+        _id: "123",
+        username: "testuser",
+      });
+
+      assert.ok(req.session.authAt instanceof Date);
+    });
+
     it("should set extended timeout with rememberMe flag", async () => {
       const req = createMockRequest({ session: { cookie: {} } });
       const userData = { _id: "123", username: "testuser", rememberMe: true };
@@ -271,6 +282,173 @@ describe("AuthStateService", () => {
       });
 
       assert.strictEqual(authStateService.isAuthenticated(req), true);
+    });
+  });
+
+  describe("isAuthenticated - password-change session invalidation (issue #101)", () => {
+    it("rejects a session authenticated before the most recent password change", () => {
+      const req = createMockRequest({
+        session: {
+          isAuthenticated: true,
+          user: { id: "123" },
+          fingerprint: { browser: "Chrome", os: "Windows" },
+          // Session established before the password was changed
+          authAt: new Date("2026-01-01T10:00:00Z"),
+        },
+      });
+      // deserializeUser loads the user fresh on each request with the new
+      // passwordChangedAt timestamp.
+      req.user = {
+        id: "123",
+        username: "alice",
+        passwordChangedAt: new Date("2026-01-02T10:00:00Z"),
+      };
+
+      assert.strictEqual(authStateService.isAuthenticated(req), false);
+    });
+
+    it("accepts a session authenticated at/after the most recent password change", () => {
+      const req = createMockRequest({
+        session: {
+          isAuthenticated: true,
+          user: { id: "123" },
+          fingerprint: { browser: "Chrome", os: "Windows" },
+          // The device that changed its password stays in — its session was
+          // refreshed to now, which is >= passwordChangedAt.
+          authAt: new Date("2026-01-02T10:00:01Z"),
+        },
+      });
+      req.user = {
+        id: "123",
+        username: "alice",
+        passwordChangedAt: new Date("2026-01-02T10:00:00Z"),
+      };
+
+      assert.strictEqual(authStateService.isAuthenticated(req), true);
+    });
+
+    it("accepts a session when passwordChangedAt equals authAt exactly (boundary)", () => {
+      const req = createMockRequest({
+        session: {
+          isAuthenticated: true,
+          user: { id: "123" },
+          fingerprint: { browser: "Chrome", os: "Windows" },
+          authAt: new Date("2026-01-02T10:00:00Z"),
+        },
+      });
+      req.user = {
+        id: "123",
+        username: "alice",
+        passwordChangedAt: new Date("2026-01-02T10:00:00Z"),
+      };
+
+      assert.strictEqual(authStateService.isAuthenticated(req), true);
+    });
+
+    it("accepts a session when passwordChangedAt is null (password never changed)", () => {
+      const req = createMockRequest({
+        session: {
+          isAuthenticated: true,
+          user: { id: "123" },
+          fingerprint: { browser: "Chrome", os: "Windows" },
+          authAt: new Date("2026-01-01T10:00:00Z"),
+        },
+      });
+      req.user = { id: "123", username: "alice", passwordChangedAt: null };
+
+      assert.strictEqual(authStateService.isAuthenticated(req), true);
+    });
+
+    it("accepts a session with no authAt (legacy/older sessions)", () => {
+      const req = createMockRequest({
+        session: {
+          isAuthenticated: true,
+          user: { id: "123" },
+          fingerprint: { browser: "Chrome", os: "Windows" },
+        },
+      });
+      req.user = {
+        id: "123",
+        username: "alice",
+        passwordChangedAt: new Date("2026-01-02T10:00:00Z"),
+      };
+
+      // No authAt to compare against — cannot prove staleness, so it stays in.
+      assert.strictEqual(authStateService.isAuthenticated(req), true);
+    });
+
+    it("does not apply the password check to guest sessions", () => {
+      const req = createMockRequest({
+        session: {
+          isAuthenticated: true,
+          isGuest: true,
+          user: { id: "123", isGuest: true },
+          fingerprint: { browser: "Chrome", os: "Windows" },
+          authAt: new Date("2026-01-01T10:00:00Z"),
+        },
+      });
+      req.user = {
+        id: "123",
+        isGuest: true,
+        passwordChangedAt: new Date("2026-01-02T10:00:00Z"),
+      };
+
+      assert.strictEqual(authStateService.isAuthenticated(req), true);
+    });
+
+    it("falls back to session.user.passwordChangedAt when req.user is absent", () => {
+      const req = createMockRequest({
+        session: {
+          isAuthenticated: true,
+          user: {
+            id: "123",
+            passwordChangedAt: new Date("2026-01-02T10:00:00Z"),
+          },
+          fingerprint: { browser: "Chrome", os: "Windows" },
+          authAt: new Date("2026-01-01T10:00:00Z"),
+        },
+      });
+      // No req.user set (passport not running) — should still detect staleness.
+
+      assert.strictEqual(authStateService.isAuthenticated(req), false);
+    });
+  });
+
+  describe("isSessionFresh (issue #101)", () => {
+    it("returns false when authAt predates passwordChangedAt", () => {
+      const req = {
+        user: { passwordChangedAt: new Date("2026-01-02T00:00:00Z") },
+        session: { authAt: new Date("2026-01-01T00:00:00Z") },
+      };
+      assert.strictEqual(authStateService.isSessionFresh(req), false);
+    });
+
+    it("returns true when authAt is at/after passwordChangedAt", () => {
+      const req = {
+        user: { passwordChangedAt: new Date("2026-01-01T00:00:00Z") },
+        session: { authAt: new Date("2026-01-02T00:00:00Z") },
+      };
+      assert.strictEqual(authStateService.isSessionFresh(req), true);
+    });
+
+    it("returns true when passwordChangedAt is missing", () => {
+      assert.strictEqual(authStateService.isSessionFresh({ user: {} }), true);
+    });
+
+    it("returns true when session has no authAt", () => {
+      const req = {
+        user: { passwordChangedAt: new Date("2026-01-01T00:00:00Z") },
+        session: {},
+      };
+      assert.strictEqual(authStateService.isSessionFresh(req), true);
+    });
+
+    it("returns true for invalid date values rather than rejecting", () => {
+      const req = {
+        user: { passwordChangedAt: "not-a-date" },
+        session: { authAt: new Date("2026-01-01T00:00:00Z") },
+      };
+      assert.strictEqual(authStateService.isSessionFresh(req), true);
     });
   });
 

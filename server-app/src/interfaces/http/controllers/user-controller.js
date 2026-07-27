@@ -372,7 +372,24 @@ export const updatePassword = async (req, res) => {
     }
 
     user.password = await bcrypt.hash(newPassword, 10);
+    // Stamp passwordChangedAt so sessions authenticated before this moment
+    // (i.e. on other devices) are rejected on their next request. The current
+    // session is refreshed below so the device making the change stays in.
+    user.passwordChangedAt = new Date();
     await user.save();
+
+    // Keep the current session alive: its authAt must be >= passwordChangedAt.
+    // Other sessions for this user are left untouched and will fail the
+    // freshness check in AuthStateService.isAuthenticated on their next hit.
+    if (req.session) {
+      req.session.authAt = new Date(user.passwordChangedAt);
+      await new Promise((resolve, reject) => {
+        req.session.save((err) => {
+          if (err) reject(err);
+          else resolve();
+        });
+      });
+    }
 
     logger.info(`Password updated for user: ${userId}`);
     res.status(200).json({
