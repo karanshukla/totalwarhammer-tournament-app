@@ -248,6 +248,58 @@ describe("user-controller", () => {
       assert.strictEqual(res.json.mock.calls[0].arguments[0].success, true);
       assert.strictEqual(user.password, "hashed_newpass");
       assert.strictEqual(user.save.mock.calls.length, 1);
+      // passwordChangedAt is stamped so older sessions are invalidated (#101)
+      assert.ok(user.passwordChangedAt instanceof Date);
+    });
+
+    it("sets passwordChangedAt and refreshes the current session's authAt (issue #101)", async () => {
+      const user = {
+        password: "oldhash",
+        validatePassword: mock.fn(async () => true),
+        save: mock.fn(async () => {}),
+      };
+      mockUserFindById.mock.mockImplementation(() => ({
+        select: mock.fn(async () => user),
+      }));
+      const session = {
+        save: mock.fn((cb) => cb()),
+      };
+      const req = mockReq({
+        body: { currentPassword: "old", newPassword: "newpass" },
+        session,
+      });
+      const res = mockRes();
+      await updatePassword(req, res);
+
+      // passwordChangedAt is set on the user record
+      assert.ok(user.passwordChangedAt instanceof Date);
+      // The current session is refreshed so it survives its own password change
+      assert.ok(req.session.authAt instanceof Date);
+      assert.strictEqual(session.save.mock.calls.length, 1);
+      // authAt is at/after passwordChangedAt → the changing device stays logged in
+      assert.ok(
+        new Date(req.session.authAt).getTime() >=
+          new Date(user.passwordChangedAt).getTime(),
+      );
+    });
+
+    it("does not crash when no session is present on the request (issue #101)", async () => {
+      const user = {
+        password: "oldhash",
+        validatePassword: mock.fn(async () => true),
+        save: mock.fn(async () => {}),
+      };
+      mockUserFindById.mock.mockImplementation(() => ({
+        select: mock.fn(async () => user),
+      }));
+      const req = mockReq({
+        body: { currentPassword: "old", newPassword: "newpass" },
+        // no session key
+      });
+      const res = mockRes();
+      await updatePassword(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
+      assert.ok(user.passwordChangedAt instanceof Date);
     });
   });
 

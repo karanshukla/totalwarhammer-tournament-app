@@ -78,8 +78,43 @@ class AuthStateService {
     req.session.user = sessionUser;
     req.session.isAuthenticated = true;
     req.session.createdAt = new Date();
+    // authAt records when this session was authenticated, used to reject it
+    // if the password is later changed elsewhere (issue #101).
+    req.session.authAt = new Date();
     req.session.fingerprint = parseUAFingerprint(req.get("user-agent"));
     req.session.cookie.maxAge = maxAge;
+  }
+
+  /**
+   * Returns true when the current session was authenticated at or after the
+   * user's most recent password change. Returns true (fresh) when there is no
+   * passwordChangedAt timestamp, no session authAt to compare against, or the
+   * user record is unavailable — i.e. this only ever *rejects* a session when
+   * it can prove the password changed after the session was established.
+   *
+   * @param {import('express').Request} req
+   * @returns {boolean}
+   */
+  isSessionFresh(req) {
+    const user = req.user || req.session?.user;
+    const passwordChangedAt = user?.passwordChangedAt;
+    if (!passwordChangedAt) return true;
+
+    const authAt = req.session?.authAt;
+    if (!authAt) return true;
+
+    const changedMs = new Date(passwordChangedAt).getTime();
+    const authMs = new Date(authAt).getTime();
+    if (Number.isNaN(changedMs) || Number.isNaN(authMs)) return true;
+
+    if (authMs < changedMs) {
+      logger.warn(
+        "Authentication rejected: session predates password change",
+        { authAt, passwordChangedAt },
+      );
+      return false;
+    }
+    return true;
   }
 
   /**
@@ -96,7 +131,9 @@ class AuthStateService {
 
   /**
    * Returns true when the request belongs to a valid, un-tampered session.
-   * Checks the session flag and the UA fingerprint (browser family + OS).
+   * Checks the session flag, the UA fingerprint (browser family + OS), and
+   * that the session was authenticated after the user's most recent password
+   * change (issue #101: changing a password must invalidate older sessions).
    *
    * @param {import('express').Request} req
    * @returns {boolean}
@@ -114,6 +151,14 @@ class AuthStateService {
 
     const stored = req.session.fingerprint;
     const current = parseUAFingerprint(req.get("user-agent"));
+
+    // Reject sessions authenticated before the user changed their password.
+    // req.user.passwordChangedAt is loaded fresh on every request by passport's
+    // deserializeUser; req.session.authAt was stamped at login/update time.
+    // Guests have no password and are exempt.
+    if (!isGuest && !this.isSessionFresh(req)) {
+      return false;
+    }
 
     if (isGuest) {
       logger.debug(
@@ -187,6 +232,7 @@ class AuthStateService {
     req.session.isAuthenticated = true;
     req.session.isGuest = true;
     req.session.createdAt = new Date();
+    req.session.authAt = new Date();
     req.session.fingerprint = parseUAFingerprint(req.get("user-agent"));
 
     req.session.cookie.maxAge = this.GUEST_AUTH_STATE_TIMEOUT;
