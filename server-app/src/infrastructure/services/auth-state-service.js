@@ -110,7 +110,7 @@ class AuthStateService {
     if (authMs < changedMs) {
       logger.warn(
         "Authentication rejected: session predates password change",
-        { authAt, passwordChangedAt },
+        { reason: "session_predates_password_change" },
       );
       return false;
     }
