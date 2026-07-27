@@ -259,6 +259,56 @@ describe("MatchCard – isOverriding panel", () => {
     expect(onCancelOverride).toHaveBeenCalledTimes(1);
   });
 
+  it("calls onCancelOverride when Escape is pressed while panel is open (issue #144)", () => {
+    const onCancelOverride = vi.fn();
+    renderCard({}, { isOverriding: true, onCancelOverride });
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(onCancelOverride).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not call onCancelOverride on Escape when the panel is closed (issue #144)", () => {
+    const onCancelOverride = vi.fn();
+    renderCard({}, { isOverriding: false, onCancelOverride });
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(onCancelOverride).not.toHaveBeenCalled();
+  });
+
+  it("removes the Escape listener when the panel closes (issue #144)", () => {
+    const onCancelOverride = vi.fn();
+    const { rerender } = renderCard(
+      {},
+      { isOverriding: true, onCancelOverride },
+    );
+    // Close the panel, then fire Escape: the unmount cleanup must have removed
+    // the document listener so no stray cancel fires.
+    rerender(
+      <ChakraProvider value={defaultSystem}>
+        <MatchCard
+          m={{ ...baseMatch }}
+          p1Won={false}
+          p2Won={false}
+          isOverriding={false}
+          isAdmin={false}
+          isActive={false}
+          myReport={undefined}
+          canParticipantReport={false}
+          isP1={false}
+          isP2={false}
+          actionLoading={false}
+          overrideLoading={false}
+          overrideWinnerId=""
+          overrideReason=""
+          borderColor="border"
+          mutedBg="bg.subtle"
+          {...baseFns}
+          onCancelOverride={onCancelOverride}
+        />
+      </ChakraProvider>,
+    );
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(onCancelOverride).not.toHaveBeenCalled();
+  });
+
   it("shows 'overridden once' message when resultOverrides.length === 1", () => {
     renderCard(
       {

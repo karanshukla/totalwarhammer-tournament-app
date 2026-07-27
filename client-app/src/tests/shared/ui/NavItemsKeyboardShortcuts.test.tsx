@@ -87,9 +87,16 @@ describe("NavItems – Alt+key document keyboard shortcuts", () => {
     expect(mockNavigate).toHaveBeenCalledWith("/terms");
   });
 
-  it("Alt+8 opens GitHub in a new tab via window.open", () => {
+  it("Alt+8 navigates to /privacy (matches KEYBOARD_SHORTCUTS.privacy label)", () => {
     renderNav();
     fireEvent.keyDown(document, { key: "8", altKey: true });
+    expect(mockNavigate).toHaveBeenCalledWith("/privacy");
+    expect(mockWindowOpen).not.toHaveBeenCalled();
+  });
+
+  it("Alt+9 opens GitHub (Source Code) in a new tab via window.open", () => {
+    renderNav();
+    fireEvent.keyDown(document, { key: "9", altKey: true });
     expect(mockWindowOpen).toHaveBeenCalledWith(
       expect.stringContaining("github.com"),
       "_blank",

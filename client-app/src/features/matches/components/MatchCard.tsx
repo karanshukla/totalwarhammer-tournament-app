@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { displayName as dn } from "@/shared/utils/displayName";
 import {
   Box,
@@ -111,6 +111,20 @@ const MatchCard: React.FC<MatchCardProps> = ({
   onSetOverrideReason,
   onConfirmOverride,
 }) => {
+  // Esc cancels the inline result-override panel (issue #144). The listener is
+  // scoped to when the panel is open so it never swallows Esc elsewhere.
+  useEffect(() => {
+    if (!isOverriding) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        onCancelOverride();
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isOverriding, onCancelOverride]);
+
   return (
     <Box
       key={m._id}

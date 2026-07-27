@@ -1,4 +1,4 @@
-﻿import React, { useState, useMemo } from "react";
+﻿import React, { useState, useMemo, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import {
   Container,
@@ -220,6 +220,20 @@ const TournamentDetail: React.FC<Props> = ({
       // error shown via actionError from parent
     }
   };
+
+  // Esc cancels the inline description editor (issue #144). Scoped to when the
+  // editor is open and not mid-save, so it never fires elsewhere on the page.
+  useEffect(() => {
+    if (!editingDescription || descriptionLoading) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setEditingDescription(false);
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [editingDescription, descriptionLoading]);
 
   return (
     <Container maxW="container.xl" py={8}>
