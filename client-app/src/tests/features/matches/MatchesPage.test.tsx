@@ -11,7 +11,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import React from "react";
 import { ChakraProvider, defaultSystem } from "@chakra-ui/react";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter } from "react-router";
 
 const { mockGet, mockUseUserStore, mockGetSocket } = vi.hoisted(() => ({
   mockGet: vi.fn(),

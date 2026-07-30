@@ -18,7 +18,7 @@ import {
   LuClock,
   LuSearch,
 } from "react-icons/lu";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import SimpleBracket from "./SimpleBracket";
 import CreateTournamentForm from "./CreateTournamentForm";
 import TournamentBrowser from "./TournamentBrowser";

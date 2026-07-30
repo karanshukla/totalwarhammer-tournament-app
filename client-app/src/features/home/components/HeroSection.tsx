@@ -1,6 +1,6 @@
 ﻿import React from "react";
 import { HStack, Button, Text, Box, Heading, Badge } from "@chakra-ui/react";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import { useUserStore } from "@/shared/stores/userStore";
 
 const HeroSection: React.FC = () => {

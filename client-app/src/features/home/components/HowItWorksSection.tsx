@@ -15,7 +15,7 @@ import {
   LuPlay,
   LuChevronsRight,
 } from "react-icons/lu";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 
 const steps = [
   { icon: LuUserPlus, label: "Register or join as a guest" },

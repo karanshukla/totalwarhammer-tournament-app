@@ -1,7 +1,7 @@
 import React from "react";
 import { Button } from "@chakra-ui/react";
 import { logoutUser } from "@/features/authentication/api/authenticationApi";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 
 interface LogoutButtonProps {
   variant?: "outline" | "solid" | "subtle" | "surface" | "ghost" | "plain";

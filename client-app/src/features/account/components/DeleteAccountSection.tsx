@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Button, Text, VStack, HStack, Box } from "@chakra-ui/react";
 import { LuTriangleAlert } from "react-icons/lu";
 import { deleteAccount } from "../api/accountApi";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 
 const DeleteAccountSection: React.FC = () => {
   const [confirming, setConfirming] = useState(false);

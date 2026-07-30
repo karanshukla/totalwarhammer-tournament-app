@@ -8,7 +8,7 @@ import {
   Link,
   Separator,
 } from "@chakra-ui/react";
-import { Link as RouterLink } from "react-router-dom";
+import { Link as RouterLink } from "react-router";
 import { Prose } from "@/shared/ui/Prose";
 
 const tocItems = [

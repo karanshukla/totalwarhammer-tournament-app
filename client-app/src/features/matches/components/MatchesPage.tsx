@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Container, VStack, Text, Spinner } from "@chakra-ui/react";
-import { useNavigate, useLocation, useMatch } from "react-router-dom";
+import { useNavigate, useLocation, useMatch } from "react-router";
 import { httpClient } from "@/core/api/httpClient";
 import { getSocket } from "@/core/socket/socketClient";
 import { useUserStore } from "@/shared/stores/userStore";

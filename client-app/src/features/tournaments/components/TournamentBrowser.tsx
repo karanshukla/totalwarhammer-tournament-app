@@ -19,7 +19,7 @@ import {
   LuSwords,
   LuFlaskConical,
 } from "react-icons/lu";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import { httpClient } from "@/core/api/httpClient";
 import { useUserStore } from "@/shared/stores/userStore";
 

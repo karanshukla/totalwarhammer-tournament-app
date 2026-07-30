@@ -12,7 +12,7 @@ import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom";
 import React from "react";
 import { ChakraProvider, defaultSystem } from "@chakra-ui/react";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter } from "react-router";
 
 const { mockUserExists, mockCreateGuestUser } = vi.hoisted(() => ({
   mockUserExists: vi.fn(),

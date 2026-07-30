@@ -13,7 +13,7 @@ import {
   Separator,
 } from "@chakra-ui/react";
 import { LuSearch, LuSwords, LuEye } from "react-icons/lu";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link } from "react-router";
 import { httpClient } from "@/core/api/httpClient";
 import { useUserStore } from "@/shared/stores/userStore";
 

@@ -8,7 +8,7 @@ import {
   Badge,
 } from "@chakra-ui/react";
 import { ColorModeButton } from "@/shared/ui/ColorMode";
-import { useLocation } from "react-router-dom";
+import { useLocation } from "react-router";
 import { useUserStore } from "../stores/userStore";
 import { RegisterLogin } from "@/features/authentication/components/RegisterLogin";
 import { LogoutButton } from "@/features/authentication/components/LogoutButton";

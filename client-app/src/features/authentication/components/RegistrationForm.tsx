@@ -4,7 +4,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { registerUser } from "../api/registrationApi";
 import { Toaster } from "@/shared/ui/Toaster";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import { useState } from "react";
 import { PasswordInput } from "@/shared/ui/PasswordInput";
 

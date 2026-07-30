@@ -1,7 +1,7 @@
 import React, { useState, useRef } from "react";
 import { Button, Icon, type ButtonProps } from "@chakra-ui/react";
 import { FiLogOut } from "react-icons/fi";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import { logoutUser } from "../api/authenticationApi";
 
 interface LogoutButtonProps {
