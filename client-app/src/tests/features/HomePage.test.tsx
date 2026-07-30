@@ -4,7 +4,7 @@ import "@testing-library/jest-dom";
 import React from "react";
 import { ChakraProvider, defaultSystem } from "@chakra-ui/react";
 import HomePage from "@/features/home/components/HomePage";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter } from "react-router";
 
 vi.mock("@/core/api/httpClient", () => ({
   httpClient: {

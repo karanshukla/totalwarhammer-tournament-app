@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link } from "react-router";
 import { Box, Spinner, Text, VStack, Button } from "@chakra-ui/react";
 import { httpClient } from "@/core/api/httpClient";
 import TournamentViewPage from "./TournamentViewPage";

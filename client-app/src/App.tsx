@@ -1,6 +1,6 @@
 import { Toaster } from "@/shared/ui/Toaster";
 import AppShell from "@/shared/ui/AppShell";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router";
 import { lazyLoad } from "@/shared/utils/LazyLoad";
 
 const HomePage = lazyLoad(() => import("@/features/home/components/HomePage"));

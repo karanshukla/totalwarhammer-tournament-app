@@ -43,7 +43,7 @@ import {
   LuCheck,
   LuFlaskConical,
 } from "react-icons/lu";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import { toaster } from "@/shared/ui/Toaster";
 import {
   warhammer3Factions,

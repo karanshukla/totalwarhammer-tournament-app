@@ -23,7 +23,7 @@ import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import React from "react";
 import { ChakraProvider, defaultSystem } from "@chakra-ui/react";
-import { MemoryRouter, Routes, Route } from "react-router-dom";
+import { MemoryRouter, Routes, Route } from "react-router";
 
 // ---------------------------------------------------------------------------
 // Hoisted mock references
@@ -70,10 +70,10 @@ vi.mock("@/shared/ui/Toaster", () => ({
   toaster: { create: vi.fn() },
 }));
 
-vi.mock("react-router-dom", async () => {
+vi.mock("react-router", async () => {
   const actual =
-    await vi.importActual<typeof import("react-router-dom")>(
-      "react-router-dom",
+    await vi.importActual<typeof import("react-router")>(
+      "react-router",
     );
   return {
     ...actual,

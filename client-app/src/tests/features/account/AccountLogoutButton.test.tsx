@@ -8,7 +8,7 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import React from "react";
 import { ChakraProvider, defaultSystem } from "@chakra-ui/react";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter } from "react-router";
 
 const { mockLogoutUser, mockNavigate } = vi.hoisted(() => ({
   mockLogoutUser: vi.fn(),
@@ -19,8 +19,8 @@ vi.mock("@/features/authentication/api/authenticationApi", () => ({
   logoutUser: mockLogoutUser,
 }));
 
-vi.mock("react-router-dom", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("react-router-dom")>();
+vi.mock("react-router", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("react-router")>();
   return { ...actual, useNavigate: () => mockNavigate };
 });
 

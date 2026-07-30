@@ -5,7 +5,7 @@ import GuestAccountSection from "./GuestAccountSection";
 import AuthenticatedAccountSection from "./AuthenticatedAccountSection";
 import UnauthenticatedSection from "./UnauthenticatedSection";
 import { refreshSession } from "../api/accountApi";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import { toaster } from "@/shared/ui/Toaster";
 
 const AccountPage: React.FC = () => {

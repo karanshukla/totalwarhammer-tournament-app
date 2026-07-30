@@ -6,7 +6,7 @@ import { render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import React from "react";
 import { ChakraProvider, defaultSystem } from "@chakra-ui/react";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter } from "react-router";
 
 vi.mock("@/shared/ui/Prose", () => ({
   Prose: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,

@@ -25,7 +25,7 @@ import {
 } from "react-icons/lu";
 import { NumberInputRoot, NumberInputField } from "@/shared/ui/NumberInput";
 import { httpClient } from "@/core/api/httpClient";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import { toaster } from "@/shared/ui/Toaster";
 import {
   warhammer3Factions,

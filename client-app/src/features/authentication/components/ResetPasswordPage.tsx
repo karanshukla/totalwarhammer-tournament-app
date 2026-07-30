@@ -17,7 +17,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { verifyResetToken, resetPassword } from "../api/passwordResetApi";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import { toaster } from "@/shared/ui/Toaster";
 import { PasswordInput } from "@/shared/ui/PasswordInput";
 

@@ -23,7 +23,7 @@ import {
   FiShield,
   FiMenu,
 } from "react-icons/fi";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router";
 import { LuSword } from "react-icons/lu";
 
 // Define keyboard shortcuts
