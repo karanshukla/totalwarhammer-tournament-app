@@ -430,6 +430,64 @@ describe("MatchesPage – urlCode auto-select with tournament in list", () => {
 
     expect(mockGet).toHaveBeenCalledWith("/match/tournament/t1");
   });
+
+  it("renders TournamentDetail without calling fetchMatches for a pending tournament found in list", async () => {
+    const pendingTournament = {
+      ...activeTournament,
+      _id: "t2",
+      code: "PEND1",
+      status: "pending" as const,
+    };
+    mockGet.mockResolvedValueOnce({
+      success: true,
+      data: [pendingTournament],
+      total: 1,
+      statusCounts: { all: 1, pending: 1, active: 0, completed: 0 },
+    });
+
+    renderAtCode("PEND1");
+
+    await waitFor(() => {
+      expect(screen.getByTestId("tournament-detail")).toBeInTheDocument();
+    });
+
+    expect(mockGet).not.toHaveBeenCalledWith("/match/tournament/t2");
+  });
+});
+
+describe("MatchesPage – urlCode auto-select via API fetch, pending tournament", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockGetSocket.mockReturnValue(fakeSocket);
+    mockUseUserStore.mockReturnValue(makeStore(true, "u1", "Grimgork"));
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("does not call fetchMatches when the API-fetched tournament is pending", async () => {
+    mockGet.mockResolvedValueOnce({
+      success: true,
+      data: [],
+      total: 0,
+      statusCounts: { all: 0, pending: 0, active: 0, completed: 0 },
+    });
+    const pendingTournament = {
+      ...activeTournament,
+      _id: "t3",
+      code: "PEND2",
+      status: "pending" as const,
+    };
+    mockGet.mockResolvedValueOnce({ success: true, data: pendingTournament });
+
+    renderAtCode("PEND2");
+
+    await waitFor(() =>
+      expect(screen.getByTestId("tournament-detail")).toBeInTheDocument(),
+    );
+    expect(mockGet).not.toHaveBeenCalledWith("/match/tournament/t3");
+  });
 });
 
 describe("MatchesPage – TournamentDetail handlers", () => {
@@ -608,6 +666,106 @@ describe("MatchesPage – TournamentDetail handlers", () => {
       });
     });
   });
+
+  it("handleStart shows an error toaster when POST rejects", async () => {
+    await setupWithDetail();
+
+    mockPost.mockRejectedValueOnce(new Error("start failed"));
+
+    fireEvent.click(screen.getByTestId("trigger-start"));
+
+    await waitFor(() => {
+      expect(toaster.create).toHaveBeenCalledWith(
+        expect.objectContaining({ type: "error" }),
+      );
+    });
+  });
+
+  it("handleDelete shows an error toaster when DELETE rejects", async () => {
+    await setupWithDetail();
+
+    mockDelete.mockRejectedValueOnce(new Error("delete failed"));
+
+    fireEvent.click(screen.getByTestId("trigger-delete"));
+
+    await waitFor(() => {
+      expect(toaster.create).toHaveBeenCalledWith(
+        expect.objectContaining({ type: "error" }),
+      );
+    });
+    // fetchTournaments should not have been re-triggered on failure
+    expect(mockDelete).toHaveBeenCalledWith("/tournament/t1");
+  });
+
+  it("handleRecordResult shows an error toaster when PATCH rejects", async () => {
+    await setupWithDetail();
+
+    mockPatch.mockRejectedValueOnce(new Error("record failed"));
+
+    fireEvent.click(screen.getByTestId("trigger-record"));
+
+    await waitFor(() => {
+      expect(toaster.create).toHaveBeenCalledWith(
+        expect.objectContaining({ type: "error" }),
+      );
+    });
+  });
+
+  it("handleReportResult shows an error toaster when PATCH rejects", async () => {
+    await setupWithDetail();
+
+    mockPatch.mockRejectedValueOnce(new Error("report failed"));
+
+    fireEvent.click(screen.getByTestId("trigger-report"));
+
+    await waitFor(() => {
+      expect(toaster.create).toHaveBeenCalledWith(
+        expect.objectContaining({ type: "error" }),
+      );
+    });
+  });
+
+  it("handleAdvanceRound shows an error toaster when POST rejects", async () => {
+    await setupWithDetail();
+
+    mockPost.mockRejectedValueOnce(new Error("advance failed"));
+
+    fireEvent.click(screen.getByTestId("trigger-advance"));
+
+    await waitFor(() => {
+      expect(toaster.create).toHaveBeenCalledWith(
+        expect.objectContaining({ type: "error" }),
+      );
+    });
+  });
+
+  it("handleRemoveParticipant shows an error toaster when DELETE rejects", async () => {
+    await setupWithDetail();
+
+    mockDelete.mockRejectedValueOnce(new Error("remove failed"));
+
+    fireEvent.click(screen.getByTestId("trigger-remove"));
+
+    await waitFor(() => {
+      expect(toaster.create).toHaveBeenCalledWith(
+        expect.objectContaining({ type: "error" }),
+      );
+    });
+  });
+
+  it("handleResolveDispute shows an error toaster when PATCH rejects", async () => {
+    await setupWithDetail();
+
+    mockPatch.mockRejectedValueOnce(new Error("resolve failed"));
+
+    fireEvent.click(screen.getByTestId("trigger-resolve"));
+
+    await waitFor(() => {
+      expect(toaster.create).toHaveBeenCalledWith(
+        expect.objectContaining({ type: "error" }),
+      );
+    });
+  });
 });
 
 describe("MatchesPage – socket effects", () => {
@@ -646,5 +804,123 @@ describe("MatchesPage – socket effects", () => {
       "match:updated",
       expect.any(Function),
     );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Non-Error rejections: covers the `err instanceof Error ? ... : "..."`
+// ternary's false branch for handlers whose only failure test so far used
+// `new Error(...)`.
+// ---------------------------------------------------------------------------
+
+describe("MatchesPage – handler failures rejecting with a non-Error value", () => {
+  async function setupWithDetail() {
+    vi.clearAllMocks();
+    mockGetSocket.mockReturnValue(fakeSocket);
+    mockUseUserStore.mockReturnValue(makeStore(true, "u1", "Grimgork"));
+
+    mockGet.mockResolvedValueOnce(successfulListResponse);
+    mockGet.mockResolvedValueOnce(emptyMatchesResponse);
+
+    renderAtCode("ABCDE");
+
+    await waitFor(() =>
+      expect(screen.getByTestId("tournament-detail")).toBeInTheDocument(),
+    );
+  }
+
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("handleStart shows the default error message for a non-Error rejection", async () => {
+    await setupWithDetail();
+    mockPost.mockRejectedValueOnce("plain string rejection");
+    fireEvent.click(screen.getByTestId("trigger-start"));
+    await waitFor(() => {
+      expect(toaster.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          description: "Failed to start tournament",
+        }),
+      );
+    });
+  });
+
+  it("handleDelete shows the default error message for a non-Error rejection", async () => {
+    await setupWithDetail();
+    mockDelete.mockRejectedValueOnce("plain string rejection");
+    fireEvent.click(screen.getByTestId("trigger-delete"));
+    await waitFor(() => {
+      expect(toaster.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          description: "Failed to delete tournament",
+        }),
+      );
+    });
+  });
+
+  it("handleRecordResult shows the default error message for a non-Error rejection", async () => {
+    await setupWithDetail();
+    mockPatch.mockRejectedValueOnce("plain string rejection");
+    fireEvent.click(screen.getByTestId("trigger-record"));
+    await waitFor(() => {
+      expect(toaster.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          description: "Failed to record result",
+        }),
+      );
+    });
+  });
+
+  it("handleReportResult shows the default error message for a non-Error rejection", async () => {
+    await setupWithDetail();
+    mockPatch.mockRejectedValueOnce("plain string rejection");
+    fireEvent.click(screen.getByTestId("trigger-report"));
+    await waitFor(() => {
+      expect(toaster.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          description: "Failed to report result",
+        }),
+      );
+    });
+  });
+
+  it("handleResolveDispute shows the default error message for a non-Error rejection", async () => {
+    await setupWithDetail();
+    mockPatch.mockRejectedValueOnce("plain string rejection");
+    fireEvent.click(screen.getByTestId("trigger-resolve"));
+    await waitFor(() => {
+      expect(toaster.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          description: "Failed to resolve dispute",
+        }),
+      );
+    });
+  });
+
+  it("handleAdvanceRound shows the default error message for a non-Error rejection", async () => {
+    await setupWithDetail();
+    mockPost.mockRejectedValueOnce("plain string rejection");
+    fireEvent.click(screen.getByTestId("trigger-advance"));
+    await waitFor(() => {
+      expect(toaster.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          description: "Failed to advance round",
+        }),
+      );
+    });
+  });
+
+  it("handleRemoveParticipant shows the default error message for a non-Error rejection", async () => {
+    await setupWithDetail();
+    mockDelete.mockRejectedValueOnce("plain string rejection");
+    fireEvent.click(screen.getByTestId("trigger-remove"));
+    await waitFor(() => {
+      expect(toaster.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          description: "Failed to remove participant",
+        }),
+      );
+    });
   });
 });

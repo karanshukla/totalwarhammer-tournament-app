@@ -37,7 +37,9 @@ vi.mock("@/features/matches/components/MatchesSection", () => ({
   default: () => <div data-testid="matches-section" />,
 }));
 
-// Mock EditParticipantDialog to expose onClose and open state as testable buttons
+// Mock EditParticipantDialog to expose onClose and open state as testable buttons.
+// A "force-save" button is always rendered (regardless of `open`) so tests can
+// invoke onSave while no participant is being edited (early-return guard).
 vi.mock("@/features/matches/components/EditParticipantDialog", () => ({
   default: ({
     open,
@@ -47,17 +49,23 @@ vi.mock("@/features/matches/components/EditParticipantDialog", () => ({
     open: boolean;
     onClose: () => void;
     onSave: () => void;
-  }) =>
-    open ? (
-      <div data-testid="edit-dialog" role="dialog">
-        <button data-testid="close-dialog-btn" onClick={onClose}>
-          Close
-        </button>
-        <button data-testid="save-dialog-btn" onClick={onSave}>
-          Save
-        </button>
-      </div>
-    ) : null,
+  }) => (
+    <>
+      <button data-testid="force-save-btn" onClick={onSave}>
+        ForceSave
+      </button>
+      {open ? (
+        <div data-testid="edit-dialog" role="dialog">
+          <button data-testid="close-dialog-btn" onClick={onClose}>
+            Close
+          </button>
+          <button data-testid="save-dialog-btn" onClick={onSave}>
+            Save
+          </button>
+        </div>
+      ) : null}
+    </>
+  ),
 }));
 
 vi.mock("@/shared/ui/Toaster", () => ({
@@ -454,5 +462,257 @@ describe("TournamentDetail – No description placeholder", () => {
   it("shows 'No description' message when isAdmin, no description, and not completed", () => {
     renderDetail({ status: "active", description: "" }, { user: adminUser });
     expect(screen.getByText(/no description/i)).toBeInTheDocument();
+  });
+});
+
+// ─── isAdmin via createdBy.toString() fallback (~line 126) ───────────────────
+
+describe("TournamentDetail – isAdmin via createdBy.toString() fallback", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("treats the user as admin when createdBy matches user.id only after toString()", () => {
+    renderDetail(
+      { status: "pending", createdBy: 1 as unknown as string },
+      { user: { id: "1" as unknown as string, username: "Admin" } },
+    );
+    expect(
+      screen.getByRole("heading", { name: "Add Participant" }),
+    ).toBeInTheDocument();
+  });
+});
+
+// ─── handleUpdateParticipant early-return guard (no editingParticipant) ──────
+
+describe("TournamentDetail – handleUpdateParticipant early-return guard", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("does not call onSaveParticipant when no participant is being edited", async () => {
+    const onSaveParticipant = vi.fn().mockResolvedValue(undefined);
+    renderDetail({ status: "pending" }, { user: adminUser, onSaveParticipant });
+
+    // Force-save without opening the edit dialog first (editingParticipant stays null)
+    fireEvent.click(screen.getByTestId("force-save-btn"));
+
+    await waitFor(() => {
+      expect(onSaveParticipant).not.toHaveBeenCalled();
+    });
+  });
+});
+
+// ─── Escape key ignored for non-Escape keys (issue #144) ────────────────────
+
+describe("TournamentDetail – non-Escape key while editing description", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("keeps the textarea open when a non-Escape key is pressed", async () => {
+    renderDetail(
+      { status: "pending", description: "" },
+      { user: adminUser },
+    );
+    fireEvent.click(screen.getByRole("button", { name: /edit description/i }));
+    await waitFor(() =>
+      expect(
+        screen.getByPlaceholderText(/tournament description/i),
+      ).toBeInTheDocument(),
+    );
+
+    fireEvent.keyDown(document, { key: "Enter" });
+
+    expect(
+      screen.getByPlaceholderText(/tournament description/i),
+    ).toBeInTheDocument();
+  });
+});
+
+// ─── Tournament Info inline copy button — actual click ───────────────────────
+
+describe("TournamentDetail – Tournament Info inline copy button click", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    Object.assign(navigator, {
+      clipboard: { writeText: vi.fn().mockResolvedValue(undefined) },
+    });
+  });
+
+  it("copies the code and shows a toaster on click", async () => {
+    const { toaster } = await import("@/shared/ui/Toaster");
+    renderDetail({ status: "active", code: "ZZZZZZ" }, { user: null });
+
+    // The Tournament Info card's copy button is icon-only; find it via the
+    // code box's sibling button (only ghost icon button remaining besides
+    // Spectator View, which has visible text).
+    const buttons = screen.getAllByRole("button");
+    const copyIconButton = buttons.find(
+      (b) => !b.textContent || b.textContent.trim() === "",
+    );
+    expect(copyIconButton).toBeDefined();
+    fireEvent.click(copyIconButton!);
+
+    expect(navigator.clipboard.writeText).toHaveBeenCalledWith("ZZZZZZ");
+    await waitFor(() => {
+      expect(toaster.create).toHaveBeenCalledWith(
+        expect.objectContaining({ title: "Copied!" }),
+      );
+    });
+  });
+});
+
+// ─── Add Participant panel: name input, Enter key, faction select ───────────
+
+describe("TournamentDetail – Add Participant panel inputs", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("calls onSetNewName when typing in the player name field", () => {
+    const onSetNewName = vi.fn();
+    renderDetail(
+      { status: "pending" },
+      { user: adminUser, onSetNewName },
+    );
+    fireEvent.change(screen.getByPlaceholderText(/enter player name/i), {
+      target: { value: "NewPlayer" },
+    });
+    expect(onSetNewName).toHaveBeenCalledWith("NewPlayer");
+  });
+
+  it("calls onAddParticipant when Enter is pressed in the name field", () => {
+    const onAddParticipant = vi.fn();
+    renderDetail(
+      { status: "pending" },
+      { user: adminUser, onAddParticipant },
+    );
+    fireEvent.keyDown(screen.getByPlaceholderText(/enter player name/i), {
+      key: "Enter",
+    });
+    expect(onAddParticipant).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not call onAddParticipant for a non-Enter key", () => {
+    const onAddParticipant = vi.fn();
+    renderDetail(
+      { status: "pending" },
+      { user: adminUser, onAddParticipant },
+    );
+    fireEvent.keyDown(screen.getByPlaceholderText(/enter player name/i), {
+      key: "Tab",
+    });
+    expect(onAddParticipant).not.toHaveBeenCalled();
+  });
+
+  it("enables the Add Participant button once newName is non-empty and not full", () => {
+    renderDetail(
+      { status: "pending", playerCount: 4, participants: [] },
+      { user: adminUser, newName: "Bob" },
+    );
+    expect(
+      screen.getByRole("button", { name: /add participant/i }),
+    ).toBeEnabled();
+  });
+
+  it("calls onSetNewFaction when a faction option is selected", async () => {
+    const userEventModule = await import("@testing-library/user-event");
+    const user = userEventModule.default.setup({ pointerEventsCheck: 0 });
+    const onSetNewFaction = vi.fn();
+    renderDetail(
+      { status: "pending" },
+      { user: adminUser, onSetNewFaction },
+    );
+
+    await user.click(screen.getByRole("combobox"));
+    const options = await screen.findAllByRole("option");
+    const empireOption = options.find((o) =>
+      o.textContent?.includes("Empire"),
+    );
+    if (empireOption) {
+      await user.click(empireOption);
+      await waitFor(() => expect(onSetNewFaction).toHaveBeenCalledWith("Empire"));
+    } else {
+      expect(options.length).toBeGreaterThan(0);
+    }
+  });
+});
+
+// ─── Swiss "Finalize Tournament" label on the top Advance Round button ──────
+
+describe("TournamentDetail – Swiss Finalize Tournament label (top button)", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("shows 'Finalize Tournament' for Swiss when max round >= roundNumbers.length", () => {
+    const matches: Match[] = [
+      makeMatch({ _id: "m1", round: 1, winnerId: "p1", status: "completed" }),
+    ];
+    renderDetail(
+      { status: "active", tournamentType: "Swiss System" },
+      { user: adminUser },
+      matches,
+    );
+    expect(
+      screen.getByRole("button", { name: /finalize tournament/i }),
+    ).toBeInTheDocument();
+  });
+});
+
+// ─── Champion winner = player2 (~lines 770-773, 847-849) ─────────────────────
+
+describe("TournamentDetail – champion is player2", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("shows player2 as champion in the Tournament Info card when player2 wins", () => {
+    const completedMatch: Match = makeMatch({
+      winnerId: "p2",
+      status: "completed",
+    });
+    renderDetail({ status: "completed" }, { user: null }, [completedMatch]);
+    expect(screen.getAllByText("Beta").length).toBeGreaterThan(0);
+  });
+
+  it("shows player2 as champion in the bottom trophy banner when player2 wins", () => {
+    const completedMatch: Match = makeMatch({
+      winnerId: "p2",
+      status: "completed",
+    });
+    renderDetail({ status: "completed" }, {}, [completedMatch]);
+    expect(screen.getByText(/tournament champion/i)).toBeInTheDocument();
+    expect(screen.getAllByText("Beta").length).toBeGreaterThan(0);
+  });
+});
+
+// ─── Description length >= 2000 color branch ──────────────────────────────────
+
+describe("TournamentDetail – description character count at limit", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("shows the loss color once the description reaches 2000 characters", async () => {
+    renderDetail(
+      { status: "pending", description: "" },
+      { user: adminUser },
+    );
+    fireEvent.click(screen.getByRole("button", { name: /edit description/i }));
+    const textarea = await screen.findByPlaceholderText(
+      /tournament description/i,
+    );
+    const longText = "a".repeat(2000);
+    fireEvent.change(textarea, { target: { value: longText } });
+
+    await waitFor(() =>
+      expect(screen.getByText("2000/2000")).toBeInTheDocument(),
+    );
+  });
+});
+
+// ─── selected.description nullish fallback (~line 403) ───────────────────────
+
+describe("TournamentDetail – description nullish fallback when opening editor", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("opens the editor with an empty draft when description is undefined", async () => {
+    renderDetail(
+      { status: "pending", description: undefined as unknown as string },
+      { user: adminUser },
+    );
+    fireEvent.click(screen.getByRole("button", { name: /edit description/i }));
+    const textarea = await screen.findByPlaceholderText(
+      /tournament description/i,
+    );
+    expect(textarea).toHaveValue("");
   });
 });

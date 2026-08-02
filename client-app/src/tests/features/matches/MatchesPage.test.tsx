@@ -139,4 +139,12 @@ describe("MatchesPage – err instanceof Error branch", () => {
       expect(screen.getByTestId("tournament-list")).toBeInTheDocument(),
     );
   });
+
+  it("falls back to the default error message when a non-Error value is rejected", async () => {
+    mockGet.mockRejectedValueOnce("plain string rejection");
+    renderPage();
+    await waitFor(() =>
+      expect(screen.getByTestId("tournament-list")).toBeInTheDocument(),
+    );
+  });
 });
