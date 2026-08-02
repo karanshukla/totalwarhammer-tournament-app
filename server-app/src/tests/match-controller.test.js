@@ -335,6 +335,37 @@ describe("match-controller", () => {
       assert.strictEqual(mockInvalidateStatsCache.mock.calls.length, 1);
     });
 
+    it("swallows a rejected invalidateStatsCache call on consensus completion", async () => {
+      const p1Id = "aaaaaaaaaaaaaaaaaaaaaaaa";
+      const p2Id = "bbbbbbbbbbbbbbbbbbbbbbbb";
+      const match = makeMatch({
+        reportedResults: [
+          {
+            reportedBy: p2Id,
+            reportedByName: "Bob",
+            winnerId: p1Id,
+            reportedAt: new Date(),
+          },
+        ],
+      });
+      mockMatchFindById.mock.mockImplementation(() => ({
+        populate: async () => match,
+      }));
+      mockInvalidateStatsCache.mock.mockImplementationOnce(async () => {
+        throw new Error("cache down");
+      });
+      const req = mockReq({
+        params: { id: "m1" },
+        body: { winnerId: p1Id },
+        user: { id: "x", username: "Alice", isGuest: false },
+      });
+      const res = mockRes();
+      await reportResult(req, res);
+      await new Promise((resolve) => setImmediate(resolve));
+      assert.strictEqual(match.status, "completed");
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
+    });
+
     it("should set status to disputed when players disagree", async () => {
       const p1Id = "aaaaaaaaaaaaaaaaaaaaaaaa";
       const p2Id = "bbbbbbbbbbbbbbbbbbbbbbbb";
@@ -453,6 +484,28 @@ describe("match-controller", () => {
       assert.strictEqual(mockEmitMatchUpdated.mock.calls.length, 1);
       assert.strictEqual(mockInvalidateStatsCache.mock.calls.length, 1);
     });
+
+    it("swallows a rejected invalidateStatsCache call on dispute resolution", async () => {
+      const creatorId = "cccccccccccccccccccccccc";
+      const match = makeDisputedMatch(creatorId);
+      const p1Id = match.player1.participantId;
+      mockMatchFindById.mock.mockImplementation(() => ({
+        populate: async () => match,
+      }));
+      mockInvalidateStatsCache.mock.mockImplementationOnce(async () => {
+        throw new Error("cache down");
+      });
+      const req = mockReq({
+        params: { id: "m1" },
+        body: { winnerId: p1Id, reason: "I saw it" },
+        user: { id: creatorId },
+      });
+      const res = mockRes();
+      await resolveDispute(req, res);
+      await new Promise((resolve) => setImmediate(resolve));
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
+      assert.strictEqual(match.status, "completed");
+    });
   });
 
   // ─── overrideResult ────────────────────────────────────────────────────────
@@ -524,6 +577,28 @@ describe("match-controller", () => {
       assert.strictEqual(match.resultOverrides[0].reason, "Correcting error");
       assert.strictEqual(mockEmitMatchUpdated.mock.calls.length, 1);
       assert.strictEqual(mockInvalidateStatsCache.mock.calls.length, 1);
+    });
+
+    it("swallows a rejected invalidateStatsCache call on override", async () => {
+      const creatorId = "cccccccccccccccccccccccc";
+      const match = makeCompletedMatch(creatorId);
+      const p2Id = match.player2.participantId;
+      mockMatchFindById.mock.mockImplementation(() => ({
+        populate: async () => match,
+      }));
+      mockInvalidateStatsCache.mock.mockImplementationOnce(async () => {
+        throw new Error("cache down");
+      });
+      const req = mockReq({
+        params: { id: "m1" },
+        body: { winnerId: p2Id, reason: "Correcting error" },
+        user: { id: creatorId },
+      });
+      const res = mockRes();
+      await overrideResult(req, res);
+      await new Promise((resolve) => setImmediate(resolve));
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
+      assert.strictEqual(match.winnerId, p2Id);
     });
 
     it("should return 400 if winnerId is not a player in the match", async () => {
@@ -717,6 +792,26 @@ describe("match-controller", () => {
       assert.strictEqual(match.winnerId, p1Id);
       assert.strictEqual(mockEmitMatchUpdated.mock.calls.length, 1);
       assert.strictEqual(mockInvalidateStatsCache.mock.calls.length, 1);
+    });
+
+    it("swallows a rejected invalidateStatsCache call on record result", async () => {
+      const match = makeActiveMatch();
+      const p1Id = match.player1.participantId;
+      mockMatchFindById.mock.mockImplementation(() => ({
+        populate: async () => match,
+      }));
+      mockInvalidateStatsCache.mock.mockImplementationOnce(async () => {
+        throw new Error("cache down");
+      });
+      const req = mockReq({
+        params: { id: "m1" },
+        body: { winnerId: p1Id },
+      });
+      const res = mockRes();
+      await recordResult(req, res);
+      await new Promise((resolve) => setImmediate(resolve));
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
+      assert.strictEqual(match.status, "completed");
     });
   });
 

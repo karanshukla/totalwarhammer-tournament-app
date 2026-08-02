@@ -47,6 +47,46 @@ function runDoubleElim(tournamentId, participants) {
   return allMatches;
 }
 
+// Like completeMatches, but alternates which player wins per match index so
+// both the winner and loser sides of the player1/player2 selection ternaries
+// get exercised (not just "player1 always wins").
+function completeMatchesAlternating(matches, startIndex = 0) {
+  return matches.map((m, i) => {
+    if (m.status === "completed") return m;
+    const player2Wins = (startIndex + i) % 2 === 1 && m.player2.name !== "BYE";
+    const winner = player2Wins ? m.player2 : m.player1;
+    const loser = player2Wins ? m.player1 : m.player2;
+    return {
+      ...m,
+      status: "completed",
+      winnerId: winner.participantId,
+      loserId: loser.participantId,
+      completedAt: new Date(),
+    };
+  });
+}
+
+// Run the full double elimination bracket to completion, alternating winners
+// between player1 and player2 each round so both sides of the winner/loser
+// selection ternaries in doubleElimAdvance are exercised.
+function runDoubleElimAlternating(tournamentId, participants) {
+  const allMatches = completeMatchesAlternating(
+    doubleElimStart(tournamentId, participants),
+  );
+  let iterations = 0;
+  const maxIterations = 50;
+
+  while (iterations++ < maxIterations) {
+    const result = doubleElimAdvance(tournamentId, allMatches);
+    if (result.completed) break;
+    if (!result.docs || result.docs.length === 0) break;
+    const newMatches = completeMatchesAlternating(result.docs, iterations);
+    allMatches.push(...newMatches);
+  }
+
+  return allMatches;
+}
+
 // Verify no participant plays two matches simultaneously in the same round+bracket
 function assertNoDuplicateParticipantsPerRound(matches) {
   const roundBracketMap = new Map();
@@ -195,6 +235,27 @@ describe("doubleElimAdvance", () => {
       }
     }
   });
+
+  it("exercises both winner/loser selection branches when player2 wins some matches", () => {
+    const participants = makeParticipants(8);
+    const allMatches = runDoubleElimAlternating(tid, participants);
+
+    assertGrandFinalExists(allMatches);
+    assertAllParticipantsPresent(participants, allMatches);
+
+    // Sanity check the alternating winner selection actually produced some
+    // matches where player2 (not player1) was recorded as the winner.
+    const player2Wins = allMatches.filter(
+      (m) =>
+        m.status === "completed" &&
+        m.player2.name !== "BYE" &&
+        m.winnerId?.toString() === m.player2.participantId?.toString(),
+    );
+    assert.ok(
+      player2Wins.length > 0,
+      "expected at least one match where player2 won",
+    );
+  });
 });
 
 describe("isBetaFaction propagation", () => {
@@ -243,6 +304,30 @@ describe("isBetaFaction propagation", () => {
       for (const slot of realSlots(matches)) {
         assert.strictEqual(slot.isBetaFaction, false);
       }
+    });
+
+    it("falls back to participantId when a participant has no _id", () => {
+      const participants = [
+        { participantId: "pid-1", name: "Player 1", faction: "Empire" },
+        { participantId: "pid-2", name: "Player 2", faction: "Empire" },
+      ];
+      const matches = singleElimStart(tid, participants);
+      const ids = [matches[0].player1.participantId, matches[0].player2.participantId];
+      assert.ok(ids.includes("pid-1"));
+      assert.ok(ids.includes("pid-2"));
+    });
+
+    it("bye match falls back to a bare participant with neither _id nor participantId", () => {
+      const participants = [
+        { name: "Player 1", faction: "Empire" },
+        { name: "Player 2", faction: "Empire" },
+        { name: "Player 3", faction: "Empire" },
+      ];
+      const matches = singleElimStart(tid, participants);
+      const bye = matches.find((m) => m.player2.name === "BYE");
+      assert.ok(bye, "Expected a bye match with 3 participants");
+      assert.strictEqual(bye.player1.participantId, undefined);
+      assert.strictEqual(bye.winnerId, undefined);
     });
   });
 
@@ -452,6 +537,22 @@ describe("roundRobinStandings", () => {
     assert.strictEqual(standings[1].wins, 1);
   });
 
+  it("computes the loser id as player1 when player2 wins", () => {
+    const matches = [
+      {
+        status: "completed",
+        winnerId: "p2",
+        player1: { participantId: "p1", name: "Alice" },
+        player2: { participantId: "p2", name: "Bob" },
+      },
+    ];
+    const standings = roundRobinStandings(participants, matches);
+    const alice = standings.find((s) => s.name === "Alice");
+    const bob = standings.find((s) => s.name === "Bob");
+    assert.strictEqual(bob.wins, 1);
+    assert.strictEqual(alice.losses, 1);
+  });
+
   it("skips BYE matches when computing standings", () => {
     const matches = [
       {
@@ -601,6 +702,57 @@ describe("swissAdvance", () => {
     assert.strictEqual(result.docs.length, 2);
     const byeDoc = result.docs.find((d) => d.player2?.name === "BYE");
     assert.ok(byeDoc, "expected a bye match for odd participants");
+  });
+
+  it("falls back to _id when a participant has no participantId", () => {
+    const participants = [
+      { _id: "p1", name: "Alice", faction: "" },
+      { _id: "p2", name: "Bob", faction: "" },
+    ];
+    const allMatches = [];
+    const result = swissAdvance(tid, participants, allMatches, 1);
+    assert.strictEqual(result.docs.length, 1);
+    const ids = [
+      result.docs[0].player1.participantId,
+      result.docs[0].player2?.participantId,
+    ];
+    assert.ok(ids.includes("p1"));
+  });
+
+  it("skips incomplete and BYE matches when tallying win scores", () => {
+    const participants = [
+      makePlayer("p1", "Alice"),
+      makePlayer("p2", "Bob"),
+      makePlayer("p3", "Carol"),
+      makePlayer("p4", "Dave"),
+    ];
+    const allMatches = [
+      {
+        round: 1,
+        status: "completed",
+        winnerId: "p1",
+        player1: { participantId: "p1", name: "Alice" },
+        player2: { participantId: "p2", name: "Bob" },
+      },
+      // Still pending — should be skipped when tallying scores
+      {
+        round: 1,
+        status: "pending",
+        winnerId: null,
+        player1: { participantId: "p3", name: "Carol" },
+        player2: { participantId: "p4", name: "Dave" },
+      },
+      // A bye match — should also be skipped
+      {
+        round: 1,
+        status: "completed",
+        winnerId: "p3",
+        player1: { participantId: "p3", name: "Carol" },
+        player2: { participantId: null, name: "BYE" },
+      },
+    ];
+    const result = swissAdvance(tid, participants, allMatches, 2);
+    assert.strictEqual(result.docs.length, 2);
   });
 
   it("forces rematch when no other pairing is available", () => {
@@ -895,6 +1047,38 @@ describe("doubleElimAdvance bracket reset", () => {
         round: 1,
         matchNumber: 2,
         bracketSide: "winners",
+        status: "pending",
+        player1: { participantId: "p3", name: "Carol" },
+        player2: { participantId: "p4", name: "Dave" },
+        winnerId: null,
+      },
+    ];
+
+    const result = doubleElimAdvance(tid, allMatches);
+
+    assert.deepStrictEqual(result, {
+      completed: false,
+      docs: [],
+      message: "Not all current round matches are complete",
+    });
+  });
+
+  it("evaluates the lbCurrent.length===0 fallback when the LB round has an incomplete match", () => {
+    const tid = "t_lb_in_progress";
+    const allMatches = [
+      {
+        round: 1,
+        matchNumber: 1,
+        bracketSide: "winners",
+        status: "completed",
+        player1: { participantId: "p1", name: "Alice" },
+        player2: { participantId: "p2", name: "Bob" },
+        winnerId: "p1",
+      },
+      {
+        round: 1,
+        matchNumber: 1,
+        bracketSide: "losers",
         status: "pending",
         player1: { participantId: "p3", name: "Carol" },
         player2: { participantId: "p4", name: "Dave" },

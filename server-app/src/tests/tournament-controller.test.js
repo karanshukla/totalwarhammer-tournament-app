@@ -77,6 +77,12 @@ mock.module("../infrastructure/utils/logger.js", {
   },
 });
 
+// ── Stats cache mock ──────────────────────────────────────────────────────────
+const mockInvalidateStatsCache = mock.fn(async () => {});
+mock.module("../infrastructure/services/stats-service.js", {
+  namedExports: { invalidateStatsCache: mockInvalidateStatsCache },
+});
+
 const mockMatchInsertMany = mock.fn(async () => []);
 const mockMatchFind = mock.fn(() => ({
   sort: mock.fn(async () => []),
@@ -142,6 +148,8 @@ describe("tournament-controller", () => {
     mockRoundRobinAdvance.mock.resetCalls();
     mockSwissAdvance.mock.resetCalls();
     mockDoubleElimAdvance.mock.resetCalls();
+    mockInvalidateStatsCache.mock.resetCalls();
+    mockInvalidateStatsCache.mock.mockImplementation(async () => {});
   });
 
   describe("createTournament", () => {
@@ -868,6 +876,27 @@ describe("tournament-controller", () => {
       assert.strictEqual(mockEmitMatchesAppended.mock.calls.length, 0);
     });
 
+    it("Single Elimination: swallows a rejected invalidateStatsCache call on completion", async () => {
+      const t = makeActiveTournament();
+      mockTournamentFindOne.mock.mockImplementation(async () => t);
+      mockMatchFind.mock.mockImplementation(() => ({
+        sort: mock.fn(async () => makeCompletedMatches(1)),
+      }));
+      mockSingleElimAdvance.mock.mockImplementation(() => ({
+        completed: true,
+        docs: [],
+      }));
+      mockInvalidateStatsCache.mock.mockImplementationOnce(async () => {
+        throw new Error("cache down");
+      });
+      const req = mockReq({ params: { id: "t1" } });
+      const res = mockRes();
+      await advanceRound(req, res);
+      await new Promise((resolve) => setImmediate(resolve));
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
+      assert.strictEqual(t.status, "completed");
+    });
+
     it("Single Elimination: emits matches:appended with new round when advancing", async () => {
       const t = makeActiveTournament();
       const newMatches = [{ _id: "m2", round: 2 }];
@@ -906,6 +935,26 @@ describe("tournament-controller", () => {
       await advanceRound(req, res);
       assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
       assert.strictEqual(mockEmitTournamentUpdated.mock.calls.length, 1);
+      assert.strictEqual(t.status, "completed");
+    });
+
+    it("Round Robin: swallows a rejected invalidateStatsCache call on completion", async () => {
+      const t = makeActiveTournament({ tournamentType: "Round Robin" });
+      mockTournamentFindOne.mock.mockImplementation(async () => t);
+      mockMatchFind.mock.mockImplementation(() => ({
+        sort: mock.fn(async () => makeCompletedMatches(1)),
+      }));
+      mockRoundRobinAdvance.mock.mockImplementation(() => ({
+        completed: true,
+      }));
+      mockInvalidateStatsCache.mock.mockImplementationOnce(async () => {
+        throw new Error("cache down");
+      });
+      const req = mockReq({ params: { id: "t1" } });
+      const res = mockRes();
+      await advanceRound(req, res);
+      await new Promise((resolve) => setImmediate(resolve));
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
       assert.strictEqual(t.status, "completed");
     });
 
@@ -968,6 +1017,29 @@ describe("tournament-controller", () => {
       await advanceRound(req, res);
       assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
       assert.strictEqual(res.json.mock.calls[0].arguments[0].completed, true);
+      assert.strictEqual(t.status, "completed");
+    });
+
+    it("Swiss System: swallows a rejected invalidateStatsCache call on completion", async () => {
+      const t = makeActiveTournament({
+        tournamentType: "Swiss System",
+        participants: [{ name: "A" }, { name: "B" }],
+        save: mock.fn(async () => {}),
+      });
+      mockTournamentFindOne.mock.mockImplementation(async () => t);
+      mockMatchFind.mock.mockImplementation(() => ({
+        sort: mock.fn(async () => [
+          { round: 1, bracketSide: null, status: "completed" },
+        ]),
+      }));
+      mockInvalidateStatsCache.mock.mockImplementationOnce(async () => {
+        throw new Error("cache down");
+      });
+      const req = mockReq({ params: { id: "t1" } });
+      const res = mockRes();
+      await advanceRound(req, res);
+      await new Promise((resolve) => setImmediate(resolve));
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
       assert.strictEqual(t.status, "completed");
     });
 
@@ -1049,6 +1121,37 @@ describe("tournament-controller", () => {
       await advanceRound(req, res);
       assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
       assert.strictEqual(res.json.mock.calls[0].arguments[0].completed, true);
+      assert.strictEqual(t.status, "completed");
+    });
+
+    it("Double Elimination: swallows a rejected invalidateStatsCache call on completion", async () => {
+      const t = makeActiveTournament({
+        tournamentType: "Double Elimination",
+        save: mock.fn(async () => {}),
+      });
+      mockTournamentFindOne.mock.mockImplementation(async () => t);
+      mockMatchFind.mock.mockImplementation(() => ({
+        sort: mock.fn(async () => [
+          {
+            round: 1,
+            bracketSide: "winners",
+            status: "completed",
+            _id: "m1",
+          },
+        ]),
+      }));
+      mockDoubleElimAdvance.mock.mockImplementation(() => ({
+        completed: true,
+        docs: [],
+      }));
+      mockInvalidateStatsCache.mock.mockImplementationOnce(async () => {
+        throw new Error("cache down");
+      });
+      const req = mockReq({ params: { id: "t1" } });
+      const res = mockRes();
+      await advanceRound(req, res);
+      await new Promise((resolve) => setImmediate(resolve));
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
       assert.strictEqual(t.status, "completed");
     });
 
