@@ -59,10 +59,10 @@ totalwarhammer-tournament-app/
 ```bash
 git clone https://github.com/karanshukla/totalwarhammer-tournament-app.git
 cd totalwarhammer-tournament-app
-docker-compose up --build
+docker compose up --build
 ```
 
-This starts the client, server, MongoDB, Redis, and Caddy reverse proxy in one command.
+This starts the client, server, MongoDB, Redis, and Caddy reverse proxy in one command. The app is served at [http://localhost:8080](http://localhost:8080).
 
 ### Option 2: Local dev
 
