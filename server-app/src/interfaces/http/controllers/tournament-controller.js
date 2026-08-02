@@ -192,9 +192,12 @@ export const getUserTournaments = async (req, res) => {
       statusCounts.all += count;
     }
 
+    // status is constrained to allowedStatuses, whose members are exactly the
+    // pre-initialized statusCounts keys, so statusCounts[status] is never
+    // undefined and the `?? 0` fallback below is unreachable.
     const total =
       status && status !== "all"
-        ? /* c8 ignore next -- status is constrained to allowedStatuses, whose members are exactly the pre-initialized statusCounts keys, so statusCounts[status] is never undefined */
+        ? /* node:coverage ignore next */
           (statusCounts[status] ?? 0)
         : statusCounts.all;
 

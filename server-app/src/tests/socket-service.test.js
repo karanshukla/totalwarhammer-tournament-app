@@ -409,6 +409,20 @@ describe("socket-service", () => {
       };
       assert.doesNotThrow(() => handler(fakeErr));
     });
+
+    it("logs the request headers when the engine error carries a request", () => {
+      const call = mockIoInstance.engine.on.mock.calls.find(
+        (c) => c.arguments[0] === "connection_error",
+      );
+      const handler = call.arguments[1];
+      const fakeErr = {
+        code: 1,
+        message: "test connection error",
+        context: {},
+        req: { headers: { origin: "http://localhost:5173" } },
+      };
+      assert.doesNotThrow(() => handler(fakeErr));
+    });
   });
 
   describe("MongoDB adapter — collection already exists (NamespaceExists)", () => {

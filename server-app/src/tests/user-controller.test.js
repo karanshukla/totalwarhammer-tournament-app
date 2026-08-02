@@ -301,6 +301,27 @@ describe("user-controller", () => {
       assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
       assert.ok(user.passwordChangedAt instanceof Date);
     });
+
+    it("should return 500 when session.save fails", async () => {
+      const user = {
+        password: "oldhash",
+        validatePassword: mock.fn(async () => true),
+        save: mock.fn(async () => {}),
+      };
+      mockUserFindById.mock.mockImplementation(() => ({
+        select: mock.fn(async () => user),
+      }));
+      const session = {
+        save: mock.fn((cb) => cb(new Error("save failed"))),
+      };
+      const req = mockReq({
+        body: { currentPassword: "old", newPassword: "newpass" },
+        session,
+      });
+      const res = mockRes();
+      await updatePassword(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 500);
+    });
   });
 
   describe("deleteAccount", () => {
@@ -359,7 +380,7 @@ describe("user-controller", () => {
       }));
       mockTournamentFind.mock.mockImplementation(() => ({
         select: mock.fn(() => ({
-          lean: mock.fn(async () => []),
+          lean: mock.fn(async () => [{ _id: "tour1" }, { _id: "tour2" }]),
         })),
       }));
       mockTournamentCountDocuments.mock.mockImplementation(async () => 3);
@@ -394,7 +415,7 @@ describe("user-controller", () => {
                 },
                 player2: {
                   name: "testuser",
-                  faction: "Empire",
+                  faction: "Dwarfs",
                   participantId: "p1",
                 },
                 winnerId: "p2",
@@ -411,6 +432,7 @@ describe("user-controller", () => {
       assert.strictEqual(data.tournamentsCreated, 3);
       assert.strictEqual(data.matchesPlayed, 2);
       assert.strictEqual(data.wins, 1);
+      assert.strictEqual(data.factions.length, 2);
     });
 
     it("should return 500 on unexpected error", async () => {
