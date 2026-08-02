@@ -670,11 +670,14 @@ describe("MatchesPage – socket event callback bodies", () => {
   it("invokes onMatchesUpdated callback replacing matches", async () => {
     await setupWithDetail();
 
-    const matchesUpdateCall = fakeSocket.on.mock.calls.find(
-      (c) => c[0] === "matches:updated",
-    );
-    const handler = matchesUpdateCall?.[1];
-    expect(handler).toBeDefined();
+    let handler: ((matches: unknown[]) => void) | undefined;
+    await waitFor(() => {
+      const matchesUpdateCall = fakeSocket.on.mock.calls.find(
+        (c) => c[0] === "matches:updated",
+      );
+      handler = matchesUpdateCall?.[1];
+      expect(handler).toBeDefined();
+    });
 
     // Calling the handler should not throw
     handler?.([{ _id: "m1", round: 1 }]);
@@ -683,11 +686,14 @@ describe("MatchesPage – socket event callback bodies", () => {
   it("invokes onMatchesAppended callback appending matches", async () => {
     await setupWithDetail();
 
-    const appendCall = fakeSocket.on.mock.calls.find(
-      (c) => c[0] === "matches:appended",
-    );
-    const handler = appendCall?.[1];
-    expect(handler).toBeDefined();
+    let handler: ((matches: unknown[]) => void) | undefined;
+    await waitFor(() => {
+      const appendCall = fakeSocket.on.mock.calls.find(
+        (c) => c[0] === "matches:appended",
+      );
+      handler = appendCall?.[1];
+      expect(handler).toBeDefined();
+    });
 
     handler?.([{ _id: "m2", round: 2 }]);
   });
