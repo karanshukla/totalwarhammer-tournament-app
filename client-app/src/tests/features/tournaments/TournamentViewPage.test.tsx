@@ -328,14 +328,14 @@ describe("TournamentViewPage – enable40kFactions badge", () => {
     mockUseUserStore.mockReturnValue(makeStore("u2", true));
   });
 
-  it("shows '40K Beta' badge when enable40kFactions is true", async () => {
+  it("shows '40K' badge when enable40kFactions is true", async () => {
     mockGet.mockResolvedValueOnce({
       success: true,
       data: makeTournament({ enable40kFactions: true }),
     });
     renderPage();
     await waitFor(() =>
-      expect(screen.getByText(/40k beta/i)).toBeInTheDocument(),
+      expect(screen.getByText("40K")).toBeInTheDocument(),
     );
   });
 });

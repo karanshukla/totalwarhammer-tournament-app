@@ -366,6 +366,84 @@ describe("tournament-controller", () => {
       assert.deepStrictEqual(actualQuery.$or[0], { createdBy: "user123" });
     });
 
+    it("should scope to wh3 when game=wh3", async () => {
+      const tournaments = [{ name: "WH3 only", code: "GHIJKL" }];
+      const chain = {
+        sort: mock.fn(function () {
+          return this;
+        }),
+        skip: mock.fn(function () {
+          return this;
+        }),
+        limit: mock.fn(async () => tournaments),
+      };
+      mockTournamentFind.mock.mockImplementation(() => chain);
+      mockTournamentAggregate.mock.mockImplementation(async () => []);
+
+      const req = mockReq({
+        user: { id: "user123", username: "user123", isGuest: false },
+        query: { page: "1", limit: "9", game: "wh3" },
+      });
+      const res = mockRes();
+
+      await getUserTournaments(req, res);
+
+      const actualQuery = mockTournamentFind.mock.calls[0].arguments[0];
+      assert.deepStrictEqual(actualQuery.enable40kFactions, { $ne: true });
+    });
+
+    it("should scope to 40k when game=40k", async () => {
+      const tournaments = [{ name: "40k only", code: "MNOPQR" }];
+      const chain = {
+        sort: mock.fn(function () {
+          return this;
+        }),
+        skip: mock.fn(function () {
+          return this;
+        }),
+        limit: mock.fn(async () => tournaments),
+      };
+      mockTournamentFind.mock.mockImplementation(() => chain);
+      mockTournamentAggregate.mock.mockImplementation(async () => []);
+
+      const req = mockReq({
+        user: { id: "user123", username: "user123", isGuest: false },
+        query: { page: "1", limit: "9", game: "40k" },
+      });
+      const res = mockRes();
+
+      await getUserTournaments(req, res);
+
+      const actualQuery = mockTournamentFind.mock.calls[0].arguments[0];
+      assert.strictEqual(actualQuery.enable40kFactions, true);
+    });
+
+    it("should not add an enable40kFactions filter when game is omitted", async () => {
+      const tournaments = [{ name: "All", code: "STUVWX" }];
+      const chain = {
+        sort: mock.fn(function () {
+          return this;
+        }),
+        skip: mock.fn(function () {
+          return this;
+        }),
+        limit: mock.fn(async () => tournaments),
+      };
+      mockTournamentFind.mock.mockImplementation(() => chain);
+      mockTournamentAggregate.mock.mockImplementation(async () => []);
+
+      const req = mockReq({
+        user: { id: "user123", username: "user123", isGuest: false },
+        query: { page: "1", limit: "9" },
+      });
+      const res = mockRes();
+
+      await getUserTournaments(req, res);
+
+      const actualQuery = mockTournamentFind.mock.calls[0].arguments[0];
+      assert.ok(!("enable40kFactions" in actualQuery));
+    });
+
     it("should return 500 on error", async () => {
       mockTournamentFind.mock.mockImplementation(() => {
         throw new Error("fail");

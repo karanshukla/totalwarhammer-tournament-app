@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   CardRoot,
   VStack,
@@ -10,13 +10,29 @@ import {
   Skeleton,
   Separator,
   Box,
+  chakra,
 } from "@chakra-ui/react";
 import { LuTrophy, LuSwords, LuShield, LuChartBar } from "react-icons/lu";
-import { fetchUserStats, UserStatsData } from "../api/accountApi";
+import {
+  fetchUserStats,
+  UserStatsData,
+  GameUserStats,
+} from "../api/accountApi";
+
+type Game = "wh3" | "40k";
+
+const EMPTY_STATS: GameUserStats = {
+  tournamentsCreated: 0,
+  matchesPlayed: 0,
+  wins: 0,
+  losses: 0,
+  factions: [],
+};
 
 const UserStatsCard: React.FC = () => {
   const [stats, setStats] = useState<UserStatsData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [game, setGame] = useState<Game>("wh3");
 
   useEffect(() => {
     fetchUserStats().then((data) => {
@@ -25,11 +41,52 @@ const UserStatsCard: React.FC = () => {
     });
   }, []);
 
+  const active: GameUserStats = stats?.[game] ?? EMPTY_STATS;
+
   return (
     <CardRoot p={5} borderWidth="1px" borderRadius="lg" bg="bg.panel">
-      <Heading size="md" mb={4}>
-        Your Activity
-      </Heading>
+      <HStack justify="space-between" align="center" mb={4} wrap="wrap" gap={3}>
+        <Heading size="md">Your Activity</Heading>
+        {/* Game-system toggle (WH3 / 40K) */}
+        <HStack gap={1} p={1} borderRadius="md" borderWidth={1} borderColor="border" bg="bg.subtle">
+          <chakra.button
+            type="button"
+            py={1}
+            px={3}
+            borderRadius="sm"
+            borderWidth={1}
+            fontSize="sm"
+            fontWeight="medium"
+            cursor="pointer"
+            transition="all 0.15s"
+            onClick={() => setGame("wh3")}
+            bg={game === "wh3" ? "colorPalette.subtle" : "transparent"}
+            borderColor={game === "wh3" ? "colorPalette.muted" : "border"}
+            color={game === "wh3" ? "fg" : "fg.muted"}
+            colorPalette="ink"
+          >
+            WH3
+          </chakra.button>
+          <chakra.button
+            type="button"
+            py={1}
+            px={3}
+            borderRadius="sm"
+            borderWidth={1}
+            fontSize="sm"
+            fontWeight="medium"
+            cursor="pointer"
+            transition="all 0.15s"
+            onClick={() => setGame("40k")}
+            bg={game === "40k" ? "colorPalette.subtle" : "transparent"}
+            borderColor={game === "40k" ? "colorPalette.muted" : "border"}
+            color={game === "40k" ? "fg" : "fg.muted"}
+            colorPalette="verdigris"
+          >
+            40K
+          </chakra.button>
+        </HStack>
+      </HStack>
 
       {/* Summary stats */}
       <SimpleGrid columns={{ base: 2, sm: 4 }} gap={4} mb={6}>
@@ -37,28 +94,28 @@ const UserStatsCard: React.FC = () => {
           {
             icon: LuTrophy,
             label: "Tournaments",
-            value: stats?.tournamentsCreated ?? 0,
+            value: active.tournamentsCreated,
             bg: "gold.subtle",
             color: "gold.text",
           },
           {
             icon: LuSwords,
             label: "Matches",
-            value: stats?.matchesPlayed ?? 0,
+            value: active.matchesPlayed,
             bg: "info.subtle",
             color: "info.text",
           },
           {
             icon: LuChartBar,
             label: "Wins",
-            value: stats?.wins ?? 0,
+            value: active.wins,
             bg: "info.subtle",
             color: "info.text",
           },
           {
             icon: LuShield,
             label: "Losses",
-            value: stats?.losses ?? 0,
+            value: active.losses,
             bg: "brand.subtle",
             color: "brand.text",
           },
@@ -94,7 +151,7 @@ const UserStatsCard: React.FC = () => {
       </SimpleGrid>
 
       {/* Faction breakdown */}
-      {(loading || (stats?.factions && stats.factions.length > 0)) && (
+      {(loading || (active.factions && active.factions.length > 0)) && (
         <>
           <Separator mb={4} />
           <Heading
@@ -111,7 +168,7 @@ const UserStatsCard: React.FC = () => {
               ? Array.from({ length: 3 }).map((_, i) => (
                   <Skeleton key={i} h="24px" borderRadius="md" />
                 ))
-              : stats!.factions.map((f) => (
+              : active.factions.map((f) => (
                   <HStack key={f.name} justify="space-between">
                     <Text fontSize="sm">{f.name}</Text>
                     <Badge colorPalette="ink" variant="subtle">
@@ -124,8 +181,8 @@ const UserStatsCard: React.FC = () => {
       )}
 
       {!loading &&
-        stats?.matchesPlayed === 0 &&
-        stats?.tournamentsCreated === 0 && (
+        active.matchesPlayed === 0 &&
+        active.tournamentsCreated === 0 && (
           <Text fontSize="sm" color="fg.muted" textAlign="center" py={4}>
             No activity recorded yet. Join or create a tournament to get
             started.

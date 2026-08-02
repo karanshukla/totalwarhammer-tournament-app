@@ -36,10 +36,10 @@ describe("HeroSection", () => {
     ).toBeInTheDocument();
   });
 
-  it("renders the 40k beta badge", () => {
+  it("renders the 40k support badge", () => {
     renderHero();
     expect(
-      screen.getByText(/Now includes beta warhammer 40k support/i),
+      screen.getByText(/Now includes Warhammer 40,000 support/i),
     ).toBeInTheDocument();
   });
 

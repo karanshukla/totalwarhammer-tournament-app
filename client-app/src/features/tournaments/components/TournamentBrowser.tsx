@@ -17,7 +17,6 @@ import {
   LuEye,
   LuTrophy,
   LuSwords,
-  LuFlaskConical,
 } from "react-icons/lu";
 import { useNavigate } from "react-router";
 import { httpClient } from "@/core/api/httpClient";
@@ -195,8 +194,7 @@ const TournamentBrowser: React.FC<Props> = ({ statusFilter, emptyMessage }) => {
                             bg="gold.subtle"
                             color="gold.text"
                           >
-                            <LuFlaskConical size={9} />
-                            40K Beta
+                            40K
                           </Badge>
                         )}
                       </HStack>

@@ -11,7 +11,6 @@ import {
   Card,
   Box,
   HStack,
-  Badge,
   Select,
   Portal,
   createListCollection,
@@ -21,7 +20,6 @@ import {
   LuTriangleAlert,
   LuInfo,
   LuLock,
-  LuFlaskConical,
 } from "react-icons/lu";
 import { NumberInputRoot, NumberInputField } from "@/shared/ui/NumberInput";
 import { httpClient } from "@/core/api/httpClient";
@@ -445,26 +443,6 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
                         ))}
 
                         <Box mt="auto">
-                          {formData.enable40kFactions && (
-                            <Box
-                              p={3}
-                              borderRadius="md"
-                              bg="info.subtle"
-                              borderWidth={1}
-                              borderColor="info.border"
-                              mb={2}
-                            >
-                              <HStack gap={2} alignItems="flex-start">
-                                <Box color="info.text" flexShrink={0} mt="1px">
-                                  <LuFlaskConical size={14} />
-                                </Box>
-                                <Text fontSize="sm" color="info.text">
-                                  40K factions are in beta and will not appear
-                                  in global statistics or player stat pages.
-                                </Text>
-                              </HStack>
-                            </Box>
-                          )}
                           <HStack
                             gap={2}
                             mb={2}
@@ -483,14 +461,6 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
                               >
                                 Factions
                               </Text>
-                              <Badge
-                                colorPalette="verdigris"
-                                size="xs"
-                                variant="subtle"
-                              >
-                                <LuFlaskConical size={9} />
-                                Beta
-                              </Badge>
                             </HStack>
                             <HStack gap={1}>
                               <chakra.button

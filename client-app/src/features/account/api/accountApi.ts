@@ -27,12 +27,17 @@ export interface AccountUpdateResponse {
  * Refreshes the user's session by making a request to fetch CSRF token
  * This keeps the session active and helps prevent authentication issues
  */
-export interface UserStatsData {
+export interface GameUserStats {
   tournamentsCreated: number;
   matchesPlayed: number;
   wins: number;
   losses: number;
   factions: { name: string; count: number }[];
+}
+
+export interface UserStatsData {
+  wh3: GameUserStats;
+  "40k": GameUserStats;
 }
 
 export const fetchUserStats = async (): Promise<UserStatsData | null> => {

@@ -153,6 +153,16 @@ export const getUserTournaments = async (req, res) => {
       typeof rawStatus === "string" && allowedStatuses.has(rawStatus)
         ? rawStatus
         : "all";
+    // Optional game-system filter: "wh3" (exclude 40k), "40k" (only 40k),
+    // or anything else / omitted (all games).
+    const game =
+      typeof req.query.game === "string" ? req.query.game : "all";
+    const enable40kCondition =
+      game === "wh3"
+        ? { enable40kFactions: { $ne: true } }
+        : game === "40k"
+          ? { enable40kFactions: true }
+          : null;
     const skip = (page - 1) * limit;
 
     const queryConditions = [];
@@ -175,13 +185,18 @@ export const getUserTournaments = async (req, res) => {
     }
 
     const baseQuery = { $or: queryConditions };
+    const gameScopedBaseQuery = enable40kCondition
+      ? { ...baseQuery, ...enable40kCondition }
+      : baseQuery;
     const filter =
-      status && status !== "all" ? { ...baseQuery, status } : baseQuery;
+      status && status !== "all"
+        ? { ...gameScopedBaseQuery, status }
+        : gameScopedBaseQuery;
 
     const [tournaments, statusAgg] = await Promise.all([
       Tournament.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit),
       Tournament.aggregate([
-        { $match: baseQuery },
+        { $match: gameScopedBaseQuery },
         { $group: { _id: "$status", count: { $sum: 1 } } },
       ]),
     ]);

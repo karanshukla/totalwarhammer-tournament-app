@@ -12,6 +12,7 @@ import {
   Card,
   Separator,
   For,
+  chakra,
 } from "@chakra-ui/react";
 import {
   LuTrophy,
@@ -23,6 +24,8 @@ import {
 } from "react-icons/lu";
 import { httpClient } from "@/core/api/httpClient";
 import { displayName as dn } from "@/shared/utils/displayName";
+
+type Game = "wh3" | "40k";
 
 interface TopPlayer {
   name: string;
@@ -58,8 +61,7 @@ interface RecentTournament {
   createdAt: string;
 }
 
-interface Stats {
-  cachedAt?: string;
+interface GameStats {
   tournaments: {
     pending: number;
     active: number;
@@ -79,6 +81,12 @@ interface Stats {
   topCreators: TopCreator[];
   recentTournaments: RecentTournament[];
   recentWinners: RecentWinner[];
+}
+
+interface Stats {
+  cachedAt?: string;
+  wh3: GameStats;
+  "40k": GameStats;
 }
 
 interface StatCardProps {
@@ -137,6 +145,7 @@ const StatisticsPage: React.FC = () => {
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [game, setGame] = useState<Game>("wh3");
 
   const cardBg = "bg.panel";
   const barBg = "bg.muted";
@@ -187,8 +196,9 @@ const StatisticsPage: React.FC = () => {
     );
   }
 
-  const maxFactionWins = stats.topFactions[0]?.wins ?? 1;
-  const maxPlayerWins = stats.topPlayers[0]?.wins ?? 1;
+  const active = stats[game];
+  const maxFactionWins = active.topFactions[0]?.wins ?? 1;
+  const maxPlayerWins = active.topPlayers[0]?.wins ?? 1;
 
   return (
     <Container maxW="container.xl" py={8}>
@@ -214,32 +224,72 @@ const StatisticsPage: React.FC = () => {
           )}
         </HStack>
 
+        {/* Game-system toggle (WH3 / 40K) */}
+        <HStack gap={1} p={2} borderRadius="md" borderWidth={1} borderColor="border" bg="bg.subtle" w="fit-content">
+          <chakra.button
+            type="button"
+            py={1.5}
+            px={4}
+            borderRadius="sm"
+            borderWidth={1}
+            fontSize="sm"
+            fontWeight="medium"
+            cursor="pointer"
+            transition="all 0.15s"
+            onClick={() => setGame("wh3")}
+            bg={game === "wh3" ? "colorPalette.subtle" : "transparent"}
+            borderColor={game === "wh3" ? "colorPalette.muted" : "border"}
+            color={game === "wh3" ? "fg" : "fg.muted"}
+            colorPalette="ink"
+          >
+            WH3
+          </chakra.button>
+          <chakra.button
+            type="button"
+            py={1.5}
+            px={4}
+            borderRadius="sm"
+            borderWidth={1}
+            fontSize="sm"
+            fontWeight="medium"
+            cursor="pointer"
+            transition="all 0.15s"
+            onClick={() => setGame("40k")}
+            bg={game === "40k" ? "colorPalette.subtle" : "transparent"}
+            borderColor={game === "40k" ? "colorPalette.muted" : "border"}
+            color={game === "40k" ? "fg" : "fg.muted"}
+            colorPalette="verdigris"
+          >
+            40K
+          </chakra.button>
+        </HStack>
+
         {/* Overview cards */}
         <SimpleGrid columns={{ base: 2, md: 4 }} gap={4}>
           <StatCard
             label="Total Tournaments"
-            value={stats.tournaments.total}
+            value={active.tournaments.total}
             icon={<LuTrophy />}
             colorPalette="brass"
           />
           <StatCard
             label="Active Tournaments"
-            value={stats.tournaments.active}
+            value={active.tournaments.active}
             icon={<LuClock />}
             colorPalette="verdigris"
           />
           <StatCard
             label="Matches Played"
-            value={stats.matches.completed}
+            value={active.matches.completed}
             icon={<LuSwords />}
             colorPalette="crimson"
           />
           <StatCard
             label="Completed Tournaments"
-            value={stats.tournaments.completed}
+            value={active.tournaments.completed}
             icon={<LuCircleCheck />}
             colorPalette="ink"
-            sub={`of ${stats.tournaments.total} total`}
+            sub={`of ${active.tournaments.total} total`}
           />
         </SimpleGrid>
 
@@ -255,13 +305,13 @@ const StatisticsPage: React.FC = () => {
               </HStack>
             </Card.Header>
             <Card.Body>
-              {stats.topFactions.length === 0 ? (
+              {active.topFactions.length === 0 ? (
                 <Text color="fg.muted" fontSize="sm">
                   No faction data yet.
                 </Text>
               ) : (
                 <VStack gap={3} alignItems="stretch">
-                  <For each={stats.topFactions}>
+                  <For each={active.topFactions}>
                     {(f, i) => (
                       <Box key={f.faction}>
                         <HStack justifyContent="space-between" mb={1}>
@@ -313,13 +363,13 @@ const StatisticsPage: React.FC = () => {
               </HStack>
             </Card.Header>
             <Card.Body>
-              {stats.topPlayers.length === 0 ? (
+              {active.topPlayers.length === 0 ? (
                 <Text color="fg.muted" fontSize="sm">
                   No player data yet.
                 </Text>
               ) : (
                 <VStack gap={3} alignItems="stretch">
-                  <For each={stats.topPlayers}>
+                  <For each={active.topPlayers}>
                     {(p, i) => (
                       <Box key={p.name}>
                         <HStack justifyContent="space-between" mb={1}>
@@ -388,13 +438,13 @@ const StatisticsPage: React.FC = () => {
               </Text>
             </Card.Header>
             <Card.Body>
-              {stats.recentWinners.length === 0 ? (
+              {active.recentWinners.length === 0 ? (
                 <Text fontSize="sm" color="fg.muted" fontStyle="italic">
                   No tournaments completed in the last 7 days.
                 </Text>
               ) : (
                 <VStack gap={3} alignItems="stretch">
-                  <For each={stats.recentWinners}>
+                  <For each={active.recentWinners}>
                     {(w, i) => (
                       <Box key={i}>
                         {i > 0 && <Separator mb={3} />}
@@ -459,13 +509,13 @@ const StatisticsPage: React.FC = () => {
               </HStack>
             </Card.Header>
             <Card.Body>
-              {stats.topCreators.length === 0 ? (
+              {active.topCreators.length === 0 ? (
                 <Text color="fg.muted" fontSize="sm">
                   No data yet.
                 </Text>
               ) : (
                 <VStack gap={2} alignItems="stretch">
-                  <For each={stats.topCreators}>
+                  <For each={active.topCreators}>
                     {(c, i) => (
                       <HStack key={c.username} justifyContent="space-between">
                         <HStack gap={2}>
@@ -508,7 +558,7 @@ const StatisticsPage: React.FC = () => {
         </SimpleGrid>
 
         {/* Recent Completed Tournaments */}
-        {stats.recentTournaments.length > 0 && (
+        {active.recentTournaments.length > 0 && (
           <Card.Root bg={cardBg}>
             <Card.Header>
               <HStack gap={2}>
@@ -520,7 +570,7 @@ const StatisticsPage: React.FC = () => {
             </Card.Header>
             <Card.Body>
               <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} gap={4}>
-                <For each={stats.recentTournaments}>
+                <For each={active.recentTournaments}>
                   {(t) => (
                     <Box
                       key={t._id}

@@ -372,7 +372,7 @@ describe("user-controller", () => {
       assert.strictEqual(res.status.mock.calls[0].arguments[0], 404);
     });
 
-    it("should return stats with wins and losses", async () => {
+    it("should return nested wh3/40k stats with wins and losses", async () => {
       mockUserFindById.mock.mockImplementation(() => ({
         select: mock.fn(() => ({
           lean: mock.fn(async () => ({ username: "testuser" })),
@@ -384,44 +384,24 @@ describe("user-controller", () => {
         })),
       }));
       mockTournamentCountDocuments.mock.mockImplementation(async () => 3);
-      let matchFindCallCount = 0;
+      // Every Match.find returns one win (as player1) — same for wh3 and 40k.
       mockMatchFind.mock.mockImplementation(() => ({
         select: mock.fn(() => ({
-          lean: mock.fn(async () => {
-            matchFindCallCount++;
-            if (matchFindCallCount === 1) {
-              return [
-                {
-                  player1: {
-                    name: "testuser",
-                    faction: "Empire",
-                    participantId: "p1",
-                  },
-                  player2: {
-                    name: "other",
-                    faction: "Skaven",
-                    participantId: "p2",
-                  },
-                  winnerId: "p1",
-                },
-              ];
-            }
-            return [
-              {
-                player1: {
-                  name: "other",
-                  faction: "Skaven",
-                  participantId: "p2",
-                },
-                player2: {
-                  name: "testuser",
-                  faction: "Dwarfs",
-                  participantId: "p1",
-                },
-                winnerId: "p2",
+          lean: mock.fn(async () => [
+            {
+              player1: {
+                name: "testuser",
+                faction: "Empire",
+                participantId: "p1",
               },
-            ];
-          }),
+              player2: {
+                name: "other",
+                faction: "Skaven",
+                participantId: "p2",
+              },
+              winnerId: "p1",
+            },
+          ]),
         })),
       }));
       const req = mockReq();
@@ -429,10 +409,19 @@ describe("user-controller", () => {
       await getUserStats(req, res);
       assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
       const data = res.json.mock.calls[0].arguments[0].data;
-      assert.strictEqual(data.tournamentsCreated, 3);
-      assert.strictEqual(data.matchesPlayed, 2);
-      assert.strictEqual(data.wins, 1);
-      assert.strictEqual(data.factions.length, 2);
+      // Nested shape: both game keys present.
+      assert.ok("wh3" in data);
+      assert.ok("40k" in data);
+      // wh3: each Match.find call returns one match where testuser is player1
+      // and wins — so 2 matches and 2 wins per game.
+      assert.strictEqual(data.wh3.tournamentsCreated, 3);
+      assert.strictEqual(data.wh3.matchesPlayed, 2);
+      assert.strictEqual(data.wh3.wins, 2);
+      assert.strictEqual(data.wh3.losses, 0);
+      assert.strictEqual(data.wh3.factions.length, 1);
+      // 40k mirrors the same mocked data.
+      assert.strictEqual(data["40k"].matchesPlayed, 2);
+      assert.strictEqual(data["40k"].wins, 2);
     });
 
     it("should return 500 on unexpected error", async () => {

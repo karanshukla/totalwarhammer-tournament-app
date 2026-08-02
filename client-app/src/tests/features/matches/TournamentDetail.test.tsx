@@ -246,14 +246,14 @@ describe("TournamentDetail – banned factions", () => {
 describe("TournamentDetail – enable40kFactions badge", () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it("shows '40K Beta' badge when enable40kFactions is true", () => {
+  it("shows '40K' badge when enable40kFactions is true", () => {
     renderDetail({ enable40kFactions: true });
-    expect(screen.getByText(/40k beta/i)).toBeInTheDocument();
+    expect(screen.getByText("40K")).toBeInTheDocument();
   });
 
-  it("does not show '40K Beta' badge when enable40kFactions is false", () => {
+  it("does not show '40K' badge when enable40kFactions is false", () => {
     renderDetail({ enable40kFactions: false });
-    expect(screen.queryByText(/40k beta/i)).not.toBeInTheDocument();
+    expect(screen.queryByText("40K")).not.toBeInTheDocument();
   });
 });
 
