@@ -45,6 +45,7 @@ Thumbs.db
 # Claude Code
 .claude/*
 !.claude/settings.json
+!.claude/skills/
 .claude/settings.local.json
 
 # Optional npm cache & test coverage

@@ -79,7 +79,7 @@ export function ParticipantList({
         </Text>
 
         {/* Control panel */}
-        <Card.Root variant="outline" p={3}>
+        <Card.Root variant="subtle" p={3}>
           <VStack align="stretch" gap={3}>
             <Text fontWeight="medium">Add New Participants</Text>
             <Flex

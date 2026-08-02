@@ -89,7 +89,7 @@ export function TournamentBracket() {
                 <Card.Root
                   key={match.id}
                   id={`match-${match.id}`}
-                  variant="outline"
+                  variant="subtle"
                   data-match-id={match.id}
                   boxShadow="xs" // Reduced shadow for a lighter feel
                   _hover={{ boxShadow: "md" }}
