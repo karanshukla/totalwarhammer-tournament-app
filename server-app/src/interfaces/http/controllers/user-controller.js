@@ -269,6 +269,78 @@ export const deleteAccount = async (req, res) => {
   }
 };
 
+/**
+ * Compute one game's per-user stats. `enable40kOperator` is the MongoDB
+ * comparison applied to the tournament's enable40kFactions flag:
+ *   wh3 → { $ne: true } (historical, unchanged numbers)
+ *   40k → { $eq: true }
+ * For wh3 we keep the historical per-slot beta-faction exclusion; for 40k the
+ * slots ARE beta-tagged, so we count them.
+ */
+async function computeUserGameStats(
+  userId,
+  username,
+  enable40kOperator,
+  excludeBetaFactions,
+) {
+  const tournamentIds = await Tournament.find({
+    enable40kFactions: enable40kOperator,
+  })
+    .select("_id")
+    .lean()
+    .then((docs) => docs.map((d) => d._id));
+
+  const [tournamentsCreatedCount, matchesAsP1, matchesAsP2] =
+    await Promise.all([
+      Tournament.countDocuments({
+        createdBy: userId,
+        enable40kFactions: enable40kOperator,
+      }),
+
+      Match.find({
+        "player1.name": username,
+        status: "completed",
+        tournament: { $in: tournamentIds },
+      })
+        .select("player1 player2 winnerId tournament")
+        .lean(),
+
+      Match.find({
+        "player2.name": username,
+        status: "completed",
+        tournament: { $in: tournamentIds },
+      })
+        .select("player1 player2 winnerId tournament")
+        .lean(),
+    ]);
+
+  const allMatches = [...matchesAsP1, ...matchesAsP2];
+  const wins = allMatches.filter((m) => {
+    if (m.player1.name === username)
+      return m.winnerId === m.player1.participantId;
+    return m.winnerId === m.player2.participantId;
+  }).length;
+  const losses = allMatches.length - wins;
+
+  const factionCounts = {};
+  for (const m of allMatches) {
+    const slot = m.player1.name === username ? m.player1 : m.player2;
+    if (slot.faction && (!excludeBetaFactions || !slot.isBetaFaction))
+      factionCounts[slot.faction] = (factionCounts[slot.faction] || 0) + 1;
+  }
+  const factions = Object.entries(factionCounts)
+    .sort((a, b) => b[1] - a[1])
+    .map(([name, count]) => ({ name, count }));
+
+  return {
+    tournamentsCreated: tournamentsCreatedCount,
+    matchesPlayed: allMatches.length,
+    wins,
+    losses,
+    factions,
+  };
+}
+
 /** @type {import('express').RequestHandler} */
 export const getUserStats = async (req, res) => {
   try {
@@ -282,64 +354,14 @@ export const getUserStats = async (req, res) => {
 
     const username = user.username;
 
-    const non40kTournamentIds = await Tournament.find({
-      enable40kFactions: { $ne: true },
-    })
-      .select("_id")
-      .lean()
-      .then((docs) => docs.map((d) => d._id));
-
-    const [tournamentsCreatedCount, matchesAsP1, matchesAsP2] =
-      await Promise.all([
-        Tournament.countDocuments({
-          createdBy: userId,
-          enable40kFactions: { $ne: true },
-        }),
-
-        Match.find({
-          "player1.name": username,
-          status: "completed",
-          tournament: { $in: non40kTournamentIds },
-        })
-          .select("player1 player2 winnerId tournament")
-          .lean(),
-
-        Match.find({
-          "player2.name": username,
-          status: "completed",
-          tournament: { $in: non40kTournamentIds },
-        })
-          .select("player1 player2 winnerId tournament")
-          .lean(),
-      ]);
-
-    const allMatches = [...matchesAsP1, ...matchesAsP2];
-    const wins = allMatches.filter((m) => {
-      if (m.player1.name === username)
-        return m.winnerId === m.player1.participantId;
-      return m.winnerId === m.player2.participantId;
-    }).length;
-    const losses = allMatches.length - wins;
-
-    const factionCounts = {};
-    for (const m of allMatches) {
-      const slot = m.player1.name === username ? m.player1 : m.player2;
-      if (slot.faction && !slot.isBetaFaction)
-        factionCounts[slot.faction] = (factionCounts[slot.faction] || 0) + 1;
-    }
-    const factions = Object.entries(factionCounts)
-      .sort((a, b) => b[1] - a[1])
-      .map(([name, count]) => ({ name, count }));
+    const [wh3, k40] = await Promise.all([
+      computeUserGameStats(userId, username, { $ne: true }, true),
+      computeUserGameStats(userId, username, { $eq: true }, false),
+    ]);
 
     return res.status(200).json({
       success: true,
-      data: {
-        tournamentsCreated: tournamentsCreatedCount,
-        matchesPlayed: allMatches.length,
-        wins,
-        losses,
-        factions,
-      },
+      data: { wh3, "40k": k40 },
     });
   } catch {
     return res.status(500).json({

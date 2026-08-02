@@ -14,8 +14,10 @@ import {
   Separator,
   For,
 } from "@chakra-ui/react";
-import { LuTrophy, LuUsers, LuSearch, LuFlaskConical } from "react-icons/lu";
+import { LuTrophy, LuUsers, LuSearch } from "react-icons/lu";
 import { Tournament, statusColorMap } from "./types";
+
+export type GameFilter = "all" | "wh3" | "40k";
 
 interface Props {
   tournaments: Tournament[];
@@ -30,10 +32,12 @@ interface Props {
   codeLoading: boolean;
   codeError: string | null;
   isAuthenticated: boolean;
+  gameFilter: GameFilter;
   onSelectTournament: (t: Tournament) => void;
   onFindByCode: () => void;
   onCodeInputChange: (v: string) => void;
   onStatusFilterChange: (s: "all" | "pending" | "active" | "completed") => void;
+  onGameFilterChange: (g: GameFilter) => void;
   onPageChange: (p: number) => void;
 }
 
@@ -54,10 +58,12 @@ const TournamentList: React.FC<Props> = ({
   codeLoading,
   codeError,
   isAuthenticated,
+  gameFilter,
   onSelectTournament,
   onFindByCode,
   onCodeInputChange,
   onStatusFilterChange,
+  onGameFilterChange,
   onPageChange,
 }) => {
   const totalPages = Math.ceil(total / pageSize);
@@ -143,6 +149,30 @@ const TournamentList: React.FC<Props> = ({
           ))}
         </HStack>
       )}
+
+      {/* Game-system filter (All / WH3 / 40K) */}
+      <HStack mb={4} gap={2}>
+        {(
+          [
+            { value: "all", label: "All Games" },
+            { value: "wh3", label: "WH3" },
+            { value: "40k", label: "40K" },
+          ] as const
+        ).map(({ value, label }) => (
+          <Button
+            key={value}
+            size="sm"
+            variant={gameFilter === value ? "solid" : "outline"}
+            colorPalette={value === "40k" ? "verdigris" : "ink"}
+            onClick={() => {
+              onGameFilterChange(value);
+              onPageChange(1);
+            }}
+          >
+            {label}
+          </Button>
+        ))}
+      </HStack>
 
       {statusCounts.all === 0 ? (
         <Card.Root>
@@ -239,8 +269,7 @@ const TournamentList: React.FC<Props> = ({
                             bg="gold.subtle"
                             color="gold.text"
                           >
-                            <LuFlaskConical size={9} />
-                            40K Beta
+                            40K
                           </Badge>
                         )}
                       </HStack>

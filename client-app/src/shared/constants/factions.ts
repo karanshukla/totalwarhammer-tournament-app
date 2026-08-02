@@ -1,9 +1,18 @@
 export type FactionGame = "wh3" | "40k";
 
+/**
+ * 40k faction source/lineage, used only to sort the faction picker.
+ * - "primary": core TW 40k / DoW 4 factions — shown first in the picker.
+ * - "unification": community Unification-mod factions — shown below the primary set.
+ * WH3 entries carry no category.
+ */
+export type Faction40kCategory = "primary" | "unification";
+
 export interface FactionEntry {
   name: string;
   game: FactionGame;
   isBeta?: boolean;
+  category?: Faction40kCategory;
 }
 
 export const factionRegistry: FactionEntry[] = [
@@ -33,57 +42,69 @@ export const factionRegistry: FactionEntry[] = [
   { name: "Tzeentch", game: "wh3" },
   { name: "Chaos Dwarfs", game: "wh3" },
 
-  // Warhammer 40,000 — Dawn of War vanilla factions (beta)
-  { name: "Adeptus Astartes", game: "40k", isBeta: true },
-  { name: "Heretic Astartes", game: "40k", isBeta: true },
-  { name: "Orks", game: "40k", isBeta: true },
-  { name: "Aeldari", game: "40k", isBeta: true },
-  { name: "Harlequins", game: "40k", isBeta: true },
-  { name: "Ynnari", game: "40k", isBeta: true },
-  { name: "Astra Militarum", game: "40k", isBeta: true },
-  { name: "T'au Empire", game: "40k", isBeta: true },
-  { name: "Farsight Enclaves", game: "40k", isBeta: true },
-  { name: "Necrons", game: "40k", isBeta: true },
-  { name: "Drukhari", game: "40k", isBeta: true },
-  { name: "Adepta Sororitas", game: "40k", isBeta: true },
-  { name: "Tyranids", game: "40k", isBeta: true },
+  // Warhammer 40,000 — TW 40k / DoW 4 primary factions (beta)
+  // Core lineups; shown first in the faction picker.
+  { name: "Adeptus Astartes", game: "40k", isBeta: true, category: "primary" },
+  { name: "Aeldari", game: "40k", isBeta: true, category: "primary" },
+  { name: "Orks", game: "40k", isBeta: true, category: "primary" },
+  { name: "Adeptus Mechanicus", game: "40k", isBeta: true, category: "primary" },
+  { name: "Necrons", game: "40k", isBeta: true, category: "primary" },
+  { name: "Astra Militarum", game: "40k", isBeta: true, category: "primary" },
 
-  // Warhammer 40,000 — Dawn of War modded factions (beta)
+  // Warhammer 40,000 — Unification / DoW modded factions (beta)
+  // Vanilla DoW factions not covered above
+  { name: "Heretic Astartes", game: "40k", isBeta: true, category: "unification" },
+  { name: "Harlequins", game: "40k", isBeta: true, category: "unification" },
+  { name: "Ynnari", game: "40k", isBeta: true, category: "unification" },
+  { name: "T'au Empire", game: "40k", isBeta: true, category: "unification" },
+  { name: "Farsight Enclaves", game: "40k", isBeta: true, category: "unification" },
+  { name: "Drukhari", game: "40k", isBeta: true, category: "unification" },
+  { name: "Adepta Sororitas", game: "40k", isBeta: true, category: "unification" },
+  { name: "Tyranids", game: "40k", isBeta: true, category: "unification" },
   // Adeptus Astartes sub-factions
-  { name: "13th Company (Space Wolves)", game: "40k", isBeta: true },
-  { name: "Black Templars", game: "40k", isBeta: true },
-  { name: "Blood Angels", game: "40k", isBeta: true },
-  { name: "Dark Angels", game: "40k", isBeta: true },
-  { name: "Daemon Hunters (Grey Knights)", game: "40k", isBeta: true },
-  { name: "Imperial Fists", game: "40k", isBeta: true },
-  { name: "Legion of the Damned", game: "40k", isBeta: true },
-  { name: "Raven Guard", game: "40k", isBeta: true },
-  { name: "Salamanders", game: "40k", isBeta: true },
+  { name: "13th Company (Space Wolves)", game: "40k", isBeta: true, category: "unification" },
+  { name: "Black Templars", game: "40k", isBeta: true, category: "unification" },
+  { name: "Blood Angels", game: "40k", isBeta: true, category: "unification" },
+  { name: "Dark Angels", game: "40k", isBeta: true, category: "unification" },
+  { name: "Daemon Hunters (Grey Knights)", game: "40k", isBeta: true, category: "unification" },
+  { name: "Imperial Fists", game: "40k", isBeta: true, category: "unification" },
+  { name: "Legion of the Damned", game: "40k", isBeta: true, category: "unification" },
+  { name: "Raven Guard", game: "40k", isBeta: true, category: "unification" },
+  { name: "Salamanders", game: "40k", isBeta: true, category: "unification" },
   // Imperium
-  { name: "Adeptus Custodes", game: "40k", isBeta: true },
-  { name: "Adeptus Mechanicus Explorators", game: "40k", isBeta: true },
-  { name: "Death Korps of Krieg", game: "40k", isBeta: true },
-  { name: "Praetorian Guard", game: "40k", isBeta: true },
-  { name: "Steel Legion", game: "40k", isBeta: true },
-  { name: "Vostroyan Firstborn", game: "40k", isBeta: true },
-  { name: "Witch Hunters (Ordo Hereticus)", game: "40k", isBeta: true },
+  { name: "Adeptus Custodes", game: "40k", isBeta: true, category: "unification" },
+  { name: "Death Korps of Krieg", game: "40k", isBeta: true, category: "unification" },
+  { name: "Praetorian Guard", game: "40k", isBeta: true, category: "unification" },
+  { name: "Steel Legion", game: "40k", isBeta: true, category: "unification" },
+  { name: "Vostroyan Firstborn", game: "40k", isBeta: true, category: "unification" },
+  { name: "Witch Hunters (Ordo Hereticus)", game: "40k", isBeta: true, category: "unification" },
   // Chaos
-  { name: "Chaos Daemons", game: "40k", isBeta: true },
-  { name: "Death Guard", game: "40k", isBeta: true },
-  { name: "Emperor's Children", game: "40k", isBeta: true },
-  { name: "Fallen Angels", game: "40k", isBeta: true },
-  { name: "Night Lords", game: "40k", isBeta: true },
-  { name: "Renegade Guard", game: "40k", isBeta: true },
-  { name: "Thousand Sons", game: "40k", isBeta: true },
-  { name: "World Eaters", game: "40k", isBeta: true },
+  { name: "Chaos Daemons", game: "40k", isBeta: true, category: "unification" },
+  { name: "Death Guard", game: "40k", isBeta: true, category: "unification" },
+  { name: "Emperor's Children", game: "40k", isBeta: true, category: "unification" },
+  { name: "Fallen Angels", game: "40k", isBeta: true, category: "unification" },
+  { name: "Night Lords", game: "40k", isBeta: true, category: "unification" },
+  { name: "Renegade Guard", game: "40k", isBeta: true, category: "unification" },
+  { name: "Thousand Sons", game: "40k", isBeta: true, category: "unification" },
+  { name: "World Eaters", game: "40k", isBeta: true, category: "unification" },
 ];
 
 export const warhammer3Factions = factionRegistry
   .filter((f) => f.game === "wh3")
   .map((f) => f.name);
 
+// 40k factions are returned with the TW 40k / DoW 4 "primary" core lineups first,
+// followed by the Unification / DoW modded factions. The registry keeps primary
+// entries grouped at the top; this stable sort makes the ordering explicit so a
+// future unsorted append can't silently re-bury the primary set.
+const primaryFirst: Record<Faction40kCategory, number> = {
+  primary: 0,
+  unification: 1,
+};
 export const warhammer40kFactions = factionRegistry
   .filter((f) => f.game === "40k")
+  .slice()
+  .sort((a, b) => primaryFirst[a.category!] - primaryFirst[b.category!])
   .map((f) => f.name);
 
 export const allFactions = factionRegistry.map((f) => f.name);

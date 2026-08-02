@@ -104,6 +104,37 @@ describe("warhammer40kFactions", () => {
       expect(warhammer40kFactions).not.toContain(name);
     }
   });
+
+  it("lists the TW 40k / DoW 4 primary factions before Unification factions", () => {
+    const primaryNames = [
+      "Adeptus Astartes",
+      "Aeldari",
+      "Orks",
+      "Adeptus Mechanicus",
+      "Necrons",
+      "Astra Militarum",
+    ];
+    // Primary six come first, in registry order.
+    expect(warhammer40kFactions.slice(0, primaryNames.length)).toEqual(
+      primaryNames,
+    );
+    // Every primary entry is tagged primary; the rest are unification.
+    const entries40k = factionRegistry.filter((f) => f.game === "40k");
+    for (const entry of entries40k) {
+      expect(["primary", "unification"]).toContain(entry.category);
+    }
+    // No primary faction appears after a unification faction.
+    const firstUnificationIdx = warhammer40kFactions.findIndex((name) => {
+      const entry = entries40k.find((f) => f.name === name);
+      return entry?.category === "unification";
+    });
+    if (firstUnificationIdx !== -1) {
+      for (const name of warhammer40kFactions.slice(firstUnificationIdx)) {
+        const entry = entries40k.find((f) => f.name === name);
+        expect(entry?.category).toBe("unification");
+      }
+    }
+  });
 });
 
 describe("allFactions", () => {

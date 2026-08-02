@@ -19,10 +19,12 @@ const baseProps = {
   codeLoading: false,
   codeError: null,
   isAuthenticated: true,
+  gameFilter: "all" as "all" | "wh3" | "40k",
   onSelectTournament: vi.fn(),
   onFindByCode: vi.fn(),
   onCodeInputChange: vi.fn(),
   onStatusFilterChange: vi.fn(),
+  onGameFilterChange: vi.fn(),
   onPageChange: vi.fn(),
 };
 
@@ -62,10 +64,13 @@ function renderList(
 }
 
 describe("TournamentList filter buttons", () => {
-  it("hides filter buttons when there are no tournaments at all", () => {
+  it("hides status filter buttons when there are no tournaments at all", () => {
     renderList({ tournaments: [], statusCounts: emptyStatusCounts });
+    // The status "All" button carries a numeric count badge ("All<n>"); when
+    // there are no tournaments it isn't rendered. The game-system "All Games"
+    // button (no count) is independent and stays rendered.
     expect(
-      screen.queryByRole("button", { name: /all/i }),
+      screen.queryByRole("button", { name: /^All\d/i }),
     ).not.toBeInTheDocument();
   });
 
@@ -73,8 +78,13 @@ describe("TournamentList filter buttons", () => {
     const tournaments = [makeTournament()];
     const statusCounts = { all: 1, pending: 0, active: 1, completed: 0 };
     renderList({ tournaments, statusCounts });
-    expect(screen.getByRole("button", { name: /all/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /active/i })).toBeInTheDocument();
+    // Status buttons are the count-bearing "All<n>" / "Active<n>" ones.
+    expect(
+      screen.getByRole("button", { name: /^All\d/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /active/i }),
+    ).toBeInTheDocument();
   });
 
   it("keeps filter buttons visible when the active filter returns zero results", () => {
@@ -88,13 +98,20 @@ describe("TournamentList filter buttons", () => {
     });
     // Check unambiguous filter button names (not "Show all")
     expect(
-      screen.getByRole("button", { name: /pending/i }),
+      screen.getByRole("button", { name: /^Pending\d/i }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: /completed/i }),
+      screen.getByRole("button", { name: /^Completed\d/i }),
     ).toBeInTheDocument();
-    // Both the "All" filter button and "Show all" button should be present
-    expect(screen.getAllByRole("button", { name: /all/i })).toHaveLength(2);
+    // The status "All" filter button (count-bearing) should be present; the
+    // empty-state "Show all" button is separate, and the game "All Games"
+    // button (no count) is a third "all" control.
+    expect(
+      screen.getByRole("button", { name: /^All\d/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /show all/i }),
+    ).toBeInTheDocument();
   });
 
   it("shows no-results message with Show all button when filter returns empty", () => {
@@ -135,18 +152,28 @@ describe("TournamentList filter buttons", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("shows the 40K Beta badge when enable40kFactions is true", () => {
+  it("shows the 40K badge when enable40kFactions is true", () => {
     const tournaments = [makeTournament({ enable40kFactions: true })];
     const statusCounts = { all: 1, pending: 0, active: 1, completed: 0 };
     renderList({ tournaments, statusCounts, total: 1 });
-    expect(screen.getByText(/40k beta/i)).toBeInTheDocument();
+    // The 40K tournament badge renders as a <span> (Chakra Badge); the
+    // game-system "40K" filter button (a <button>) is always present, so
+    // disambiguate by tag name.
+    const fortyKMatches = screen.getAllByText("40K");
+    expect(
+      fortyKMatches.some((el) => el.tagName.toLowerCase() === "span"),
+    ).toBe(true);
   });
 
-  it("does not show the 40K Beta badge when enable40kFactions is false", () => {
+  it("does not show the 40K badge when enable40kFactions is false", () => {
     const tournaments = [makeTournament({ enable40kFactions: false })];
     const statusCounts = { all: 1, pending: 0, active: 1, completed: 0 };
     renderList({ tournaments, statusCounts, total: 1 });
-    expect(screen.queryByText(/40k beta/i)).not.toBeInTheDocument();
+    // No badge <span>; the only "40K" element is the filter button.
+    const fortyKMatches = screen.getAllByText("40K");
+    expect(
+      fortyKMatches.every((el) => el.tagName.toLowerCase() !== "span"),
+    ).toBe(true);
   });
 
   it("renders tournament cards when tournaments are present", () => {

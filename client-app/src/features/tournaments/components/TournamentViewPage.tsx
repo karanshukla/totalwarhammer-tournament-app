@@ -29,7 +29,6 @@ import {
   LuSwords,
   LuTrophy,
   LuSettings,
-  LuFlaskConical,
   LuCopy,
 } from "react-icons/lu";
 import { toaster } from "@/shared/ui/Toaster";
@@ -372,8 +371,7 @@ const TournamentViewPage: React.FC<{ id?: string }> = ({ id: propId }) => {
                 bg="gold.subtle"
                 color="gold.text"
               >
-                <LuFlaskConical size={9} />
-                40K Beta
+                40K
               </Badge>
             )}
             <Text>·</Text>

@@ -183,31 +183,30 @@ describe("CreateTournamentForm - extended coverage", () => {
     });
   });
 
-  describe("40K beta mode", () => {
-    it("shows 40K beta notice when 40K mode is enabled", async () => {
+  describe("40K faction mode", () => {
+    it("shows 40K factions when 40K mode is enabled", async () => {
       renderForm();
+      // WH3 is the default — Empire is visible, Adeptus Astartes is not.
+      expect(screen.getByText("Empire")).toBeInTheDocument();
+      expect(screen.queryByText("Adeptus Astartes")).not.toBeInTheDocument();
       fireEvent.click(screen.getByRole("button", { name: "40K" }));
       await waitFor(() => {
-        expect(
-          screen.getByText(/40k factions are in beta/i),
-        ).toBeInTheDocument();
+        expect(screen.getByText("Adeptus Astartes")).toBeInTheDocument();
       });
+      expect(screen.queryByText("Empire")).not.toBeInTheDocument();
     });
 
-    it("hides 40K beta notice when switching back to WH3", async () => {
+    it("switches back to WH3 factions when toggled back", async () => {
       renderForm();
       fireEvent.click(screen.getByRole("button", { name: "40K" }));
       await waitFor(() =>
-        expect(
-          screen.getByText(/40k factions are in beta/i),
-        ).toBeInTheDocument(),
+        expect(screen.getByText("Necrons")).toBeInTheDocument(),
       );
       fireEvent.click(screen.getByRole("button", { name: "WH3" }));
       await waitFor(() => {
-        expect(
-          screen.queryByText(/40k factions are in beta/i),
-        ).not.toBeInTheDocument();
+        expect(screen.getByText("Empire")).toBeInTheDocument();
       });
+      expect(screen.queryByText("Necrons")).not.toBeInTheDocument();
     });
   });
 

@@ -6,7 +6,7 @@ import { getSocket } from "@/core/socket/socketClient";
 import { useUserStore } from "@/shared/stores/userStore";
 import { toaster } from "@/shared/ui/Toaster";
 import { Match, Participant, Tournament } from "./types";
-import TournamentList from "./TournamentList";
+import TournamentList, { type GameFilter } from "./TournamentList";
 import TournamentDetail from "./TournamentDetail";
 
 const PAGE_SIZE = 12;
@@ -36,6 +36,7 @@ const MatchesPage: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<
     "all" | "pending" | "active" | "completed"
   >("all");
+  const [gameFilter, setGameFilter] = useState<GameFilter>("all");
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [statusCounts, setStatusCounts] = useState<
@@ -66,6 +67,7 @@ const MatchesPage: React.FC = () => {
         limit: String(PAGE_SIZE),
       };
       if (statusFilter !== "all") params.status = statusFilter;
+      if (gameFilter !== "all") params.game = gameFilter;
       const res = (await httpClient.get("/tournament/mine", { params })) as {
         success: boolean;
         data: Tournament[];
@@ -89,7 +91,7 @@ const MatchesPage: React.FC = () => {
       setLoading(false);
       setListLoading(false);
     }
-  }, [isAuthenticated, page, statusFilter]);
+  }, [isAuthenticated, page, statusFilter, gameFilter]);
 
   useEffect(() => {
     fetchTournaments();
@@ -533,6 +535,7 @@ const MatchesPage: React.FC = () => {
       codeLoading={codeLoading}
       codeError={codeError}
       isAuthenticated={isAuthenticated()}
+      gameFilter={gameFilter}
       onSelectTournament={handleSelectTournament}
       onFindByCode={handleFindByCode}
       onCodeInputChange={setCodeInput}
@@ -540,6 +543,7 @@ const MatchesPage: React.FC = () => {
         setStatusFilter(s);
         setPage(1);
       }}
+      onGameFilterChange={setGameFilter}
       onPageChange={setPage}
     />
   );

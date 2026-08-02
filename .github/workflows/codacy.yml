@@ -55,6 +55,18 @@ jobs:
           # This will handover control about PR rejection to the GitHub side
           max-allowed-issues: 2147483647
 
+      # Strip findings from unmaintained, noisy lint tools (CSSLint, JSHint)
+      # before they reach GitHub code scanning. Both are legacy tools that
+      # produce false positives on modern CSS custom properties and ASI-style
+      # JS — the repo's real linters (oxlint / stylelint) already cover these.
+      # Codacy's config file can't disable whole tools, so filter the SARIF
+      # (one run per tool, keyed by runs[].tool.driver.name) instead.
+      - name: Filter out noisy legacy lint tools from SARIF
+        run: |
+          jq 'del(.runs[] | select(.tool.driver.name | test("CSSLint|JSHint"))) ' \
+            results.sarif > results.filtered.sarif
+          mv results.filtered.sarif results.sarif
+
       # Upload the SARIF file generated in the previous step
       - name: Upload SARIF results file
         uses: github/codeql-action/upload-sarif@v3

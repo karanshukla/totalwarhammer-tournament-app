@@ -44,10 +44,12 @@ const baseProps = {
   codeLoading: false,
   codeError: null as string | null,
   isAuthenticated: true,
+  gameFilter: "all" as "all" | "wh3" | "40k",
   onSelectTournament: vi.fn(),
   onFindByCode: vi.fn(),
   onCodeInputChange: vi.fn(),
   onStatusFilterChange: vi.fn(),
+  onGameFilterChange: vi.fn(),
   onPageChange: vi.fn(),
 };
 

@@ -155,14 +155,14 @@ describe("TournamentBrowser", () => {
     });
   });
 
-  it("shows 40K Beta badge for tournaments with enable40kFactions", async () => {
+  it("shows 40K badge for tournaments with enable40kFactions", async () => {
     mockGet.mockResolvedValue({
       success: true,
       data: [makeTournament({ enable40kFactions: true })],
     });
     renderBrowser();
     await waitFor(() =>
-      expect(screen.getByText(/40k beta/i)).toBeInTheDocument(),
+      expect(screen.getByText("40K")).toBeInTheDocument(),
     );
   });
 

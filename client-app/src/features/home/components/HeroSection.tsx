@@ -30,7 +30,7 @@ const HeroSection: React.FC = () => {
         whiteSpace="normal"
         maxW="full"
       >
-        Now includes beta warhammer 40k support (Dawn of War/Future Titles)
+        Now includes Warhammer 40,000 support (Dawn of War / Future Titles)
       </Badge>
       <Heading as="h1" size="4xl" fontWeight="bold" lineHeight="tight" mb={4}>
         TW Tournament App

@@ -74,20 +74,38 @@ describe("stats-service", () => {
     it("returns cached stats from Redis without querying MongoDB", async () => {
       const cached = {
         cachedAt: "2024-01-01T00:00:00.000Z",
-        tournaments: { pending: 1, active: 2, completed: 3, total: 6 },
-        matches: {
-          pending: 0,
-          in_progress: 0,
-          completed: 5,
-          disputed: 0,
-          total: 5,
-          completionRate: 100,
+        wh3: {
+          tournaments: { pending: 1, active: 2, completed: 3, total: 6 },
+          matches: {
+            pending: 0,
+            in_progress: 0,
+            completed: 5,
+            disputed: 0,
+            total: 5,
+            completionRate: 100,
+          },
+          topPlayers: [],
+          topFactions: [],
+          topCreators: [],
+          recentTournaments: [],
+          recentWinners: [],
         },
-        topPlayers: [],
-        topFactions: [],
-        topCreators: [],
-        recentTournaments: [],
-        recentWinners: [],
+        "40k": {
+          tournaments: { pending: 0, active: 0, completed: 1, total: 1 },
+          matches: {
+            pending: 0,
+            in_progress: 0,
+            completed: 2,
+            disputed: 0,
+            total: 2,
+            completionRate: 100,
+          },
+          topPlayers: [],
+          topFactions: [],
+          topCreators: [],
+          recentTournaments: [],
+          recentWinners: [],
+        },
       };
       mockRedisGet.mock.mockImplementation(async () => JSON.stringify(cached));
 
@@ -110,7 +128,8 @@ describe("stats-service", () => {
         mockTournamentAggregate.mock.calls.length > 0,
         "Tournament.aggregate should be called",
       );
-      assert.strictEqual(mockTournamentFind.mock.calls.length, 1);
+      // recentTournaments is fetched once per game (wh3 + 40k).
+      assert.strictEqual(mockTournamentFind.mock.calls.length, 2);
 
       assert.strictEqual(mockRedisSet.mock.calls.length, 1);
       const [key, value, opts] = mockRedisSet.mock.calls[0].arguments;
@@ -119,8 +138,10 @@ describe("stats-service", () => {
 
       const stored = JSON.parse(value);
       assert.ok("cachedAt" in stored);
-      assert.ok("tournaments" in stored);
-      assert.ok("matches" in stored);
+      assert.ok("wh3" in stored);
+      assert.ok("40k" in stored);
+      assert.ok("tournaments" in stored.wh3);
+      assert.ok("matches" in stored.wh3);
       assert.deepStrictEqual(result, stored);
     });
 
@@ -141,7 +162,7 @@ describe("stats-service", () => {
       assert.ok(mockMatchAggregate.mock.calls.length > 0);
       assert.strictEqual(mockRedisGet.mock.calls.length, 0);
       assert.strictEqual(mockRedisSet.mock.calls.length, 0);
-      assert.ok("tournaments" in result);
+      assert.ok("wh3" in result);
     });
 
     it("falls back to MongoDB when getRedisClient returns null", async () => {
@@ -151,7 +172,7 @@ describe("stats-service", () => {
 
       assert.ok(mockMatchAggregate.mock.calls.length > 0);
       assert.strictEqual(mockRedisGet.mock.calls.length, 0);
-      assert.ok("tournaments" in result);
+      assert.ok("wh3" in result);
     });
 
     it("falls back to MongoDB when Redis.get throws", async () => {
@@ -162,7 +183,7 @@ describe("stats-service", () => {
       const result = await getGlobalStats();
 
       assert.ok(mockMatchAggregate.mock.calls.length > 0);
-      assert.ok("tournaments" in result);
+      assert.ok("wh3" in result);
     });
 
     it("swallows the error when writing the computed stats back to Redis fails", async () => {
@@ -184,18 +205,24 @@ describe("stats-service", () => {
 
       const result = await getGlobalStats();
 
-      assert.strictEqual(result.tournaments.pending, 2);
-      assert.strictEqual(result.tournaments.active, 1);
-      assert.strictEqual(result.tournaments.completed, 5);
-      assert.strictEqual(result.tournaments.total, 8);
+      // Both games receive the same mocked counts.
+      for (const game of ["wh3", "40k"]) {
+        assert.strictEqual(result[game].tournaments.pending, 2);
+        assert.strictEqual(result[game].tournaments.active, 1);
+        assert.strictEqual(result[game].tournaments.completed, 5);
+        assert.strictEqual(result[game].tournaments.total, 8);
+      }
     });
 
     it("computes completionRate from match counts", async () => {
-      let matchAggregateCallCount = 0;
-      mockMatchAggregate.mock.mockImplementation(async () => {
-        matchAggregateCallCount++;
-        // The 5th call (match stats by status) gets real data; others return []
-        if (matchAggregateCallCount === 3) {
+      mockMatchAggregate.mock.mockImplementation(async (pipeline) => {
+        // The match-stats-by-status pipeline is the only Match aggregate whose
+        // final stage groups on _id: "$status" with no winner projection.
+        const last = pipeline[pipeline.length - 1];
+        if (
+          last?.$group?._id === "$status" &&
+          last.$group.count?.$sum === 1
+        ) {
           return [
             { _id: "completed", count: 8 },
             { _id: "pending", count: 2 },
@@ -206,10 +233,12 @@ describe("stats-service", () => {
 
       const result = await getGlobalStats();
 
-      assert.strictEqual(result.matches.completed, 8);
-      assert.strictEqual(result.matches.pending, 2);
-      assert.strictEqual(result.matches.total, 10);
-      assert.strictEqual(result.matches.completionRate, 80);
+      for (const game of ["wh3", "40k"]) {
+        assert.strictEqual(result[game].matches.completed, 8);
+        assert.strictEqual(result[game].matches.pending, 2);
+        assert.strictEqual(result[game].matches.total, 10);
+        assert.strictEqual(result[game].matches.completionRate, 80);
+      }
     });
   });
 

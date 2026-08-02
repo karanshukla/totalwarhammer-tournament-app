@@ -41,7 +41,6 @@ import {
   LuHash,
   LuFilePen,
   LuCheck,
-  LuFlaskConical,
 } from "react-icons/lu";
 import { useNavigate } from "react-router";
 import { toaster } from "@/shared/ui/Toaster";
@@ -262,8 +261,7 @@ const TournamentDetail: React.FC<Props> = ({
                 bg="gold.subtle"
                 color="gold.text"
               >
-                <LuFlaskConical size={9} />
-                40K Beta
+                40K
               </Badge>
             )}
             <Text>·</Text>

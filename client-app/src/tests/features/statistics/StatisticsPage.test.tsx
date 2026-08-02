@@ -21,6 +21,7 @@
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom";
 import React from "react";
 import { ChakraProvider, defaultSystem } from "@chakra-ui/react";
@@ -35,8 +36,7 @@ vi.mock("@/core/api/httpClient", () => ({
 
 import StatisticsPage from "@/features/statistics/components/StatisticsPage";
 
-const baseStats = {
-  cachedAt: undefined as string | undefined,
+const emptyGameStats = {
   tournaments: { pending: 0, active: 0, completed: 0, total: 0 },
   matches: {
     pending: 0,
@@ -52,6 +52,21 @@ const baseStats = {
   recentTournaments: [] as unknown[],
   recentWinners: [] as unknown[],
 };
+
+const baseStats = {
+  cachedAt: undefined as string | undefined,
+  wh3: { ...emptyGameStats },
+  "40k": { ...emptyGameStats },
+};
+
+// Build a stats payload with a partial patch applied to the wh3 game (the
+// default tab), keeping the 40k game empty. Accepts an optional top-level
+// override (e.g. cachedAt).
+const withWh3 = (wh3Patch: Record<string, unknown>, top?: Record<string, unknown>) => ({
+  ...baseStats,
+  ...top,
+  wh3: { ...emptyGameStats, ...wh3Patch },
+});
 
 function renderPage() {
   return render(
@@ -107,7 +122,7 @@ describe("StatisticsPage – empty sections", () => {
   it("shows 'No faction data yet.' when topFactions is empty", async () => {
     mockGet.mockResolvedValueOnce({
       success: true,
-      data: { ...baseStats, topFactions: [] },
+      data: withWh3({ topFactions: [] }),
     });
     renderPage();
     await waitFor(() =>
@@ -118,7 +133,7 @@ describe("StatisticsPage – empty sections", () => {
   it("shows 'No player data yet.' when topPlayers is empty", async () => {
     mockGet.mockResolvedValueOnce({
       success: true,
-      data: { ...baseStats, topPlayers: [] },
+      data: withWh3({ topPlayers: [] }),
     });
     renderPage();
     await waitFor(() =>
@@ -129,7 +144,7 @@ describe("StatisticsPage – empty sections", () => {
   it("shows 'No tournaments completed...' when recentWinners is empty", async () => {
     mockGet.mockResolvedValueOnce({
       success: true,
-      data: { ...baseStats, recentWinners: [] },
+      data: withWh3({ recentWinners: [] }),
     });
     renderPage();
     await waitFor(() =>
@@ -142,7 +157,7 @@ describe("StatisticsPage – empty sections", () => {
   it("shows 'No data yet.' when topCreators is empty", async () => {
     mockGet.mockResolvedValueOnce({
       success: true,
-      data: { ...baseStats, topCreators: [] },
+      data: withWh3({ topCreators: [] }),
     });
     renderPage();
     await waitFor(() =>
@@ -157,10 +172,7 @@ describe("StatisticsPage – topFactions with data", () => {
   it("shows faction name and 'wins' (plural) when wins > 1", async () => {
     mockGet.mockResolvedValueOnce({
       success: true,
-      data: {
-        ...baseStats,
-        topFactions: [{ faction: "Greenskins", wins: 5 }],
-      },
+      data: withWh3({ topFactions: [{ faction: "Greenskins", wins: 5 }] }),
     });
     renderPage();
     await waitFor(() =>
@@ -172,10 +184,7 @@ describe("StatisticsPage – topFactions with data", () => {
   it("shows 'win' (singular) when wins === 1", async () => {
     mockGet.mockResolvedValueOnce({
       success: true,
-      data: {
-        ...baseStats,
-        topFactions: [{ faction: "Empire", wins: 1 }],
-      },
+      data: withWh3({ topFactions: [{ faction: "Empire", wins: 1 }] }),
     });
     renderPage();
     await waitFor(() =>
@@ -190,10 +199,9 @@ describe("StatisticsPage – topPlayers with factions", () => {
   it("shows player faction subtext when factions array is non-empty", async () => {
     mockGet.mockResolvedValueOnce({
       success: true,
-      data: {
-        ...baseStats,
+      data: withWh3({
         topPlayers: [{ name: "Grimgork", wins: 3, factions: ["Greenskins"] }],
-      },
+      }),
     });
     renderPage();
     await waitFor(() =>
@@ -205,10 +213,7 @@ describe("StatisticsPage – topPlayers with factions", () => {
   it("hides faction subtext when player factions array is empty", async () => {
     mockGet.mockResolvedValueOnce({
       success: true,
-      data: {
-        ...baseStats,
-        topPlayers: [{ name: "Luthor", wins: 2, factions: [] }],
-      },
+      data: withWh3({ topPlayers: [{ name: "Luthor", wins: 2, factions: [] }] }),
     });
     renderPage();
     await waitFor(() => expect(screen.getByText("Luthor")).toBeInTheDocument());
@@ -221,15 +226,14 @@ describe("StatisticsPage – topPlayers rank styling by index", () => {
   it("styles rank #1/#2/#3+ differently and shows singular 'win' at rank #1", async () => {
     mockGet.mockResolvedValueOnce({
       success: true,
-      data: {
-        ...baseStats,
+      data: withWh3({
         topPlayers: [
           { name: "Grimgork", wins: 1, factions: [] },
           { name: "Karl Franz", wins: 5, factions: [] },
           { name: "Teclis", wins: 3, factions: [] },
           { name: "Luthor", wins: 2, factions: [] },
         ],
-      },
+      }),
     });
     renderPage();
     await waitFor(() =>
@@ -248,14 +252,13 @@ describe("StatisticsPage – topCreators rank styling by index", () => {
   it("styles rank #1/#2/#3+ differently", async () => {
     mockGet.mockResolvedValueOnce({
       success: true,
-      data: {
-        ...baseStats,
+      data: withWh3({
         topCreators: [
           { username: "Admin", tournamentsCreated: 5, completed: 3 },
           { username: "Runner-up", tournamentsCreated: 3, completed: 1 },
           { username: "ThirdPlace", tournamentsCreated: 1, completed: 0 },
         ],
-      },
+      }),
     });
     renderPage();
     await waitFor(() => expect(screen.getByText("Admin")).toBeInTheDocument());
@@ -270,8 +273,7 @@ describe("StatisticsPage – recentWinners with data", () => {
   it("renders a separator between entries after the first (i > 0) and shows the faction badge", async () => {
     mockGet.mockResolvedValueOnce({
       success: true,
-      data: {
-        ...baseStats,
+      data: withWh3({
         recentWinners: [
           {
             tournamentName: "Waaagh Cup",
@@ -285,7 +287,7 @@ describe("StatisticsPage – recentWinners with data", () => {
             winnerName: "Karl Franz",
           },
         ],
-      },
+      }),
     });
     renderPage();
     await waitFor(() =>
@@ -302,12 +304,11 @@ describe("StatisticsPage – topCreators 'done' badge (c.completed > 0)", () => 
   it("shows 'done' badge when c.completed > 0", async () => {
     mockGet.mockResolvedValueOnce({
       success: true,
-      data: {
-        ...baseStats,
+      data: withWh3({
         topCreators: [
           { username: "Admin", tournamentsCreated: 3, completed: 2 },
         ],
-      },
+      }),
     });
     renderPage();
     await waitFor(() => expect(screen.getByText("Admin")).toBeInTheDocument());
@@ -317,12 +318,11 @@ describe("StatisticsPage – topCreators 'done' badge (c.completed > 0)", () => 
   it("hides 'done' badge when c.completed === 0", async () => {
     mockGet.mockResolvedValueOnce({
       success: true,
-      data: {
-        ...baseStats,
+      data: withWh3({
         topCreators: [
           { username: "Admin", tournamentsCreated: 1, completed: 0 },
         ],
-      },
+      }),
     });
     renderPage();
     await waitFor(() => expect(screen.getByText("Admin")).toBeInTheDocument());
@@ -336,8 +336,7 @@ describe("StatisticsPage – recentTournaments section", () => {
   it("shows Recent Completed Tournaments section when recentTournaments.length > 0", async () => {
     mockGet.mockResolvedValueOnce({
       success: true,
-      data: {
-        ...baseStats,
+      data: withWh3({
         recentTournaments: [
           {
             _id: "t1",
@@ -348,7 +347,7 @@ describe("StatisticsPage – recentTournaments section", () => {
             createdAt: new Date().toISOString(),
           },
         ],
-      },
+      }),
     });
     renderPage();
     await waitFor(() =>
@@ -366,14 +365,65 @@ describe("StatisticsPage – cachedAt timestamp", () => {
   it("shows 'Updated' text when stats.cachedAt is set", async () => {
     mockGet.mockResolvedValueOnce({
       success: true,
-      data: {
-        ...baseStats,
-        cachedAt: "2024-01-15T10:30:00.000Z",
-      },
+      data: { ...baseStats, cachedAt: "2024-01-15T10:30:00.000Z" },
     });
     renderPage();
     await waitFor(() =>
       expect(screen.getByText(/updated/i)).toBeInTheDocument(),
+    );
+  });
+});
+
+describe("StatisticsPage – game-system toggle", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("defaults to WH3 and switches to 40K data when the 40K toggle is clicked", async () => {
+    const user = userEvent.setup();
+    mockGet.mockResolvedValueOnce({
+      success: true,
+      data: {
+        cachedAt: undefined,
+        wh3: { ...emptyGameStats, topFactions: [{ faction: "Empire", wins: 4 }] },
+        "40k": { ...emptyGameStats, topFactions: [{ faction: "Necrons", wins: 7 }] },
+      },
+    });
+    renderPage();
+    // WH3 is the default tab — Empire shows first.
+    await waitFor(() =>
+      expect(screen.getByText("Empire")).toBeInTheDocument(),
+    );
+    expect(screen.queryByText("Necrons")).not.toBeInTheDocument();
+
+    // Switch to 40K.
+    await user.click(screen.getByRole("button", { name: "40K" }));
+    await waitFor(() =>
+      expect(screen.getByText("Necrons")).toBeInTheDocument(),
+    );
+    expect(screen.queryByText("Empire")).not.toBeInTheDocument();
+  });
+
+  it("returns to WH3 data when the WH3 toggle is clicked after 40K", async () => {
+    const user = userEvent.setup();
+    mockGet.mockResolvedValueOnce({
+      success: true,
+      data: {
+        cachedAt: undefined,
+        wh3: { ...emptyGameStats, topFactions: [{ faction: "Skaven", wins: 2 }] },
+        "40k": { ...emptyGameStats, topFactions: [{ faction: "Orks", wins: 9 }] },
+      },
+    });
+    renderPage();
+    await waitFor(() =>
+      expect(screen.getByText("Skaven")).toBeInTheDocument(),
+    );
+    await user.click(screen.getByRole("button", { name: "40K" }));
+    await waitFor(() =>
+      expect(screen.getByText("Orks")).toBeInTheDocument(),
+    );
+    // Back to WH3.
+    await user.click(screen.getByRole("button", { name: "WH3" }));
+    await waitFor(() =>
+      expect(screen.getByText("Skaven")).toBeInTheDocument(),
     );
   });
 });
