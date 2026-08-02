@@ -2,8 +2,8 @@
   "esversion": 13,
   "node": true,
   "mocha": true,
-  "asi": false,
-  "lastsemic": false,
+  "asi": true,
+  "lastsemic": true,
   "expr": true,
   "loopfunc": true,
   "globals": {
