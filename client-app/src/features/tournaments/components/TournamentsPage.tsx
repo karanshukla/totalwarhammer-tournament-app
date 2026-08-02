@@ -7,6 +7,7 @@ import {
   VStack,
   HStack,
   Card,
+  Box,
   Icon,
   Input,
   Button,
@@ -252,26 +253,24 @@ const TournamentsPage: React.FC = () => {
         </SimpleGrid>
 
         {/* Content Area */}
-        <Card.Root>
-          <Card.Body>
-            {activeTab === "brackets" && <SimpleBracket />}
-            {activeTab === "createTournament" && (
-              <CreateTournamentForm isGuest={isGuest} />
-            )}
-            {activeTab === "currentTournaments" && (
-              <TournamentBrowser
-                statusFilter={["pending", "active"]}
-                emptyMessage="No open tournaments right now. Create one!"
-              />
-            )}
-            {activeTab === "pastTournaments" && (
-              <TournamentBrowser
-                statusFilter="completed"
-                emptyMessage="No completed tournaments yet."
-              />
-            )}
-          </Card.Body>
-        </Card.Root>
+        <Box>
+          {activeTab === "brackets" && <SimpleBracket />}
+          {activeTab === "createTournament" && (
+            <CreateTournamentForm isGuest={isGuest} />
+          )}
+          {activeTab === "currentTournaments" && (
+            <TournamentBrowser
+              statusFilter={["pending", "active"]}
+              emptyMessage="No open tournaments right now. Create one!"
+            />
+          )}
+          {activeTab === "pastTournaments" && (
+            <TournamentBrowser
+              statusFilter="completed"
+              emptyMessage="No completed tournaments yet."
+            />
+          )}
+        </Box>
       </VStack>
     </Container>
   );

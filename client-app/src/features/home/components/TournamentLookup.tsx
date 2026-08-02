@@ -182,7 +182,7 @@ const TournamentLookup: React.FC = () => {
                             <Badge
                               size="xs"
                               colorPalette={
-                                t.status === "pending" ? "yellow" : "green"
+                                t.status === "pending" ? "ink" : "verdigris"
                               }
                               flexShrink={0}
                             >

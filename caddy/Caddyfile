@@ -44,13 +44,22 @@
 
     @html {
         not path /assets/*
-        not path /api/*
+        not path /user /user/* /auth /auth/* /guest /guest/* /password-reset /password-reset/* /tournament /tournament/* /match /match/* /stats /stats/*
         not path /socket.io*
     }
     header @html Cache-Control "no-cache, no-store, must-revalidate"
 
-    @backend path /api/* /socket.io*
+    @backend path /user /user/* /auth /auth/* /guest /guest/* /password-reset /password-reset/* /tournament /tournament/* /match /match/* /stats /stats/* /socket.io*
     header @backend Cache-Control "no-store, no-cache, must-revalidate"
+
+    # Some backend paths (e.g. /tournament/:id) collide with SPA routes of the same
+    # shape. Sec-Fetch-Mode:navigate is set by the browser for real page loads/refreshes
+    # and can't be spoofed by client JS, so it reliably tells a hard navigation (-> SPA
+    # shell) apart from a same-path fetch() call (-> backend JSON).
+    @backend_route {
+        not header Sec-Fetch-Mode navigate
+        path /user /user/* /auth /auth/* /guest /guest/* /password-reset /password-reset/* /tournament /tournament/* /match /match/* /stats /stats/* /socket.io*
+    }
 
     @hashed_assets path_regexp /assets/.*\.[A-Za-z0-9_-]+\.(js|css|woff2?)$
     header @hashed_assets Cache-Control "public, max-age=31536000, immutable"
@@ -72,7 +81,7 @@
         }
     }
 
-    handle_path {$BACKEND_PATH:/api}/* {
+    handle @backend_route {
         reverse_proxy {
             dynamic a {
                 name {$BACKEND_DOMAIN}

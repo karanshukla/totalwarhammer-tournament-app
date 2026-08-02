@@ -78,10 +78,8 @@ const TournamentBrowser: React.FC<Props> = ({ statusFilter, emptyMessage }) => {
 
   const { user, isAuthenticated } = useUserStore();
   const navigate = useNavigate();
-  // Cards render inside a bg.panel container (TournamentsPage's Card.Root),
-  // so they need the next rung up the ladder to read as distinct at rest.
-  const cardBg = "bg.elevated";
-  const borderColor = "border.subtle";
+  const cardBg = "bg.panel";
+  const borderColor = "border";
 
   const fetchTournaments = useCallback(async () => {
     setLoading(true);

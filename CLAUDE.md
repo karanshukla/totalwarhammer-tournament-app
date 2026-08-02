@@ -44,8 +44,8 @@ npm run format:check     # check formatting without writing
 ### Docker
 
 ```bash
-docker-compose up --build   # full stack (client, server, MongoDB, Redis, Caddy)
-docker-compose down
+docker compose up --build   # full stack (client, server, MongoDB, Redis, Caddy) — served at http://localhost:8080
+docker compose down
 ```
 
 ## Code comments
