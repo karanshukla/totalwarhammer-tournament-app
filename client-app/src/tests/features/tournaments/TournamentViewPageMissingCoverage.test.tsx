@@ -335,3 +335,431 @@ describe("TournamentViewPage – socket event callback bodies", () => {
     );
   });
 });
+
+// ─── onMatchUpdated map ternary with multiple matches (~line 173) ────────────
+
+describe("TournamentViewPage – onMatchUpdated with multiple matches in the list", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockGetSocket.mockReturnValue(fakeSocket);
+    mockUseUserStore.mockReturnValue(makeStore("u2", "Grimgork", true));
+  });
+
+  it("only replaces the matching match, leaving the other untouched", async () => {
+    const match1 = {
+      _id: "m1",
+      round: 1,
+      matchNumber: 1,
+      player1: { participantId: "p1", name: "Alpha", faction: "" },
+      player2: { participantId: "p2", name: "Beta", faction: "" },
+      winnerId: null,
+      loserId: null,
+      status: "pending" as const,
+      notes: "",
+      reportedResults: [],
+      resultOverrides: [],
+      completedAt: null,
+      bracketSide: null,
+    };
+    const match2 = { ...match1, _id: "m2", matchNumber: 2 };
+
+    mockGet
+      .mockResolvedValueOnce({
+        success: true,
+        data: makeTournament({ status: "active" }),
+      })
+      .mockResolvedValueOnce({ success: true, data: [match1, match2] });
+
+    renderPage();
+
+    await waitFor(() =>
+      expect(screen.getByText("Match 1")).toBeInTheDocument(),
+    );
+    expect(screen.getByText("Match 2")).toBeInTheDocument();
+
+    const onCall = fakeSocket.on.mock.calls.find(
+      (c) => c[0] === "match:updated",
+    );
+    expect(onCall).toBeDefined();
+
+    const { act } = await import("@testing-library/react");
+    act(() =>
+      onCall?.[1]?.({ ...match1, winnerId: "p1", status: "completed" }),
+    );
+
+    await waitFor(() => expect(screen.getByText("Match 1")).toBeInTheDocument());
+    expect(screen.getByText("Match 2")).toBeInTheDocument();
+  });
+});
+
+// ─── champion computation: winnerId matches neither participant (~line 282) ──
+
+describe("TournamentViewPage – champion winnerId matches neither participant", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockGetSocket.mockReturnValue(fakeSocket);
+    mockUseUserStore.mockReturnValue(makeStore("u2", "Grimgork", true));
+  });
+
+  it("shows no champion banner when winnerId matches neither player1 nor player2", async () => {
+    mockGet
+      .mockResolvedValueOnce({
+        success: true,
+        data: makeTournament({ status: "completed" }),
+      })
+      .mockResolvedValueOnce({
+        success: true,
+        data: [
+          {
+            _id: "m1",
+            round: 1,
+            matchNumber: 1,
+            player1: { participantId: "p1", name: "Grimgork", faction: "" },
+            player2: { participantId: "p2", name: "Luthor", faction: "" },
+            winnerId: "some-orphaned-id",
+            status: "completed",
+            reportedResults: [],
+          },
+        ],
+      });
+    renderPage();
+
+    await waitFor(() =>
+      expect(screen.getByText(/round 1/i)).toBeInTheDocument(),
+    );
+    expect(screen.queryByText(/tournament champion/i)).not.toBeInTheDocument();
+  });
+});
+
+// ─── id resolved via route param instead of prop (~lines 92, 128, 163) ───────
+
+describe("TournamentViewPage – id from route param (no id prop)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockGetSocket.mockReturnValue(fakeSocket);
+    mockUseUserStore.mockReturnValue(makeStore());
+  });
+
+  it("uses the :id route param when no id prop is supplied", async () => {
+    mockGet.mockResolvedValueOnce({
+      success: true,
+      data: makeTournament({ _id: "route-id" }),
+    });
+
+    const { Routes, Route } = await import("react-router");
+    render(
+      <MemoryRouter initialEntries={["/tournaments/route-id"]}>
+        <ChakraProvider value={defaultSystem}>
+          <Routes>
+            <Route path="/tournaments/:id" element={<TournamentViewPage />} />
+          </Routes>
+        </ChakraProvider>
+      </MemoryRouter>,
+    );
+
+    await waitFor(() =>
+      expect(mockGet).toHaveBeenCalledWith("/tournament/route-id"),
+    );
+  });
+
+  it("keeps showing the loading spinner forever when neither id prop nor route param is present", () => {
+    render(
+      <MemoryRouter initialEntries={["/no-id-here"]}>
+        <ChakraProvider value={defaultSystem}>
+          <TournamentViewPage id={undefined} />
+        </ChakraProvider>
+      </MemoryRouter>,
+    );
+    expect(screen.getByText(/loading tournament/i)).toBeInTheDocument();
+    expect(mockGet).not.toHaveBeenCalled();
+  });
+});
+
+// ─── fetchMatches failure while tournament is active (~line 146) ─────────────
+
+describe("TournamentViewPage – match fetch failure while active", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockGetSocket.mockReturnValue(fakeSocket);
+    mockUseUserStore.mockReturnValue(makeStore());
+  });
+
+  it("shows 'No matches yet.' when the match fetch rejects", async () => {
+    mockGet
+      .mockResolvedValueOnce({
+        success: true,
+        data: makeTournament({ status: "active" }),
+      })
+      .mockRejectedValueOnce(new Error("match fetch failed"));
+
+    renderPage();
+
+    await waitFor(() =>
+      expect(screen.getByText(/no matches yet/i)).toBeInTheDocument(),
+    );
+  });
+});
+
+// ─── handleJoin non-Error rejection (~line 203) ───────────────────────────────
+
+describe("TournamentViewPage – handleJoin non-Error rejection", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockGetSocket.mockReturnValue(fakeSocket);
+    mockUseUserStore.mockReturnValue(makeStore("u2", "Grimgork", true));
+  });
+
+  it("shows the default join error message when a non-Error value is rejected", async () => {
+    mockGet.mockResolvedValueOnce({
+      success: true,
+      data: makeTournament({ status: "pending", createdBy: "owner1" }),
+    });
+    mockPost.mockRejectedValueOnce("not an Error instance");
+
+    renderPage();
+
+    const joinBtn = await screen.findByRole("button", {
+      name: /join tournament/i,
+    });
+    fireEvent.click(joinBtn);
+
+    await waitFor(() =>
+      expect(screen.getByText("Failed to join tournament")).toBeInTheDocument(),
+    );
+  });
+});
+
+// ─── isAlreadyJoined guard when user is null (~line 211) ─────────────────────
+
+describe("TournamentViewPage – isAlreadyJoined with null user", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockGetSocket.mockReturnValue(fakeSocket);
+    mockUseUserStore.mockReturnValue({
+      user: null,
+      isAuthenticated: () => false,
+    });
+  });
+
+  it("shows 'Spectating' badge when user is null", async () => {
+    mockGet.mockResolvedValueOnce({
+      success: true,
+      data: makeTournament({
+        createdBy: "owner1",
+        participants: [
+          { _id: "p1", name: "Someone", faction: "", userId: "someone" },
+        ],
+      }),
+    });
+    renderPage();
+
+    await waitFor(() =>
+      expect(screen.getByText("Spectating")).toBeInTheDocument(),
+    );
+  });
+});
+
+// ─── Go Back button (~line 242) ───────────────────────────────────────────────
+
+describe("TournamentViewPage – Go Back button on error state", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockGetSocket.mockReturnValue(fakeSocket);
+    mockUseUserStore.mockReturnValue(makeStore());
+  });
+
+  it("calls navigate(-1) when Go Back is clicked", async () => {
+    mockGet.mockRejectedValueOnce(new Error("not found"));
+    renderPage();
+
+    const goBackBtn = await screen.findByRole("button", { name: /go back/i });
+    fireEvent.click(goBackBtn);
+
+    expect(mockNavigate).toHaveBeenCalledWith(-1);
+  });
+});
+
+// ─── champion computation branches (~lines 266, 276-282) ─────────────────────
+
+describe("TournamentViewPage – champion computation branches", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockGetSocket.mockReturnValue(fakeSocket);
+    mockUseUserStore.mockReturnValue(makeStore("u2", "Grimgork", true));
+  });
+
+  it("shows no champion banner when the final round has no match with a winner", async () => {
+    mockGet
+      .mockResolvedValueOnce({
+        success: true,
+        data: makeTournament({ status: "completed" }),
+      })
+      .mockResolvedValueOnce({
+        success: true,
+        data: [
+          {
+            _id: "m1",
+            round: 1,
+            matchNumber: 1,
+            player1: { participantId: "p1", name: "Grimgork", faction: "" },
+            player2: { participantId: "p2", name: "Luthor", faction: "" },
+            winnerId: null,
+            status: "pending",
+            reportedResults: [],
+          },
+        ],
+      });
+    renderPage();
+
+    await waitFor(() =>
+      expect(screen.getByText(/round 1/i)).toBeInTheDocument(),
+    );
+    expect(screen.queryByText(/tournament champion/i)).not.toBeInTheDocument();
+  });
+
+  it("shows player2 as champion when player2 has the winning result, across multiple rounds", async () => {
+    mockGet
+      .mockResolvedValueOnce({
+        success: true,
+        data: makeTournament({ status: "completed" }),
+      })
+      .mockResolvedValueOnce({
+        success: true,
+        data: [
+          {
+            _id: "m1",
+            round: 1,
+            matchNumber: 1,
+            player1: { participantId: "p1", name: "Grimgork", faction: "" },
+            player2: { participantId: "p2", name: "Luthor", faction: "" },
+            winnerId: "p1",
+            status: "completed",
+            reportedResults: [],
+          },
+          {
+            _id: "m2",
+            round: 2,
+            matchNumber: 2,
+            player1: { participantId: "p1", name: "Grimgork", faction: "" },
+            player2: { participantId: "p2", name: "Luthor", faction: "Empire" },
+            winnerId: "p2",
+            status: "completed",
+            reportedResults: [],
+          },
+        ],
+      });
+    renderPage();
+
+    await waitFor(() =>
+      expect(screen.getByText(/tournament champion/i)).toBeInTheDocument(),
+    );
+    expect(screen.getAllByText("Luthor").length).toBeGreaterThan(0);
+  });
+});
+
+// ─── joinFaction Select onValueChange (~line 695) ─────────────────────────────
+
+describe("TournamentViewPage – join faction select", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockGetSocket.mockReturnValue(fakeSocket);
+    mockUseUserStore.mockReturnValue(makeStore("u2", "Grimgork", true));
+  });
+
+  it("updates joinFaction and includes it in the join POST body", async () => {
+    const userEventModule = await import("@testing-library/user-event");
+    const user = userEventModule.default.setup({ pointerEventsCheck: 0 });
+
+    mockGet.mockResolvedValueOnce({
+      success: true,
+      data: makeTournament({ status: "pending", createdBy: "owner1" }),
+    });
+    mockPost.mockResolvedValueOnce({ success: true });
+    mockGet.mockResolvedValueOnce({
+      success: true,
+      data: makeTournament({ status: "pending", createdBy: "owner1" }),
+    });
+
+    renderPage();
+
+    await screen.findByRole("button", { name: /join tournament/i });
+    await user.click(screen.getByRole("combobox"));
+    const options = await screen.findAllByRole("option");
+    const empireOption = options.find((o) => o.textContent?.includes("Empire"));
+    expect(empireOption).toBeDefined();
+    await user.click(empireOption!);
+
+    fireEvent.click(screen.getByRole("button", { name: /join tournament/i }));
+
+    await waitFor(() => {
+      expect(mockPost).toHaveBeenCalledWith(
+        "/tournament/t1/join",
+        expect.objectContaining({ faction: "Empire" }),
+      );
+    });
+  });
+});
+
+// ─── Participant with no faction (~line 535) ──────────────────────────────────
+
+describe("TournamentViewPage – participant with no faction", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockGetSocket.mockReturnValue(fakeSocket);
+    mockUseUserStore.mockReturnValue(makeStore());
+  });
+
+  it("does not render faction text for a participant without a faction", async () => {
+    mockGet.mockResolvedValueOnce({
+      success: true,
+      data: makeTournament({
+        participants: [
+          { _id: "p1", name: "NoFactionGuy", faction: "", userId: "x" },
+        ],
+      }),
+    });
+    renderPage();
+
+    await waitFor(() =>
+      expect(screen.getByText("NoFactionGuy")).toBeInTheDocument(),
+    );
+  });
+});
+
+// ─── Matches W/L badges: player2 wins (~lines 867-976) ────────────────────────
+
+describe("TournamentViewPage – matches where player2 wins", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockGetSocket.mockReturnValue(fakeSocket);
+    mockUseUserStore.mockReturnValue(makeStore("u2", "Grimgork", true));
+  });
+
+  it("shows 'W' for player2, 'L' for player1, and 'Winner: <player2>' text", async () => {
+    mockGet
+      .mockResolvedValueOnce({
+        success: true,
+        data: makeTournament({ status: "active" }),
+      })
+      .mockResolvedValueOnce({
+        success: true,
+        data: [
+          {
+            _id: "m1",
+            round: 1,
+            matchNumber: 1,
+            player1: { participantId: "p1", name: "Grimgork", faction: "" },
+            player2: { participantId: "p2", name: "Luthor", faction: "" },
+            winnerId: "p2",
+            status: "completed",
+            reportedResults: [],
+          },
+        ],
+      });
+    renderPage();
+
+    await waitFor(() => expect(screen.getByText("W")).toBeInTheDocument());
+    expect(screen.getByText("L")).toBeInTheDocument();
+    expect(screen.getByText("Luthor", { selector: "span" })).toBeInTheDocument();
+  });
+});

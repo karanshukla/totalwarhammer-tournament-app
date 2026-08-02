@@ -15,16 +15,21 @@ import "@testing-library/jest-dom";
 import React from "react";
 import { ChakraProvider, defaultSystem } from "@chakra-ui/react";
 
-// MatchCard mock that exposes onStartOverride and onCancelOverride as buttons
+// MatchCard mock that exposes onStartOverride, onCancelOverride,
+// onSetOverrideWinner and onConfirmOverride as buttons
 vi.mock("@/features/matches/components/MatchCard", () => ({
   default: ({
     m,
     onStartOverride,
     onCancelOverride,
+    onSetOverrideWinner,
+    onConfirmOverride,
   }: {
-    m: { _id: string; matchNumber: number };
+    m: { _id: string; matchNumber: number; player1: { participantId: string } };
     onStartOverride?: () => void;
     onCancelOverride?: () => void;
+    onSetOverrideWinner?: (id: string) => void;
+    onConfirmOverride?: () => void;
   }) => (
     <div data-testid={`match-card-${m._id}`}>
       <button data-testid={`start-override-${m._id}`} onClick={onStartOverride}>
@@ -35,6 +40,18 @@ vi.mock("@/features/matches/components/MatchCard", () => ({
         onClick={onCancelOverride}
       >
         CancelOverride
+      </button>
+      <button
+        data-testid={`set-winner-${m._id}`}
+        onClick={() => onSetOverrideWinner?.(m.player1.participantId)}
+      >
+        SetWinner
+      </button>
+      <button
+        data-testid={`confirm-override-${m._id}`}
+        onClick={onConfirmOverride}
+      >
+        ConfirmOverride
       </button>
     </div>
   ),
@@ -243,17 +260,255 @@ describe("MatchesSection – handleOverrideConfirm guard", () => {
   beforeEach(() => vi.clearAllMocks());
 
   it("does not call onOverrideResult when overrideMatchId is null (guard)", async () => {
-    // The handleOverrideConfirm is only callable via MatchCard's onConfirmOverride prop.
-    // With our mock, we can't call it directly — but the guard is tested by the fact that
-    // onOverrideResult is never called when no override is in progress.
     const onOverrideResult = vi.fn().mockResolvedValue(undefined);
     const matches = [
       makeMatch({ _id: "m1", bracketSide: "winners", round: 1 }),
     ];
     renderSection(matches, makeTournament(), { onOverrideResult });
-    // Nothing triggered override → onOverrideResult not called
+    // Directly confirm without starting an override first → guard returns early
+    fireEvent.click(screen.getByTestId("confirm-override-m1"));
     await waitFor(() => {
       expect(onOverrideResult).not.toHaveBeenCalled();
     });
+  });
+
+  it("calls onOverrideResult and resets override state on successful confirm", async () => {
+    const onOverrideResult = vi.fn().mockResolvedValue(undefined);
+    const matches = [
+      makeMatch({ _id: "wb1", bracketSide: "winners", round: 1 }),
+    ];
+    renderSection(matches, makeTournament(), { onOverrideResult });
+
+    fireEvent.click(screen.getByTestId("start-override-wb1"));
+    fireEvent.click(screen.getByTestId("set-winner-wb1"));
+    fireEvent.click(screen.getByTestId("confirm-override-wb1"));
+
+    await waitFor(() => {
+      expect(onOverrideResult).toHaveBeenCalledWith("wb1", "p1", "");
+    });
+  });
+});
+
+// ─── Winners bracket onStartOverride / onCancelOverride ───────────────────────
+
+describe("MatchesSection – winners bracket onStartOverride/onCancelOverride callback bodies", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("invokes winners bracket onStartOverride when button clicked (~lines 346-350)", () => {
+    const matches = [
+      makeMatch({ _id: "wb1", bracketSide: "winners", round: 1 }),
+    ];
+    renderSection(matches);
+
+    fireEvent.click(screen.getByTestId("start-override-wb1"));
+    expect(screen.getByTestId("match-card-wb1")).toBeInTheDocument();
+  });
+
+  it("invokes winners bracket onCancelOverride when button clicked (~line 351)", () => {
+    const matches = [
+      makeMatch({ _id: "wb1", bracketSide: "winners", round: 1 }),
+    ];
+    renderSection(matches);
+
+    fireEvent.click(screen.getByTestId("cancel-override-wb1"));
+    expect(screen.getByTestId("match-card-wb1")).toBeInTheDocument();
+  });
+});
+
+// ─── Non-double-elim onStartOverride / onCancelOverride ───────────────────────
+
+describe("MatchesSection – single-elimination onStartOverride/onCancelOverride callback bodies (~lines 589-595)", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("invokes onStartOverride for a single-elimination match", () => {
+    const matches = [makeMatch({ _id: "se1", round: 1 })];
+    renderSection(matches, makeTournament("Single Elimination"));
+
+    fireEvent.click(screen.getByTestId("start-override-se1"));
+    expect(screen.getByTestId("match-card-se1")).toBeInTheDocument();
+  });
+
+  it("invokes onCancelOverride for a single-elimination match", () => {
+    const matches = [makeMatch({ _id: "se1", round: 1 })];
+    renderSection(matches, makeTournament("Single Elimination"));
+
+    fireEvent.click(screen.getByTestId("cancel-override-se1"));
+    expect(screen.getByTestId("match-card-se1")).toBeInTheDocument();
+  });
+});
+
+// ─── wbRounds / lbRounds sort comparators (~lines 181, 184) ───────────────────
+
+describe("MatchesSection – wbRounds/lbRounds sort comparators", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("sorts multiple winners-bracket rounds", () => {
+    const matches = [
+      makeMatch({ _id: "wb2", bracketSide: "winners", round: 2, matchNumber: 2 }),
+      makeMatch({ _id: "wb1", bracketSide: "winners", round: 1, matchNumber: 1 }),
+    ];
+    renderSection(matches);
+    expect(screen.getByTestId("match-card-wb1")).toBeInTheDocument();
+    expect(screen.getByTestId("match-card-wb2")).toBeInTheDocument();
+  });
+
+  it("sorts multiple losers-bracket rounds", () => {
+    const matches = [
+      makeMatch({ _id: "wb1", bracketSide: "winners", round: 1, matchNumber: 1 }),
+      makeMatch({ _id: "lb2", bracketSide: "losers", round: 2, matchNumber: 2 }),
+      makeMatch({ _id: "lb1", bracketSide: "losers", round: 1, matchNumber: 3 }),
+    ];
+    renderSection(matches);
+    expect(screen.getByTestId("match-card-lb1")).toBeInTheDocument();
+    expect(screen.getByTestId("match-card-lb2")).toBeInTheDocument();
+  });
+});
+
+// ─── resolveMatchUser – reportedResults + canPR chain (~lines 62-72) ──────────
+
+describe("MatchesSection – resolveMatchUser with a matching user and a report", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("resolves isP1/myReport/canPR for a user matching player1 by name", () => {
+    const matches = [
+      {
+        ...makeMatch({ _id: "m1", round: 1, status: "pending" }),
+        reportedResults: [
+          { reportedBy: "p1", reportedByName: "grimgork", winnerId: "p1" },
+        ],
+      },
+    ];
+    renderSection(matches, makeTournament("Single Elimination"), {
+      user: { id: "u1", username: "Grimgork" },
+      isActive: true,
+    });
+    expect(screen.getByTestId("match-card-m1")).toBeInTheDocument();
+  });
+
+  it("resolves guestFallback name matching for a guest user", () => {
+    const matches = [
+      {
+        ...makeMatch({ _id: "m1", round: 1, status: "pending" }),
+        player1: {
+          participantId: "p1",
+          name: "guest_abc123",
+          faction: "Greenskins",
+        },
+        reportedResults: [],
+      },
+    ];
+    renderSection(matches, makeTournament("Single Elimination"), {
+      user: { id: "abc123def", username: "", isGuest: true },
+      isActive: true,
+    });
+    expect(screen.getByTestId("match-card-m1")).toBeInTheDocument();
+  });
+
+  it("resolves myReport using player2's participantId when the user matches player2 (isP1 false)", () => {
+    const matches = [
+      {
+        ...makeMatch({ _id: "m1", round: 1, status: "pending" }),
+        reportedResults: [
+          { reportedBy: "p2", reportedByName: "luthor", winnerId: "p2" },
+        ],
+      },
+    ];
+    renderSection(matches, makeTournament("Single Elimination"), {
+      user: { id: "u2", username: "Luthor" },
+      isActive: true,
+    });
+    expect(screen.getByTestId("match-card-m1")).toBeInTheDocument();
+  });
+
+  it("finds no report when reportedResults entries do not match reportedBy or reportedByName", () => {
+    const matches = [
+      {
+        ...makeMatch({ _id: "m1", round: 1, status: "pending" }),
+        reportedResults: [
+          {
+            reportedBy: "someone-else",
+            reportedByName: "someone-else-name",
+            winnerId: "p1",
+          },
+          { reportedBy: "p1", reportedByName: "grimgork", winnerId: "p1" },
+        ],
+      },
+    ];
+    renderSection(matches, makeTournament("Single Elimination"), {
+      user: { id: "u1", username: "Grimgork" },
+      isActive: true,
+    });
+    expect(screen.getByTestId("match-card-m1")).toBeInTheDocument();
+  });
+});
+
+// ─── Standings loser-side branches (~lines 152, 160) ──────────────────────────
+
+describe("MatchesSection – standings loser participant resolution", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("credits the loss to player1 when player2 wins, and skips losses for an unknown loser", () => {
+    const matches = [
+      makeMatch({
+        _id: "m1",
+        matchNumber: 1,
+        status: "completed",
+        winnerId: "p2",
+      }),
+      {
+        ...makeMatch({
+          _id: "m2",
+          matchNumber: 2,
+          status: "completed",
+          winnerId: "p1",
+        }),
+        player2: {
+          participantId: "pGhost",
+          name: "Ghost",
+          faction: "",
+        },
+      },
+    ];
+    renderSection(matches, makeTournament("Round Robin"));
+    expect(screen.getByText("Standings")).toBeInTheDocument();
+  });
+});
+
+// ─── matchLoading spinner (~line 219) ─────────────────────────────────────────
+
+describe("MatchesSection – matchLoading spinner", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("shows a spinner in the header when matchLoading is true", () => {
+    const { container } = renderSection([makeMatch({ round: 1 })], makeTournament(), {
+      matchLoading: true,
+    });
+    expect(container.querySelector(".chakra-spinner")).toBeInTheDocument();
+  });
+});
+
+// ─── Standings faction fallback (~line 266) ───────────────────────────────────
+
+describe("MatchesSection – standings faction fallback", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("shows '-' for a standings row when the participant has no faction", () => {
+    const matches = [
+      makeMatch({
+        _id: "m1",
+        status: "completed",
+        winnerId: "p1",
+      }),
+    ];
+    const tournament = {
+      ...makeTournament("Round Robin"),
+      participants: [
+        { _id: "p1", name: "Grimgork", faction: "" },
+        { _id: "p2", name: "Luthor", faction: "Empire" },
+      ],
+    };
+    renderSection(matches, tournament);
+    expect(screen.getByText("Standings")).toBeInTheDocument();
+    expect(screen.getByText("-")).toBeInTheDocument();
   });
 });

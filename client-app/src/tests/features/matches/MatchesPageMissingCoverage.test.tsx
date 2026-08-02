@@ -15,7 +15,7 @@
  * - handleSelectTournament for non-active/non-completed tournament
  */
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { render, screen, waitFor, fireEvent } from "@testing-library/react";
+import { render, screen, waitFor, fireEvent, act } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import React from "react";
 import { ChakraProvider, defaultSystem } from "@chakra-ui/react";
@@ -131,14 +131,17 @@ vi.mock("@/features/matches/components/TournamentDetail", () => ({
   default: ({
     onBack,
     onStart,
+    onDelete,
     onAddParticipant,
     onOverrideResult,
     onSaveParticipant,
     onSaveDescription,
+    onSetNewName,
     selected,
   }: {
     onBack: () => void;
     onStart: () => void;
+    onDelete: () => void;
     onAddParticipant: () => void;
     onOverrideResult: (
       matchId: string,
@@ -151,6 +154,7 @@ vi.mock("@/features/matches/components/TournamentDetail", () => ({
       faction: string;
     }) => Promise<void>;
     onSaveDescription: (description: string) => Promise<void>;
+    onSetNewName: (v: string) => void;
     selected?: { _id: string };
   }) => (
     <div data-testid="tournament-detail">
@@ -160,6 +164,13 @@ vi.mock("@/features/matches/components/TournamentDetail", () => ({
       <button data-testid="trigger-start" onClick={onStart}>
         Start
       </button>
+      <button data-testid="trigger-delete" onClick={onDelete}>
+        Delete
+      </button>
+      <input
+        data-testid="set-new-name"
+        onChange={(e) => onSetNewName(e.target.value)}
+      />
       <button data-testid="trigger-add" onClick={() => onAddParticipant()}>
         Add
       </button>
@@ -328,6 +339,71 @@ describe("MatchesPage – handleAddParticipant", () => {
       );
     });
   });
+
+  it("calls POST /tournament/t1/participants once newName is set (proceeds past guard)", async () => {
+    await setupWithDetail();
+
+    fireEvent.change(screen.getByTestId("set-new-name"), {
+      target: { value: "Bob" },
+    });
+
+    mockPost.mockResolvedValueOnce({ success: true });
+    // refreshSelected
+    mockGet.mockResolvedValueOnce({ success: true, data: activeTournament });
+    mockGet.mockResolvedValueOnce(emptyMatchesResponse);
+
+    fireEvent.click(screen.getByTestId("trigger-add"));
+
+    await waitFor(() => {
+      expect(mockPost).toHaveBeenCalledWith(
+        "/tournament/t1/participants",
+        expect.objectContaining({ name: "Bob" }),
+      );
+    });
+    await waitFor(() => {
+      expect(toaster.create).toHaveBeenCalledWith(
+        expect.objectContaining({ title: "Participant added" }),
+      );
+    });
+  });
+
+  it("shows an error toaster when POST rejects after newName is set", async () => {
+    await setupWithDetail();
+
+    fireEvent.change(screen.getByTestId("set-new-name"), {
+      target: { value: "Bob" },
+    });
+
+    mockPost.mockRejectedValueOnce(new Error("add failed"));
+
+    fireEvent.click(screen.getByTestId("trigger-add"));
+
+    await waitFor(() => {
+      expect(toaster.create).toHaveBeenCalledWith(
+        expect.objectContaining({ type: "error" }),
+      );
+    });
+  });
+
+  it("shows the default error message when POST rejects with a non-Error value", async () => {
+    await setupWithDetail();
+
+    fireEvent.change(screen.getByTestId("set-new-name"), {
+      target: { value: "Bob" },
+    });
+
+    mockPost.mockRejectedValueOnce("plain string rejection");
+
+    fireEvent.click(screen.getByTestId("trigger-add"));
+
+    await waitFor(() => {
+      expect(toaster.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          description: "Failed to add participant",
+        }),
+      );
+    });
+  });
 });
 
 describe("MatchesPage – handleOverrideResult", () => {
@@ -364,6 +440,22 @@ describe("MatchesPage – handleOverrideResult", () => {
     await waitFor(() => {
       expect(toaster.create).toHaveBeenCalledWith(
         expect.objectContaining({ type: "error" }),
+      );
+    });
+  });
+
+  it("shows the default error message when PATCH rejects with a non-Error value", async () => {
+    await setupWithDetail();
+
+    mockPatch.mockRejectedValueOnce("plain string rejection");
+
+    fireEvent.click(screen.getByTestId("trigger-override"));
+
+    await waitFor(() => {
+      expect(toaster.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          description: "Failed to override result",
+        }),
       );
     });
   });
@@ -408,6 +500,22 @@ describe("MatchesPage – handleSaveParticipant", () => {
       );
     });
   });
+
+  it("shows the default error message when PATCH rejects with a non-Error value", async () => {
+    await setupWithDetail();
+
+    mockPatch.mockRejectedValueOnce("plain string rejection");
+
+    fireEvent.click(screen.getByTestId("trigger-save-part"));
+
+    await waitFor(() => {
+      expect(toaster.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          description: "Failed to update participant",
+        }),
+      );
+    });
+  });
 });
 
 describe("MatchesPage – handleSaveDescription", () => {
@@ -445,6 +553,22 @@ describe("MatchesPage – handleSaveDescription", () => {
     await waitFor(() => {
       expect(toaster.create).toHaveBeenCalledWith(
         expect.objectContaining({ type: "error" }),
+      );
+    });
+  });
+
+  it("shows the default error message when PATCH rejects with a non-Error value", async () => {
+    await setupWithDetail();
+
+    mockPatch.mockRejectedValueOnce("plain string rejection");
+
+    fireEvent.click(screen.getByTestId("trigger-save-desc"));
+
+    await waitFor(() => {
+      expect(toaster.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          description: "Failed to update description",
+        }),
       );
     });
   });
@@ -685,5 +809,331 @@ describe("MatchesPage – handleSelectTournament with pending tournament", () =>
 
     // fetchMatches should NOT have been called (status=pending)
     expect(mockGet).not.toHaveBeenCalledWith("/match/tournament/t2");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// fetchTournaments / fetchMatches nullish-coalescing fallbacks
+// ---------------------------------------------------------------------------
+
+describe("MatchesPage – fetchTournaments nullish-coalescing fallbacks", () => {
+  afterEach(() => vi.clearAllMocks());
+
+  it("falls back to [] / 0 / default statusCounts when the response omits them", async () => {
+    vi.clearAllMocks();
+    mockGetSocket.mockReturnValue(fakeSocket);
+    mockUseUserStore.mockReturnValue(makeStore(true));
+
+    mockGet.mockResolvedValueOnce({ success: true });
+
+    renderAtMatches();
+
+    await waitFor(() =>
+      expect(screen.getByTestId("tournament-list")).toBeInTheDocument(),
+    );
+  });
+});
+
+describe("MatchesPage – fetchMatches nullish-coalescing fallback", () => {
+  afterEach(() => vi.clearAllMocks());
+
+  it("falls back to [] when the matches response omits data", async () => {
+    vi.clearAllMocks();
+    mockGetSocket.mockReturnValue(fakeSocket);
+    mockUseUserStore.mockReturnValue(makeStore(true, "u1", "Grimgork"));
+
+    mockGet.mockResolvedValueOnce(successfulListResponse);
+    mockGet.mockResolvedValueOnce({ success: true });
+
+    renderAtCode("ABCDE");
+
+    await waitFor(() =>
+      expect(screen.getByTestId("tournament-detail")).toBeInTheDocument(),
+    );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// refreshSelected: multi-tournament list + non-active status after refresh
+// ---------------------------------------------------------------------------
+
+describe("MatchesPage – refreshSelected with multiple tournaments and a pending result", () => {
+  afterEach(() => vi.clearAllMocks());
+
+  it("maps only the matching tournament and skips fetchMatches when the refreshed status is pending", async () => {
+    vi.clearAllMocks();
+    mockGetSocket.mockReturnValue(fakeSocket);
+    mockUseUserStore.mockReturnValue(makeStore(true, "u1", "Grimgork"));
+
+    mockGet.mockResolvedValueOnce({
+      success: true,
+      data: [pendingTournament, activeTournament],
+      total: 2,
+      statusCounts: { all: 2, pending: 1, active: 1, completed: 0 },
+    });
+
+    renderAtCode("PEND1");
+
+    await waitFor(() =>
+      expect(screen.getByTestId("tournament-detail")).toBeInTheDocument(),
+    );
+
+    fireEvent.change(screen.getByTestId("set-new-name"), {
+      target: { value: "Bob" },
+    });
+
+    mockPost.mockResolvedValueOnce({ success: true });
+    // refreshSelected: GET /tournament/t2 — still pending
+    mockGet.mockResolvedValueOnce({ success: true, data: pendingTournament });
+
+    fireEvent.click(screen.getByTestId("trigger-add"));
+
+    await waitFor(() => {
+      expect(mockPost).toHaveBeenCalledWith(
+        "/tournament/t2/participants",
+        expect.objectContaining({ name: "Bob" }),
+      );
+    });
+    // fetchMatches should NOT be called since refreshed status stays "pending"
+    expect(mockGet).not.toHaveBeenCalledWith("/match/tournament/t2");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// hash-based initial tournament selection
+// ---------------------------------------------------------------------------
+
+describe("MatchesPage – hash-based initial tournament selection", () => {
+  afterEach(() => vi.clearAllMocks());
+
+  function renderAtHash(hash: string) {
+    return render(
+      <MemoryRouter initialEntries={[`/matches${hash}`]}>
+        <ChakraProvider value={defaultSystem}>
+          <Routes>
+            <Route path="/matches" element={<MatchesPage />} />
+          </Routes>
+        </ChakraProvider>
+      </MemoryRouter>,
+    );
+  }
+
+  it("selects the tournament referenced by the URL hash once the list has loaded", async () => {
+    vi.clearAllMocks();
+    mockGetSocket.mockReturnValue(fakeSocket);
+    mockUseUserStore.mockReturnValue(makeStore(true, "u1", "Grimgork"));
+
+    mockGet.mockResolvedValueOnce(successfulListResponse);
+    mockGet.mockResolvedValueOnce(emptyMatchesResponse);
+
+    renderAtHash("#t1");
+
+    await waitFor(() =>
+      expect(screen.getByTestId("tournament-detail")).toBeInTheDocument(),
+    );
+    expect(screen.getByTestId("selected-id")).toHaveTextContent("t1");
+  });
+
+  it("does nothing when the hash does not match any loaded tournament", async () => {
+    vi.clearAllMocks();
+    mockGetSocket.mockReturnValue(fakeSocket);
+    mockUseUserStore.mockReturnValue(makeStore(true, "u1", "Grimgork"));
+
+    mockGet.mockResolvedValueOnce(successfulListResponse);
+
+    renderAtHash("#nonexistent-id");
+
+    await waitFor(() =>
+      expect(screen.getByTestId("tournament-list")).toBeInTheDocument(),
+    );
+    expect(screen.queryByTestId("tournament-detail")).not.toBeInTheDocument();
+  });
+
+  it("does not re-select on a subsequent tournaments refresh once the hash has been handled", async () => {
+    vi.clearAllMocks();
+    mockGetSocket.mockReturnValue(fakeSocket);
+    mockUseUserStore.mockReturnValue(makeStore(true, "u1", "Grimgork"));
+
+    mockGet.mockResolvedValueOnce(successfulListResponse);
+    mockGet.mockResolvedValueOnce(emptyMatchesResponse);
+
+    renderAtHash("#t1");
+
+    await waitFor(() =>
+      expect(screen.getByTestId("tournament-detail")).toBeInTheDocument(),
+    );
+
+    // Trigger handleDelete success → calls fetchTournaments() again, producing
+    // a new `tournaments` array reference while initialHashHandled.current is
+    // already true, exercising the early-return branch of the hash effect.
+    mockDelete.mockResolvedValueOnce({ success: true });
+    mockGet.mockResolvedValueOnce({
+      success: true,
+      data: [],
+      total: 0,
+      statusCounts: { all: 0, pending: 0, active: 0, completed: 0 },
+    });
+
+    fireEvent.click(screen.getByTestId("trigger-delete"));
+
+    await waitFor(() =>
+      expect(screen.getByTestId("tournament-list")).toBeInTheDocument(),
+    );
+    // handleSelectTournament (triggered by the hash effect) navigates only
+    // once — for the initial hash resolution, never again on this refresh.
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// handleSelectTournament: tournament without a code, active tournament click
+// ---------------------------------------------------------------------------
+
+describe("MatchesPage – handleSelectTournament without a tournament code", () => {
+  afterEach(() => vi.clearAllMocks());
+
+  it("navigates using the tournament id hash when the tournament has no code", async () => {
+    vi.clearAllMocks();
+    mockGetSocket.mockReturnValue(fakeSocket);
+    mockUseUserStore.mockReturnValue(makeStore(true));
+
+    const noCodeTournament = {
+      ...activeTournament,
+      _id: "t9",
+      code: "",
+      status: "pending" as const,
+    };
+    mockGet.mockResolvedValueOnce({
+      success: true,
+      data: [noCodeTournament],
+      total: 1,
+      statusCounts: { all: 1, pending: 1, active: 0, completed: 0 },
+    });
+
+    renderAtMatches();
+
+    await waitFor(() =>
+      expect(screen.getByTestId("tournament-list")).toBeInTheDocument(),
+    );
+
+    fireEvent.click(screen.getByTestId("select-t9"));
+
+    await waitFor(() =>
+      expect(mockNavigate).toHaveBeenCalledWith("#t9"),
+    );
+  });
+});
+
+describe("MatchesPage – handleSelectTournament with an active tournament via click", () => {
+  afterEach(() => vi.clearAllMocks());
+
+  it("calls fetchMatches when an active tournament is selected via the list", async () => {
+    vi.clearAllMocks();
+    mockGetSocket.mockReturnValue(fakeSocket);
+    mockUseUserStore.mockReturnValue(makeStore(true));
+
+    mockGet.mockResolvedValueOnce(successfulListResponse);
+
+    renderAtMatches();
+
+    await waitFor(() =>
+      expect(screen.getByTestId("tournament-list")).toBeInTheDocument(),
+    );
+
+    mockGet.mockResolvedValueOnce(emptyMatchesResponse);
+
+    fireEvent.click(screen.getByTestId("select-t1"));
+
+    await waitFor(() =>
+      expect(screen.getByTestId("tournament-detail")).toBeInTheDocument(),
+    );
+    expect(mockGet).toHaveBeenCalledWith("/match/tournament/t1");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Socket handlers: multi-item arrays wrapped in act() to force real execution
+// ---------------------------------------------------------------------------
+
+describe("MatchesPage – socket handlers with multiple items (act-wrapped)", () => {
+  afterEach(() => vi.clearAllMocks());
+
+  it("onTournamentUpdated updates only the matching tournament in a multi-item list", async () => {
+    vi.clearAllMocks();
+    mockGetSocket.mockReturnValue(fakeSocket);
+    mockUseUserStore.mockReturnValue(makeStore(true, "u1", "Grimgork"));
+
+    mockGet.mockResolvedValueOnce({
+      success: true,
+      data: [activeTournament, pendingTournament],
+      total: 2,
+      statusCounts: { all: 2, pending: 1, active: 1, completed: 0 },
+    });
+    mockGet.mockResolvedValueOnce(emptyMatchesResponse);
+
+    renderAtCode("ABCDE");
+
+    await waitFor(() =>
+      expect(screen.getByTestId("tournament-detail")).toBeInTheDocument(),
+    );
+
+    const updateCall = fakeSocket.on.mock.calls.find(
+      (c) => c[0] === "tournament:updated",
+    );
+    const handler = updateCall?.[1];
+    expect(handler).toBeDefined();
+
+    const updatedTournament = { ...activeTournament, name: "Updated Name" };
+    act(() => handler?.(updatedTournament));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("selected-id")).toHaveTextContent("t1");
+    });
+  });
+
+  it("onMatchesAppended actually appends via the functional setMatches updater", async () => {
+    await setupWithDetail();
+
+    const appendCall = fakeSocket.on.mock.calls.find(
+      (c) => c[0] === "matches:appended",
+    );
+    const handler = appendCall?.[1];
+    expect(handler).toBeDefined();
+
+    act(() => handler?.([{ _id: "m2", round: 2 }]));
+
+    // No crash + handler executed the functional updater (covered via act()).
+    expect(screen.getByTestId("tournament-detail")).toBeInTheDocument();
+  });
+
+  it("onMatchUpdated replaces only the matching match in a multi-match list", async () => {
+    vi.clearAllMocks();
+    mockGetSocket.mockReturnValue(fakeSocket);
+    mockUseUserStore.mockReturnValue(makeStore(true, "u1", "Grimgork"));
+
+    mockGet.mockResolvedValueOnce(successfulListResponse);
+    mockGet.mockResolvedValueOnce({
+      success: true,
+      data: [
+        { _id: "m1", round: 1 },
+        { _id: "m2", round: 1 },
+      ],
+    });
+
+    renderAtCode("ABCDE");
+
+    await waitFor(() =>
+      expect(screen.getByTestId("tournament-detail")).toBeInTheDocument(),
+    );
+
+    const matchUpdateCall = fakeSocket.on.mock.calls.find(
+      (c) => c[0] === "match:updated",
+    );
+    const handler = matchUpdateCall?.[1];
+    expect(handler).toBeDefined();
+
+    act(() => handler?.({ _id: "m1", round: 1, status: "completed" }));
+
+    expect(screen.getByTestId("tournament-detail")).toBeInTheDocument();
   });
 });

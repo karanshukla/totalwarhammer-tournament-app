@@ -84,3 +84,37 @@ describe("RegisterLogin – auth-event close-drawer", () => {
     );
   });
 });
+
+describe("RegisterLogin – close (X) button in drawer header", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("closes the drawer when the header's Close icon button is clicked", async () => {
+    renderRegisterLogin();
+    fireEvent.click(screen.getByRole("button", { name: /register\/login/i }));
+    await waitFor(() =>
+      expect(screen.getByText("Authentication")).toBeInTheDocument(),
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /^close$/i }));
+
+    await waitFor(() =>
+      expect(screen.queryByText("Authentication")).not.toBeInTheDocument(),
+    );
+  });
+});
+
+describe("RegisterLogin – auth-event with unrelated type", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("does nothing when auth-event type is neither open-drawer nor close-drawer", async () => {
+    renderRegisterLogin();
+    const event = new CustomEvent("auth-event", {
+      detail: { type: "some-other-type" },
+    });
+    document.dispatchEvent(event);
+
+    // Give any (unexpected) async work a tick to settle, then assert no drawer opened
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(screen.queryByText("Authentication")).not.toBeInTheDocument();
+  });
+});
