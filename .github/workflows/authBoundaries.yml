@@ -45,8 +45,8 @@ jobs:
           CSRF_SECRET=${CSRF_SECRET}
           JWT_SECRET=${JWT_SECRET}
           RESEND_API_KEY=re_placeholder_not_used_in_tests
-          CLIENT_URL=http://localhost
-          BASE_URL=http://localhost
+          CLIENT_URL=http://localhost:8080
+          BASE_URL=http://localhost:8080
           EOF
 
       - name: Build and start app stack
@@ -57,7 +57,7 @@ jobs:
           echo "Waiting for server to accept requests..."
           for i in $(seq 1 40); do
             STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
-              http://localhost/api/auth/csrf-token 2>/dev/null || echo "000")
+              http://localhost:8080/auth/csrf-token 2>/dev/null || echo "000")
             if [ "$STATUS" = "200" ]; then
               echo "Server ready (HTTP $STATUS) after $i attempt(s)"
               break
