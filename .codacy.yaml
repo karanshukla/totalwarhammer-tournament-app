@@ -1,8 +1,14 @@
 ---
-engines:
-  csslint:
-    enabled: false
-  stylelint:
-    enabled: false
-  jshint:
-    enabled: false
+# Codacy does not allow enabling/disabling tools from the config file — that
+# must be done on the Code Patterns page in the Codacy UI. The earlier
+# `engines: <tool>: enabled: false` form below was a no-op, which is why CSSLint
+# (an unmaintained tool that doesn't understand CSS custom properties) kept
+# flagging valid Chakra UI `var(--chakra-colors-*)` usage in index.css.
+#
+# What this file CAN do reliably is exclude paths from analysis. index.css is
+# the only stylesheet and its few rules are intentional Chakra overrides, so
+# excluding it from CSSLint's obsolete checks silences the false positives.
+# To fully disable CSSLint repo-wide, toggle it off under
+# Settings → Code Patterns in Codacy.
+exclude_paths:
+  - "client-app/src/index.css"
