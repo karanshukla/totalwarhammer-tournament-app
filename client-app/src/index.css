@@ -6,15 +6,29 @@
 
 /*
   Explicit text-selection styling. Without this, the browser/OS default
-  translucent highlight is nearly invisible against the app's custom dark
-  input background (bg.subtle = #16130F in dark mode), making selected text
-  in form fields hard to read. Use the Verdigris (info) semantic tokens —
-  high contrast against bg.subtle in both light (#E7E1D3) and dark (#16130F)
-  variants — so selecting text to correct a typo is legible everywhere.
+  translucent highlight is nearly invisible against the app's custom
+  input background (bg.subtle = #E7E1D3 light / #16130F dark), making
+  selected text in form fields hard to read.
+
+  IMPORTANT: values are hardcoded hexes, NOT semantic-token CSS vars.
+  Chakra v3 emits bg.*/border.* semantic tokens as runtime CSS custom
+  properties (so the input rules below resolve), but it does NOT emit
+  the color-palette semantic tokens (info.solid, brand.solid, etc.) as
+  --chakra-colors-*-* properties — those only resolve through Chakra
+  component props like color="info.solid". Using var(--chakra-colors-info-*)
+  here resolves to the empty string and silently falls back to the
+  browser default, which is the bug this rule exists to fix. The hexes
+  below are the Verdigris palette (theme.ts) steps that back info.solid:
+  verdigris.600 / .400 give high contrast on bg.subtle in both modes.
+  Dark mode is applied as a class on <html> by theme-init.js.
 */
 ::selection {
-  background-color: var(--chakra-colors-info-solid);
-  color: var(--chakra-colors-info-fg);
+  background-color: #106d65; /* verdigris.600 — on bg.subtle light (#E7E1D3) */
+  color: #ffffff;
+}
+.dark ::selection {
+  background-color: #29a597; /* verdigris.400 — on bg.subtle dark (#16130F) */
+  color: #062421; /* verdigris.900 */
 }
 
 input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]):not([type="color"]):not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="image"]) {
