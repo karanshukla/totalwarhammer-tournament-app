@@ -110,7 +110,13 @@ const StatCard: React.FC<StatCardProps> = ({
   const iconColor =
     colorPalette === "ink" ? "fg.secondary" : `${colorPalette}.fg`;
   return (
-    <Card.Root bg={bg}>
+    <Card.Root
+      bg={bg}
+      borderWidth={1}
+      borderColor="border.subtle"
+      transition="all 0.15s ease"
+      _hover={{ borderColor: "border.emphasized", shadow: "md" }}
+    >
       <Card.Body p={{ base: 3, md: 4 }}>
         <VStack alignItems="flex-start" gap={2}>
           <Box
@@ -295,7 +301,13 @@ const StatisticsPage: React.FC = () => {
 
         <SimpleGrid columns={{ base: 1, lg: 2 }} gap={6}>
           {/* Top Factions */}
-          <Card.Root bg={cardBg}>
+          <Card.Root
+            bg={cardBg}
+            borderWidth={1}
+            borderColor="border.subtle"
+            transition="all 0.15s ease"
+            _hover={{ borderColor: "border.emphasized", shadow: "md" }}
+          >
             <Card.Header>
               <HStack gap={2}>
                 <Box color="gold.text">
@@ -353,7 +365,13 @@ const StatisticsPage: React.FC = () => {
           </Card.Root>
 
           {/* Top Players */}
-          <Card.Root bg={cardBg}>
+          <Card.Root
+            bg={cardBg}
+            borderWidth={1}
+            borderColor="border.subtle"
+            transition="all 0.15s ease"
+            _hover={{ borderColor: "border.emphasized", shadow: "md" }}
+          >
             <Card.Header>
               <HStack gap={2}>
                 <Box color="gold.text">
@@ -425,7 +443,13 @@ const StatisticsPage: React.FC = () => {
           </Card.Root>
 
           {/* Recent Tournament Winners */}
-          <Card.Root bg={cardBg}>
+          <Card.Root
+            bg={cardBg}
+            borderWidth={1}
+            borderColor="border.subtle"
+            transition="all 0.15s ease"
+            _hover={{ borderColor: "border.emphasized", shadow: "md" }}
+          >
             <Card.Header>
               <HStack gap={2}>
                 <Box color="gold.text">
@@ -499,7 +523,13 @@ const StatisticsPage: React.FC = () => {
           </Card.Root>
 
           {/* Top Tournament Creators */}
-          <Card.Root bg={cardBg}>
+          <Card.Root
+            bg={cardBg}
+            borderWidth={1}
+            borderColor="border.subtle"
+            transition="all 0.15s ease"
+            _hover={{ borderColor: "border.emphasized", shadow: "md" }}
+          >
             <Card.Header>
               <HStack gap={2}>
                 <Box color="gold.text">
@@ -559,7 +589,13 @@ const StatisticsPage: React.FC = () => {
 
         {/* Recent Completed Tournaments */}
         {active.recentTournaments.length > 0 && (
-          <Card.Root bg={cardBg}>
+          <Card.Root
+            bg={cardBg}
+            borderWidth={1}
+            borderColor="border.subtle"
+            transition="all 0.15s ease"
+            _hover={{ borderColor: "border.emphasized", shadow: "md" }}
+          >
             <Card.Header>
               <HStack gap={2}>
                 <Box color="info.text">
