@@ -104,7 +104,7 @@ const StatCard: React.FC<StatCardProps> = ({
   colorPalette = "crimson",
   sub,
 }) => {
-  const bg = "bg.panel";
+  const bg = "bg.muted";
   const iconBg =
     colorPalette === "ink" ? "bg.subtle" : `${colorPalette}.subtle`;
   const iconColor =
@@ -157,8 +157,13 @@ const StatisticsPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [game, setGame] = useState<Game>("wh3");
 
-  const cardBg = "bg.panel";
-  const barBg = "bg.muted";
+  // Cards must read as a distinct surface from the cream page (bg.canvas
+  // #F1ECE1). bg.panel (#FBF8F1) is LIGHTER than the page and the two are
+  // within ~4% lightness in the same hue — so the card fill is invisible
+  // against the container. Use bg.muted (#D6CFC1), which is unambiguously
+  // DARKER than the page, so the card clearly pops out as its own surface.
+  const cardBg = "bg.muted";
+  const barBg = "bg.emphasized";
 
   useEffect(() => {
     const load = async () => {
