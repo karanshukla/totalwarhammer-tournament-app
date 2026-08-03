@@ -104,9 +104,9 @@ const StatCard: React.FC<StatCardProps> = ({
   colorPalette = "crimson",
   sub,
 }) => {
-  const bg = "bg.panel";
+  const bg = "bg.subtle";
   const iconBg =
-    colorPalette === "ink" ? "bg.subtle" : `${colorPalette}.subtle`;
+    colorPalette === "ink" ? "bg.muted" : `${colorPalette}.subtle`;
   const iconColor =
     colorPalette === "ink" ? "fg.secondary" : `${colorPalette}.fg`;
   return (
@@ -114,6 +114,7 @@ const StatCard: React.FC<StatCardProps> = ({
       bg={bg}
       borderWidth={1}
       borderColor="border.subtle"
+      shadow="sm"
       transition="all 0.15s ease"
       _hover={{ borderColor: "border.emphasized", shadow: "md" }}
     >
@@ -153,7 +154,7 @@ const StatisticsPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [game, setGame] = useState<Game>("wh3");
 
-  const cardBg = "bg.panel";
+  const cardBg = "bg.subtle";
   const barBg = "bg.muted";
 
   useEffect(() => {
@@ -305,6 +306,7 @@ const StatisticsPage: React.FC = () => {
             bg={cardBg}
             borderWidth={1}
             borderColor="border.subtle"
+            shadow="sm"
             transition="all 0.15s ease"
             _hover={{ borderColor: "border.emphasized", shadow: "md" }}
           >
@@ -369,6 +371,7 @@ const StatisticsPage: React.FC = () => {
             bg={cardBg}
             borderWidth={1}
             borderColor="border.subtle"
+            shadow="sm"
             transition="all 0.15s ease"
             _hover={{ borderColor: "border.emphasized", shadow: "md" }}
           >
@@ -447,6 +450,7 @@ const StatisticsPage: React.FC = () => {
             bg={cardBg}
             borderWidth={1}
             borderColor="border.subtle"
+            shadow="sm"
             transition="all 0.15s ease"
             _hover={{ borderColor: "border.emphasized", shadow: "md" }}
           >
@@ -527,6 +531,7 @@ const StatisticsPage: React.FC = () => {
             bg={cardBg}
             borderWidth={1}
             borderColor="border.subtle"
+            shadow="sm"
             transition="all 0.15s ease"
             _hover={{ borderColor: "border.emphasized", shadow: "md" }}
           >
@@ -593,6 +598,7 @@ const StatisticsPage: React.FC = () => {
             bg={cardBg}
             borderWidth={1}
             borderColor="border.subtle"
+            shadow="sm"
             transition="all 0.15s ease"
             _hover={{ borderColor: "border.emphasized", shadow: "md" }}
           >
