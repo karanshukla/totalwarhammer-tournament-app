@@ -104,17 +104,20 @@ const StatCard: React.FC<StatCardProps> = ({
   colorPalette = "crimson",
   sub,
 }) => {
-  const bg = "bg.subtle";
+  const bg = "bg.panel";
   const iconBg =
-    colorPalette === "ink" ? "bg.muted" : `${colorPalette}.subtle`;
+    colorPalette === "ink" ? "bg.subtle" : `${colorPalette}.subtle`;
   const iconColor =
     colorPalette === "ink" ? "fg.secondary" : `${colorPalette}.fg`;
+  const accent =
+    colorPalette === "ink" ? "border.emphasized" : `${colorPalette}.border`;
   return (
     <Card.Root
       bg={bg}
       borderWidth={1}
-      borderColor="border.subtle"
-      shadow="sm"
+      borderColor="border"
+      borderTopWidth="2px"
+      borderTopColor={accent}
       transition="all 0.15s ease"
       _hover={{ borderColor: "border.emphasized", shadow: "md" }}
     >
@@ -154,7 +157,7 @@ const StatisticsPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [game, setGame] = useState<Game>("wh3");
 
-  const cardBg = "bg.subtle";
+  const cardBg = "bg.panel";
   const barBg = "bg.muted";
 
   useEffect(() => {
@@ -305,8 +308,9 @@ const StatisticsPage: React.FC = () => {
           <Card.Root
             bg={cardBg}
             borderWidth={1}
-            borderColor="border.subtle"
-            shadow="sm"
+            borderColor="border"
+            borderTopWidth="2px"
+            borderTopColor="gold.border"
             transition="all 0.15s ease"
             _hover={{ borderColor: "border.emphasized", shadow: "md" }}
           >
@@ -370,8 +374,9 @@ const StatisticsPage: React.FC = () => {
           <Card.Root
             bg={cardBg}
             borderWidth={1}
-            borderColor="border.subtle"
-            shadow="sm"
+            borderColor="border"
+            borderTopWidth="2px"
+            borderTopColor="gold.border"
             transition="all 0.15s ease"
             _hover={{ borderColor: "border.emphasized", shadow: "md" }}
           >
@@ -449,8 +454,9 @@ const StatisticsPage: React.FC = () => {
           <Card.Root
             bg={cardBg}
             borderWidth={1}
-            borderColor="border.subtle"
-            shadow="sm"
+            borderColor="border"
+            borderTopWidth="2px"
+            borderTopColor="info.border"
             transition="all 0.15s ease"
             _hover={{ borderColor: "border.emphasized", shadow: "md" }}
           >
@@ -530,15 +536,16 @@ const StatisticsPage: React.FC = () => {
           <Card.Root
             bg={cardBg}
             borderWidth={1}
-            borderColor="border.subtle"
-            shadow="sm"
+            borderColor="border"
+            borderTopWidth="2px"
+            borderTopColor="brass.border"
             transition="all 0.15s ease"
             _hover={{ borderColor: "border.emphasized", shadow: "md" }}
           >
             <Card.Header>
               <HStack gap={2}>
                 <Box color="gold.text">
-                  <LuUsers />
+                  <LuTrophy />
                 </Box>
                 <Heading size="md">Top Tournament Creators</Heading>
               </HStack>
@@ -597,8 +604,9 @@ const StatisticsPage: React.FC = () => {
           <Card.Root
             bg={cardBg}
             borderWidth={1}
-            borderColor="border.subtle"
-            shadow="sm"
+            borderColor="border"
+            borderTopWidth="2px"
+            borderTopColor="info.border"
             transition="all 0.15s ease"
             _hover={{ borderColor: "border.emphasized", shadow: "md" }}
           >
@@ -618,6 +626,7 @@ const StatisticsPage: React.FC = () => {
                       key={t._id}
                       p={3}
                       borderRadius="md"
+                      bg="bg.subtle"
                       borderWidth={1}
                       borderColor="border"
                       borderTopColor="info.border"
