@@ -61,9 +61,13 @@ jobs:
       # JS — the repo's real linters (oxlint / stylelint) already cover these.
       # Codacy's config file can't disable whole tools, so filter the SARIF
       # (one run per tool, keyed by runs[].tool.driver.name) instead.
+      #
+      # Codacy reports tool names as "Csslint (reported by Codacy)",
+      # "Jshint (reported by Codacy)", etc. (lowercase internal spelling), so
+      # the regex MUST be case-insensitive (jq `test` flag "i") to match.
       - name: Filter out noisy legacy lint tools from SARIF
         run: |
-          jq 'del(.runs[] | select(.tool.driver.name | test("CSSLint|JSHint"))) ' \
+          jq 'del(.runs[] | select(.tool.driver.name | test("csslint|jshint"; "i"))) ' \
             results.sarif > results.filtered.sarif
           mv results.filtered.sarif results.sarif
 

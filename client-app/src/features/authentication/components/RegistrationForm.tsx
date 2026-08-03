@@ -18,9 +18,19 @@ const formSchema = z.object({
 
 export type RegistrationFormValues = z.infer<typeof formSchema>;
 
-export function RegistrationForm() {
+interface RegistrationFormProps {
+  /** Value carried over from the initial "Username or Email" check. Routed
+   *  into the email field when it contains "@", otherwise the username field. */
+  defaultIdentifier?: string;
+}
+
+export function RegistrationForm({
+  defaultIdentifier = "",
+}: RegistrationFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+
+  const isEmail = defaultIdentifier.includes("@");
 
   const {
     register,
@@ -28,6 +38,11 @@ export function RegistrationForm() {
     formState: { errors },
   } = useForm<RegistrationFormValues>({
     resolver: zodResolver(formSchema),
+    defaultValues: {
+      username: isEmail ? "" : defaultIdentifier,
+      email: isEmail ? defaultIdentifier : "",
+      password: "",
+    },
   });
 
   const onSubmit = async (data: RegistrationFormValues) => {

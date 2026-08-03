@@ -37,7 +37,9 @@ vi.mock("@/features/authentication/components/LoginForm", () => ({
 }));
 
 vi.mock("@/features/authentication/components/RegistrationForm", () => ({
-  RegistrationForm: () => <div data-testid="registration-form" />,
+  RegistrationForm: ({ defaultIdentifier }: { defaultIdentifier?: string }) => (
+    <div data-testid="registration-form" data-default-identifier={defaultIdentifier ?? ""} />
+  ),
 }));
 
 vi.mock("@/features/authentication/components/PasswordResetForm", () => ({
@@ -99,6 +101,23 @@ describe("AuthenticationForm – userExists=false → view='register'", () => {
       screen.getByRole("button", { name: /submit/i }).closest("form")!,
     );
     await waitFor(() => expect(screen.getByTestId("registration-form")).toBeInTheDocument());
+  });
+
+  it("carries the typed value into RegistrationForm as defaultIdentifier", async () => {
+    mockUserExists.mockResolvedValueOnce(false);
+    renderForm();
+    fireEvent.change(screen.getByRole("textbox", { name: /username or email/i }), {
+      target: { value: "someone@example.com" },
+    });
+    fireEvent.submit(
+      screen.getByRole("button", { name: /submit/i }).closest("form")!,
+    );
+    await waitFor(() =>
+      expect(screen.getByTestId("registration-form")).toHaveAttribute(
+        "data-default-identifier",
+        "someone@example.com",
+      ),
+    );
   });
 });
 
