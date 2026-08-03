@@ -3,6 +3,20 @@
   Makes form inputs visually distinct from card/panel backgrounds in both
   light and dark mode via Chakra's CSS custom properties.
 */
+
+/*
+  Explicit text-selection styling. Without this, the browser/OS default
+  translucent highlight is nearly invisible against the app's custom dark
+  input background (bg.subtle = #16130F in dark mode), making selected text
+  in form fields hard to read. Use the Verdigris (info) semantic tokens —
+  high contrast against bg.subtle in both light (#E7E1D3) and dark (#16130F)
+  variants — so selecting text to correct a typo is legible everywhere.
+*/
+::selection {
+  background-color: var(--chakra-colors-info-solid);
+  color: var(--chakra-colors-info-fg);
+}
+
 input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]):not([type="color"]):not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="image"]) {
   background-color: var(--chakra-colors-bg-subtle);
 }

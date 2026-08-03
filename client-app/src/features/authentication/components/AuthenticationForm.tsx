@@ -95,7 +95,10 @@ export function AuthenticationForm() {
     return (
       <>
         <Toaster />
-        <RegistrationForm key="registration-form" />
+        <RegistrationForm
+          key="registration-form"
+          defaultIdentifier={formState.usernameOrEmail}
+        />
       </>
     );
   }
