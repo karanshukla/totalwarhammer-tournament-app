@@ -11,16 +11,16 @@
   selected text in form fields hard to read.
 
   IMPORTANT: values are hardcoded hexes, NOT semantic-token CSS vars.
-  Chakra v3 emits bg.*/border.* semantic tokens as runtime CSS custom
-  properties (so the input rules below resolve), but it does NOT emit
-  the color-palette semantic tokens (info.solid, brand.solid, etc.) as
-  --chakra-colors-*-* properties — those only resolve through Chakra
-  component props like color="info.solid". Using var(--chakra-colors-info-*)
-  here resolves to the empty string and silently falls back to the
-  browser default, which is the bug this rule exists to fix. The hexes
-  below are the Verdigris palette (theme.ts) steps that back info.solid:
+  Chakra v3 emits the bg-dot and border-dot semantic tokens as runtime
+  CSS custom properties (so the input rules below resolve), but it does
+  NOT emit the color-palette semantic tokens (info.solid, brand.solid,
+  etc.) as chakra-colors properties — those only resolve through Chakra
+  component props like color="info.solid". Using the info-solid var here
+  resolves to the empty string and silently falls back to the browser
+  default, which is the bug this rule exists to fix. The hexes below are
+  the Verdigris palette (theme.ts) steps that back info.solid:
   verdigris.600 / .400 give high contrast on bg.subtle in both modes.
-  Dark mode is applied as a class on <html> by theme-init.js.
+  Dark mode is applied as a class on the html element by theme-init.js.
 */
 ::selection {
   background-color: #106d65; /* verdigris.600 — on bg.subtle light (#E7E1D3) */
