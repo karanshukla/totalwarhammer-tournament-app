@@ -104,7 +104,7 @@ const StatCard: React.FC<StatCardProps> = ({
   colorPalette = "crimson",
   sub,
 }) => {
-  const bg = "bg.muted";
+  const bg = "bg.panel";
   const iconBg =
     colorPalette === "ink" ? "bg.subtle" : `${colorPalette}.subtle`;
   const iconColor =
@@ -115,9 +115,10 @@ const StatCard: React.FC<StatCardProps> = ({
     <Card.Root
       bg={bg}
       borderWidth={1}
-      borderColor="border"
+      borderColor="border.subtle"
       borderTopWidth="2px"
       borderTopColor={accent}
+      shadow="sm"
       transition="all 0.15s ease"
       _hover={{ borderColor: "border.emphasized", shadow: "md" }}
     >
@@ -136,11 +137,11 @@ const StatCard: React.FC<StatCardProps> = ({
             <Text fontSize="2xl" fontWeight="bold" lineHeight="1">
               {value}
             </Text>
-            <Text fontSize="xs" color="fg.muted" lineHeight="tight" mt={1}>
+            <Text fontSize="xs" color="fg.secondary" lineHeight="tight" mt={1}>
               {label}
             </Text>
             {sub && (
-              <Text fontSize="xs" color="fg.muted">
+              <Text fontSize="xs" color="fg.secondary">
                 {sub}
               </Text>
             )}
@@ -157,13 +158,14 @@ const StatisticsPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [game, setGame] = useState<Game>("wh3");
 
-  // Cards must read as a distinct surface from the cream page (bg.canvas
-  // #F1ECE1). bg.panel (#FBF8F1) is LIGHTER than the page and the two are
-  // within ~4% lightness in the same hue — so the card fill is invisible
-  // against the container. Use bg.muted (#D6CFC1), which is unambiguously
-  // DARKER than the page, so the card clearly pops out as its own surface.
-  const cardBg = "bg.muted";
-  const barBg = "bg.emphasized";
+  // Cards follow the app-wide pattern (TournamentViewPage / TournamentList):
+  // bg.panel fill + a real drop shadow (shadow sm) for elevation + border.subtle
+  // for a visible edge. The shadow is what makes a light card read as raised
+  // above the light page — switching the fill to bg.muted (a prior attempt)
+  // made the card visible but tanked text contrast (fg.muted dropped to 2.66:1,
+  // failing WCAG). Elevation, not a darker fill, is the correct separator.
+  const cardBg = "bg.panel";
+  const barBg = "bg.muted";
 
   useEffect(() => {
     const load = async () => {
@@ -313,9 +315,10 @@ const StatisticsPage: React.FC = () => {
           <Card.Root
             bg={cardBg}
             borderWidth={1}
-            borderColor="border"
+            borderColor="border.subtle"
             borderTopWidth="2px"
             borderTopColor="gold.border"
+            shadow="sm"
             transition="all 0.15s ease"
             _hover={{ borderColor: "border.emphasized", shadow: "md" }}
           >
@@ -329,7 +332,7 @@ const StatisticsPage: React.FC = () => {
             </Card.Header>
             <Card.Body>
               {active.topFactions.length === 0 ? (
-                <Text color="fg.muted" fontSize="sm">
+                <Text color="fg.secondary" fontSize="sm">
                   No faction data yet.
                 </Text>
               ) : (
@@ -341,7 +344,7 @@ const StatisticsPage: React.FC = () => {
                           <HStack gap={2}>
                             <Text
                               fontSize="sm"
-                              color="fg.muted"
+                              color="fg.secondary"
                               w={5}
                               textAlign="right"
                             >
@@ -379,9 +382,10 @@ const StatisticsPage: React.FC = () => {
           <Card.Root
             bg={cardBg}
             borderWidth={1}
-            borderColor="border"
+            borderColor="border.subtle"
             borderTopWidth="2px"
             borderTopColor="gold.border"
+            shadow="sm"
             transition="all 0.15s ease"
             _hover={{ borderColor: "border.emphasized", shadow: "md" }}
           >
@@ -395,7 +399,7 @@ const StatisticsPage: React.FC = () => {
             </Card.Header>
             <Card.Body>
               {active.topPlayers.length === 0 ? (
-                <Text color="fg.muted" fontSize="sm">
+                <Text color="fg.secondary" fontSize="sm">
                   No player data yet.
                 </Text>
               ) : (
@@ -425,7 +429,7 @@ const StatisticsPage: React.FC = () => {
                                 {p.name}
                               </Text>
                               {p.factions.filter(Boolean).length > 0 && (
-                                <Text fontSize="xs" color="fg.muted">
+                                <Text fontSize="xs" color="fg.secondary">
                                   {p.factions.filter(Boolean).join(", ")}
                                 </Text>
                               )}
@@ -459,9 +463,10 @@ const StatisticsPage: React.FC = () => {
           <Card.Root
             bg={cardBg}
             borderWidth={1}
-            borderColor="border"
+            borderColor="border.subtle"
             borderTopWidth="2px"
             borderTopColor="info.border"
+            shadow="sm"
             transition="all 0.15s ease"
             _hover={{ borderColor: "border.emphasized", shadow: "md" }}
           >
@@ -478,7 +483,7 @@ const StatisticsPage: React.FC = () => {
             </Card.Header>
             <Card.Body>
               {active.recentWinners.length === 0 ? (
-                <Text fontSize="sm" color="fg.muted" fontStyle="italic">
+                <Text fontSize="sm" color="fg.secondary" fontStyle="italic">
                   No tournaments completed in the last 7 days.
                 </Text>
               ) : (
@@ -500,7 +505,7 @@ const StatisticsPage: React.FC = () => {
                             >
                               {w.tournamentName}
                             </Text>
-                            <Text fontSize="xs" color="fg.muted">
+                            <Text fontSize="xs" color="fg.secondary">
                               {w.tournamentType}
                             </Text>
                           </VStack>
@@ -541,9 +546,10 @@ const StatisticsPage: React.FC = () => {
           <Card.Root
             bg={cardBg}
             borderWidth={1}
-            borderColor="border"
+            borderColor="border.subtle"
             borderTopWidth="2px"
             borderTopColor="brass.border"
+            shadow="sm"
             transition="all 0.15s ease"
             _hover={{ borderColor: "border.emphasized", shadow: "md" }}
           >
@@ -557,7 +563,7 @@ const StatisticsPage: React.FC = () => {
             </Card.Header>
             <Card.Body>
               {active.topCreators.length === 0 ? (
-                <Text color="fg.muted" fontSize="sm">
+                <Text color="fg.secondary" fontSize="sm">
                   No data yet.
                 </Text>
               ) : (
@@ -609,9 +615,10 @@ const StatisticsPage: React.FC = () => {
           <Card.Root
             bg={cardBg}
             borderWidth={1}
-            borderColor="border"
+            borderColor="border.subtle"
             borderTopWidth="2px"
             borderTopColor="info.border"
+            shadow="sm"
             transition="all 0.15s ease"
             _hover={{ borderColor: "border.emphasized", shadow: "md" }}
           >
@@ -633,7 +640,7 @@ const StatisticsPage: React.FC = () => {
                       borderRadius="md"
                       bg="bg.subtle"
                       borderWidth={1}
-                      borderColor="border"
+                      borderColor="border.subtle"
                       borderTopColor="info.border"
                       borderTopWidth="2px"
                     >
@@ -650,11 +657,11 @@ const StatisticsPage: React.FC = () => {
                           <Badge colorPalette="ink" size="sm" variant="subtle">
                             {t.tournamentType}
                           </Badge>
-                          <Text fontSize="xs" color="fg.muted">
+                          <Text fontSize="xs" color="fg.secondary">
                             {t.participants.length} players
                           </Text>
                         </HStack>
-                        <Text fontSize="xs" color="fg.muted">
+                        <Text fontSize="xs" color="fg.secondary">
                           {new Date(t.createdAt).toLocaleDateString()}
                         </Text>
                       </VStack>
