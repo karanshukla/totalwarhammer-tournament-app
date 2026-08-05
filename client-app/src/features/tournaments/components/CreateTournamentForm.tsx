@@ -16,11 +16,7 @@ import {
   createListCollection,
   chakra,
 } from "@chakra-ui/react";
-import {
-  LuTriangleAlert,
-  LuInfo,
-  LuLock,
-} from "react-icons/lu";
+import { LuTriangleAlert, LuInfo, LuLock } from "react-icons/lu";
 import { NumberInputRoot, NumberInputField } from "@/shared/ui/NumberInput";
 import { httpClient } from "@/core/api/httpClient";
 import { useNavigate } from "react-router";
@@ -29,6 +25,13 @@ import {
   warhammer3Factions,
   warhammer40kFactions,
 } from "@/shared/constants/factions";
+import {
+  validateTournamentName,
+  TOURNAMENT_NAME_MAX_LENGTH,
+  TOURNAMENT_DESCRIPTION_MAX_LENGTH,
+  PLAYER_COUNT_MIN,
+  PLAYER_COUNT_MAX,
+} from "@/shared/constants/validation";
 
 const tournamentTypes = [
   "Single Elimination",
@@ -57,6 +60,8 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
     enable40kFactions: false,
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [nameError, setNameError] = useState<string | null>(null);
+  const [playerCountError, setPlayerCountError] = useState<string | null>(null);
   const [factionListVisible, setFactionListVisible] = useState(true);
   const [isShiftPressed, setIsShiftPressed] = useState(false);
   const [shiftAnchor, setShiftAnchor] = useState<number | null>(null);
@@ -119,11 +124,16 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.target;
+    if (name === "name" && nameError) setNameError(null);
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleNumberChange = ({ value }: { value: string }) => {
-    setFormData((prev) => ({ ...prev, playerCount: parseInt(value) || 2 }));
+    setPlayerCountError(null);
+    setFormData((prev) => ({
+      ...prev,
+      playerCount: parseInt(value) || PLAYER_COUNT_MIN,
+    }));
   };
 
   const toggle40k = () => {
@@ -137,10 +147,26 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const invalidName = validateTournamentName(formData.name);
+    setNameError(invalidName);
+
+    const { playerCount } = formData;
+    const invalidPlayerCount =
+      playerCount < PLAYER_COUNT_MIN || playerCount > PLAYER_COUNT_MAX
+        ? `Player count must be between ${PLAYER_COUNT_MIN} and ${PLAYER_COUNT_MAX}`
+        : null;
+    setPlayerCountError(invalidPlayerCount);
+
+    if (invalidName || invalidPlayerCount) return;
+
     setIsLoading(true);
 
     try {
-      const response = (await httpClient.post("/tournament", formData)) as {
+      const response = (await httpClient.post("/tournament", {
+        ...formData,
+        name: formData.name.trim(),
+      })) as {
         success: boolean;
         data: { _id: string; name: string; code: string };
       };
@@ -167,14 +193,16 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
         <Card.Body>
           <VStack gap={6} align="stretch">
             <SimpleGrid columns={{ base: 1, md: 3 }} gap={4}>
-              <Field.Root required>
+              <Field.Root required invalid={!!nameError}>
                 <Field.Label>Tournament Name</Field.Label>
                 <Input
                   name="name"
                   value={formData.name}
                   onChange={handleInputChange}
                   placeholder="Enter tournament name"
+                  maxLength={TOURNAMENT_NAME_MAX_LENGTH}
                 />
+                <Field.ErrorText>{nameError}</Field.ErrorText>
               </Field.Root>
 
               <Field.Root required>
@@ -214,16 +242,17 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
                 </Select.Root>
               </Field.Root>
 
-              <Field.Root required>
+              <Field.Root required invalid={!!playerCountError}>
                 <Field.Label>Number of Players</Field.Label>
                 <NumberInputRoot
                   value={String(formData.playerCount)}
-                  min={2}
-                  max={128}
+                  min={PLAYER_COUNT_MIN}
+                  max={PLAYER_COUNT_MAX}
                   onValueChange={handleNumberChange}
                 >
                   <NumberInputField />
                 </NumberInputRoot>
+                <Field.ErrorText>{playerCountError}</Field.ErrorText>
               </Field.Root>
             </SimpleGrid>
 
@@ -235,25 +264,30 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
                 onChange={(e) =>
                   setFormData((prev) => ({
                     ...prev,
-                    description: e.target.value.slice(0, 2000),
+                    description: e.target.value.slice(
+                      0,
+                      TOURNAMENT_DESCRIPTION_MAX_LENGTH,
+                    ),
                   }))
                 }
                 placeholder="Enter tournament description (Markdown supported)"
                 minH="200px"
                 resize="vertical"
-                maxLength={2000}
+                maxLength={TOURNAMENT_DESCRIPTION_MAX_LENGTH}
               />
               <Field.HelperText>
                 <Text as="span">Markdown supported. </Text>
                 <Text
                   as="span"
                   color={
-                    formData.description.length >= 2000
+                    formData.description.length >=
+                    TOURNAMENT_DESCRIPTION_MAX_LENGTH
                       ? "status.loss"
                       : "fg.muted"
                   }
                 >
-                  {formData.description.length}/2000
+                  {formData.description.length}/
+                  {TOURNAMENT_DESCRIPTION_MAX_LENGTH}
                 </Text>
               </Field.HelperText>
             </Field.Root>
@@ -660,7 +694,7 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
             colorPalette="crimson"
             size="md"
             loading={isLoading}
-            disabled={isGuest}
+            disabled={isGuest || !formData.name.trim()}
           >
             Create Tournament
           </Button>

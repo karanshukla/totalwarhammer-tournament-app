@@ -3,6 +3,10 @@ import { Text, VStack, Button, Input, Box } from "@chakra-ui/react";
 import { useUserStore } from "@/shared/stores/userStore";
 import { updateGuestUsername } from "@/features/authentication/api/guestApi";
 import { updateUsername as updateAuthUsername } from "@/features/account/api/accountApi";
+import {
+  validateUsername,
+  USERNAME_MAX_LENGTH,
+} from "@/shared/constants/validation";
 
 interface UsernameUpdateFormProps {
   isGuest?: boolean;
@@ -24,8 +28,9 @@ const UsernameUpdateForm: React.FC<UsernameUpdateFormProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!username || username.length < 3) {
-      setError("Usernames must be at least 3 characters long");
+    const validationError = validateUsername(username);
+    if (validationError) {
+      setError(validationError);
       return;
     }
     setIsSubmitting(true);
@@ -54,6 +59,7 @@ const UsernameUpdateForm: React.FC<UsernameUpdateFormProps> = ({
           placeholder="Enter your new username"
           value={username}
           onChange={handleUsernameChange}
+          maxLength={USERNAME_MAX_LENGTH}
         />
         {error && <Text color="status.loss">{error}</Text>}
         <Button

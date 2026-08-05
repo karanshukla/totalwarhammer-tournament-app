@@ -1,5 +1,9 @@
 import { body, query } from "express-validator";
 
+// bcrypt only hashes the first 72 bytes; rejecting longer input beats
+// silently ignoring the tail of someone's passphrase.
+const MAX_PASSWORD_LENGTH = 72;
+
 /** @type {import('express-validator').ValidationChain[]} */
 export const validateUserExists = [
   query("identifier")
@@ -36,8 +40,10 @@ export const validateUserRegistration = [
   body("password")
     .notEmpty()
     .withMessage("Password is required")
-    .isLength({ min: 8 })
-    .withMessage("Password must be at least 8 characters long"),
+    .isLength({ min: 8, max: MAX_PASSWORD_LENGTH })
+    .withMessage(
+      `Password must be between 8 and ${MAX_PASSWORD_LENGTH} characters long`,
+    ),
 ];
 
 /** @type {import('express-validator').ValidationChain[]} */
@@ -79,8 +85,10 @@ export const validateUpdatePassword = [
   body("newPassword")
     .notEmpty()
     .withMessage("New password is required")
-    .isLength({ min: 8 })
-    .withMessage("New password must be at least 8 characters long"),
+    .isLength({ min: 8, max: MAX_PASSWORD_LENGTH })
+    .withMessage(
+      `New password must be between 8 and ${MAX_PASSWORD_LENGTH} characters long`,
+    ),
 
   body("confirmPassword")
     .notEmpty()

@@ -41,7 +41,14 @@ services:
              --variable host=server:3000 \
              --variable run_id="$$RUN_ID" \
              --report-html /report \
-             /tests/auth-boundaries.hurl
+             /tests/auth-boundaries.hurl \
+        && \
+        hurl --test \
+             --error-format long \
+             --variable host=server:3000 \
+             --variable run_id="$$RUN_ID" \
+             --report-html /report \
+             /tests/validation.hurl
     volumes:
       - ./tests/hurl:/tests:ro
       - hurl-report:/report

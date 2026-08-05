@@ -32,7 +32,7 @@ function makeSortableReturn(isDragging = false) {
     transform: null,
     transition: undefined,
     isDragging,
-  } as ReturnType<typeof useSortable>;
+  } as unknown as ReturnType<typeof useSortable>;
 }
 
 function renderSortableItem(isDragging = false, participant = testParticipant) {

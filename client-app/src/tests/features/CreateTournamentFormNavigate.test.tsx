@@ -64,8 +64,14 @@ describe("CreateTournamentForm – navigate on creation", () => {
 
     renderForm();
 
+    fireEvent.change(screen.getByPlaceholderText(/enter tournament name/i), {
+      target: { value: "Battle Cup" },
+    });
+
     fireEvent.submit(
-      screen.getByRole("button", { name: /create tournament/i }).closest("form")!,
+      screen
+        .getByRole("button", { name: /create tournament/i })
+        .closest("form")!,
     );
 
     await waitFor(() => {
@@ -81,8 +87,14 @@ describe("CreateTournamentForm – navigate on creation", () => {
 
     renderForm();
 
+    fireEvent.change(screen.getByPlaceholderText(/enter tournament name/i), {
+      target: { value: "Battle Cup" },
+    });
+
     fireEvent.submit(
-      screen.getByRole("button", { name: /create tournament/i }).closest("form")!,
+      screen
+        .getByRole("button", { name: /create tournament/i })
+        .closest("form")!,
     );
 
     await waitFor(() => {
@@ -95,8 +107,14 @@ describe("CreateTournamentForm – navigate on creation", () => {
 
     renderForm();
 
+    fireEvent.change(screen.getByPlaceholderText(/enter tournament name/i), {
+      target: { value: "Battle Cup" },
+    });
+
     fireEvent.submit(
-      screen.getByRole("button", { name: /create tournament/i }).closest("form")!,
+      screen
+        .getByRole("button", { name: /create tournament/i })
+        .closest("form")!,
     );
 
     await waitFor(() => {

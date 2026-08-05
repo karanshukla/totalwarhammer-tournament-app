@@ -147,7 +147,11 @@ const MatchesPage: React.FC = () => {
       const isParticipant = t.participants?.some(
         (p) => p.name.trim().toLowerCase() === lowerName || p.name === user?.id,
       );
-      navigate(isParticipant ? `/matches/tournament/${code}` : `/matches/spectate/${code}`);
+      navigate(
+        isParticipant
+          ? `/matches/tournament/${code}`
+          : `/matches/spectate/${code}`,
+      );
       setCodeInput("");
     } catch {
       setCodeError("No tournament found with that code.");
@@ -421,9 +425,7 @@ const MatchesPage: React.FC = () => {
     if (loading) return;
     if (selected?.code?.toUpperCase() === urlCode) return;
 
-    const found = tournaments.find(
-      (t) => t.code?.toUpperCase() === urlCode,
-    );
+    const found = tournaments.find((t) => t.code?.toUpperCase() === urlCode);
     if (found) {
       setSelected(found);
       if (found.status === "active" || found.status === "completed") {
@@ -433,8 +435,10 @@ const MatchesPage: React.FC = () => {
     }
 
     httpClient
-      .get(`/tournament/code/${urlCode}`)
-      .then((res: { success: boolean; data: Tournament }) => {
+      .get<{ success: boolean; data: Tournament }>(
+        `/tournament/code/${urlCode}`,
+      )
+      .then((res) => {
         const t = res.data;
         setSelected(t);
         if (t.status === "active" || t.status === "completed") {

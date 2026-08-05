@@ -6,18 +6,12 @@ import { invalidateStatsCache } from "../../../infrastructure/services/stats-ser
 import { emitMatchUpdated } from "../../../infrastructure/socket/socket-service.js";
 import logger from "../../../infrastructure/utils/logger.js";
 
-const isValidObjectId = (id) => /^[a-f\d]{24}$/i.test(id);
 const toObjectId = (id) => new mongoose.Types.ObjectId(id);
 
 // GET /match/tournament/:tournamentId
 /** @type {import('express').RequestHandler} */
 export const getMatchesByTournament = async (req, res) => {
   try {
-    if (!isValidObjectId(req.params.tournamentId)) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid tournament ID" });
-    }
     const matches = await Match.find({
       tournament: toObjectId(req.params.tournamentId),
     }).sort({ round: 1, matchNumber: 1 });
@@ -35,11 +29,6 @@ export const getMatchesByTournament = async (req, res) => {
 /** @type {import('express').RequestHandler} */
 export const getMatchById = async (req, res) => {
   try {
-    if (!isValidObjectId(req.params.id)) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid match ID" });
-    }
     const match = await Match.findById(req.params.id);
     if (!match) {
       return res
@@ -61,12 +50,6 @@ export const getMatchById = async (req, res) => {
 export const createMatch = async (req, res) => {
   try {
     const { tournamentId, round, matchNumber, player1, player2 } = req.body;
-
-    if (!isValidObjectId(tournamentId)) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid tournament ID" });
-    }
 
     const tournament = await Tournament.findOne({
       _id: toObjectId(tournamentId),
@@ -509,15 +492,7 @@ export const updateMatchStatus = async (req, res) => {
       });
     }
 
-    const { status } = req.body;
-    if (!["pending", "in_progress"].includes(status)) {
-      return res.status(400).json({
-        success: false,
-        message: "Status must be pending or in_progress",
-      });
-    }
-
-    match.status = status;
+    match.status = req.body.status;
     await match.save();
     emitMatchUpdated(match.tournament._id.toString(), match);
 

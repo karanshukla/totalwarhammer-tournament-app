@@ -27,7 +27,7 @@ vi.mock("@/shared/stores/userStore", () => ({
 }));
 
 import { httpClient } from "@/core/api/httpClient";
-import { useUserStore } from "@/shared/stores/userStore";
+import { useUserStore, type UserStore } from "@/shared/stores/userStore";
 
 const mockGet = vi.mocked(httpClient.get);
 
@@ -35,7 +35,10 @@ function renderBrowser() {
   return render(
     <ChakraProvider value={defaultSystem}>
       <MemoryRouter>
-        <TournamentBrowser statusFilter="active" emptyMessage="No tournaments." />
+        <TournamentBrowser
+          statusFilter="active"
+          emptyMessage="No tournaments."
+        />
       </MemoryRouter>
     </ChakraProvider>,
   );
@@ -47,12 +50,10 @@ describe("TournamentBrowser – null user branch (line 109)", () => {
   });
 
   it("isAlreadyJoined returns false when user is null (line 109 true branch)", async () => {
-    vi.mocked(useUserStore as unknown as () => ReturnType<typeof useUserStore>).mockReturnValue(
-      {
-        user: null as unknown as ReturnType<typeof useUserStore>["user"],
-        isAuthenticated: vi.fn().mockReturnValue(false),
-      } as ReturnType<typeof useUserStore>,
-    );
+    vi.mocked(useUserStore as unknown as () => UserStore).mockReturnValue({
+      user: null as unknown as UserStore["user"],
+      isAuthenticated: vi.fn().mockReturnValue(false),
+    } as unknown as UserStore);
 
     mockGet.mockResolvedValue({
       success: true,
@@ -85,12 +86,10 @@ describe("TournamentBrowser – null user branch (line 109)", () => {
   });
 
   it("isAlreadyJoined returns false and no crash when user is null with no participants", async () => {
-    vi.mocked(useUserStore as unknown as () => ReturnType<typeof useUserStore>).mockReturnValue(
-      {
-        user: null as unknown as ReturnType<typeof useUserStore>["user"],
-        isAuthenticated: vi.fn().mockReturnValue(false),
-      } as ReturnType<typeof useUserStore>,
-    );
+    vi.mocked(useUserStore as unknown as () => UserStore).mockReturnValue({
+      user: null as unknown as UserStore["user"],
+      isAuthenticated: vi.fn().mockReturnValue(false),
+    } as unknown as UserStore);
 
     mockGet.mockResolvedValue({
       success: true,
