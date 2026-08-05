@@ -70,7 +70,7 @@ describe("UsernameUpdateForm – initial value (user.username || '')", () => {
   });
 });
 
-describe("UsernameUpdateForm – validation error (!username || length < 3)", () => {
+describe("UsernameUpdateForm – validation error", () => {
   beforeEach(() => vi.clearAllMocks());
 
   it("shows error when username is empty on submit", async () => {
@@ -78,7 +78,7 @@ describe("UsernameUpdateForm – validation error (!username || length < 3)", ()
     fireEvent.submit(screen.getByRole("button", { name: /update username/i }));
     await waitFor(() =>
       expect(
-        screen.getByText(/usernames must be at least 3 characters/i),
+        screen.getByText(/username must be at least 3 characters/i),
       ).toBeInTheDocument(),
     );
     expect(mockUpdateAuthUsername).not.toHaveBeenCalled();
@@ -92,7 +92,7 @@ describe("UsernameUpdateForm – validation error (!username || length < 3)", ()
     fireEvent.submit(screen.getByRole("button", { name: /update username/i }));
     await waitFor(() =>
       expect(
-        screen.getByText(/usernames must be at least 3 characters/i),
+        screen.getByText(/username must be at least 3 characters/i),
       ).toBeInTheDocument(),
     );
   });
@@ -106,14 +106,14 @@ describe("UsernameUpdateForm – clears error on re-type (if error setError(''))
     fireEvent.submit(screen.getByRole("button", { name: /update username/i }));
     await waitFor(() =>
       expect(
-        screen.getByText(/usernames must be at least 3 characters/i),
+        screen.getByText(/username must be at least 3 characters/i),
       ).toBeInTheDocument(),
     );
     fireEvent.change(screen.getByPlaceholderText(/new username/i), {
       target: { value: "NewName" },
     });
     expect(
-      screen.queryByText(/usernames must be at least 3 characters/i),
+      screen.queryByText(/username must be at least 3 characters/i),
     ).not.toBeInTheDocument();
   });
 });

@@ -122,13 +122,6 @@ describe("match-controller", () => {
   describe("createMatch", () => {
     const validTournamentId = "aaaaaaaaaaaaaaaaaaaaaaaa";
 
-    it("should return 400 for invalid tournament ID", async () => {
-      const req = mockReq({ body: { tournamentId: "invalid" } });
-      const res = mockRes();
-      await createMatch(req, res);
-      assert.strictEqual(res.status.mock.calls[0].arguments[0], 400);
-    });
-
     it("should return 404 if tournament not found", async () => {
       mockTournamentFindOne.mock.mockImplementation(async () => null);
       const req = mockReq({ body: { tournamentId: validTournamentId } });
@@ -961,22 +954,6 @@ describe("match-controller", () => {
       assert.strictEqual(res.status.mock.calls[0].arguments[0], 403);
     });
 
-    it("should return 400 for an invalid status value", async () => {
-      const creatorId = "cccccccccccccccccccccccc";
-      const match = makeMatchForStatusUpdate(creatorId);
-      mockMatchFindById.mock.mockImplementation(() => ({
-        populate: async () => match,
-      }));
-      const req = mockReq({
-        params: { id: "m1" },
-        body: { status: "completed" },
-        user: { id: creatorId },
-      });
-      const res = mockRes();
-      await updateMatchStatus(req, res);
-      assert.strictEqual(res.status.mock.calls[0].arguments[0], 400);
-    });
-
     it("should update status and emit when admin sets in_progress", async () => {
       const creatorId = "cccccccccccccccccccccccc";
       const match = makeMatchForStatusUpdate(creatorId);
@@ -1016,32 +993,6 @@ describe("match-controller", () => {
   });
 
   // ─── branch coverage for previously-uncovered early returns ──────────────────
-
-  describe("getMatchesByTournament — invalid ID branch", () => {
-    it("returns 400 for an invalid tournament ID", async () => {
-      const req = mockReq({ params: { tournamentId: "not-a-valid-id" } });
-      const res = mockRes();
-      await getMatchesByTournament(req, res);
-      assert.strictEqual(res.status.mock.calls[0].arguments[0], 400);
-      assert.match(
-        res.json.mock.calls[0].arguments[0].message,
-        /invalid tournament id/i,
-      );
-    });
-  });
-
-  describe("getMatchById — invalid ID branch", () => {
-    it("returns 400 for an invalid match ID", async () => {
-      const req = mockReq({ params: { id: "not-a-valid-id" } });
-      const res = mockRes();
-      await getMatchById(req, res);
-      assert.strictEqual(res.status.mock.calls[0].arguments[0], 400);
-      assert.match(
-        res.json.mock.calls[0].arguments[0].message,
-        /invalid match id/i,
-      );
-    });
-  });
 
   describe("createMatch — pending tournament branch", () => {
     it("returns 400 when the tournament has not been started yet", async () => {

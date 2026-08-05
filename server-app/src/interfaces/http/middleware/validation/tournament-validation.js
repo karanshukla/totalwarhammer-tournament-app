@@ -1,6 +1,12 @@
-import { body } from "express-validator";
+import { body, param, query } from "express-validator";
 
 import { allFactions } from "../../../../constants/factions.js";
+
+import {
+  objectIdParam,
+  optionalFaction,
+  participantName,
+} from "./common-validation.js";
 
 const VALID_TYPES = [
   "Single Elimination",
@@ -9,9 +15,19 @@ const VALID_TYPES = [
   "Swiss System",
 ];
 
+const VALID_STATUSES = ["pending", "active", "completed"];
+
+const MAX_DESCRIPTION_LENGTH = 2000;
+
 /** @type {import('express-validator').ValidationChain[]} */
 export const validateCreateTournament = [
   body("name")
+    .exists({ values: "falsy" })
+    .withMessage("Tournament name is required")
+    .bail()
+    .isString()
+    .withMessage("Tournament name must be a string")
+    .bail()
     .trim()
     .notEmpty()
     .withMessage("Tournament name is required")
@@ -20,13 +36,19 @@ export const validateCreateTournament = [
     .escape(),
 
   body("description")
-    .optional()
-    .isLength({ max: 2000 })
-    .withMessage("Description cannot exceed 2000 characters"),
+    .optional({ nullable: true })
+    .isString()
+    .withMessage("Description must be a string")
+    .bail()
+    .isLength({ max: MAX_DESCRIPTION_LENGTH })
+    .withMessage(
+      `Description cannot exceed ${MAX_DESCRIPTION_LENGTH} characters`,
+    ),
 
   body("playerCount")
     .isInt({ min: 2, max: 128 })
-    .withMessage("Player count must be between 2 and 128"),
+    .withMessage("Player count must be between 2 and 128")
+    .toInt(),
 
   body("tournamentType")
     .notEmpty()
@@ -48,6 +70,93 @@ export const validateCreateTournament = [
       const invalid = factions.filter((f) => !allFactions.includes(f));
       if (invalid.length > 0) {
         throw new Error(`Invalid factions: ${invalid.join(", ")}`);
+      }
+      return true;
+    }),
+];
+
+/** @type {import('express-validator').ValidationChain[]} */
+export const validateTournamentIdParam = [objectIdParam("id", "tournament")];
+
+/** @type {import('express-validator').ValidationChain[]} */
+export const validateParticipantParams = [
+  objectIdParam("id", "tournament"),
+  objectIdParam("participantId", "participant"),
+];
+
+/** @type {import('express-validator').ValidationChain[]} */
+export const validateTournamentCodeParam = [
+  param("code")
+    .trim()
+    .isLength({ min: 1, max: 12 })
+    .withMessage("Invalid tournament code")
+    .isAlphanumeric()
+    .withMessage("Invalid tournament code"),
+];
+
+/** @type {import('express-validator').ValidationChain[]} */
+export const validateAddParticipant = [
+  objectIdParam("id", "tournament"),
+  participantName("name"),
+  optionalFaction("faction"),
+];
+
+/** @type {import('express-validator').ValidationChain[]} */
+export const validateUpdateParticipant = [
+  objectIdParam("id", "tournament"),
+  objectIdParam("participantId", "participant"),
+  body("name")
+    .optional()
+    .isString()
+    .withMessage("Name must be a string")
+    .bail()
+    .trim()
+    .notEmpty()
+    .withMessage("Name is required")
+    .isLength({ max: 100 })
+    .withMessage("Name cannot exceed 100 characters"),
+  optionalFaction("faction"),
+];
+
+/** @type {import('express-validator').ValidationChain[]} */
+export const validateJoinTournament = [
+  objectIdParam("id", "tournament"),
+  optionalFaction("faction"),
+];
+
+/** @type {import('express-validator').ValidationChain[]} */
+export const validateUpdateDescription = [
+  objectIdParam("id", "tournament"),
+  body("description")
+    .exists()
+    .withMessage("Description is required")
+    .bail()
+    .isString()
+    .withMessage("Description must be a string")
+    .bail()
+    .isLength({ max: MAX_DESCRIPTION_LENGTH })
+    .withMessage(
+      `Description cannot exceed ${MAX_DESCRIPTION_LENGTH} characters`,
+    ),
+];
+
+/** @type {import('express-validator').ValidationChain[]} */
+export const validateListTournamentsQuery = [
+  query("status")
+    .optional()
+    .isString()
+    .withMessage("Status filter must be a string")
+    .bail()
+    .custom((value) => {
+      const invalid = value
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean)
+        .filter((s) => !VALID_STATUSES.includes(s));
+      if (invalid.length > 0) {
+        throw new Error(
+          `Status filter must be one of: ${VALID_STATUSES.join(", ")}`,
+        );
       }
       return true;
     }),

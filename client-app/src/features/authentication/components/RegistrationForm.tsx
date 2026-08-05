@@ -7,13 +7,17 @@ import { Toaster } from "@/shared/ui/Toaster";
 import { useNavigate } from "react-router";
 import { useState } from "react";
 import { PasswordInput } from "@/shared/ui/PasswordInput";
+import {
+  passwordSchema,
+  usernameSchema,
+  USERNAME_MAX_LENGTH,
+  PASSWORD_MAX_LENGTH,
+} from "@/shared/constants/validation";
 
 const formSchema = z.object({
-  username: z.string().min(5, { message: "A valid Username is required" }),
+  username: usernameSchema,
   email: z.string().email({ message: "A valid Email Address is required" }),
-  password: z
-    .string()
-    .min(8, { message: "Password must be at least 8 characters long" }),
+  password: passwordSchema,
 });
 
 export type RegistrationFormValues = z.infer<typeof formSchema>;
@@ -63,7 +67,7 @@ export function RegistrationForm({
         <Toaster />
         <Field.Root invalid={!!errors.username} required>
           <Field.Label>Username</Field.Label>
-          <Input {...register("username")} />
+          <Input {...register("username")} maxLength={USERNAME_MAX_LENGTH} />
           <Field.ErrorText>{errors.username?.message}</Field.ErrorText>
         </Field.Root>
 
@@ -79,6 +83,7 @@ export function RegistrationForm({
             type="password"
             {...register("password")}
             autoComplete="new-password"
+            maxLength={PASSWORD_MAX_LENGTH}
           />
           <Field.ErrorText>{errors.password?.message}</Field.ErrorText>
         </Field.Root>

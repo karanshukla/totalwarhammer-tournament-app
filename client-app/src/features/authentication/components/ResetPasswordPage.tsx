@@ -20,13 +20,15 @@ import { verifyResetToken, resetPassword } from "../api/passwordResetApi";
 import { useNavigate } from "react-router";
 import { toaster } from "@/shared/ui/Toaster";
 import { PasswordInput } from "@/shared/ui/PasswordInput";
+import {
+  passwordSchema,
+  PASSWORD_MAX_LENGTH,
+} from "@/shared/constants/validation";
 
 // Schema for password reset form validation
 const resetPasswordFormSchema = z
   .object({
-    password: z
-      .string()
-      .min(6, { message: "Password must be at least 8 characters long" }),
+    password: passwordSchema,
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
@@ -170,6 +172,7 @@ const ResetPasswordPage: React.FC = () => {
               <PasswordInput
                 {...register("password")}
                 placeholder="Enter your new password"
+                maxLength={PASSWORD_MAX_LENGTH}
               />
               <Field.ErrorText>{errors.password?.message}</Field.ErrorText>
             </Field.Root>
@@ -179,6 +182,7 @@ const ResetPasswordPage: React.FC = () => {
               <PasswordInput
                 {...register("confirmPassword")}
                 placeholder="Confirm your new password"
+                maxLength={PASSWORD_MAX_LENGTH}
               />
               <Field.ErrorText>
                 {errors.confirmPassword?.message}

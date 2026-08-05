@@ -705,23 +705,6 @@ describe("tournament-controller", () => {
   });
 
   describe("updateDescription", () => {
-    it("should return 400 if description is not a string", async () => {
-      const req = mockReq({ params: { id: "t1" }, body: { description: 123 } });
-      const res = mockRes();
-      await updateDescription(req, res);
-      assert.strictEqual(res.status.mock.calls[0].arguments[0], 400);
-    });
-
-    it("should return 400 if description exceeds 2000 chars", async () => {
-      const req = mockReq({
-        params: { id: "t1" },
-        body: { description: "x".repeat(2001) },
-      });
-      const res = mockRes();
-      await updateDescription(req, res);
-      assert.strictEqual(res.status.mock.calls[0].arguments[0], 400);
-    });
-
     it("should return 404 if tournament not found", async () => {
       mockTournamentFindOne.mock.mockImplementation(async () => null);
       const req = mockReq({
@@ -1430,21 +1413,6 @@ describe("tournament-controller", () => {
       await createTournament(req, res);
       assert.strictEqual(res.status.mock.calls[0].arguments[0], 403);
     });
-
-    it("should return 400 if description exceeds 2000 chars", async () => {
-      const req = mockReq({
-        body: {
-          name: "t",
-          description: "x".repeat(2001),
-          playerCount: 4,
-          tournamentType: "Single Elimination",
-        },
-        user: { id: "u1", isGuest: false },
-      });
-      const res = mockRes();
-      await createTournament(req, res);
-      assert.strictEqual(res.status.mock.calls[0].arguments[0], 400);
-    });
   });
 
   // ── getTournaments extra paths ───────────────────────────────────────────────
@@ -1818,19 +1786,6 @@ describe("tournament-controller", () => {
 
   // ─── branch coverage for previously-uncovered early returns ──────────────────
 
-  describe("getTournamentById — invalid ID branch", () => {
-    it("returns 400 for a non-ObjectId tournament ID", async () => {
-      const req = mockReq({ params: { id: "not-a-valid-objectid" } });
-      const res = mockRes();
-      await getTournamentById(req, res);
-      assert.strictEqual(res.status.mock.calls[0].arguments[0], 400);
-      assert.match(
-        res.json.mock.calls[0].arguments[0].message,
-        /invalid tournament id/i,
-      );
-    });
-  });
-
   describe("getUserTournaments — valid ObjectId userId branch", () => {
     it("adds a participants.userId condition when userId is a valid ObjectId", async () => {
       const validHexId = "aaaaaaaaaaaaaaaaaaaaaaaa";
@@ -1855,58 +1810,6 @@ describe("tournament-controller", () => {
         (c) => c["participants.userId"] !== undefined,
       );
       assert.strictEqual(hasParticipantClause, true);
-    });
-  });
-
-  describe("updateParticipant — name and faction validation", () => {
-    function makeTournamentWithParticipant() {
-      const participant = { _id: "p1", name: "Alice", faction: "Empire" };
-      return {
-        _id: { toString: () => "t1" },
-        save: mock.fn(async () => {}),
-        participants: { id: mock.fn(() => participant) },
-      };
-    }
-
-    it("returns 400 when name is an empty string", async () => {
-      const t = makeTournamentWithParticipant();
-      mockTournamentFindOne.mock.mockImplementation(async () => t);
-      const req = mockReq({
-        params: { id: "t1", participantId: "p1" },
-        body: { name: "   " },
-      });
-      const res = mockRes();
-      await updateParticipant(req, res);
-      assert.strictEqual(res.status.mock.calls[0].arguments[0], 400);
-      assert.match(
-        res.json.mock.calls[0].arguments[0].message,
-        /1 and 100 characters/i,
-      );
-    });
-
-    it("returns 400 when name exceeds 100 characters", async () => {
-      const t = makeTournamentWithParticipant();
-      mockTournamentFindOne.mock.mockImplementation(async () => t);
-      const req = mockReq({
-        params: { id: "t1", participantId: "p1" },
-        body: { name: "a".repeat(101) },
-      });
-      const res = mockRes();
-      await updateParticipant(req, res);
-      assert.strictEqual(res.status.mock.calls[0].arguments[0], 400);
-    });
-
-    it("returns 400 when faction exceeds 100 characters", async () => {
-      const t = makeTournamentWithParticipant();
-      mockTournamentFindOne.mock.mockImplementation(async () => t);
-      const req = mockReq({
-        params: { id: "t1", participantId: "p1" },
-        body: { faction: "f".repeat(101) },
-      });
-      const res = mockRes();
-      await updateParticipant(req, res);
-      assert.strictEqual(res.status.mock.calls[0].arguments[0], 400);
-      assert.match(res.json.mock.calls[0].arguments[0].message, /at most 100/i);
     });
   });
 });

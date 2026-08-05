@@ -2,6 +2,10 @@
 import { Text, VStack, Button, Box } from "@chakra-ui/react";
 import { PasswordInput } from "@/shared/ui/PasswordInput";
 import { updatePassword } from "@/features/account/api/accountApi";
+import {
+  validatePassword,
+  PASSWORD_MAX_LENGTH,
+} from "@/shared/constants/validation";
 
 const PasswordUpdateForm: React.FC = () => {
   const [currentPassword, setCurrentPassword] = useState("");
@@ -31,8 +35,9 @@ const PasswordUpdateForm: React.FC = () => {
       return;
     }
 
-    if (newPassword.length < 8) {
-      setPasswordError("Password must be at least 8 characters");
+    const validationError = validatePassword(newPassword);
+    if (validationError) {
+      setPasswordError(validationError);
       return;
     }
 
@@ -71,6 +76,7 @@ const PasswordUpdateForm: React.FC = () => {
           placeholder="New password"
           value={newPassword}
           onChange={handlePasswordChange}
+          maxLength={PASSWORD_MAX_LENGTH}
         />
         <PasswordInput
           id="confirmPassword"
@@ -78,6 +84,7 @@ const PasswordUpdateForm: React.FC = () => {
           placeholder="Confirm new password"
           value={confirmPassword}
           onChange={handlePasswordChange}
+          maxLength={PASSWORD_MAX_LENGTH}
         />
         {passwordError && <Text color="status.loss">{passwordError}</Text>}
         <Button

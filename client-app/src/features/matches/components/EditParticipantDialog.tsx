@@ -13,6 +13,7 @@ import {
   warhammer3Factions,
   warhammer40kFactions,
 } from "@/shared/constants/factions";
+import { PARTICIPANT_NAME_MAX_LENGTH } from "@/shared/constants/validation";
 import { Participant } from "./types";
 
 interface Props {
@@ -82,6 +83,7 @@ const EditParticipantDialog: React.FC<Props> = ({
                         name: e.target.value,
                       })
                     }
+                    maxLength={PARTICIPANT_NAME_MAX_LENGTH}
                     autoFocus
                   />
                 </Field.Root>

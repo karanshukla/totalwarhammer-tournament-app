@@ -83,8 +83,8 @@ function makeMatch(
     loserId: null,
     status: overrides.status ?? "pending",
     notes: "",
-    reportedResults: [],
-    resultOverrides: [],
+    reportedResults: [] as Match["reportedResults"],
+    resultOverrides: [] as Match["resultOverrides"],
     completedAt: null,
     bracketSide: overrides.bracketSide ?? null,
   };
@@ -116,7 +116,7 @@ function makeTournament(
 }
 
 const baseProps = {
-  user: null,
+  user: null as { id: string; username?: string; isGuest?: boolean } | null,
   isAdmin: true,
   isActive: true,
   actionLoading: false,
@@ -344,8 +344,18 @@ describe("MatchesSection – wbRounds/lbRounds sort comparators", () => {
 
   it("sorts multiple winners-bracket rounds", () => {
     const matches = [
-      makeMatch({ _id: "wb2", bracketSide: "winners", round: 2, matchNumber: 2 }),
-      makeMatch({ _id: "wb1", bracketSide: "winners", round: 1, matchNumber: 1 }),
+      makeMatch({
+        _id: "wb2",
+        bracketSide: "winners",
+        round: 2,
+        matchNumber: 2,
+      }),
+      makeMatch({
+        _id: "wb1",
+        bracketSide: "winners",
+        round: 1,
+        matchNumber: 1,
+      }),
     ];
     renderSection(matches);
     expect(screen.getByTestId("match-card-wb1")).toBeInTheDocument();
@@ -354,9 +364,24 @@ describe("MatchesSection – wbRounds/lbRounds sort comparators", () => {
 
   it("sorts multiple losers-bracket rounds", () => {
     const matches = [
-      makeMatch({ _id: "wb1", bracketSide: "winners", round: 1, matchNumber: 1 }),
-      makeMatch({ _id: "lb2", bracketSide: "losers", round: 2, matchNumber: 2 }),
-      makeMatch({ _id: "lb1", bracketSide: "losers", round: 1, matchNumber: 3 }),
+      makeMatch({
+        _id: "wb1",
+        bracketSide: "winners",
+        round: 1,
+        matchNumber: 1,
+      }),
+      makeMatch({
+        _id: "lb2",
+        bracketSide: "losers",
+        round: 2,
+        matchNumber: 2,
+      }),
+      makeMatch({
+        _id: "lb1",
+        bracketSide: "losers",
+        round: 1,
+        matchNumber: 3,
+      }),
     ];
     renderSection(matches);
     expect(screen.getByTestId("match-card-lb1")).toBeInTheDocument();
@@ -480,9 +505,13 @@ describe("MatchesSection – matchLoading spinner", () => {
   beforeEach(() => vi.clearAllMocks());
 
   it("shows a spinner in the header when matchLoading is true", () => {
-    const { container } = renderSection([makeMatch({ round: 1 })], makeTournament(), {
-      matchLoading: true,
-    });
+    const { container } = renderSection(
+      [makeMatch({ round: 1 })],
+      makeTournament(),
+      {
+        matchLoading: true,
+      },
+    );
     expect(container.querySelector(".chakra-spinner")).toBeInTheDocument();
   });
 });

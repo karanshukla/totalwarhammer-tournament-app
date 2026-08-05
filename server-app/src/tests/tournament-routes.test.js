@@ -49,10 +49,23 @@ mock.module("../interfaces/http/middleware/csrf-middleware.js", {
   namedExports: { doubleCsrfProtection: mockDoubleCsrfProtection },
 });
 
-const mockValidateCreateTournament = mock.fn();
+const validationNames = [
+  "validateCreateTournament",
+  "validateTournamentIdParam",
+  "validateParticipantParams",
+  "validateTournamentCodeParam",
+  "validateAddParticipant",
+  "validateUpdateParticipant",
+  "validateJoinTournament",
+  "validateUpdateDescription",
+  "validateListTournamentsQuery",
+];
+const mockValidators = Object.fromEntries(
+  validationNames.map((name) => [name, mock.fn()]),
+);
 mock.module(
   "../interfaces/http/middleware/validation/tournament-validation.js",
-  { namedExports: { validateCreateTournament: mockValidateCreateTournament } },
+  { namedExports: mockValidators },
 );
 
 const mockValidationHandler = mock.fn();
@@ -67,8 +80,10 @@ function find(method, path) {
 }
 
 describe("tournament-routes wiring", () => {
-  it("wires GET / directly to getTournaments", () => {
+  it("wires GET / through query validation to getTournaments", () => {
     assert.deepStrictEqual(find("get", "/").handlers, [
+      mockValidators.validateListTournamentsQuery,
+      mockValidationHandler,
       mockControllers.getTournaments,
     ]);
   });
@@ -77,7 +92,7 @@ describe("tournament-routes wiring", () => {
     assert.deepStrictEqual(find("post", "/").handlers, [
       mockAuthenticateSession,
       mockDoubleCsrfProtection,
-      mockValidateCreateTournament,
+      mockValidators.validateCreateTournament,
       mockValidationHandler,
       mockControllers.createTournament,
     ]);
@@ -90,34 +105,60 @@ describe("tournament-routes wiring", () => {
     ]);
   });
 
-  it("wires GET /code/:code directly to getTournamentByCode", () => {
+  it("wires GET /code/:code through code validation to getTournamentByCode", () => {
     assert.deepStrictEqual(find("get", "/code/:code").handlers, [
+      mockValidators.validateTournamentCodeParam,
+      mockValidationHandler,
       mockControllers.getTournamentByCode,
     ]);
   });
 
-  it("wires GET /:id directly to getTournamentById", () => {
+  it("wires GET /:id through ID validation to getTournamentById", () => {
     assert.deepStrictEqual(find("get", "/:id").handlers, [
+      mockValidators.validateTournamentIdParam,
+      mockValidationHandler,
       mockControllers.getTournamentById,
     ]);
   });
 
   const authAndCsrfRoutes = [
-    ["post", "/:id/participants", "addParticipant"],
-    ["patch", "/:id/participants/:participantId", "updateParticipant"],
-    ["delete", "/:id/participants/:participantId", "removeParticipant"],
-    ["post", "/:id/join", "joinTournament"],
-    ["post", "/:id/start", "startTournament"],
-    ["post", "/:id/advance", "advanceRound"],
-    ["patch", "/:id/description", "updateDescription"],
-    ["delete", "/:id", "deleteTournament"],
+    ["post", "/:id/participants", "addParticipant", "validateAddParticipant"],
+    [
+      "patch",
+      "/:id/participants/:participantId",
+      "updateParticipant",
+      "validateUpdateParticipant",
+    ],
+    [
+      "delete",
+      "/:id/participants/:participantId",
+      "removeParticipant",
+      "validateParticipantParams",
+    ],
+    ["post", "/:id/join", "joinTournament", "validateJoinTournament"],
+    ["post", "/:id/start", "startTournament", "validateTournamentIdParam"],
+    ["post", "/:id/advance", "advanceRound", "validateTournamentIdParam"],
+    [
+      "patch",
+      "/:id/description",
+      "updateDescription",
+      "validateUpdateDescription",
+    ],
+    ["delete", "/:id", "deleteTournament", "validateTournamentIdParam"],
   ];
 
-  for (const [method, path, controllerName] of authAndCsrfRoutes) {
-    it(`wires ${method.toUpperCase()} ${path} through auth and CSRF protection to ${controllerName}`, () => {
+  for (const [
+    method,
+    path,
+    controllerName,
+    validatorName,
+  ] of authAndCsrfRoutes) {
+    it(`wires ${method.toUpperCase()} ${path} through auth, CSRF, and validation to ${controllerName}`, () => {
       assert.deepStrictEqual(find(method, path).handlers, [
         mockAuthenticateSession,
         mockDoubleCsrfProtection,
+        mockValidators[validatorName],
+        mockValidationHandler,
         mockControllers[controllerName],
       ]);
     });

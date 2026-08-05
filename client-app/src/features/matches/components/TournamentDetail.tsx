@@ -48,6 +48,7 @@ import {
   warhammer3Factions,
   warhammer40kFactions,
 } from "@/shared/constants/factions";
+import { PARTICIPANT_NAME_MAX_LENGTH } from "@/shared/constants/validation";
 import { Match, Participant, Tournament, statusColorMap } from "./types";
 import MatchesSection from "./MatchesSection";
 import EditParticipantDialog from "./EditParticipantDialog";
@@ -564,6 +565,7 @@ const TournamentDetail: React.FC<Props> = ({
                   <Field.Label>Player Name</Field.Label>
                   <Input
                     placeholder="Enter player name"
+                    maxLength={PARTICIPANT_NAME_MAX_LENGTH}
                     value={newName}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                       onSetNewName(e.target.value)

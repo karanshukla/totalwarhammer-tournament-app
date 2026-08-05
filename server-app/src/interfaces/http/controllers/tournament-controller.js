@@ -66,13 +66,6 @@ export const createTournament = async (req, res) => {
       enable40kFactions,
     } = req.body;
 
-    if (description && description.length > 2000) {
-      return res.status(400).json({
-        success: false,
-        message: "Description cannot exceed 2000 characters",
-      });
-    }
-
     const tournament = await Tournament.create({
       name,
       description: description || "",
@@ -155,8 +148,7 @@ export const getUserTournaments = async (req, res) => {
         : "all";
     // Optional game-system filter: "wh3" (exclude 40k), "40k" (only 40k),
     // or anything else / omitted (all games).
-    const game =
-      typeof req.query.game === "string" ? req.query.game : "all";
+    const game = typeof req.query.game === "string" ? req.query.game : "all";
     const enable40kCondition =
       game === "wh3"
         ? { enable40kFactions: { $ne: true } }
@@ -237,11 +229,6 @@ export const getUserTournaments = async (req, res) => {
 /** @type {import('express').RequestHandler} */
 export const getTournamentById = async (req, res) => {
   try {
-    if (!isValidObjectId(req.params.id)) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid tournament ID" });
-    }
     const found = await Tournament.findById(req.params.id);
     if (!found) {
       return res
@@ -387,28 +374,8 @@ export const updateParticipant = async (req, res) => {
         .json({ success: false, message: "Participant not found" });
     }
     const { name, faction } = req.body;
-    if (name !== undefined) {
-      if (
-        typeof name !== "string" ||
-        name.trim().length === 0 ||
-        name.length > 100
-      ) {
-        return res.status(400).json({
-          success: false,
-          message: "Name must be between 1 and 100 characters",
-        });
-      }
-      participant.name = name.trim();
-    }
-    if (faction !== undefined) {
-      if (typeof faction !== "string" || faction.length > 100) {
-        return res.status(400).json({
-          success: false,
-          message: "Faction must be at most 100 characters",
-        });
-      }
-      participant.faction = faction;
-    }
+    if (name !== undefined) participant.name = name;
+    if (faction !== undefined) participant.faction = faction;
     await tournament.save();
     emitTournamentUpdated(tournament._id.toString(), tournament);
     return res.status(200).json({ success: true, data: tournament });
@@ -753,19 +720,6 @@ export const updateDescription = async (req, res) => {
   try {
     const { id } = req.params;
     const { description } = req.body;
-
-    if (typeof description !== "string") {
-      return res
-        .status(400)
-        .json({ success: false, message: "Description must be a string" });
-    }
-
-    if (description.length > 2000) {
-      return res.status(400).json({
-        success: false,
-        message: "Description cannot exceed 2000 characters",
-      });
-    }
 
     const tournament = await Tournament.findOne({
       _id: id,

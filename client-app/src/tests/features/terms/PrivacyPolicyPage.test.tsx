@@ -1,7 +1,7 @@
 /**
  * Render coverage for terms/components/PrivacyPolicyPage.tsx (static content page)
  */
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import React from "react";
@@ -20,6 +20,8 @@ describe("PrivacyPolicyPage", () => {
         <PrivacyPolicyPage />
       </ChakraProvider>,
     );
-    expect(screen.getByRole("heading", { name: /privacy policy/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: /privacy policy/i }),
+    ).toBeInTheDocument();
   });
 });

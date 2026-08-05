@@ -44,6 +44,28 @@ mock.module("../interfaces/http/middleware/csrf-middleware.js", {
   namedExports: { doubleCsrfProtection: mockDoubleCsrfProtection },
 });
 
+const validationNames = [
+  "validateMatchIdParam",
+  "validateTournamentIdParam",
+  "validateCreateMatch",
+  "validateReportResult",
+  "validateResolveDispute",
+  "validateRecordResult",
+  "validateOverrideResult",
+  "validateUpdateMatchStatus",
+];
+const mockValidators = Object.fromEntries(
+  validationNames.map((name) => [name, mock.fn()]),
+);
+mock.module("../interfaces/http/middleware/validation/match-validation.js", {
+  namedExports: mockValidators,
+});
+
+const mockValidationHandler = mock.fn();
+mock.module("../interfaces/http/middleware/validation/validation-handler.js", {
+  namedExports: { validationHandler: mockValidationHandler },
+});
+
 await import("../interfaces/http/routes/match-routes.js");
 
 function find(method, path) {
@@ -51,39 +73,47 @@ function find(method, path) {
 }
 
 describe("match-routes wiring", () => {
-  it("wires GET /tournament/:tournamentId directly to getMatchesByTournament", () => {
+  it("wires GET /tournament/:tournamentId through ID validation to getMatchesByTournament", () => {
     assert.deepStrictEqual(find("get", "/tournament/:tournamentId").handlers, [
+      mockValidators.validateTournamentIdParam,
+      mockValidationHandler,
       mockControllers.getMatchesByTournament,
     ]);
   });
 
-  it("wires GET /:id directly to getMatchById", () => {
+  it("wires GET /:id through ID validation to getMatchById", () => {
     assert.deepStrictEqual(find("get", "/:id").handlers, [
+      mockValidators.validateMatchIdParam,
+      mockValidationHandler,
       mockControllers.getMatchById,
     ]);
   });
 
-  it("wires POST / through auth and CSRF protection to createMatch", () => {
+  it("wires POST / through auth, CSRF, and validation to createMatch", () => {
     assert.deepStrictEqual(find("post", "/").handlers, [
       mockAuthenticateSession,
       mockDoubleCsrfProtection,
+      mockValidators.validateCreateMatch,
+      mockValidationHandler,
       mockControllers.createMatch,
     ]);
   });
 
   const patchRoutes = [
-    ["/:id/report", "reportResult"],
-    ["/:id/resolve", "resolveDispute"],
-    ["/:id/result", "recordResult"],
-    ["/:id/override", "overrideResult"],
-    ["/:id/status", "updateMatchStatus"],
+    ["/:id/report", "reportResult", "validateReportResult"],
+    ["/:id/resolve", "resolveDispute", "validateResolveDispute"],
+    ["/:id/result", "recordResult", "validateRecordResult"],
+    ["/:id/override", "overrideResult", "validateOverrideResult"],
+    ["/:id/status", "updateMatchStatus", "validateUpdateMatchStatus"],
   ];
 
-  for (const [path, controllerName] of patchRoutes) {
-    it(`wires PATCH ${path} through auth and CSRF protection to ${controllerName}`, () => {
+  for (const [path, controllerName, validatorName] of patchRoutes) {
+    it(`wires PATCH ${path} through auth, CSRF, and validation to ${controllerName}`, () => {
       assert.deepStrictEqual(find("patch", path).handlers, [
         mockAuthenticateSession,
         mockDoubleCsrfProtection,
+        mockValidators[validatorName],
+        mockValidationHandler,
         mockControllers[controllerName],
       ]);
     });

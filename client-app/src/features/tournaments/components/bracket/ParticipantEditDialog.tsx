@@ -15,6 +15,7 @@ import {
   warhammer3Factions,
   warhammer40kFactions,
 } from "@/shared/constants/factions";
+import { PARTICIPANT_NAME_MAX_LENGTH } from "@/shared/constants/validation";
 
 interface ParticipantEditDialogProps {
   isOpen: boolean;
@@ -108,6 +109,7 @@ export function ParticipantEditDialog({
                       onChange={handleNameChange}
                       bg={inputBgColor}
                       borderColor={borderColor}
+                      maxLength={PARTICIPANT_NAME_MAX_LENGTH}
                       autoFocus
                     />
                   </Field.Root>
@@ -171,6 +173,7 @@ export function ParticipantEditDialog({
                 <Button
                   type="submit"
                   colorPalette="crimson"
+                  disabled={!participant?.name?.trim()}
                   width={{ base: "full", sm: "auto" }}
                 >
                   Save

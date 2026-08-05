@@ -10,7 +10,7 @@ export interface User {
   isGuest?: boolean;
 }
 
-interface UserStore {
+export interface UserStore {
   user: User;
   setUser: (user: Partial<User>) => void;
   clearUser: () => void;

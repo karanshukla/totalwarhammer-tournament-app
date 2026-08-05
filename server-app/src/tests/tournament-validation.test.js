@@ -3,7 +3,17 @@ import { describe, it } from "node:test";
 
 import { validationResult } from "express-validator";
 
-import { validateCreateTournament } from "../interfaces/http/middleware/validation/tournament-validation.js";
+import {
+  validateCreateTournament,
+  validateTournamentIdParam,
+  validateParticipantParams,
+  validateTournamentCodeParam,
+  validateAddParticipant,
+  validateUpdateParticipant,
+  validateJoinTournament,
+  validateUpdateDescription,
+  validateListTournamentsQuery,
+} from "../interfaces/http/middleware/validation/tournament-validation.js";
 
 async function runValidation(body) {
   const req = { body, query: {}, params: {}, headers: {} };
@@ -295,5 +305,231 @@ describe("validateCreateTournament", () => {
       });
       assert.ok(result.array().some((e) => e.path === "bannedFactions"));
     });
+  });
+});
+
+// ── participant, param, and query validators ────────────────────────────────
+
+const OBJECT_ID = "aaaaaaaaaaaaaaaaaaaaaaaa";
+const OTHER_OBJECT_ID = "bbbbbbbbbbbbbbbbbbbbbbbb";
+
+async function runChain(chain, { body = {}, params = {}, query = {} } = {}) {
+  const req = { body, params, query, headers: {} };
+  for (const validator of chain) {
+    await validator.run(req);
+  }
+  return { result: validationResult(req), req };
+}
+
+const failedFields = (result) => result.array().map((e) => e.path);
+
+describe("validateTournamentIdParam", () => {
+  it("passes for a valid ObjectId", async () => {
+    const { result } = await runChain(validateTournamentIdParam, {
+      params: { id: OBJECT_ID },
+    });
+    assert.strictEqual(result.isEmpty(), true);
+  });
+
+  it("fails for a malformed ID", async () => {
+    const { result } = await runChain(validateTournamentIdParam, {
+      params: { id: "../../etc/passwd" },
+    });
+    assert.ok(failedFields(result).includes("id"));
+  });
+});
+
+describe("validateParticipantParams", () => {
+  it("passes when both IDs are valid", async () => {
+    const { result } = await runChain(validateParticipantParams, {
+      params: { id: OBJECT_ID, participantId: OTHER_OBJECT_ID },
+    });
+    assert.strictEqual(result.isEmpty(), true);
+  });
+
+  it("fails when the participant ID is malformed", async () => {
+    const { result } = await runChain(validateParticipantParams, {
+      params: { id: OBJECT_ID, participantId: "p1" },
+    });
+    assert.ok(failedFields(result).includes("participantId"));
+  });
+});
+
+describe("validateTournamentCodeParam", () => {
+  it("passes for an alphanumeric code", async () => {
+    const { result } = await runChain(validateTournamentCodeParam, {
+      params: { code: "AB12CD" },
+    });
+    assert.strictEqual(result.isEmpty(), true);
+  });
+
+  it("fails for a code with punctuation", async () => {
+    const { result } = await runChain(validateTournamentCodeParam, {
+      params: { code: "AB-12" },
+    });
+    assert.ok(failedFields(result).includes("code"));
+  });
+
+  it("fails for an over-long code", async () => {
+    const { result } = await runChain(validateTournamentCodeParam, {
+      params: { code: "A".repeat(13) },
+    });
+    assert.ok(failedFields(result).includes("code"));
+  });
+});
+
+describe("validateAddParticipant", () => {
+  it("passes with a name and a known faction", async () => {
+    const { result } = await runChain(validateAddParticipant, {
+      params: { id: OBJECT_ID },
+      body: { name: "Alice", faction: "Skaven" },
+    });
+    assert.strictEqual(result.isEmpty(), true);
+  });
+
+  it("trims the name in place", async () => {
+    const { req } = await runChain(validateAddParticipant, {
+      params: { id: OBJECT_ID },
+      body: { name: "  Alice  " },
+    });
+    assert.strictEqual(req.body.name, "Alice");
+  });
+
+  it("fails when the name is missing", async () => {
+    const { result } = await runChain(validateAddParticipant, {
+      params: { id: OBJECT_ID },
+      body: {},
+    });
+    assert.ok(failedFields(result).includes("name"));
+  });
+
+  it("fails when the name is whitespace only", async () => {
+    const { result } = await runChain(validateAddParticipant, {
+      params: { id: OBJECT_ID },
+      body: { name: "   " },
+    });
+    assert.ok(failedFields(result).includes("name"));
+  });
+
+  it("fails when the name exceeds 100 characters", async () => {
+    const { result } = await runChain(validateAddParticipant, {
+      params: { id: OBJECT_ID },
+      body: { name: "a".repeat(101) },
+    });
+    assert.ok(failedFields(result).includes("name"));
+  });
+
+  it("fails when the name is not a string", async () => {
+    const { result } = await runChain(validateAddParticipant, {
+      params: { id: OBJECT_ID },
+      body: { name: { first: "Alice" } },
+    });
+    assert.ok(failedFields(result).includes("name"));
+  });
+
+  it("fails for a faction outside the registry", async () => {
+    const { result } = await runChain(validateAddParticipant, {
+      params: { id: OBJECT_ID },
+      body: { name: "Alice", faction: "Atlanteans" },
+    });
+    assert.ok(failedFields(result).includes("faction"));
+  });
+});
+
+describe("validateUpdateParticipant", () => {
+  it("passes when only the faction changes", async () => {
+    const { result } = await runChain(validateUpdateParticipant, {
+      params: { id: OBJECT_ID, participantId: OTHER_OBJECT_ID },
+      body: { faction: "Kislev" },
+    });
+    assert.strictEqual(result.isEmpty(), true);
+  });
+
+  it("fails when a supplied name is blank", async () => {
+    const { result } = await runChain(validateUpdateParticipant, {
+      params: { id: OBJECT_ID, participantId: OTHER_OBJECT_ID },
+      body: { name: "   " },
+    });
+    assert.ok(failedFields(result).includes("name"));
+  });
+});
+
+describe("validateJoinTournament", () => {
+  it("passes without a faction", async () => {
+    const { result } = await runChain(validateJoinTournament, {
+      params: { id: OBJECT_ID },
+      body: {},
+    });
+    assert.strictEqual(result.isEmpty(), true);
+  });
+
+  it("fails for an unknown faction", async () => {
+    const { result } = await runChain(validateJoinTournament, {
+      params: { id: OBJECT_ID },
+      body: { faction: "Not A Faction" },
+    });
+    assert.ok(failedFields(result).includes("faction"));
+  });
+});
+
+describe("validateUpdateDescription", () => {
+  it("passes for an empty description", async () => {
+    const { result } = await runChain(validateUpdateDescription, {
+      params: { id: OBJECT_ID },
+      body: { description: "" },
+    });
+    assert.strictEqual(result.isEmpty(), true);
+  });
+
+  it("fails when the description is absent", async () => {
+    const { result } = await runChain(validateUpdateDescription, {
+      params: { id: OBJECT_ID },
+      body: {},
+    });
+    assert.ok(failedFields(result).includes("description"));
+  });
+
+  it("fails when the description is not a string", async () => {
+    const { result } = await runChain(validateUpdateDescription, {
+      params: { id: OBJECT_ID },
+      body: { description: 123 },
+    });
+    assert.ok(failedFields(result).includes("description"));
+  });
+
+  it("fails when the description exceeds 2000 characters", async () => {
+    const { result } = await runChain(validateUpdateDescription, {
+      params: { id: OBJECT_ID },
+      body: { description: "x".repeat(2001) },
+    });
+    assert.ok(failedFields(result).includes("description"));
+  });
+});
+
+describe("validateListTournamentsQuery", () => {
+  it("passes without a status filter", async () => {
+    const { result } = await runChain(validateListTournamentsQuery, {});
+    assert.strictEqual(result.isEmpty(), true);
+  });
+
+  it("passes for a comma-separated list of known statuses", async () => {
+    const { result } = await runChain(validateListTournamentsQuery, {
+      query: { status: "active,pending" },
+    });
+    assert.strictEqual(result.isEmpty(), true);
+  });
+
+  it("fails for an unknown status", async () => {
+    const { result } = await runChain(validateListTournamentsQuery, {
+      query: { status: "active,deleted" },
+    });
+    assert.ok(failedFields(result).includes("status"));
+  });
+
+  it("fails when status is repeated into an array", async () => {
+    const { result } = await runChain(validateListTournamentsQuery, {
+      query: { status: ["active", "pending"] },
+    });
+    assert.ok(failedFields(result).includes("status"));
   });
 });
