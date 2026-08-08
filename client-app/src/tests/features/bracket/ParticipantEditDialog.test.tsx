@@ -25,7 +25,7 @@ function renderDialog(
     participant: makeParticipant(),
     onParticipantChange: vi.fn(),
     onSave: vi.fn(),
-    enable40kFactions: false,
+    tournament: { enable40kFactions: false },
   };
   return render(
     <ChakraProvider value={defaultSystem}>
@@ -120,7 +120,7 @@ describe("ParticipantEditDialog", () => {
 
   it("shows 40k factions when enable40kFactions is true", async () => {
     const user = userEvent.setup({ pointerEventsCheck: 0 });
-    renderDialog({ enable40kFactions: true });
+    renderDialog({ tournament: { enable40kFactions: true } });
     await user.click(screen.getByRole("combobox"));
     const options = await screen.findAllByRole("option", { hidden: true });
     expect(options.length).toBeGreaterThan(1);
@@ -130,7 +130,7 @@ describe("ParticipantEditDialog", () => {
 
   it("shows warhammer3 factions by default", async () => {
     const user = userEvent.setup({ pointerEventsCheck: 0 });
-    renderDialog({ enable40kFactions: false });
+    renderDialog({ tournament: { enable40kFactions: false } });
     await user.click(screen.getByRole("combobox"));
     const options = await screen.findAllByRole("option", { hidden: true });
     expect(options.length).toBeGreaterThan(1);

@@ -1,6 +1,10 @@
 import { body, param, query } from "express-validator";
 
-import { allFactions } from "../../../../constants/factions.js";
+import {
+  gameSystemLabel,
+  gameSystemOf,
+} from "../../../../domain/services/faction-eligibility-service.js";
+import { isFactionInGame } from "../../../../constants/factions.js";
 
 import {
   objectIdParam,
@@ -61,15 +65,20 @@ export const validateCreateTournament = [
     .isBoolean()
     .withMessage("enable40kFactions must be a boolean"),
 
+  // Banning a faction the tournament's game system doesn't have is always a
+  // mistake — usually a stale selection left over from toggling WH3 / 40K.
   body("bannedFactions")
     .optional()
     .isArray()
     .withMessage("Banned factions must be an array")
-    .custom((factions) => {
+    .custom((factions, { req }) => {
       if (!Array.isArray(factions)) return true;
-      const invalid = factions.filter((f) => !allFactions.includes(f));
+      const game = gameSystemOf(req.body);
+      const invalid = factions.filter((f) => !isFactionInGame(f, game));
       if (invalid.length > 0) {
-        throw new Error(`Invalid factions: ${invalid.join(", ")}`);
+        throw new Error(
+          `Not ${gameSystemLabel(game)} factions: ${invalid.join(", ")}`,
+        );
       }
       return true;
     }),

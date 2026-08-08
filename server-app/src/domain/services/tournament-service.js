@@ -20,8 +20,14 @@ function shuffle(arr) {
   return arr;
 }
 
-/** Slot object from a participant subdoc. */
-function slot(p, isBetaFaction = false) {
+/**
+ * Slot object from a participant subdoc or from an existing match slot.
+ *
+ * `isBetaFaction` defaults to whatever the source already carries so that
+ * re-slotting a winner into the next round preserves it. Advance functions
+ * work from stored match slots and have no tournament flag to hand.
+ */
+function slot(p, isBetaFaction = p.isBetaFaction ?? false) {
   return {
     participantId: p._id ?? p.participantId,
     name: p.name,
@@ -30,32 +36,23 @@ function slot(p, isBetaFaction = false) {
   };
 }
 
+const byeSlot = () => ({
+  participantId: null,
+  name: "BYE",
+  faction: "",
+  isBetaFaction: false,
+});
+
 /** Bye match — player1 wins automatically. */
-function byeMatch(
-  tournamentId,
-  round,
-  matchNumber,
-  p,
-  bracketSide = null,
-  isBetaFaction = false,
-) {
+function byeMatch(tournamentId, round, matchNumber, p, bracketSide = null) {
+  const player1 = slot(p);
   return {
     tournament: tournamentId,
     round,
     matchNumber,
-    player1: {
-      participantId: p.participantId ?? p._id,
-      name: p.name,
-      faction: p.faction || "",
-      isBetaFaction,
-    },
-    player2: {
-      participantId: null,
-      name: "BYE",
-      faction: "",
-      isBetaFaction: false,
-    },
-    winnerId: p.participantId ?? p._id,
+    player1,
+    player2: byeSlot(),
+    winnerId: player1.participantId,
     loserId: null,
     status: "completed",
     completedAt: new Date(),
@@ -91,7 +88,6 @@ export function singleElimStart(
           mn++,
           slot(seeded[i], enable40kFactions),
           "winners",
-          enable40kFactions,
         ),
       );
     }
@@ -169,7 +165,6 @@ export function doubleElimStart(
           mn++,
           slot(seeded[i], enable40kFactions),
           "winners",
-          enable40kFactions,
         ),
       );
     }
@@ -407,14 +402,7 @@ export function roundRobinStart(
         // Give the real player a bye win
         const real = p1.name === "BYE" ? p2 : p1;
         docs.push(
-          byeMatch(
-            tournamentId,
-            round,
-            mn++,
-            slot(real, enable40kFactions),
-            null,
-            enable40kFactions,
-          ),
+          byeMatch(tournamentId, round, mn++, slot(real, enable40kFactions)),
         );
       } else {
         docs.push({
@@ -517,14 +505,7 @@ export function swissStart(
       });
     } else {
       docs.push(
-        byeMatch(
-          tournamentId,
-          1,
-          mn++,
-          slot(seeded[i], enable40kFactions),
-          null,
-          enable40kFactions,
-        ),
+        byeMatch(tournamentId, 1, mn++, slot(seeded[i], enable40kFactions)),
       );
     }
   }
@@ -540,13 +521,19 @@ export function swissAdvance(
   participants,
   allMatches,
   nextRound,
+  enable40kFactions = false,
 ) {
   const scores = new Map();
   for (const p of participants) {
     const id = (p.participantId ?? p._id)?.toString();
     if (id)
       scores.set(id, {
-        p: { participantId: id, name: p.name, faction: p.faction || "" },
+        p: {
+          participantId: id,
+          name: p.name,
+          faction: p.faction || "",
+          isBetaFaction: enable40kFactions,
+        },
         wins: 0,
         avoid: [],
       });

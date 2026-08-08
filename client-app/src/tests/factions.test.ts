@@ -6,6 +6,9 @@ import {
   allFactions,
   isBetaFactionName,
   getFactionsForGame,
+  gameSystemOf,
+  factionsForGameSystem,
+  selectableFactions,
 } from "@/shared/constants/factions";
 
 describe("factionRegistry", () => {
@@ -183,5 +186,59 @@ describe("getFactionsForGame", () => {
 
   it("returns the same list as warhammer40kFactions for '40k'", () => {
     expect(getFactionsForGame("40k")).toEqual(warhammer40kFactions);
+  });
+});
+
+describe("gameSystemOf", () => {
+  it("reads the game system off a tournament", () => {
+    expect(gameSystemOf({ enable40kFactions: true })).toBe("40k");
+    expect(gameSystemOf({ enable40kFactions: false })).toBe("wh3");
+  });
+
+  it("defaults to wh3 for a missing or flagless tournament", () => {
+    expect(gameSystemOf({})).toBe("wh3");
+    expect(gameSystemOf(null)).toBe("wh3");
+    expect(gameSystemOf(undefined)).toBe("wh3");
+  });
+});
+
+describe("factionsForGameSystem", () => {
+  it("returns the roster matching the tournament's game", () => {
+    expect(factionsForGameSystem({ enable40kFactions: true })).toEqual(
+      warhammer40kFactions,
+    );
+    expect(factionsForGameSystem({ enable40kFactions: false })).toEqual(
+      warhammer3Factions,
+    );
+  });
+
+  it("falls back to wh3 when there is no tournament", () => {
+    expect(factionsForGameSystem(null)).toEqual(warhammer3Factions);
+  });
+});
+
+describe("selectableFactions", () => {
+  it("removes banned factions from the roster", () => {
+    const factions = selectableFactions({
+      enable40kFactions: false,
+      bannedFactions: ["Skaven", "Empire"],
+    });
+    expect(factions).not.toContain("Skaven");
+    expect(factions).not.toContain("Empire");
+    expect(factions).toContain("Dwarfs");
+    expect(factions).toHaveLength(warhammer3Factions.length - 2);
+  });
+
+  it("never leaks factions from the other game system", () => {
+    const factions = selectableFactions({ enable40kFactions: true });
+    expect(factions).toContain("Necrons");
+    expect(factions).not.toContain("Skaven");
+  });
+
+  it("tolerates a tournament with no bans listed", () => {
+    expect(selectableFactions({ enable40kFactions: true })).toEqual(
+      warhammer40kFactions,
+    );
+    expect(selectableFactions(null)).toEqual(warhammer3Factions);
   });
 });

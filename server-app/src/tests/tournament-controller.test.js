@@ -527,6 +527,46 @@ describe("tournament-controller", () => {
       assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
       assert.strictEqual(t.participants[0].faction, "");
     });
+
+    it("should reject a faction from the other game system", async () => {
+      const t = makePendingTournament({ enable40kFactions: true });
+      mockTournamentFindOne.mock.mockImplementation(async () => t);
+      const req = mockReq({
+        params: { id: "t1" },
+        body: { name: "Alice", faction: "Skaven" },
+      });
+      const res = mockRes();
+      await addParticipant(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 400);
+      assert.strictEqual(t.participants.length, 0);
+    });
+
+    it("should reject a banned faction", async () => {
+      const t = makePendingTournament({ bannedFactions: ["Skaven"] });
+      mockTournamentFindOne.mock.mockImplementation(async () => t);
+      const req = mockReq({
+        params: { id: "t1" },
+        body: { name: "Alice", faction: "Skaven" },
+      });
+      const res = mockRes();
+      await addParticipant(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 400);
+      assert.match(res.json.mock.calls[0].arguments[0].message, /banned/);
+      assert.strictEqual(t.participants.length, 0);
+    });
+
+    it("should accept a 40k faction in a 40k tournament", async () => {
+      const t = makePendingTournament({ enable40kFactions: true });
+      mockTournamentFindOne.mock.mockImplementation(async () => t);
+      const req = mockReq({
+        params: { id: "t1" },
+        body: { name: "Alice", faction: "Necrons" },
+      });
+      const res = mockRes();
+      await addParticipant(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
+      assert.strictEqual(t.participants[0].faction, "Necrons");
+    });
   });
 
   describe("removeParticipant", () => {
@@ -701,6 +741,49 @@ describe("tournament-controller", () => {
       const res = mockRes();
       await joinTournament(req, res);
       assert.strictEqual(res.status.mock.calls[0].arguments[0], 400);
+    });
+
+    it("should reject joining a 40k tournament with a wh3 faction", async () => {
+      const t = {
+        _id: { toString: () => "t1" },
+        status: "pending",
+        playerCount: 8,
+        enable40kFactions: true,
+        participants: [],
+        save: mock.fn(async () => {}),
+      };
+      mockTournamentFindById.mock.mockImplementation(async () => t);
+      const req = mockReq({
+        params: { id: "t1" },
+        body: { faction: "Empire" },
+        user: { id: "u1", username: "tester" },
+      });
+      const res = mockRes();
+      await joinTournament(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 400);
+      assert.strictEqual(t.participants.length, 0);
+    });
+
+    it("should reject joining with a banned faction", async () => {
+      const t = {
+        _id: { toString: () => "t1" },
+        status: "pending",
+        playerCount: 8,
+        bannedFactions: ["Empire"],
+        participants: [],
+        save: mock.fn(async () => {}),
+      };
+      mockTournamentFindById.mock.mockImplementation(async () => t);
+      const req = mockReq({
+        params: { id: "t1" },
+        body: { faction: "Empire" },
+        user: { id: "u1", username: "tester" },
+      });
+      const res = mockRes();
+      await joinTournament(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 400);
+      assert.match(res.json.mock.calls[0].arguments[0].message, /banned/);
+      assert.strictEqual(t.participants.length, 0);
     });
   });
 
@@ -1381,6 +1464,32 @@ describe("tournament-controller", () => {
       const res = mockRes();
       await updateParticipant(req, res);
       assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
+    });
+
+    it("should reject an edit to a faction from the other game system", async () => {
+      const t = makeTournamentWithParticipant({ enable40kFactions: true });
+      mockTournamentFindOne.mock.mockImplementation(async () => t);
+      const req = mockReq({
+        params: { id: "t1", participantId: "p1" },
+        body: { faction: "Skaven" },
+      });
+      const res = mockRes();
+      await updateParticipant(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 400);
+      assert.strictEqual(t.save.mock.calls.length, 0);
+    });
+
+    it("should reject an edit to a banned faction", async () => {
+      const t = makeTournamentWithParticipant({ bannedFactions: ["Skaven"] });
+      mockTournamentFindOne.mock.mockImplementation(async () => t);
+      const req = mockReq({
+        params: { id: "t1", participantId: "p1" },
+        body: { faction: "Skaven" },
+      });
+      const res = mockRes();
+      await updateParticipant(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 400);
+      assert.strictEqual(t.save.mock.calls.length, 0);
     });
 
     it("should return 500 on unexpected error", async () => {

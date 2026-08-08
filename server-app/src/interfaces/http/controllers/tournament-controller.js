@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 
 import Match from "../../../domain/models/match.js";
 import Tournament from "../../../domain/models/tournament.js";
+import { factionRejectionReason } from "../../../domain/services/faction-eligibility-service.js";
 import {
   singleElimStart,
   singleElimAdvance,
@@ -294,6 +295,10 @@ export const addParticipant = async (req, res) => {
       });
     }
     const { name, faction } = req.body;
+    const rejection = factionRejectionReason(tournament, faction);
+    if (rejection) {
+      return res.status(400).json({ success: false, message: rejection });
+    }
     tournament.participants.push({ name, faction: faction || "" });
     await tournament.save();
     emitTournamentUpdated(tournament._id.toString(), tournament);
@@ -374,6 +379,10 @@ export const updateParticipant = async (req, res) => {
         .json({ success: false, message: "Participant not found" });
     }
     const { name, faction } = req.body;
+    const rejection = factionRejectionReason(tournament, faction);
+    if (rejection) {
+      return res.status(400).json({ success: false, message: rejection });
+    }
     if (name !== undefined) participant.name = name;
     if (faction !== undefined) participant.faction = faction;
     await tournament.save();
@@ -410,6 +419,10 @@ export const joinTournament = async (req, res) => {
       });
     }
     const { faction } = req.body;
+    const rejection = factionRejectionReason(tournament, faction);
+    if (rejection) {
+      return res.status(400).json({ success: false, message: rejection });
+    }
     const playerName =
       req.user.username || `Guest_${req.user.id.substring(0, 6)}`;
     const alreadyJoined = req.user.isGuest
@@ -600,6 +613,7 @@ export const advanceRound = async (req, res) => {
         tournament.participants,
         allMatches,
         nextRound,
+        tournament.enable40kFactions,
       );
       const newMatches = await Match.insertMany(result.docs);
       emitMatchesAppended(tournament._id.toString(), newMatches);

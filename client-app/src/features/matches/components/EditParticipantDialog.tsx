@@ -1,18 +1,7 @@
-﻿import React, { useMemo } from "react";
-import {
-  Dialog,
-  Portal,
-  Field,
-  Input,
-  Button,
-  VStack,
-  Select,
-  createListCollection,
-} from "@chakra-ui/react";
-import {
-  warhammer3Factions,
-  warhammer40kFactions,
-} from "@/shared/constants/factions";
+import React from "react";
+import { Dialog, Portal, Field, Input, Button, VStack } from "@chakra-ui/react";
+import FactionSelect from "@/shared/ui/FactionSelect";
+import type { GameScoped } from "@/shared/constants/factions";
 import { PARTICIPANT_NAME_MAX_LENGTH } from "@/shared/constants/validation";
 import { Participant } from "./types";
 
@@ -20,7 +9,7 @@ interface Props {
   open: boolean;
   participant: Participant | null;
   actionLoading: boolean;
-  enable40kFactions?: boolean;
+  tournament?: GameScoped;
   onClose: () => void;
   onParticipantChange: (p: Participant) => void;
   onSave: () => void;
@@ -32,26 +21,11 @@ const EditParticipantDialog: React.FC<Props> = ({
   open,
   participant,
   actionLoading,
-  enable40kFactions = false,
+  tournament,
   onClose,
   onParticipantChange,
   onSave,
 }) => {
-  const factionList = enable40kFactions
-    ? warhammer40kFactions
-    : warhammer3Factions;
-
-  const factionCollection = useMemo(
-    () =>
-      createListCollection({
-        items: [
-          { label: "No Faction", value: "" },
-          ...factionList.map((f) => ({ label: f, value: f })),
-        ],
-      }),
-    [factionList],
-  );
-
   const handleOpenChange = (e: { open: boolean }) => {
     // This dialog is only ever rendered while `open` is true (controlled by
     // the parent); Ark UI's internal close triggers (Escape, backdrop click)
@@ -89,45 +63,14 @@ const EditParticipantDialog: React.FC<Props> = ({
                 </Field.Root>
                 <Field.Root>
                   <Field.Label>Faction</Field.Label>
-                  <Select.Root
-                    collection={factionCollection}
-                    value={[participant?.faction ?? ""]}
-                    onValueChange={(e) =>
+                  <FactionSelect
+                    tournament={tournament}
+                    value={participant?.faction ?? ""}
+                    onChange={(faction) =>
                       participant &&
-                      onParticipantChange({
-                        ...participant,
-                        // This is a single-select with no clear affordance, so
-                        // e.value always has exactly one entry in practice;
-                        // the fallback guards the type (string[] -> string).
-                        /* v8 ignore next */
-                        faction: e.value[0] ?? "",
-                      })
+                      onParticipantChange({ ...participant, faction })
                     }
-                    w="full"
-                    size="sm"
-                  >
-                    <Select.HiddenSelect />
-                    <Select.Control>
-                      <Select.Trigger>
-                        <Select.ValueText placeholder="No Faction" />
-                      </Select.Trigger>
-                      <Select.IndicatorGroup>
-                        <Select.Indicator />
-                      </Select.IndicatorGroup>
-                    </Select.Control>
-                    <Portal>
-                      <Select.Positioner>
-                        <Select.Content>
-                          {factionCollection.items.map((item) => (
-                            <Select.Item key={item.value} item={item}>
-                              {item.label}
-                              <Select.ItemIndicator />
-                            </Select.Item>
-                          ))}
-                        </Select.Content>
-                      </Select.Positioner>
-                    </Portal>
-                  </Select.Root>
+                  />
                 </Field.Root>
               </VStack>
             </Dialog.Body>

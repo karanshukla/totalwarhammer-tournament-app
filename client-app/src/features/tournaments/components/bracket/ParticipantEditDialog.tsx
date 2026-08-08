@@ -1,4 +1,4 @@
-﻿import React, { useMemo } from "react";
+import React from "react";
 import {
   Dialog,
   Button,
@@ -6,15 +6,11 @@ import {
   Input,
   VStack,
   Portal,
-  Select,
-  createListCollection,
   chakra,
 } from "@chakra-ui/react";
 import { Participant } from "./types";
-import {
-  warhammer3Factions,
-  warhammer40kFactions,
-} from "@/shared/constants/factions";
+import FactionSelect from "@/shared/ui/FactionSelect";
+import type { GameScoped } from "@/shared/constants/factions";
 import { PARTICIPANT_NAME_MAX_LENGTH } from "@/shared/constants/validation";
 
 interface ParticipantEditDialogProps {
@@ -23,7 +19,7 @@ interface ParticipantEditDialogProps {
   participant: Participant | null;
   onParticipantChange: (participant: Participant | null) => void;
   onSave: () => void;
-  enable40kFactions?: boolean;
+  tournament?: GameScoped;
 }
 
 interface OpenChangeDetails {
@@ -36,27 +32,12 @@ export function ParticipantEditDialog({
   participant,
   onParticipantChange,
   onSave,
-  enable40kFactions = false,
+  tournament,
 }: ParticipantEditDialogProps) {
   const cancelRef = React.useRef<HTMLButtonElement>(null);
   const bgColor = "bg.panel";
   const borderColor = "border";
   const inputBgColor = "bg.subtle";
-
-  const factionList = enable40kFactions
-    ? warhammer40kFactions
-    : warhammer3Factions;
-
-  const factionCollection = useMemo(
-    () =>
-      createListCollection({
-        items: [
-          { label: "Select Faction", value: "" },
-          ...factionList.map((f) => ({ label: f, value: f })),
-        ],
-      }),
-    [factionList],
-  );
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (participant) {
@@ -117,40 +98,16 @@ export function ParticipantEditDialog({
                     <Field.Label mb={1} fontWeight="medium">
                       Faction
                     </Field.Label>
-                    <Select.Root
-                      collection={factionCollection}
-                      value={[participant?.faction || ""]}
-                      onValueChange={(e) =>
+                    <FactionSelect
+                      tournament={tournament}
+                      value={participant?.faction || ""}
+                      onChange={(faction) =>
                         participant &&
-                        onParticipantChange({
-                          ...participant,
-                          faction: e.value[0] ?? "",
-                        })
+                        onParticipantChange({ ...participant, faction })
                       }
-                      w="full"
-                    >
-                      <Select.HiddenSelect />
-                      <Select.Control>
-                        <Select.Trigger>
-                          <Select.ValueText placeholder="Select Faction" />
-                        </Select.Trigger>
-                        <Select.IndicatorGroup>
-                          <Select.Indicator />
-                        </Select.IndicatorGroup>
-                      </Select.Control>
-                      <Portal>
-                        <Select.Positioner>
-                          <Select.Content>
-                            {factionCollection.items.map((item) => (
-                              <Select.Item key={item.value} item={item}>
-                                {item.label}
-                                <Select.ItemIndicator />
-                              </Select.Item>
-                            ))}
-                          </Select.Content>
-                        </Select.Positioner>
-                      </Portal>
-                    </Select.Root>
+                      placeholder="Select Faction"
+                      size="md"
+                    />
                   </Field.Root>
                 </VStack>
               </Dialog.Body>
