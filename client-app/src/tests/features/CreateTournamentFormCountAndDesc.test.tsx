@@ -91,7 +91,10 @@ describe("CreateTournamentForm – handleNumberChange NaN fallback (line 121)", 
       expect(mockPost).toHaveBeenCalled();
     });
 
-    const [, body] = mockPost.mock.calls[0] as [string, { playerCount: number }];
+    const [, body] = mockPost.mock.calls[0] as [
+      string,
+      { playerCount: number },
+    ];
     expect(body.playerCount).toBe(2);
   });
 
@@ -116,7 +119,10 @@ describe("CreateTournamentForm – handleNumberChange NaN fallback (line 121)", 
       expect(mockPost).toHaveBeenCalled();
     });
 
-    const [, body] = mockPost.mock.calls[0] as [string, { playerCount: number }];
+    const [, body] = mockPost.mock.calls[0] as [
+      string,
+      { playerCount: number },
+    ];
     expect(body.playerCount).toBe(2);
   });
 });

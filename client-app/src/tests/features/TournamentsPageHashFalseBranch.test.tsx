@@ -65,9 +65,7 @@ describe("TournamentsPage – handleHashChange line 143 false branch", () => {
     renderPage();
 
     // Page starts on first tab (brackets) — activeTab === tabs[0].id
-    expect(
-      screen.getByText(/create a simple bracket/i),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/create a simple bracket/i)).toBeInTheDocument();
 
     // Fire hashchange with an invalid tab id while already on brackets tab
     await act(async () => {
@@ -77,9 +75,7 @@ describe("TournamentsPage – handleHashChange line 143 false branch", () => {
 
     // Component should still show first tab content — no state change occurred
     // because the else-if at line 143 was false (activeTab === tabs[0].id)
-    expect(
-      screen.getByText(/create a simple bracket/i),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/create a simple bracket/i)).toBeInTheDocument();
   });
 
   it("resets to first tab when invalid hash fires and activeTab is NOT tabs[0] (line 143 true branch)", async () => {
@@ -100,8 +96,6 @@ describe("TournamentsPage – handleHashChange line 143 false branch", () => {
 
     // The else-if at line 143 should now be true → setActiveTab(tabs[0].id)
     // So brackets content should be visible again
-    expect(
-      screen.getByText(/create a simple bracket/i),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/create a simple bracket/i)).toBeInTheDocument();
   });
 });

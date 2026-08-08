@@ -88,18 +88,12 @@ describe("MatchCard – admin disputed resolution (lines 336-379)", () => {
   beforeEach(() => vi.clearAllMocks());
 
   it("shows '⚠ Disputed - resolve:' label for admin + active + disputed", () => {
-    renderCard(
-      { status: "disputed" },
-      { isAdmin: true, isActive: true },
-    );
+    renderCard({ status: "disputed" }, { isAdmin: true, isActive: true });
     expect(screen.getByText(/disputed - resolve/i)).toBeInTheDocument();
   });
 
   it("renders player1-wins and player2-wins resolve buttons", () => {
-    renderCard(
-      { status: "disputed" },
-      { isAdmin: true, isActive: true },
-    );
+    renderCard({ status: "disputed" }, { isAdmin: true, isActive: true });
     expect(
       screen.getByRole("button", { name: /grimgork wins/i }),
     ).toBeInTheDocument();
@@ -160,18 +154,12 @@ describe("MatchCard – admin disputed resolution (lines 336-379)", () => {
   });
 
   it("does NOT show disputed-resolve section when not admin", () => {
-    renderCard(
-      { status: "disputed" },
-      { isAdmin: false, isActive: true },
-    );
+    renderCard({ status: "disputed" }, { isAdmin: false, isActive: true });
     expect(screen.queryByText(/disputed - resolve/i)).not.toBeInTheDocument();
   });
 
   it("does NOT show disputed-resolve section when isActive is false", () => {
-    renderCard(
-      { status: "disputed" },
-      { isAdmin: true, isActive: false },
-    );
+    renderCard({ status: "disputed" }, { isAdmin: true, isActive: false });
     expect(screen.queryByText(/disputed - resolve/i)).not.toBeInTheDocument();
   });
 });
@@ -243,7 +231,11 @@ describe("MatchCard – admin in_progress reported results (lines 381-408)", () 
       {
         status: "in_progress",
         reportedResults: [
-          { reportedBy: "unknown-id", reportedByName: "Stranger", winnerId: "p1" },
+          {
+            reportedBy: "unknown-id",
+            reportedByName: "Stranger",
+            winnerId: "p1",
+          },
         ],
       },
       { isAdmin: true, isActive: true },
@@ -279,11 +271,10 @@ describe("MatchCard – admin Override button (lines 441-450)", () => {
   beforeEach(() => vi.clearAllMocks());
 
   it("renders Override button for admin + active + player2 not BYE", () => {
-    renderCard(
-      { status: "in_progress" },
-      { isAdmin: true, isActive: true },
-    );
-    expect(screen.getByRole("button", { name: /override/i })).toBeInTheDocument();
+    renderCard({ status: "in_progress" }, { isAdmin: true, isActive: true });
+    expect(
+      screen.getByRole("button", { name: /override/i }),
+    ).toBeInTheDocument();
   });
 
   it("calls onStartOverride when the Override button is clicked", () => {
@@ -304,23 +295,23 @@ describe("MatchCard – admin Override button (lines 441-450)", () => {
       },
       { isAdmin: true, isActive: true },
     );
-    expect(screen.queryByRole("button", { name: /override/i })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /override/i }),
+    ).not.toBeInTheDocument();
   });
 
   it("does NOT render Override button when isAdmin is false", () => {
-    renderCard(
-      { status: "in_progress" },
-      { isAdmin: false, isActive: true },
-    );
-    expect(screen.queryByRole("button", { name: /override/i })).not.toBeInTheDocument();
+    renderCard({ status: "in_progress" }, { isAdmin: false, isActive: true });
+    expect(
+      screen.queryByRole("button", { name: /override/i }),
+    ).not.toBeInTheDocument();
   });
 
   it("does NOT render Override button when isActive is false", () => {
-    renderCard(
-      { status: "in_progress" },
-      { isAdmin: true, isActive: false },
-    );
-    expect(screen.queryByRole("button", { name: /override/i })).not.toBeInTheDocument();
+    renderCard({ status: "in_progress" }, { isAdmin: true, isActive: false });
+    expect(
+      screen.queryByRole("button", { name: /override/i }),
+    ).not.toBeInTheDocument();
   });
 
   it("renders Override button even for completed matches", () => {
@@ -328,7 +319,9 @@ describe("MatchCard – admin Override button (lines 441-450)", () => {
       { status: "completed", winnerId: "p1" },
       { isAdmin: true, isActive: true, p1Won: true },
     );
-    expect(screen.getByRole("button", { name: /override/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /override/i }),
+    ).toBeInTheDocument();
   });
 });
 
@@ -344,7 +337,11 @@ describe("MatchCard – participant 'waiting for opponent' message (lines 512-52
         isAdmin: false,
         isP1: true,
         isP2: false,
-        myReport: { reportedBy: "p1", reportedByName: "Grimgork", winnerId: "p1" },
+        myReport: {
+          reportedBy: "p1",
+          reportedByName: "Grimgork",
+          winnerId: "p1",
+        },
       },
     );
     expect(screen.getByText(/waiting for opponent/i)).toBeInTheDocument();
@@ -357,7 +354,11 @@ describe("MatchCard – participant 'waiting for opponent' message (lines 512-52
         isAdmin: false,
         isP1: false,
         isP2: true,
-        myReport: { reportedBy: "p2", reportedByName: "Luthor", winnerId: "p2" },
+        myReport: {
+          reportedBy: "p2",
+          reportedByName: "Luthor",
+          winnerId: "p2",
+        },
       },
     );
     expect(screen.getByText(/waiting for opponent/i)).toBeInTheDocument();
@@ -369,11 +370,17 @@ describe("MatchCard – participant 'waiting for opponent' message (lines 512-52
       {
         isAdmin: false,
         isP1: true,
-        myReport: { reportedBy: "p1", reportedByName: "Grimgork", winnerId: "p1" },
+        myReport: {
+          reportedBy: "p1",
+          reportedByName: "Grimgork",
+          winnerId: "p1",
+        },
       },
     );
     // The "waiting for opponent" sentence contains the winner name
-    expect(screen.getByText(/as winner - waiting for opponent/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/as winner - waiting for opponent/i),
+    ).toBeInTheDocument();
     // The parent paragraph contains "Grimgork" as the reported winner
     const waitingEl = screen.getByText(/as winner - waiting for opponent/i);
     expect(waitingEl.textContent).toMatch(/grimgork/i);
@@ -385,7 +392,11 @@ describe("MatchCard – participant 'waiting for opponent' message (lines 512-52
       {
         isAdmin: false,
         isP1: true,
-        myReport: { reportedBy: "p1", reportedByName: "Grimgork", winnerId: "p2" },
+        myReport: {
+          reportedBy: "p1",
+          reportedByName: "Grimgork",
+          winnerId: "p2",
+        },
       },
     );
     const waitingEl = screen.getByText(/as winner - waiting for opponent/i);
@@ -411,7 +422,11 @@ describe("MatchCard – participant 'waiting for opponent' message (lines 512-52
         isAdmin: false,
         isP1: false,
         isP2: false,
-        myReport: { reportedBy: "p1", reportedByName: "Grimgork", winnerId: "p1" },
+        myReport: {
+          reportedBy: "p1",
+          reportedByName: "Grimgork",
+          winnerId: "p1",
+        },
       },
     );
     expect(screen.queryByText(/waiting for opponent/i)).not.toBeInTheDocument();
@@ -423,7 +438,11 @@ describe("MatchCard – participant 'waiting for opponent' message (lines 512-52
       {
         isAdmin: true,
         isP1: true,
-        myReport: { reportedBy: "p1", reportedByName: "Grimgork", winnerId: "p1" },
+        myReport: {
+          reportedBy: "p1",
+          reportedByName: "Grimgork",
+          winnerId: "p1",
+        },
       },
     );
     expect(screen.queryByText(/waiting for opponent/i)).not.toBeInTheDocument();
@@ -456,10 +475,7 @@ describe("MatchCard – participant 'Result disputed' message (lines 523-533)", 
   });
 
   it("does NOT show disputed message when isAdmin is true", () => {
-    renderCard(
-      { status: "disputed" },
-      { isAdmin: true, isP1: true },
-    );
+    renderCard({ status: "disputed" }, { isAdmin: true, isP1: true });
     // Admin gets resolve buttons instead, not the "awaiting organiser" text
     expect(
       screen.queryByText(/awaiting organiser decision/i),
@@ -477,10 +493,7 @@ describe("MatchCard – participant 'Result disputed' message (lines 523-533)", 
   });
 
   it("does NOT show disputed message when status is in_progress", () => {
-    renderCard(
-      { status: "in_progress" },
-      { isAdmin: false, isP1: true },
-    );
+    renderCard({ status: "in_progress" }, { isAdmin: false, isP1: true });
     expect(
       screen.queryByText(/awaiting organiser decision/i),
     ).not.toBeInTheDocument();
@@ -531,19 +544,25 @@ describe("MatchCard – override panel interactions", () => {
 
   it("Confirm Override button is disabled when overrideWinnerId is empty", () => {
     renderCard({}, { isOverriding: true, overrideWinnerId: "" });
-    const confirmBtn = screen.getByRole("button", { name: /confirm override/i });
+    const confirmBtn = screen.getByRole("button", {
+      name: /confirm override/i,
+    });
     expect(confirmBtn).toBeDisabled();
   });
 
   it("Confirm Override button is enabled when overrideWinnerId is set", () => {
     renderCard({}, { isOverriding: true, overrideWinnerId: "p1" });
-    const confirmBtn = screen.getByRole("button", { name: /confirm override/i });
+    const confirmBtn = screen.getByRole("button", {
+      name: /confirm override/i,
+    });
     expect(confirmBtn).not.toBeDisabled();
   });
 
   it("shows player name buttons in override winner selection panel", () => {
     renderCard({}, { isOverriding: true });
-    expect(screen.getByRole("button", { name: /grimgork/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /grimgork/i }),
+    ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /luthor/i })).toBeInTheDocument();
   });
 });

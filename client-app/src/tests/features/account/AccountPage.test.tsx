@@ -33,8 +33,12 @@ vi.mock("react-router", async (importOriginal) => {
 });
 
 vi.mock("@/shared/stores/userStore", () => ({
-  useUserStore: (selector: (s: { user: Record<string, unknown>; clearUser: () => void }) => unknown) =>
-    mockUseUserStore(selector),
+  useUserStore: (
+    selector: (s: {
+      user: Record<string, unknown>;
+      clearUser: () => void;
+    }) => unknown,
+  ) => mockUseUserStore(selector),
 }));
 
 vi.mock("@/features/account/api/accountApi", () => ({
@@ -70,8 +74,12 @@ function makeUser(overrides: Record<string, unknown> = {}) {
 
 function renderPage(user: Record<string, unknown>) {
   mockUseUserStore.mockImplementation(
-    (selector: (s: { user: Record<string, unknown>; clearUser: () => void }) => unknown) =>
-      selector({ user, clearUser: mockClearUser }),
+    (
+      selector: (s: {
+        user: Record<string, unknown>;
+        clearUser: () => void;
+      }) => unknown,
+    ) => selector({ user, clearUser: mockClearUser }),
   );
   return render(
     <MemoryRouter>

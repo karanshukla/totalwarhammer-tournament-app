@@ -15,12 +15,21 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import React from "react";
 import { ChakraProvider, defaultSystem } from "@chakra-ui/react";
-import { PasswordInput, PasswordStrengthMeter } from "@/shared/ui/PasswordInput";
+import {
+  PasswordInput,
+  PasswordStrengthMeter,
+} from "@/shared/ui/PasswordInput";
 
-function renderPasswordInput(props: React.ComponentProps<typeof PasswordInput> = {}) {
+function renderPasswordInput(
+  props: React.ComponentProps<typeof PasswordInput> = {},
+) {
   return render(
     <ChakraProvider value={defaultSystem}>
-      <PasswordInput placeholder="password" data-testid="pwd-input" {...props} />
+      <PasswordInput
+        placeholder="password"
+        data-testid="pwd-input"
+        {...props}
+      />
     </ChakraProvider>,
   );
 }
@@ -54,7 +63,10 @@ describe("PasswordInput – toggle visibility", () => {
     });
     fireEvent.pointerDown(toggleBtn, { button: 0 });
     fireEvent.pointerDown(toggleBtn, { button: 0 });
-    expect(container.querySelector("input")).toHaveAttribute("type", "password");
+    expect(container.querySelector("input")).toHaveAttribute(
+      "type",
+      "password",
+    );
   });
 });
 
@@ -67,7 +79,10 @@ describe("PasswordInput – onPointerDown guards", () => {
       name: /toggle password visibility/i,
     });
     fireEvent.pointerDown(toggleBtn, { button: 0 });
-    expect(container.querySelector("input")).toHaveAttribute("type", "password");
+    expect(container.querySelector("input")).toHaveAttribute(
+      "type",
+      "password",
+    );
   });
 
   it("does not toggle when pointer button is not 0 (non-left-click)", () => {
@@ -76,7 +91,10 @@ describe("PasswordInput – onPointerDown guards", () => {
       name: /toggle password visibility/i,
     });
     fireEvent.pointerDown(toggleBtn, { button: 1 });
-    expect(container.querySelector("input")).toHaveAttribute("type", "password");
+    expect(container.querySelector("input")).toHaveAttribute(
+      "type",
+      "password",
+    );
   });
 });
 

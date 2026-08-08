@@ -43,7 +43,11 @@ async function runChain(chains, body = {}, query = {}) {
 
 describe("validateUserExists", () => {
   it("passes with a valid identifier query param", async () => {
-    const result = await runChain(validateUserExists, {}, { identifier: "warrior" });
+    const result = await runChain(
+      validateUserExists,
+      {},
+      { identifier: "warrior" },
+    );
     assert.strictEqual(result.isEmpty(), true);
   });
 
@@ -105,19 +109,25 @@ describe("validateUserRegistration", () => {
 
 describe("validateGuestUsername", () => {
   it("passes with a valid username", async () => {
-    const result = await runChain(validateGuestUsername, { username: "guest_hero" });
+    const result = await runChain(validateGuestUsername, {
+      username: "guest_hero",
+    });
     assert.strictEqual(result.isEmpty(), true);
   });
 
   it("fails when username has invalid chars (spaces)", async () => {
-    const result = await runChain(validateGuestUsername, { username: "guest hero" });
+    const result = await runChain(validateGuestUsername, {
+      username: "guest hero",
+    });
     assert.ok(result.array().some((e) => e.path === "username"));
   });
 });
 
 describe("validateUpdateUsername", () => {
   it("passes with a valid username", async () => {
-    const result = await runChain(validateUpdateUsername, { username: "NewName" });
+    const result = await runChain(validateUpdateUsername, {
+      username: "NewName",
+    });
     assert.strictEqual(result.isEmpty(), true);
   });
 

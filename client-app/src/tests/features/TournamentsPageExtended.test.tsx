@@ -15,9 +15,7 @@ const mockNavigate = vi.fn();
 
 vi.mock("react-router", async () => {
   const actual =
-    await vi.importActual<typeof import("react-router")>(
-      "react-router",
-    );
+    await vi.importActual<typeof import("react-router")>("react-router");
   return { ...actual, useNavigate: () => mockNavigate };
 });
 
@@ -170,7 +168,9 @@ describe("TournamentsPage – code search", () => {
       screen.getByRole("button", { name: /find tournament/i }),
     );
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith("/matches/tournament/VALIDCODE");
+      expect(mockNavigate).toHaveBeenCalledWith(
+        "/matches/tournament/VALIDCODE",
+      );
     });
   });
 

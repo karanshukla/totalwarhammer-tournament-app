@@ -237,7 +237,9 @@ describe("MatchCard – canParticipantReport (myReport branch)", () => {
         },
       },
     );
-    expect(screen.getByText(/change your reported winner/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/change your reported winner/i),
+    ).toBeInTheDocument();
   });
 });
 
@@ -368,7 +370,13 @@ describe("MatchCard – admin record-result buttons", () => {
     const onRecordResult = vi.fn();
     renderCard(
       { status: "pending" },
-      { isAdmin: true, isActive: true, isP1: false, isP2: false, onRecordResult },
+      {
+        isAdmin: true,
+        isActive: true,
+        isP1: false,
+        isP2: false,
+        onRecordResult,
+      },
     );
     fireEvent.click(screen.getByRole("button", { name: /grimgork wins/i }));
     expect(onRecordResult).toHaveBeenCalledWith("m1", "p1");

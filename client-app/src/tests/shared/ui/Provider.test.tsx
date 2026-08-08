@@ -9,8 +9,14 @@ import "@testing-library/jest-dom";
 import React from "react";
 
 vi.mock("next-themes", () => ({
-  ThemeProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-  useTheme: () => ({ theme: "light", setTheme: vi.fn(), resolvedTheme: "light" }),
+  ThemeProvider: ({ children }: { children: React.ReactNode }) => (
+    <>{children}</>
+  ),
+  useTheme: () => ({
+    theme: "light",
+    setTheme: vi.fn(),
+    resolvedTheme: "light",
+  }),
 }));
 
 import { Provider } from "@/shared/ui/Provider";

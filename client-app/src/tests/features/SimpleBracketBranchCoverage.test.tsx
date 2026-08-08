@@ -61,7 +61,10 @@ describe("SimpleBracket – invalid slot position branch (line 84)", () => {
 
     if (!match || !firstParticipant) return;
 
-    const updateSpy = vi.spyOn(useTournamentStore.getState(), "updateMatchParticipant");
+    const updateSpy = vi.spyOn(
+      useTournamentStore.getState(),
+      "updateMatchParticipant",
+    );
 
     capturedOnDragEnd!({
       active: {

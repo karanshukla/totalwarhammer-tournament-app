@@ -8,7 +8,13 @@
  * - ColorModeIcon: colorMode !== "dark" → renders LuSun
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent, renderHook, act } from "@testing-library/react";
+import {
+  render,
+  screen,
+  fireEvent,
+  renderHook,
+  act,
+} from "@testing-library/react";
 import "@testing-library/jest-dom";
 import React from "react";
 import { ChakraProvider, defaultSystem } from "@chakra-ui/react";
@@ -18,7 +24,9 @@ const { mockUseTheme } = vi.hoisted(() => ({
 }));
 
 vi.mock("next-themes", () => ({
-  ThemeProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  ThemeProvider: ({ children }: { children: React.ReactNode }) => (
+    <>{children}</>
+  ),
   useTheme: mockUseTheme,
 }));
 

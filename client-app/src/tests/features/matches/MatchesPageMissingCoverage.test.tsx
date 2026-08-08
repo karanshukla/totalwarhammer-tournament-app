@@ -15,7 +15,13 @@
  * - handleSelectTournament for non-active/non-completed tournament
  */
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { render, screen, waitFor, fireEvent, act } from "@testing-library/react";
+import {
+  render,
+  screen,
+  waitFor,
+  fireEvent,
+  act,
+} from "@testing-library/react";
 import "@testing-library/jest-dom";
 import React from "react";
 import { ChakraProvider, defaultSystem } from "@chakra-ui/react";
@@ -68,9 +74,7 @@ vi.mock("@/shared/ui/Toaster", () => ({
 
 vi.mock("react-router", async () => {
   const actual =
-    await vi.importActual<typeof import("react-router")>(
-      "react-router",
-    );
+    await vi.importActual<typeof import("react-router")>("react-router");
   return {
     ...actual,
     useNavigate: () => mockNavigate,
@@ -1024,9 +1028,7 @@ describe("MatchesPage – handleSelectTournament without a tournament code", () 
 
     fireEvent.click(screen.getByTestId("select-t9"));
 
-    await waitFor(() =>
-      expect(mockNavigate).toHaveBeenCalledWith("#t9"),
-    );
+    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith("#t9"));
   });
 });
 

@@ -28,7 +28,9 @@ vi.mock("@/shared/ui/Toaster", () => ({
 
 vi.mock("@/core/auth/pkceAuthService", () => ({
   PKCEAuthService: {
-    initiatePKCEFlow: vi.fn().mockResolvedValue({ codeChallenge: "cc", state: "st" }),
+    initiatePKCEFlow: vi
+      .fn()
+      .mockResolvedValue({ codeChallenge: "cc", state: "st" }),
     verifyAuthState: vi.fn().mockReturnValue(true),
     getAndClearCodeVerifier: vi.fn().mockReturnValue("verifier"),
   },

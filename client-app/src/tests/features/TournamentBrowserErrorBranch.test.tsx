@@ -39,7 +39,10 @@ import { httpClient } from "@/core/api/httpClient";
 
 const mockGet = vi.mocked(httpClient.get);
 
-function renderBrowser(statusFilter: "pending" | "active" | "completed" | ("pending" | "active" | "completed")[]) {
+function renderBrowser(
+  statusFilter:
+    "pending" | "active" | "completed" | ("pending" | "active" | "completed")[],
+) {
   return render(
     <ChakraProvider value={defaultSystem}>
       <MemoryRouter>

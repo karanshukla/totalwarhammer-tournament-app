@@ -11,9 +11,7 @@ const mockNavigate = vi.fn();
 
 vi.mock("react-router", async () => {
   const actual =
-    await vi.importActual<typeof import("react-router")>(
-      "react-router",
-    );
+    await vi.importActual<typeof import("react-router")>("react-router");
   return { ...actual, useNavigate: () => mockNavigate };
 });
 
@@ -161,9 +159,7 @@ describe("TournamentBrowser", () => {
       data: [makeTournament({ enable40kFactions: true })],
     });
     renderBrowser();
-    await waitFor(() =>
-      expect(screen.getByText("40K")).toBeInTheDocument(),
-    );
+    await waitFor(() => expect(screen.getByText("40K")).toBeInTheDocument());
   });
 
   it("shows description text (stripped of markdown)", async () => {
@@ -383,7 +379,14 @@ describe("TournamentBrowser", () => {
 
   it("recognises user as joined when participant has matching userId", async () => {
     (mockUseUserStore as unknown as ReturnType<typeof vi.fn>).mockReturnValue(
-      makeUser({ user: { id: "uid-789", username: "myuser", isAuthenticated: true, isGuest: false } }),
+      makeUser({
+        user: {
+          id: "uid-789",
+          username: "myuser",
+          isAuthenticated: true,
+          isGuest: false,
+        },
+      }),
     );
     mockGet.mockResolvedValue({
       success: true,
@@ -391,7 +394,12 @@ describe("TournamentBrowser", () => {
         makeTournament({
           status: "active",
           participants: [
-            { _id: "p1", userId: "uid-789", name: "othername", faction: "Chaos" },
+            {
+              _id: "p1",
+              userId: "uid-789",
+              name: "othername",
+              faction: "Chaos",
+            },
           ],
         }),
       ],
@@ -477,9 +485,7 @@ describe("TournamentBrowser", () => {
       ],
     });
     renderBrowser({ statusFilter: "completed" });
-    await waitFor(() =>
-      screen.getByRole("button", { name: /view results/i }),
-    );
+    await waitFor(() => screen.getByRole("button", { name: /view results/i }));
     await user.click(screen.getByRole("button", { name: /view results/i }));
     expect(mockNavigate).toHaveBeenCalledWith("/tournament/nocode4");
   });

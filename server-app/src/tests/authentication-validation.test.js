@@ -49,7 +49,10 @@ describe("validateLogin", () => {
   });
 
   it("fails when identifier is too short", async () => {
-    const result = await runChain(validateLogin, { identifier: "ab", password: "secret" });
+    const result = await runChain(validateLogin, {
+      identifier: "ab",
+      password: "secret",
+    });
     assert.ok(result.array().some((e) => e.path === "identifier"));
   });
 

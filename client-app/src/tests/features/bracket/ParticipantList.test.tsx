@@ -177,7 +177,9 @@ describe("ParticipantList", () => {
 
   it("covers DragOverlay truthy branch when activeParticipant is provided", () => {
     const participant = { id: "p1", name: "DraggedPlayer", faction: "Chaos" };
-    const { container } = renderParticipantList({ activeParticipant: participant });
+    const { container } = renderParticipantList({
+      activeParticipant: participant,
+    });
     // The activeParticipant ternary (line 182) is exercised with a non-null value
     expect(container).toBeDefined();
   });

@@ -57,14 +57,14 @@ describe("DeleteAccountSection – confirming=false (line 22 true branch)", () =
 
   it("shows confirmation UI after clicking Delete Account", async () => {
     renderSection();
-    await userEvent.click(screen.getByRole("button", { name: /delete account/i }));
+    await userEvent.click(
+      screen.getByRole("button", { name: /delete account/i }),
+    );
     expect(screen.getByText(/are you sure/i)).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: /yes, delete my account/i }),
     ).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: /cancel/i }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /cancel/i })).toBeInTheDocument();
   });
 });
 
@@ -73,7 +73,9 @@ describe("DeleteAccountSection – cancel (restores !confirming)", () => {
 
   it("hides confirmation UI when Cancel is clicked", async () => {
     renderSection();
-    await userEvent.click(screen.getByRole("button", { name: /delete account/i }));
+    await userEvent.click(
+      screen.getByRole("button", { name: /delete account/i }),
+    );
     await userEvent.click(screen.getByRole("button", { name: /cancel/i }));
     expect(screen.queryByText(/are you sure/i)).not.toBeInTheDocument();
   });
@@ -83,10 +85,17 @@ describe("DeleteAccountSection – handleDelete success path", () => {
   beforeEach(() => vi.clearAllMocks());
 
   it("navigates to / after successful deletion", async () => {
-    mockDeleteAccount.mockResolvedValueOnce({ success: true, message: "deleted" });
+    mockDeleteAccount.mockResolvedValueOnce({
+      success: true,
+      message: "deleted",
+    });
     renderSection();
-    await userEvent.click(screen.getByRole("button", { name: /delete account/i }));
-    await userEvent.click(screen.getByRole("button", { name: /yes, delete my account/i }));
+    await userEvent.click(
+      screen.getByRole("button", { name: /delete account/i }),
+    );
+    await userEvent.click(
+      screen.getByRole("button", { name: /yes, delete my account/i }),
+    );
 
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith("/");
@@ -100,8 +109,12 @@ describe("DeleteAccountSection – handleDelete error path (catch branch)", () =
   it("stays on page and does not navigate when deleteAccount throws", async () => {
     mockDeleteAccount.mockRejectedValueOnce(new Error("Server error"));
     renderSection();
-    await userEvent.click(screen.getByRole("button", { name: /delete account/i }));
-    await userEvent.click(screen.getByRole("button", { name: /yes, delete my account/i }));
+    await userEvent.click(
+      screen.getByRole("button", { name: /delete account/i }),
+    );
+    await userEvent.click(
+      screen.getByRole("button", { name: /yes, delete my account/i }),
+    );
 
     await waitFor(() => {
       // After catch, loading is reset but the component stays — no navigate

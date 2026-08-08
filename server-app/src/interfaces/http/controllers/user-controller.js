@@ -290,8 +290,8 @@ async function computeUserGameStats(
     .lean()
     .then((docs) => docs.map((d) => d._id));
 
-  const [tournamentsCreatedCount, matchesAsP1, matchesAsP2] =
-    await Promise.all([
+  const [tournamentsCreatedCount, matchesAsP1, matchesAsP2] = await Promise.all(
+    [
       Tournament.countDocuments({
         createdBy: userId,
         enable40kFactions: enable40kOperator,
@@ -312,7 +312,8 @@ async function computeUserGameStats(
       })
         .select("player1 player2 winnerId tournament")
         .lean(),
-    ]);
+    ],
+  );
 
   const allMatches = [...matchesAsP1, ...matchesAsP2];
   const wins = allMatches.filter((m) => {

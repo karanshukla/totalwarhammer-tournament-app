@@ -19,15 +19,21 @@ import React from "react";
 import { ChakraProvider, defaultSystem } from "@chakra-ui/react";
 import { MemoryRouter } from "react-router";
 
-const { mockGet, mockPost, mockGetSocket, mockUseUserStore, mockNavigate, mockToasterCreate } =
-  vi.hoisted(() => ({
-    mockGet: vi.fn(),
-    mockPost: vi.fn(),
-    mockGetSocket: vi.fn(),
-    mockUseUserStore: vi.fn(),
-    mockNavigate: vi.fn(),
-    mockToasterCreate: vi.fn(),
-  }));
+const {
+  mockGet,
+  mockPost,
+  mockGetSocket,
+  mockUseUserStore,
+  mockNavigate,
+  mockToasterCreate,
+} = vi.hoisted(() => ({
+  mockGet: vi.fn(),
+  mockPost: vi.fn(),
+  mockGetSocket: vi.fn(),
+  mockUseUserStore: vi.fn(),
+  mockNavigate: vi.fn(),
+  mockToasterCreate: vi.fn(),
+}));
 
 vi.mock("@/core/api/httpClient", () => ({
   httpClient: { get: mockGet, post: mockPost },
@@ -143,7 +149,9 @@ describe("TournamentViewPage – description display", () => {
       data: makeTournament({ description: "" }),
     });
     renderPage();
-    await waitFor(() => expect(screen.getByText("Test Cup")).toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.getByText("Test Cup")).toBeInTheDocument(),
+    );
     expect(screen.queryByTestId("markdown")).not.toBeInTheDocument();
   });
 });
@@ -174,7 +182,9 @@ describe("TournamentViewPage – handleJoin success", () => {
 
     renderPage();
 
-    const joinBtn = await screen.findByRole("button", { name: /join tournament/i });
+    const joinBtn = await screen.findByRole("button", {
+      name: /join tournament/i,
+    });
     fireEvent.click(joinBtn);
 
     await waitFor(() => {
@@ -202,7 +212,9 @@ describe("TournamentViewPage – handleJoin success", () => {
 
     renderPage();
 
-    const joinBtn = await screen.findByRole("button", { name: /join tournament/i });
+    const joinBtn = await screen.findByRole("button", {
+      name: /join tournament/i,
+    });
     fireEvent.click(joinBtn);
 
     await waitFor(() => {
@@ -230,7 +242,9 @@ describe("TournamentViewPage – handleJoin error", () => {
 
     renderPage();
 
-    const joinBtn = await screen.findByRole("button", { name: /join tournament/i });
+    const joinBtn = await screen.findByRole("button", {
+      name: /join tournament/i,
+    });
     fireEvent.click(joinBtn);
 
     await waitFor(() =>
@@ -259,7 +273,9 @@ describe("TournamentViewPage – copy tournament code", () => {
     renderPage();
 
     await screen.findByText("Test Cup");
-    const copyBtn = screen.getByRole("button", { name: /copy tournament code/i });
+    const copyBtn = screen.getByRole("button", {
+      name: /copy tournament code/i,
+    });
     fireEvent.click(copyBtn);
 
     expect(navigator.clipboard.writeText).toHaveBeenCalledWith("ABCDEF");
@@ -273,7 +289,9 @@ describe("TournamentViewPage – copy tournament code", () => {
     renderPage();
 
     await screen.findByText("Test Cup");
-    const copyBtn = screen.getByRole("button", { name: /copy tournament code/i });
+    const copyBtn = screen.getByRole("button", {
+      name: /copy tournament code/i,
+    });
     fireEvent.click(copyBtn);
 
     expect(mockToasterCreate).toHaveBeenCalledWith(
@@ -321,9 +339,7 @@ describe("TournamentViewPage – matches with W/L badges", () => {
       });
     renderPage();
 
-    await waitFor(() =>
-      expect(screen.getByText("L")).toBeInTheDocument(),
-    );
+    await waitFor(() => expect(screen.getByText("L")).toBeInTheDocument());
   });
 
   it("shows 'Completed' badge for a completed match", async () => {
@@ -402,7 +418,11 @@ describe("TournamentViewPage – champion faction display", () => {
           makeMatch({
             winnerId: "p1",
             status: "completed",
-            player1: { participantId: "p1", name: "Grimgork", faction: "Greenskins" },
+            player1: {
+              participantId: "p1",
+              name: "Grimgork",
+              faction: "Greenskins",
+            },
             player2: { participantId: "p2", name: "Luthor", faction: "Empire" },
           }),
         ],
@@ -480,7 +500,9 @@ describe("TournamentViewPage – Back button navigation", () => {
       success: true,
       data: makeTournament({
         createdBy: "owner1",
-        participants: [{ _id: "p1", userId: "u2", name: "Grimgork", faction: "" }],
+        participants: [
+          { _id: "p1", userId: "u2", name: "Grimgork", faction: "" },
+        ],
       }),
     });
     renderPage();
@@ -553,13 +575,13 @@ describe("TournamentViewPage – joinSuccess state", () => {
 
     renderPage();
 
-    const joinBtn = await screen.findByRole("button", { name: /join tournament/i });
+    const joinBtn = await screen.findByRole("button", {
+      name: /join tournament/i,
+    });
     fireEvent.click(joinBtn);
 
     // joinSuccess → true before navigation happens
-    await waitFor(() =>
-      expect(mockPost).toHaveBeenCalled(),
-    );
+    await waitFor(() => expect(mockPost).toHaveBeenCalled());
 
     // navigate is called (which in real app unmounts, but in test we can check it was called)
     await waitFor(() =>

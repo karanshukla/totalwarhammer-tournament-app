@@ -108,10 +108,9 @@ class AuthStateService {
     if (Number.isNaN(changedMs) || Number.isNaN(authMs)) return true;
 
     if (authMs < changedMs) {
-      logger.warn(
-        "Authentication rejected: session predates password change",
-        { reason: "session_predates_password_change" },
-      );
+      logger.warn("Authentication rejected: session predates password change", {
+        reason: "session_predates_password_change",
+      });
       return false;
     }
     return true;

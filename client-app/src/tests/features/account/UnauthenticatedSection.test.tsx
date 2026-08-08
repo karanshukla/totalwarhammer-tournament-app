@@ -30,7 +30,9 @@ describe("UnauthenticatedSection", () => {
     const handler = vi.fn();
     document.addEventListener("auth-event", handler);
 
-    await userEvent.click(screen.getByRole("button", { name: /sign in \/ register/i }));
+    await userEvent.click(
+      screen.getByRole("button", { name: /sign in \/ register/i }),
+    );
 
     expect(handler).toHaveBeenCalledTimes(1);
     const evt = handler.mock.calls[0][0] as CustomEvent;
