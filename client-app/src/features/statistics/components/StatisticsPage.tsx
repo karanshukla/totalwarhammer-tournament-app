@@ -242,7 +242,15 @@ const StatisticsPage: React.FC = () => {
         </HStack>
 
         {/* Game-system toggle (WH3 / 40K) */}
-        <HStack gap={1} p={2} borderRadius="md" borderWidth={1} borderColor="border" bg="bg.subtle" w="fit-content">
+        <HStack
+          gap={1}
+          p={2}
+          borderRadius="md"
+          borderWidth={1}
+          borderColor="border"
+          bg="bg.subtle"
+          w="fit-content"
+        >
           <chakra.button
             type="button"
             py={1.5}

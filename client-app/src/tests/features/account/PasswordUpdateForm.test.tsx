@@ -71,10 +71,14 @@ describe("PasswordUpdateForm – validation branches", () => {
   it("shows 'all fields required' when any password field is empty (line 24)", async () => {
     renderForm();
     // Leave all fields empty and submit
-    fireEvent.submit(screen.getByRole("button", { name: /update password/i }).closest("form")!);
+    fireEvent.submit(
+      screen.getByRole("button", { name: /update password/i }).closest("form")!,
+    );
 
     await waitFor(() =>
-      expect(screen.getByText(/all password fields are required/i)).toBeInTheDocument(),
+      expect(
+        screen.getByText(/all password fields are required/i),
+      ).toBeInTheDocument(),
     );
     expect(mockUpdatePassword).not.toHaveBeenCalled();
   });
@@ -82,7 +86,9 @@ describe("PasswordUpdateForm – validation branches", () => {
   it("shows 'don't match' when new passwords differ (line 29)", async () => {
     renderForm();
     fillPasswords("oldpass1", "newpass1", "newpass2");
-    fireEvent.submit(screen.getByRole("button", { name: /update password/i }).closest("form")!);
+    fireEvent.submit(
+      screen.getByRole("button", { name: /update password/i }).closest("form")!,
+    );
 
     await waitFor(() =>
       expect(screen.getByText(/don't match/i)).toBeInTheDocument(),
@@ -92,7 +98,9 @@ describe("PasswordUpdateForm – validation branches", () => {
   it("shows 'at least 8 characters' when new password is too short (line 34)", async () => {
     renderForm();
     fillPasswords("oldpass1", "short", "short");
-    fireEvent.submit(screen.getByRole("button", { name: /update password/i }).closest("form")!);
+    fireEvent.submit(
+      screen.getByRole("button", { name: /update password/i }).closest("form")!,
+    );
 
     await waitFor(() =>
       expect(screen.getByText(/at least 8 characters/i)).toBeInTheDocument(),
@@ -106,16 +114,22 @@ describe("PasswordUpdateForm – error clearing on re-type (line 18)", () => {
   it("clears passwordError when user types after an error is shown", async () => {
     renderForm();
     // Trigger validation error (empty fields)
-    fireEvent.submit(screen.getByRole("button", { name: /update password/i }).closest("form")!);
+    fireEvent.submit(
+      screen.getByRole("button", { name: /update password/i }).closest("form")!,
+    );
     await waitFor(() =>
-      expect(screen.getByText(/all password fields are required/i)).toBeInTheDocument(),
+      expect(
+        screen.getByText(/all password fields are required/i),
+      ).toBeInTheDocument(),
     );
 
     // Now type in any field → error cleared
     fireEvent.change(screen.getByTestId("currentPassword"), {
       target: { id: "currentPassword", value: "x" },
     });
-    expect(screen.queryByText(/all password fields are required/i)).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(/all password fields are required/i),
+    ).not.toBeInTheDocument();
   });
 });
 
@@ -130,10 +144,14 @@ describe("PasswordUpdateForm – catch error type branch (line 49)", () => {
   });
 
   it("shows error.message for Error instance in catch (line 49 true)", async () => {
-    mockUpdatePassword.mockRejectedValueOnce(new Error("Wrong current password"));
+    mockUpdatePassword.mockRejectedValueOnce(
+      new Error("Wrong current password"),
+    );
     renderForm();
     fillPasswords("wrong-old", "newpassword1", "newpassword1");
-    fireEvent.submit(screen.getByRole("button", { name: /update password/i }).closest("form")!);
+    fireEvent.submit(
+      screen.getByRole("button", { name: /update password/i }).closest("form")!,
+    );
 
     await waitFor(() =>
       expect(screen.getByText("Wrong current password")).toBeInTheDocument(),
@@ -144,7 +162,9 @@ describe("PasswordUpdateForm – catch error type branch (line 49)", () => {
     mockUpdatePassword.mockRejectedValueOnce("plain error");
     renderForm();
     fillPasswords("old-pass", "newpassword1", "newpassword1");
-    fireEvent.submit(screen.getByRole("button", { name: /update password/i }).closest("form")!);
+    fireEvent.submit(
+      screen.getByRole("button", { name: /update password/i }).closest("form")!,
+    );
 
     await waitFor(() =>
       expect(screen.getByText("Failed to update password")).toBeInTheDocument(),
@@ -155,10 +175,10 @@ describe("PasswordUpdateForm – catch error type branch (line 49)", () => {
     mockUpdatePassword.mockResolvedValueOnce({ success: true, message: "ok" });
     renderForm();
     fillPasswords("old-pass", "newpassword1", "newpassword1");
-    fireEvent.submit(screen.getByRole("button", { name: /update password/i }).closest("form")!);
-
-    await waitFor(() =>
-      expect(window.location.reload).toHaveBeenCalled(),
+    fireEvent.submit(
+      screen.getByRole("button", { name: /update password/i }).closest("form")!,
     );
+
+    await waitFor(() => expect(window.location.reload).toHaveBeenCalled());
   });
 });

@@ -32,22 +32,29 @@ vi.mock("@/shared/ui/Toaster", () => ({
 
 vi.mock("@/shared/ui/PasswordInput", () => ({
   PasswordInput: React.forwardRef(
-    (props: React.InputHTMLAttributes<HTMLInputElement>, ref: React.ForwardedRef<HTMLInputElement>) => (
-      <input ref={ref} {...props} />
-    ),
+    (
+      props: React.InputHTMLAttributes<HTMLInputElement>,
+      ref: React.ForwardedRef<HTMLInputElement>,
+    ) => <input ref={ref} {...props} />,
   ),
 }));
 
 import { RegistrationForm } from "@/features/authentication/components/RegistrationForm";
 
-function fillForm(username = "Grimgork", email = "g@g.com", password = "hunter123") {
+function fillForm(
+  username = "Grimgork",
+  email = "g@g.com",
+  password = "hunter123",
+) {
   fireEvent.change(screen.getByRole("textbox", { name: /username/i }), {
     target: { value: username },
   });
   fireEvent.change(screen.getByRole("textbox", { name: /email/i }), {
     target: { value: email },
   });
-  const pwInput = document.querySelector('input[type="password"]') as HTMLInputElement;
+  const pwInput = document.querySelector(
+    'input[type="password"]',
+  ) as HTMLInputElement;
   if (pwInput) fireEvent.change(pwInput, { target: { value: password } });
 }
 
@@ -62,7 +69,8 @@ function renderForm(defaultIdentifier?: string) {
 }
 
 function getInputValue(label: RegExp): string {
-  return (screen.getByRole("textbox", { name: label }) as HTMLInputElement).value;
+  return (screen.getByRole("textbox", { name: label }) as HTMLInputElement)
+    .value;
 }
 
 describe("RegistrationForm – success path", () => {
@@ -72,7 +80,9 @@ describe("RegistrationForm – success path", () => {
     mockRegisterUser.mockResolvedValueOnce({ success: true });
     renderForm();
     fillForm();
-    fireEvent.submit(screen.getByRole("button", { name: /register/i }).closest("form")!);
+    fireEvent.submit(
+      screen.getByRole("button", { name: /register/i }).closest("form")!,
+    );
 
     await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith("/"));
     expect(mockRegisterUser).toHaveBeenCalledWith(
@@ -88,7 +98,9 @@ describe("RegistrationForm – catch path", () => {
     mockRegisterUser.mockRejectedValueOnce(new Error("Email taken"));
     renderForm();
     fillForm();
-    fireEvent.submit(screen.getByRole("button", { name: /register/i }).closest("form")!);
+    fireEvent.submit(
+      screen.getByRole("button", { name: /register/i }).closest("form")!,
+    );
 
     await waitFor(() => expect(mockRegisterUser).toHaveBeenCalled());
     expect(mockNavigate).not.toHaveBeenCalled();
@@ -123,9 +135,13 @@ describe("RegistrationForm – defaultIdentifier carry-over", () => {
     fireEvent.change(screen.getByRole("textbox", { name: /username/i }), {
       target: { value: "Grimgork" },
     });
-    const pwInput = document.querySelector('input[type="password"]') as HTMLInputElement;
+    const pwInput = document.querySelector(
+      'input[type="password"]',
+    ) as HTMLInputElement;
     fireEvent.change(pwInput, { target: { value: "hunter123" } });
-    fireEvent.submit(screen.getByRole("button", { name: /register/i }).closest("form")!);
+    fireEvent.submit(
+      screen.getByRole("button", { name: /register/i }).closest("form")!,
+    );
 
     await waitFor(() =>
       expect(mockRegisterUser).toHaveBeenCalledWith(

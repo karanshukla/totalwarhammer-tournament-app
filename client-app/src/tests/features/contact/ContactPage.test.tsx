@@ -28,7 +28,9 @@ function getFaqRoot(questionText: RegExp) {
 describe("ContactPage", () => {
   it("renders 'Get Help' heading", () => {
     renderPage();
-    expect(screen.getByRole("heading", { name: "Get Help", level: 1 })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Get Help", level: 1 }),
+    ).toBeInTheDocument();
   });
 
   it("renders FAQ section heading", () => {

@@ -53,7 +53,9 @@ describe("MatchParticipantSlot – filled slot (participant found)", () => {
   it("calls onRemove when the Remove button is clicked", async () => {
     const onRemove = vi.fn();
     renderSlot("p2", onRemove);
-    await userEvent.click(screen.getByRole("button", { name: /remove participant/i }));
+    await userEvent.click(
+      screen.getByRole("button", { name: /remove participant/i }),
+    );
     expect(onRemove).toHaveBeenCalledTimes(1);
   });
 });

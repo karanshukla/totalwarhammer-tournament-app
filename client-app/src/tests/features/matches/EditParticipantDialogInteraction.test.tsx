@@ -37,7 +37,7 @@ function renderDialog({
         open={open}
         participant={participant}
         actionLoading={actionLoading}
-        enable40kFactions={enable40kFactions}
+        tournament={{ enable40kFactions }}
         onClose={onClose}
         onParticipantChange={onParticipantChange}
         onSave={onSave}

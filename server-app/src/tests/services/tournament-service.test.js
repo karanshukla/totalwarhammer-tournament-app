@@ -312,7 +312,10 @@ describe("isBetaFaction propagation", () => {
         { participantId: "pid-2", name: "Player 2", faction: "Empire" },
       ];
       const matches = singleElimStart(tid, participants);
-      const ids = [matches[0].player1.participantId, matches[0].player2.participantId];
+      const ids = [
+        matches[0].player1.participantId,
+        matches[0].player2.participantId,
+      ];
       assert.ok(ids.includes("pid-1"));
       assert.ok(ids.includes("pid-2"));
     });
@@ -383,6 +386,105 @@ describe("isBetaFaction propagation", () => {
     it("sets isBetaFaction: false when disabled", () => {
       const matches = swissStart(tid, makePlayers(4), false);
       for (const slot of realSlots(matches)) {
+        assert.strictEqual(slot.isBetaFaction, false);
+      }
+    });
+  });
+
+  // Advancing re-slots winners from stored matches rather than from the
+  // tournament, so the flag has to survive the round boundary.
+  describe("advancement", () => {
+    const betaSlot = (id, name) => ({
+      participantId: id,
+      name,
+      faction: "Orks",
+      isBetaFaction: true,
+    });
+
+    it("keeps isBetaFaction on a bye created by singleElimAdvance", () => {
+      const currentRound = ["p1", "p2", "p3"].map((id, i) => ({
+        round: 1,
+        status: "completed",
+        winnerId: id,
+        player1: betaSlot(id, `Winner ${i + 1}`),
+        player2: betaSlot(`l${i + 1}`, `Loser ${i + 1}`),
+      }));
+
+      const { docs } = singleElimAdvance(tid, currentRound, 2);
+      const bye = docs.find((d) => d.player2.name === "BYE");
+      assert.ok(bye, "expected a bye match");
+      assert.strictEqual(bye.player1.isBetaFaction, true);
+      assert.strictEqual(bye.player2.isBetaFaction, false);
+    });
+
+    it("keeps isBetaFaction on a bye created by doubleElimAdvance", () => {
+      const allMatches = ["p1", "p2", "p3"].map((id, i) => ({
+        bracketSide: "winners",
+        round: 1,
+        status: "completed",
+        winnerId: id,
+        player1: betaSlot(id, `Winner ${i + 1}`),
+        player2: betaSlot(`l${i + 1}`, `Loser ${i + 1}`),
+      }));
+
+      const { docs } = doubleElimAdvance(tid, allMatches);
+      const byes = docs.filter((d) => d.player2.name === "BYE");
+      assert.ok(byes.length > 0, "expected at least one bye match");
+      for (const bye of byes) {
+        assert.strictEqual(bye.player1.isBetaFaction, true);
+      }
+    });
+
+    it("sets isBetaFaction on slots paired by swissAdvance", () => {
+      const participants = ["p1", "p2", "p3", "p4"].map((id, i) => ({
+        _id: id,
+        participantId: id,
+        name: `Player ${i + 1}`,
+        faction: "Orks",
+      }));
+      const allMatches = [
+        {
+          round: 1,
+          status: "completed",
+          winnerId: "p1",
+          player1: betaSlot("p1", "Player 1"),
+          player2: betaSlot("p2", "Player 2"),
+        },
+        {
+          round: 1,
+          status: "completed",
+          winnerId: "p3",
+          player1: betaSlot("p3", "Player 3"),
+          player2: betaSlot("p4", "Player 4"),
+        },
+      ];
+
+      const { docs } = swissAdvance(tid, participants, allMatches, 2, true);
+      for (const slot of docs.flatMap((d) => [d.player1, d.player2])) {
+        if (slot.name === "BYE") continue;
+        assert.strictEqual(slot.isBetaFaction, true);
+      }
+    });
+
+    it("leaves isBetaFaction false for a wh3 swiss tournament", () => {
+      const participants = ["p1", "p2"].map((id, i) => ({
+        _id: id,
+        participantId: id,
+        name: `Player ${i + 1}`,
+        faction: "Empire",
+      }));
+      const allMatches = [
+        {
+          round: 1,
+          status: "completed",
+          winnerId: "p1",
+          player1: { participantId: "p1", name: "Player 1", faction: "Empire" },
+          player2: { participantId: "p2", name: "Player 2", faction: "Empire" },
+        },
+      ];
+
+      const { docs } = swissAdvance(tid, participants, allMatches, 2);
+      for (const slot of docs.flatMap((d) => [d.player1, d.player2])) {
         assert.strictEqual(slot.isBetaFaction, false);
       }
     });

@@ -72,9 +72,7 @@ vi.mock("@/shared/ui/Toaster", () => ({
 
 vi.mock("react-router", async () => {
   const actual =
-    await vi.importActual<typeof import("react-router")>(
-      "react-router",
-    );
+    await vi.importActual<typeof import("react-router")>("react-router");
   return {
     ...actual,
     useNavigate: () => mockNavigate,

@@ -9,20 +9,30 @@
  *   Line 141 – "Back to Home" button onClick → navigate("/")
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor, act, fireEvent } from "@testing-library/react";
+import {
+  render,
+  screen,
+  waitFor,
+  act,
+  fireEvent,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom";
 import React from "react";
 import { ChakraProvider, defaultSystem } from "@chakra-ui/react";
 import { MemoryRouter } from "react-router";
 
-const { mockVerifyResetToken, mockResetPassword, mockNavigate, mockToasterCreate } =
-  vi.hoisted(() => ({
-    mockVerifyResetToken: vi.fn(),
-    mockResetPassword: vi.fn(),
-    mockNavigate: vi.fn(),
-    mockToasterCreate: vi.fn(),
-  }));
+const {
+  mockVerifyResetToken,
+  mockResetPassword,
+  mockNavigate,
+  mockToasterCreate,
+} = vi.hoisted(() => ({
+  mockVerifyResetToken: vi.fn(),
+  mockResetPassword: vi.fn(),
+  mockNavigate: vi.fn(),
+  mockToasterCreate: vi.fn(),
+}));
 
 vi.mock("react-router", async (importOriginal) => {
   const actual = await importOriginal<typeof import("react-router")>();
@@ -86,7 +96,9 @@ describe("ResetPasswordPage – onSubmit success path", () => {
 
     // Use placeholder to locate inputs precisely
     const pwInput = screen.getByPlaceholderText(/enter your new password/i);
-    const confirmInput = screen.getByPlaceholderText(/confirm your new password/i);
+    const confirmInput = screen.getByPlaceholderText(
+      /confirm your new password/i,
+    );
 
     fireEvent.change(pwInput, { target: { value: "secretPass1" } });
     fireEvent.change(confirmInput, { target: { value: "secretPass1" } });
@@ -95,7 +107,10 @@ describe("ResetPasswordPage – onSubmit success path", () => {
 
     await waitFor(
       () => {
-        expect(mockResetPassword).toHaveBeenCalledWith("validtoken", "secretPass1");
+        expect(mockResetPassword).toHaveBeenCalledWith(
+          "validtoken",
+          "secretPass1",
+        );
       },
       { timeout: 3000 },
     );
@@ -129,7 +144,9 @@ describe("ResetPasswordPage – onSubmit catch path", () => {
     );
 
     const pwInput = screen.getByPlaceholderText(/enter your new password/i);
-    const confirmInput = screen.getByPlaceholderText(/confirm your new password/i);
+    const confirmInput = screen.getByPlaceholderText(
+      /confirm your new password/i,
+    );
 
     fireEvent.change(pwInput, { target: { value: "mypassword" } });
     fireEvent.change(confirmInput, { target: { value: "mypassword" } });
@@ -157,7 +174,9 @@ describe("ResetPasswordPage – zod refine mismatch (line 32)", () => {
     renderPage("?token=validtoken");
 
     await waitFor(() =>
-      expect(screen.getByRole("button", { name: /reset password/i })).toBeInTheDocument(),
+      expect(
+        screen.getByRole("button", { name: /reset password/i }),
+      ).toBeInTheDocument(),
     );
 
     const inputs = screen.getAllByRole("textbox") as HTMLInputElement[];
@@ -166,7 +185,9 @@ describe("ResetPasswordPage – zod refine mismatch (line 32)", () => {
       await userEvent.type(inputs[1], "password2");
     }
 
-    await userEvent.click(screen.getByRole("button", { name: /reset password/i }));
+    await userEvent.click(
+      screen.getByRole("button", { name: /reset password/i }),
+    );
 
     await waitFor(() => {
       expect(mockResetPassword).not.toHaveBeenCalled();
@@ -185,10 +206,14 @@ describe("ResetPasswordPage – Back to Home button (line 141)", () => {
     renderPage("?token=badtoken");
 
     await waitFor(() =>
-      expect(screen.getByRole("button", { name: /back to home/i })).toBeInTheDocument(),
+      expect(
+        screen.getByRole("button", { name: /back to home/i }),
+      ).toBeInTheDocument(),
     );
 
-    await userEvent.click(screen.getByRole("button", { name: /back to home/i }));
+    await userEvent.click(
+      screen.getByRole("button", { name: /back to home/i }),
+    );
 
     expect(mockNavigate).toHaveBeenCalledWith("/");
   });

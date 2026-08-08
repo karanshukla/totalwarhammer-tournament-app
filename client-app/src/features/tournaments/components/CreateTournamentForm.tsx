@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   Button,
   Text,
@@ -14,16 +14,16 @@ import {
   Select,
   Portal,
   createListCollection,
-  chakra,
 } from "@chakra-ui/react";
-import { LuTriangleAlert, LuInfo, LuLock } from "react-icons/lu";
+import { LuLock } from "react-icons/lu";
 import { NumberInputRoot, NumberInputField } from "@/shared/ui/NumberInput";
 import { httpClient } from "@/core/api/httpClient";
 import { useNavigate } from "react-router";
 import { toaster } from "@/shared/ui/Toaster";
+import GameSystemToggle from "@/shared/ui/GameSystemToggle";
 import {
-  warhammer3Factions,
-  warhammer40kFactions,
+  factionsForGameSystem,
+  type FactionGame,
 } from "@/shared/constants/factions";
 import {
   validateTournamentName,
@@ -32,6 +32,10 @@ import {
   PLAYER_COUNT_MIN,
   PLAYER_COUNT_MAX,
 } from "@/shared/constants/validation";
+import BannedFactionPicker from "./create/BannedFactionPicker";
+import GuidanceNote from "./create/GuidanceNote";
+import NextStepsPanel from "./create/NextStepsPanel";
+import { formatGuidance } from "./create/formatGuidance";
 
 const tournamentTypes = [
   "Single Elimination",
@@ -43,6 +47,8 @@ const tournamentTypes = [
 const tournamentTypeCollection = createListCollection({
   items: tournamentTypes.map((t) => ({ label: t, value: t })),
 });
+
+const GAME_SWITCH_FADE_MS = 180;
 
 interface CreateTournamentFormProps {
   isGuest?: boolean;
@@ -63,61 +69,26 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
   const [nameError, setNameError] = useState<string | null>(null);
   const [playerCountError, setPlayerCountError] = useState<string | null>(null);
   const [factionListVisible, setFactionListVisible] = useState(true);
-  const [isShiftPressed, setIsShiftPressed] = useState(false);
-  const [shiftAnchor, setShiftAnchor] = useState<number | null>(null);
   const navigate = useNavigate();
 
-  const activeFactionList = formData.enable40kFactions
-    ? warhammer40kFactions
-    : warhammer3Factions;
+  const activeFactionList = factionsForGameSystem(formData);
+  const guidance = formatGuidance(
+    formData.tournamentType,
+    formData.playerCount,
+  );
 
-  useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Shift") setIsShiftPressed(true);
-    };
-    const onKeyUp = (e: KeyboardEvent) => {
-      if (e.key === "Shift") setIsShiftPressed(false);
-    };
-    document.addEventListener("keydown", onKeyDown);
-    document.addEventListener("keyup", onKeyUp);
-    return () => {
-      document.removeEventListener("keydown", onKeyDown);
-      document.removeEventListener("keyup", onKeyUp);
-    };
-  }, []);
-
-  const handleToggle40k = () => {
+  // Bans are per-game, so switching systems clears them rather than leaving
+  // selections the server would reject.
+  const handleGameChange = (game: FactionGame) => {
     setFactionListVisible(false);
     setTimeout(() => {
-      toggle40k();
+      setFormData((prev) => ({
+        ...prev,
+        enable40kFactions: game === "40k",
+        bannedFactions: [],
+      }));
       setFactionListVisible(true);
-    }, 180);
-  };
-
-  const handleFactionClick = (faction: string) => {
-    const idx = activeFactionList.indexOf(faction);
-    if (isShiftPressed && shiftAnchor !== null) {
-      const start = Math.min(shiftAnchor, idx);
-      const end = Math.max(shiftAnchor, idx);
-      const range = activeFactionList.slice(start, end + 1);
-      const isTargetChecked = formData.bannedFactions.includes(faction);
-      setFormData((prev) => ({
-        ...prev,
-        bannedFactions: isTargetChecked
-          ? prev.bannedFactions.filter((f) => !range.includes(f))
-          : [...new Set([...prev.bannedFactions, ...range])],
-      }));
-      setShiftAnchor(idx);
-    } else {
-      const isChecked = !formData.bannedFactions.includes(faction);
-      setFormData((prev) => ({
-        ...prev,
-        bannedFactions: isChecked
-          ? [...prev.bannedFactions, faction]
-          : prev.bannedFactions.filter((f) => f !== faction),
-      }));
-      setShiftAnchor(idx);
-    }
+    }, GAME_SWITCH_FADE_MS);
   };
 
   const handleInputChange = (
@@ -133,15 +104,6 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
     setFormData((prev) => ({
       ...prev,
       playerCount: parseInt(value) || PLAYER_COUNT_MIN,
-    }));
-  };
-
-  const toggle40k = () => {
-    setShiftAnchor(null);
-    setFormData((prev) => ({
-      ...prev,
-      enable40kFactions: !prev.enable40kFactions,
-      bannedFactions: [],
     }));
   };
 
@@ -293,396 +255,98 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
             </Field.Root>
 
             {formData.tournamentType === "Swiss System" && (
-              <Box
-                p={3}
-                borderRadius="md"
-                bg="bg.subtle"
-                borderWidth={1}
-                borderColor="border"
-              >
-                <HStack gap={2} alignItems="flex-start">
-                  <Box color="fg.secondary" flexShrink={0} mt="1px">
-                    <LuInfo size={14} />
-                  </Box>
-                  <Text fontSize="xs" color="fg.secondary">
-                    Swiss System uses the{" "}
-                    <Text as="span" fontWeight="semibold">
-                      Blossom algorithm
-                    </Text>{" "}
-                    for maximum-cardinality matching - players are paired by win
-                    score while avoiding rematches wherever possible.
-                  </Text>
-                </HStack>
-              </Box>
+              <GuidanceNote tone="info">
+                Swiss System uses the{" "}
+                <Text as="span" fontWeight="semibold">
+                  Blossom algorithm
+                </Text>{" "}
+                for maximum-cardinality matching - players are paired by win
+                score while avoiding rematches wherever possible.
+              </GuidanceNote>
             )}
 
             <Field.Root>
               <Field.Label>Banned Factions</Field.Label>
               <SimpleGrid columns={{ base: 1, md: 2 }} gap={6} w="full">
-                <VStack gap={2} align="stretch" minW={0} overflow="hidden">
-                  <Box
-                    opacity={factionListVisible ? 1 : 0}
-                    transition="opacity 0.18s ease"
-                    maxH="320px"
-                    overflowY="auto"
-                    overflowX="hidden"
-                    pr={1}
-                  >
-                    <SimpleGrid columns={2} gap={2}>
-                      {activeFactionList.map((faction) => {
-                        const isChecked =
-                          formData.bannedFactions.includes(faction);
-                        return (
-                          <Flex
-                            key={faction}
-                            data-scope="faction-checkbox"
-                            data-state={isChecked ? "checked" : undefined}
-                            align="center"
-                            gap={2}
-                            p={2}
-                            borderRadius="md"
-                            borderWidth="1px"
-                            borderColor={
-                              isChecked ? "brand.border" : "border.subtle"
-                            }
-                            cursor="pointer"
-                            minW={0}
-                            bg={isChecked ? "brand.subtle" : "bg.subtle"}
-                            _hover={{
-                              bg: isChecked ? "brand.subtle" : "bg.emphasized",
-                              borderColor: isChecked
-                                ? "brand.border"
-                                : "border.emphasized",
-                            }}
-                            transition="all 0.15s"
-                            onClick={() => handleFactionClick(faction)}
-                          >
-                            <input
-                              type="checkbox"
-                              value={faction}
-                              checked={isChecked}
-                              onChange={() => {}}
-                              width={16}
-                              height={16}
-                            />
-                            <Text
-                              fontSize="sm"
-                              userSelect="none"
-                              minW={0}
-                              wordBreak="break-word"
-                            >
-                              {faction}
-                            </Text>
-                          </Flex>
-                        );
-                      })}
-                    </SimpleGrid>
-                  </Box>
-                  <Text color="fg.muted" fontSize="sm">
-                    Hold Shift to select multiple factions!
-                  </Text>
-                </VStack>
+                <BannedFactionPicker
+                  factions={activeFactionList}
+                  banned={formData.bannedFactions}
+                  visible={factionListVisible}
+                  onChange={(bannedFactions) =>
+                    setFormData((prev) => ({ ...prev, bannedFactions }))
+                  }
+                />
 
                 <Flex direction="column" gap={3} flex={1} minW={0}>
-                  {(() => {
-                    const n = formData.playerCount;
-                    const type = formData.tournamentType;
-                    const warnings: string[] = [];
-                    const infos: string[] = [];
+                  <VStack gap={2} alignItems="stretch" flex={1}>
+                    {guidance.warnings.map((warning) => (
+                      <GuidanceNote key={warning} tone="warning">
+                        {warning}
+                      </GuidanceNote>
+                    ))}
+                    {guidance.infos.map((info) => (
+                      <GuidanceNote key={info} tone="info">
+                        {info}
+                      </GuidanceNote>
+                    ))}
 
-                    if (type === "Single Elimination") {
-                      if (n < 2) warnings.push("Need at least 2 players.");
-                      const isPowerOf2 = n > 0 && (n & (n - 1)) === 0;
-                      if (!isPowerOf2)
-                        warnings.push(
-                          `${n} players is not a power of 2 - ${n - Math.pow(2, Math.floor(Math.log2(n)))} player(s) will receive a bye in round 1.`,
-                        );
-                    }
-                    if (type === "Double Elimination") {
-                      if (n < 4)
-                        warnings.push(
-                          "Double Elimination requires at least 4 players.",
-                        );
-                      const isPowerOf2 = n > 0 && (n & (n - 1)) === 0;
-                      if (!isPowerOf2)
-                        infos.push(
-                          `${n} players is not a power of 2 - some round 1 matches will have byes.`,
-                        );
-                    }
-                    if (type === "Swiss System") {
-                      if (n % 2 !== 0)
-                        warnings.push(
-                          `Odd number of players (${n}) - one player will receive a bye each round.`,
-                        );
-                      const rounds = Math.ceil(Math.log2(Math.max(n, 2)));
-                      infos.push(
-                        `Will run ${rounds} round${rounds !== 1 ? "s" : ""} (⌈log₂(${n})⌉).`,
-                      );
-                    }
-                    if (type === "Round Robin") {
-                      if (n < 3)
-                        warnings.push(
-                          "Round Robin works best with 3 or more players.",
-                        );
-                      const rounds = n % 2 === 0 ? n - 1 : n;
-                      const matchesPerRound = Math.floor(n / 2);
-                      infos.push(
-                        `${rounds} round${rounds !== 1 ? "s" : ""}, ${matchesPerRound} match${matchesPerRound !== 1 ? "es" : ""}/round - ${n % 2 !== 0 ? "1 bye per round" : "no byes"}.`,
-                      );
-                      if (n > 16)
-                        warnings.push(
-                          `${n} players means ${rounds * matchesPerRound} total matches - consider Swiss instead.`,
-                        );
-                    }
-
-                    return (
-                      <VStack gap={2} alignItems="stretch" flex={1}>
-                        {warnings.map((w, i) => (
-                          <Box
-                            key={i}
-                            p={3}
-                            borderRadius="md"
-                            bg="status.loss.subtle"
-                            borderWidth={1}
-                            borderColor="status.loss.border"
+                    <Box mt="auto">
+                      <HStack
+                        gap={2}
+                        mb={2}
+                        p={2}
+                        borderRadius="md"
+                        borderWidth={1}
+                        borderColor="border"
+                        bg="bg.subtle"
+                        alignItems="center"
+                      >
+                        <HStack gap={1} flex={1} alignItems="center">
+                          <Text
+                            fontSize="xs"
+                            color="fg.muted"
+                            fontWeight="medium"
                           >
-                            <HStack gap={2} alignItems="flex-start">
-                              <Box color="status.loss" flexShrink={0} mt="1px">
-                                <LuTriangleAlert size={14} />
-                              </Box>
-                              <Text fontSize="xs" color="status.loss">
-                                {w}
-                              </Text>
-                            </HStack>
-                          </Box>
-                        ))}
-                        {infos.map((info, i) => (
-                          <Box
-                            key={i}
-                            p={3}
-                            borderRadius="md"
-                            bg="bg.subtle"
-                            borderWidth={1}
-                            borderColor="border"
-                          >
-                            <HStack gap={2} alignItems="flex-start">
-                              <Box color="fg.secondary" flexShrink={0} mt="1px">
-                                <LuInfo size={14} />
-                              </Box>
-                              <Text fontSize="xs" color="fg.secondary">
-                                {info}
-                              </Text>
-                            </HStack>
-                          </Box>
-                        ))}
-
-                        <Box mt="auto">
-                          <HStack
-                            gap={2}
-                            mb={2}
-                            p={2}
-                            borderRadius="md"
-                            borderWidth={1}
-                            borderColor="border"
-                            bg="bg.subtle"
-                            alignItems="center"
-                          >
-                            <HStack gap={1} flex={1} alignItems="center">
-                              <Text
-                                fontSize="xs"
-                                color="fg.muted"
-                                fontWeight="medium"
-                              >
-                                Factions
-                              </Text>
-                            </HStack>
-                            <HStack gap={1}>
-                              <chakra.button
-                                type="button"
-                                py={1.5}
-                                px={4}
-                                borderRadius="sm"
-                                borderWidth={1}
-                                fontSize="sm"
-                                fontWeight="medium"
-                                cursor="pointer"
-                                transition="all 0.15s"
-                                onClick={() =>
-                                  formData.enable40kFactions &&
-                                  handleToggle40k()
-                                }
-                                bg={
-                                  !formData.enable40kFactions
-                                    ? "colorPalette.subtle"
-                                    : "transparent"
-                                }
-                                borderColor={
-                                  !formData.enable40kFactions
-                                    ? "colorPalette.muted"
-                                    : "border"
-                                }
-                                color={
-                                  !formData.enable40kFactions
-                                    ? "fg"
-                                    : "fg.muted"
-                                }
-                                colorPalette="ink"
-                              >
-                                WH3
-                              </chakra.button>
-                              <chakra.button
-                                type="button"
-                                py={1.5}
-                                px={4}
-                                borderRadius="sm"
-                                borderWidth={1}
-                                fontSize="sm"
-                                fontWeight="medium"
-                                cursor="pointer"
-                                transition="all 0.15s"
-                                onClick={() =>
-                                  !formData.enable40kFactions &&
-                                  handleToggle40k()
-                                }
-                                bg={
-                                  formData.enable40kFactions
-                                    ? "colorPalette.subtle"
-                                    : "transparent"
-                                }
-                                borderColor={
-                                  formData.enable40kFactions
-                                    ? "colorPalette.muted"
-                                    : "border"
-                                }
-                                color={
-                                  formData.enable40kFactions ? "fg" : "fg.muted"
-                                }
-                                colorPalette="verdigris"
-                              >
-                                40K
-                              </chakra.button>
-                            </HStack>
-                          </HStack>
-                          {isGuest && (
-                            <Box
-                              p={3}
-                              borderRadius="md"
-                              bg="gold.subtle"
-                              borderWidth={1}
-                              borderColor="gold.border"
-                              mb={3}
-                            >
-                              <HStack gap={2} alignItems="flex-start">
-                                <Box color="gold.text" flexShrink={0} mt="1px">
-                                  <LuLock size={14} />
-                                </Box>
-                                <VStack gap={1} alignItems="flex-start">
-                                  <Text
-                                    fontSize="sm"
-                                    fontWeight="semibold"
-                                    color="gold.text"
-                                  >
-                                    Registration Required
-                                  </Text>
-                                  <Text fontSize="sm" color="gold.text">
-                                    Only registered users can create
-                                    tournaments. Guest users can join and
-                                    participate.
-                                  </Text>
-                                </VStack>
-                              </HStack>
+                            Factions
+                          </Text>
+                        </HStack>
+                        <GameSystemToggle
+                          value={formData.enable40kFactions ? "40k" : "wh3"}
+                          onChange={handleGameChange}
+                        />
+                      </HStack>
+                      {isGuest && (
+                        <Box
+                          p={3}
+                          borderRadius="md"
+                          bg="gold.subtle"
+                          borderWidth={1}
+                          borderColor="gold.border"
+                          mb={3}
+                        >
+                          <HStack gap={2} alignItems="flex-start">
+                            <Box color="gold.text" flexShrink={0} mt="1px">
+                              <LuLock size={14} />
                             </Box>
-                          )}
-                          <Box
-                            p={3}
-                            borderRadius="md"
-                            bg="bg.subtle"
-                            borderWidth={1}
-                            borderColor="border"
-                          >
-                            <VStack gap={2} alignItems="flex-start">
+                            <VStack gap={1} alignItems="flex-start">
                               <Text
-                                fontSize="xs"
+                                fontSize="sm"
                                 fontWeight="semibold"
-                                color="fg.muted"
-                                textTransform="uppercase"
-                                letterSpacing="wider"
+                                color="gold.text"
                               >
-                                Next Steps
+                                Registration Required
                               </Text>
-                              <VStack gap={1} alignItems="flex-start">
-                                <HStack gap={2} alignItems="flex-start">
-                                  <Text fontSize="sm" color="fg.muted">
-                                    1.
-                                  </Text>
-                                  <Text fontSize="sm" color="fg.muted">
-                                    Create the tournament, then go to the{" "}
-                                    <Text
-                                      as="span"
-                                      fontWeight="semibold"
-                                      color="fg"
-                                    >
-                                      Matches
-                                    </Text>{" "}
-                                    page to manage it.
-                                  </Text>
-                                </HStack>
-                                <HStack gap={2} alignItems="flex-start">
-                                  <Text fontSize="sm" color="fg.muted">
-                                    2.
-                                  </Text>
-                                  <Text fontSize="sm" color="fg.muted">
-                                    Add participants manually, or share the{" "}
-                                    <Text
-                                      as="span"
-                                      fontWeight="semibold"
-                                      color="fg"
-                                    >
-                                      join code
-                                    </Text>{" "}
-                                    so players can join themselves.
-                                  </Text>
-                                </HStack>
-                                <HStack gap={2} alignItems="flex-start">
-                                  <Text fontSize="sm" color="fg.muted">
-                                    3.
-                                  </Text>
-                                  <Text fontSize="sm" color="fg.muted">
-                                    Once everyone is in, hit{" "}
-                                    <Text
-                                      as="span"
-                                      fontWeight="semibold"
-                                      color="fg"
-                                    >
-                                      Start Tournament
-                                    </Text>{" "}
-                                    to generate round 1 matches.
-                                  </Text>
-                                </HStack>
-                                <HStack gap={2} alignItems="flex-start">
-                                  <Text fontSize="sm" color="fg.muted">
-                                    4.
-                                  </Text>
-                                  <Text fontSize="sm" color="fg.muted">
-                                    After all matches in a round are complete,
-                                    use{" "}
-                                    <Text
-                                      as="span"
-                                      fontWeight="semibold"
-                                      color="fg"
-                                    >
-                                      Advance Round
-                                    </Text>{" "}
-                                    to progress.
-                                  </Text>
-                                </HStack>
-                              </VStack>
+                              <Text fontSize="sm" color="gold.text">
+                                Only registered users can create tournaments.
+                                Guest users can join and participate.
+                              </Text>
                             </VStack>
-                          </Box>
+                          </HStack>
                         </Box>
-                      </VStack>
-                    );
-                  })()}
+                      )}
+                      <NextStepsPanel />
+                    </Box>
+                  </VStack>
                 </Flex>
               </SimpleGrid>
             </Field.Root>

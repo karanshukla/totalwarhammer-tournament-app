@@ -12,12 +12,7 @@ import {
   Separator,
   For,
 } from "@chakra-ui/react";
-import {
-  LuLogIn,
-  LuEye,
-  LuTrophy,
-  LuSwords,
-} from "react-icons/lu";
+import { LuLogIn, LuEye, LuTrophy, LuSwords } from "react-icons/lu";
 import { useNavigate } from "react-router";
 import { httpClient } from "@/core/api/httpClient";
 import { useUserStore } from "@/shared/stores/userStore";
@@ -63,10 +58,7 @@ interface Tournament {
 
 interface Props {
   statusFilter:
-    | "pending"
-    | "active"
-    | "completed"
-    | ("pending" | "active" | "completed")[];
+    "pending" | "active" | "completed" | ("pending" | "active" | "completed")[];
   emptyMessage: string;
 }
 
@@ -267,7 +259,13 @@ const TournamentBrowser: React.FC<Props> = ({ statusFilter, emptyMessage }) => {
                         width="full"
                         colorPalette="crimson"
                         size="sm"
-                        onClick={() => navigate(t.code ? `/matches/spectate/${t.code}` : `/tournament/${t._id}`)}
+                        onClick={() =>
+                          navigate(
+                            t.code
+                              ? `/matches/spectate/${t.code}`
+                              : `/tournament/${t._id}`,
+                          )
+                        }
                       >
                         <LuLogIn />
                         Join Tournament
@@ -294,7 +292,13 @@ const TournamentBrowser: React.FC<Props> = ({ statusFilter, emptyMessage }) => {
                         variant="outline"
                         size="sm"
                         colorPalette="verdigris"
-                        onClick={() => navigate(t.code ? `/matches/tournament/${t.code}` : `/matches#${t._id}`)}
+                        onClick={() =>
+                          navigate(
+                            t.code
+                              ? `/matches/tournament/${t.code}`
+                              : `/matches#${t._id}`,
+                          )
+                        }
                       >
                         <LuSwords />
                         My Matches

@@ -41,7 +41,12 @@ const mockUseUserStore = vi.mocked(
 
 function makeUser(overrides = {}) {
   return {
-    user: { id: "u1", username: "testuser", isAuthenticated: true, isGuest: false },
+    user: {
+      id: "u1",
+      username: "testuser",
+      isAuthenticated: true,
+      isGuest: false,
+    },
     isAuthenticated: vi.fn().mockReturnValue(true),
     ...overrides,
   };
@@ -56,14 +61,21 @@ function makeTournament(overrides: Record<string, unknown> = {}) {
     tournamentType: "Single Elimination",
     bannedFactions: [],
     enable40kFactions: false,
-    participants: [] as { _id: string; name: string; faction: string; userId?: string }[],
+    participants: [] as {
+      _id: string;
+      name: string;
+      faction: string;
+      userId?: string;
+    }[],
     status: "pending",
     createdAt: new Date().toISOString(),
     ...overrides,
   };
 }
 
-function renderBrowser(props: { statusFilter?: string; emptyMessage?: string } = {}) {
+function renderBrowser(
+  props: { statusFilter?: string; emptyMessage?: string } = {},
+) {
   return render(
     <ChakraProvider value={defaultSystem}>
       <MemoryRouter>
@@ -79,7 +91,9 @@ function renderBrowser(props: { statusFilter?: string; emptyMessage?: string } =
 describe("TournamentBrowser – branch coverage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    (mockUseUserStore as unknown as ReturnType<typeof vi.fn>).mockReturnValue(makeUser());
+    (mockUseUserStore as unknown as ReturnType<typeof vi.fn>).mockReturnValue(
+      makeUser(),
+    );
   });
 
   it("shows 'Participated' badge when user joined a completed tournament", async () => {
@@ -107,7 +121,11 @@ describe("TournamentBrowser – branch coverage", () => {
     // This covers line 113: if (p.userId) return p.userId === uid;
     (mockUseUserStore as unknown as ReturnType<typeof vi.fn>).mockReturnValue(
       makeUser({
-        user: { id: "user-uid-123", username: "testuser", isAuthenticated: true },
+        user: {
+          id: "user-uid-123",
+          username: "testuser",
+          isAuthenticated: true,
+        },
       }),
     );
     mockGet.mockResolvedValue({
@@ -116,7 +134,12 @@ describe("TournamentBrowser – branch coverage", () => {
         makeTournament({
           status: "pending",
           participants: [
-            { _id: "p1", name: "some-name", faction: "Empire", userId: "user-uid-123" },
+            {
+              _id: "p1",
+              name: "some-name",
+              faction: "Empire",
+              userId: "user-uid-123",
+            },
           ],
         }),
       ],
@@ -134,11 +157,17 @@ describe("TournamentBrowser – branch coverage", () => {
       success: true,
       data: [
         // No code → fallback navigate to /tournament/:id
-        makeTournament({ _id: "tourney1", status: "pending", participants: [] }),
+        makeTournament({
+          _id: "tourney1",
+          status: "pending",
+          participants: [],
+        }),
       ],
     });
     renderBrowser({ statusFilter: "pending" });
-    await waitFor(() => screen.getByRole("button", { name: /join tournament/i }));
+    await waitFor(() =>
+      screen.getByRole("button", { name: /join tournament/i }),
+    );
     await user.click(screen.getByRole("button", { name: /join tournament/i }));
     expect(mockNavigate).toHaveBeenCalledWith("/tournament/tourney1");
   });

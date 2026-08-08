@@ -32,7 +32,10 @@ describe("env.js – development branch", () => {
 
   it("exports baseUrl with localhost default", () => {
     assert.ok(typeof envModule.baseUrl === "string");
-    assert.ok(envModule.baseUrl.includes("localhost") || envModule.baseUrl.startsWith("http"));
+    assert.ok(
+      envModule.baseUrl.includes("localhost") ||
+        envModule.baseUrl.startsWith("http"),
+    );
   });
 
   it("exports clientUrl", () => {

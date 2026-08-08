@@ -47,44 +47,124 @@ export const factionRegistry: FactionEntry[] = [
   { name: "Adeptus Astartes", game: "40k", isBeta: true, category: "primary" },
   { name: "Aeldari", game: "40k", isBeta: true, category: "primary" },
   { name: "Orks", game: "40k", isBeta: true, category: "primary" },
-  { name: "Adeptus Mechanicus", game: "40k", isBeta: true, category: "primary" },
+  {
+    name: "Adeptus Mechanicus",
+    game: "40k",
+    isBeta: true,
+    category: "primary",
+  },
   { name: "Necrons", game: "40k", isBeta: true, category: "primary" },
   { name: "Astra Militarum", game: "40k", isBeta: true, category: "primary" },
 
   // Warhammer 40,000 — Unification / DoW modded factions (beta)
   // Vanilla DoW factions not covered above
-  { name: "Heretic Astartes", game: "40k", isBeta: true, category: "unification" },
+  {
+    name: "Heretic Astartes",
+    game: "40k",
+    isBeta: true,
+    category: "unification",
+  },
   { name: "Harlequins", game: "40k", isBeta: true, category: "unification" },
   { name: "Ynnari", game: "40k", isBeta: true, category: "unification" },
   { name: "T'au Empire", game: "40k", isBeta: true, category: "unification" },
-  { name: "Farsight Enclaves", game: "40k", isBeta: true, category: "unification" },
+  {
+    name: "Farsight Enclaves",
+    game: "40k",
+    isBeta: true,
+    category: "unification",
+  },
   { name: "Drukhari", game: "40k", isBeta: true, category: "unification" },
-  { name: "Adepta Sororitas", game: "40k", isBeta: true, category: "unification" },
+  {
+    name: "Adepta Sororitas",
+    game: "40k",
+    isBeta: true,
+    category: "unification",
+  },
   { name: "Tyranids", game: "40k", isBeta: true, category: "unification" },
   // Adeptus Astartes sub-factions
-  { name: "13th Company (Space Wolves)", game: "40k", isBeta: true, category: "unification" },
-  { name: "Black Templars", game: "40k", isBeta: true, category: "unification" },
+  {
+    name: "13th Company (Space Wolves)",
+    game: "40k",
+    isBeta: true,
+    category: "unification",
+  },
+  {
+    name: "Black Templars",
+    game: "40k",
+    isBeta: true,
+    category: "unification",
+  },
   { name: "Blood Angels", game: "40k", isBeta: true, category: "unification" },
   { name: "Dark Angels", game: "40k", isBeta: true, category: "unification" },
-  { name: "Daemon Hunters (Grey Knights)", game: "40k", isBeta: true, category: "unification" },
-  { name: "Imperial Fists", game: "40k", isBeta: true, category: "unification" },
-  { name: "Legion of the Damned", game: "40k", isBeta: true, category: "unification" },
+  {
+    name: "Daemon Hunters (Grey Knights)",
+    game: "40k",
+    isBeta: true,
+    category: "unification",
+  },
+  {
+    name: "Imperial Fists",
+    game: "40k",
+    isBeta: true,
+    category: "unification",
+  },
+  {
+    name: "Legion of the Damned",
+    game: "40k",
+    isBeta: true,
+    category: "unification",
+  },
   { name: "Raven Guard", game: "40k", isBeta: true, category: "unification" },
   { name: "Salamanders", game: "40k", isBeta: true, category: "unification" },
   // Imperium
-  { name: "Adeptus Custodes", game: "40k", isBeta: true, category: "unification" },
-  { name: "Death Korps of Krieg", game: "40k", isBeta: true, category: "unification" },
-  { name: "Praetorian Guard", game: "40k", isBeta: true, category: "unification" },
+  {
+    name: "Adeptus Custodes",
+    game: "40k",
+    isBeta: true,
+    category: "unification",
+  },
+  {
+    name: "Death Korps of Krieg",
+    game: "40k",
+    isBeta: true,
+    category: "unification",
+  },
+  {
+    name: "Praetorian Guard",
+    game: "40k",
+    isBeta: true,
+    category: "unification",
+  },
   { name: "Steel Legion", game: "40k", isBeta: true, category: "unification" },
-  { name: "Vostroyan Firstborn", game: "40k", isBeta: true, category: "unification" },
-  { name: "Witch Hunters (Ordo Hereticus)", game: "40k", isBeta: true, category: "unification" },
+  {
+    name: "Vostroyan Firstborn",
+    game: "40k",
+    isBeta: true,
+    category: "unification",
+  },
+  {
+    name: "Witch Hunters (Ordo Hereticus)",
+    game: "40k",
+    isBeta: true,
+    category: "unification",
+  },
   // Chaos
   { name: "Chaos Daemons", game: "40k", isBeta: true, category: "unification" },
   { name: "Death Guard", game: "40k", isBeta: true, category: "unification" },
-  { name: "Emperor's Children", game: "40k", isBeta: true, category: "unification" },
+  {
+    name: "Emperor's Children",
+    game: "40k",
+    isBeta: true,
+    category: "unification",
+  },
   { name: "Fallen Angels", game: "40k", isBeta: true, category: "unification" },
   { name: "Night Lords", game: "40k", isBeta: true, category: "unification" },
-  { name: "Renegade Guard", game: "40k", isBeta: true, category: "unification" },
+  {
+    name: "Renegade Guard",
+    game: "40k",
+    isBeta: true,
+    category: "unification",
+  },
   { name: "Thousand Sons", game: "40k", isBeta: true, category: "unification" },
   { name: "World Eaters", game: "40k", isBeta: true, category: "unification" },
 ];
@@ -115,4 +195,33 @@ export function getFactionsForGame(game: FactionGame): string[] {
 
 export function isBetaFactionName(name: string): boolean {
   return factionRegistry.some((f) => f.name === name && f.isBeta === true);
+}
+
+/** The game system a tournament is played under. */
+export interface GameScoped {
+  enable40kFactions?: boolean;
+  bannedFactions?: string[];
+}
+
+export const gameSystemOf = (tournament: GameScoped | null | undefined) =>
+  tournament?.enable40kFactions ? "40k" : ("wh3" as FactionGame);
+
+/** Every faction of the tournament's game system, banned entries included. */
+export const factionsForGameSystem = (
+  tournament: GameScoped | null | undefined,
+) =>
+  gameSystemOf(tournament) === "40k"
+    ? warhammer40kFactions
+    : warhammer3Factions;
+
+/**
+ * What a player may actually pick in this tournament: the game system's
+ * roster minus the organiser's bans. Every faction picker should use this so
+ * a banned faction can't be chosen from one screen but not another.
+ */
+export function selectableFactions(
+  tournament: GameScoped | null | undefined,
+): string[] {
+  const banned = new Set(tournament?.bannedFactions ?? []);
+  return factionsForGameSystem(tournament).filter((f) => !banned.has(f));
 }

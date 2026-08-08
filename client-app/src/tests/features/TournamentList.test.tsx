@@ -79,12 +79,8 @@ describe("TournamentList filter buttons", () => {
     const statusCounts = { all: 1, pending: 0, active: 1, completed: 0 };
     renderList({ tournaments, statusCounts });
     // Status buttons are the count-bearing "All<n>" / "Active<n>" ones.
-    expect(
-      screen.getByRole("button", { name: /^All\d/i }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: /active/i }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /^All\d/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /active/i })).toBeInTheDocument();
   });
 
   it("keeps filter buttons visible when the active filter returns zero results", () => {
@@ -106,9 +102,7 @@ describe("TournamentList filter buttons", () => {
     // The status "All" filter button (count-bearing) should be present; the
     // empty-state "Show all" button is separate, and the game "All Games"
     // button (no count) is a third "all" control.
-    expect(
-      screen.getByRole("button", { name: /^All\d/i }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /^All\d/i })).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: /show all/i }),
     ).toBeInTheDocument();

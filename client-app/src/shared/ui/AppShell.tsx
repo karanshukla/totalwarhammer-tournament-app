@@ -64,23 +64,35 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
           />
         )}
 
-        <Flex align="center" gap={2} flex="1" justify={isPortrait ? "flex-start" : "center"}>
+        <Flex
+          align="center"
+          gap={2}
+          flex="1"
+          justify={isPortrait ? "flex-start" : "center"}
+        >
           <Box flexShrink={0} _light={{ display: "none" }}>
-            <img src="/logo.svg" alt="" height="32" width="32" aria-hidden="true" />
+            <img
+              src="/logo.svg"
+              alt=""
+              height="32"
+              width="32"
+              aria-hidden="true"
+            />
           </Box>
           <Box flexShrink={0} _dark={{ display: "none" }}>
-            <img src="/logo-light.svg" alt="" height="32" width="32" aria-hidden="true" />
+            <img
+              src="/logo-light.svg"
+              alt=""
+              height="32"
+              width="32"
+              aria-hidden="true"
+            />
           </Box>
-          <Text
-            fontWeight="medium"
-            color="gold.text"
-          >
+          <Text fontWeight="medium" color="gold.text">
             {isPortrait ? "TW Tournament" : "Total Warhammer Tournament App"}
           </Text>
           {isUserGuest && !isPortrait && (
-            <Badge colorPalette="ink">
-              Guest Mode
-            </Badge>
+            <Badge colorPalette="ink">Guest Mode</Badge>
           )}
         </Flex>
 

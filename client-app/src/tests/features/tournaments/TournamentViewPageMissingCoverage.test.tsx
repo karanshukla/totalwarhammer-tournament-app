@@ -387,7 +387,9 @@ describe("TournamentViewPage – onMatchUpdated with multiple matches in the lis
       onCall?.[1]?.({ ...match1, winnerId: "p1", status: "completed" }),
     );
 
-    await waitFor(() => expect(screen.getByText("Match 1")).toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.getByText("Match 1")).toBeInTheDocument(),
+    );
     expect(screen.getByText("Match 2")).toBeInTheDocument();
   });
 });
@@ -760,6 +762,8 @@ describe("TournamentViewPage – matches where player2 wins", () => {
 
     await waitFor(() => expect(screen.getByText("W")).toBeInTheDocument());
     expect(screen.getByText("L")).toBeInTheDocument();
-    expect(screen.getByText("Luthor", { selector: "span" })).toBeInTheDocument();
+    expect(
+      screen.getByText("Luthor", { selector: "span" }),
+    ).toBeInTheDocument();
   });
 });

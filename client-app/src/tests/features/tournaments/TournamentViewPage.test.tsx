@@ -71,7 +71,12 @@ function makeTournament(overrides: Record<string, unknown> = {}) {
     tournamentType: "Single Elimination",
     bannedFactions: [],
     enable40kFactions: false,
-    participants: [] as { _id: string; userId?: string | null; name: string; faction: string }[],
+    participants: [] as {
+      _id: string;
+      userId?: string | null;
+      name: string;
+      faction: string;
+    }[],
     status: "pending" as "pending" | "active" | "completed",
     createdAt: new Date().toISOString(),
     createdBy: "owner1",
@@ -139,9 +144,7 @@ describe("TournamentViewPage – owner badge", () => {
       data: makeTournament({ createdBy: "owner1" }),
     });
     renderPage();
-    await waitFor(() =>
-      expect(screen.getByText("Owner")).toBeInTheDocument(),
-    );
+    await waitFor(() => expect(screen.getByText("Owner")).toBeInTheDocument());
   });
 
   it("shows 'Manage Tournament' button for owner", async () => {
@@ -169,7 +172,9 @@ describe("TournamentViewPage – participant badge", () => {
     mockGet.mockResolvedValueOnce({
       success: true,
       data: makeTournament({
-        participants: [{ _id: "p1", name: "Grimgork", faction: "", userId: "u2" }],
+        participants: [
+          { _id: "p1", name: "Grimgork", faction: "", userId: "u2" },
+        ],
       }),
     });
     renderPage();
@@ -210,7 +215,9 @@ describe("TournamentViewPage – pending join panel branches", () => {
       success: true,
       data: makeTournament({
         status: "pending",
-        participants: [{ _id: "p1", name: "Grimgork", faction: "", userId: "u2" }],
+        participants: [
+          { _id: "p1", name: "Grimgork", faction: "", userId: "u2" },
+        ],
       }),
     });
     renderPage();
@@ -226,14 +233,14 @@ describe("TournamentViewPage – pending join panel branches", () => {
       data: makeTournament({
         status: "pending",
         playerCount: 1,
-        participants: [{ _id: "p1", name: "Other", faction: "", userId: "other" }],
+        participants: [
+          { _id: "p1", name: "Other", faction: "", userId: "other" },
+        ],
       }),
     });
     renderPage();
     await waitFor(() =>
-      expect(
-        screen.getByText(/this tournament is full/i),
-      ).toBeInTheDocument(),
+      expect(screen.getByText(/this tournament is full/i)).toBeInTheDocument(),
     );
   });
 
@@ -305,7 +312,11 @@ describe("TournamentViewPage – champion banner", () => {
             _id: "m1",
             round: 1,
             matchNumber: 1,
-            player1: { participantId: "p1", name: "Grimgork", faction: "Greenskins" },
+            player1: {
+              participantId: "p1",
+              name: "Grimgork",
+              faction: "Greenskins",
+            },
             player2: { participantId: "p2", name: "Luthor", faction: "Empire" },
             winnerId: "p1",
             status: "completed",
@@ -334,8 +345,6 @@ describe("TournamentViewPage – enable40kFactions badge", () => {
       data: makeTournament({ enable40kFactions: true }),
     });
     renderPage();
-    await waitFor(() =>
-      expect(screen.getByText("40K")).toBeInTheDocument(),
-    );
+    await waitFor(() => expect(screen.getByText("40K")).toBeInTheDocument());
   });
 });

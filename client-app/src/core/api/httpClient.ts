@@ -191,7 +191,8 @@ class HttpClient {
         }
         // Non-CSRF 403 — body already consumed, throw with the message we read.
         throw new Error(
-          errorData.message || `Error ${response.status}: ${response.statusText}`,
+          errorData.message ||
+            `Error ${response.status}: ${response.statusText}`,
         );
       }
     }
@@ -265,7 +266,8 @@ class HttpClient {
           );
         }
         throw new Error(
-          errorData.message || `Error ${response.status}: ${response.statusText}`,
+          errorData.message ||
+            `Error ${response.status}: ${response.statusText}`,
         );
       }
     }
@@ -339,7 +341,8 @@ class HttpClient {
           );
         }
         throw new Error(
-          errorData.message || `Error ${response.status}: ${response.statusText}`,
+          errorData.message ||
+            `Error ${response.status}: ${response.statusText}`,
         );
       }
     }
@@ -407,7 +410,8 @@ class HttpClient {
           );
         }
         throw new Error(
-          errorData.message || `Error ${response.status}: ${response.statusText}`,
+          errorData.message ||
+            `Error ${response.status}: ${response.statusText}`,
         );
       }
     }

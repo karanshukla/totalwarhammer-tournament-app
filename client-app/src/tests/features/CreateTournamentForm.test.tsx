@@ -117,7 +117,9 @@ describe("CreateTournamentForm", () => {
     renderForm();
     const trigger = screen.getByRole("combobox");
     await userEvent.click(trigger);
-    await userEvent.click(await screen.findByRole("option", { name: "Round Robin" }));
+    await userEvent.click(
+      await screen.findByRole("option", { name: "Round Robin" }),
+    );
     expect(trigger).toHaveTextContent("Round Robin");
   });
 

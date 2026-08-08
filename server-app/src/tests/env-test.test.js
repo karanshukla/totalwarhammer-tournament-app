@@ -16,7 +16,10 @@ describe("env.js – test branch", () => {
 
   it("exports mongoUri from test config", () => {
     assert.ok(typeof envModule.mongoUri === "string");
-    assert.ok(envModule.mongoUri.includes("test_db") || envModule.mongoUri.includes("localhost"));
+    assert.ok(
+      envModule.mongoUri.includes("test_db") ||
+        envModule.mongoUri.includes("localhost"),
+    );
   });
 
   it("exports jwtSecret from test config", () => {

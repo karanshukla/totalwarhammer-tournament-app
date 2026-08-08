@@ -62,7 +62,10 @@ const baseStats = {
 // Build a stats payload with a partial patch applied to the wh3 game (the
 // default tab), keeping the 40k game empty. Accepts an optional top-level
 // override (e.g. cachedAt).
-const withWh3 = (wh3Patch: Record<string, unknown>, top?: Record<string, unknown>) => ({
+const withWh3 = (
+  wh3Patch: Record<string, unknown>,
+  top?: Record<string, unknown>,
+) => ({
   ...baseStats,
   ...top,
   wh3: { ...emptyGameStats, ...wh3Patch },
@@ -213,7 +216,9 @@ describe("StatisticsPage – topPlayers with factions", () => {
   it("hides faction subtext when player factions array is empty", async () => {
     mockGet.mockResolvedValueOnce({
       success: true,
-      data: withWh3({ topPlayers: [{ name: "Luthor", wins: 2, factions: [] }] }),
+      data: withWh3({
+        topPlayers: [{ name: "Luthor", wins: 2, factions: [] }],
+      }),
     });
     renderPage();
     await waitFor(() => expect(screen.getByText("Luthor")).toBeInTheDocument());
@@ -383,15 +388,19 @@ describe("StatisticsPage – game-system toggle", () => {
       success: true,
       data: {
         cachedAt: undefined,
-        wh3: { ...emptyGameStats, topFactions: [{ faction: "Empire", wins: 4 }] },
-        "40k": { ...emptyGameStats, topFactions: [{ faction: "Necrons", wins: 7 }] },
+        wh3: {
+          ...emptyGameStats,
+          topFactions: [{ faction: "Empire", wins: 4 }],
+        },
+        "40k": {
+          ...emptyGameStats,
+          topFactions: [{ faction: "Necrons", wins: 7 }],
+        },
       },
     });
     renderPage();
     // WH3 is the default tab — Empire shows first.
-    await waitFor(() =>
-      expect(screen.getByText("Empire")).toBeInTheDocument(),
-    );
+    await waitFor(() => expect(screen.getByText("Empire")).toBeInTheDocument());
     expect(screen.queryByText("Necrons")).not.toBeInTheDocument();
 
     // Switch to 40K.
@@ -408,22 +417,22 @@ describe("StatisticsPage – game-system toggle", () => {
       success: true,
       data: {
         cachedAt: undefined,
-        wh3: { ...emptyGameStats, topFactions: [{ faction: "Skaven", wins: 2 }] },
-        "40k": { ...emptyGameStats, topFactions: [{ faction: "Orks", wins: 9 }] },
+        wh3: {
+          ...emptyGameStats,
+          topFactions: [{ faction: "Skaven", wins: 2 }],
+        },
+        "40k": {
+          ...emptyGameStats,
+          topFactions: [{ faction: "Orks", wins: 9 }],
+        },
       },
     });
     renderPage();
-    await waitFor(() =>
-      expect(screen.getByText("Skaven")).toBeInTheDocument(),
-    );
+    await waitFor(() => expect(screen.getByText("Skaven")).toBeInTheDocument());
     await user.click(screen.getByRole("button", { name: "40K" }));
-    await waitFor(() =>
-      expect(screen.getByText("Orks")).toBeInTheDocument(),
-    );
+    await waitFor(() => expect(screen.getByText("Orks")).toBeInTheDocument());
     // Back to WH3.
     await user.click(screen.getByRole("button", { name: "WH3" }));
-    await waitFor(() =>
-      expect(screen.getByText("Skaven")).toBeInTheDocument(),
-    );
+    await waitFor(() => expect(screen.getByText("Skaven")).toBeInTheDocument());
   });
 });

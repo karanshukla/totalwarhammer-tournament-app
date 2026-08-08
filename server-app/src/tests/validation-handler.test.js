@@ -12,9 +12,8 @@ mock.module("express-validator", {
   },
 });
 
-const { validationHandler } = await import(
-  "../interfaces/http/middleware/validation/validation-handler.js"
-);
+const { validationHandler } =
+  await import("../interfaces/http/middleware/validation/validation-handler.js");
 
 function mockRes() {
   const res = {};

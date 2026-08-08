@@ -217,6 +217,38 @@ describe("validateCreateTournament", () => {
       });
       assert.ok(result.array().some((e) => e.path === "bannedFactions"));
     });
+
+    it("should pass with 40k factions when 40k is enabled", async () => {
+      const result = await runValidation({
+        name: "Valid Name",
+        playerCount: 8,
+        tournamentType: "Single Elimination",
+        enable40kFactions: true,
+        bannedFactions: ["Necrons", "Orks"],
+      });
+      assert.strictEqual(result.isEmpty(), true);
+    });
+
+    it("should fail when banning wh3 factions in a 40k tournament", async () => {
+      const result = await runValidation({
+        name: "Valid Name",
+        playerCount: 8,
+        tournamentType: "Single Elimination",
+        enable40kFactions: true,
+        bannedFactions: ["Skaven"],
+      });
+      assert.ok(result.array().some((e) => e.path === "bannedFactions"));
+    });
+
+    it("should fail when banning 40k factions in a wh3 tournament", async () => {
+      const result = await runValidation({
+        name: "Valid Name",
+        playerCount: 8,
+        tournamentType: "Single Elimination",
+        bannedFactions: ["Necrons"],
+      });
+      assert.ok(result.array().some((e) => e.path === "bannedFactions"));
+    });
   });
 
   describe("full valid payload", () => {

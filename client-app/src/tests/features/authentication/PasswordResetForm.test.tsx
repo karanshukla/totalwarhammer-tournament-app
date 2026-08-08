@@ -40,7 +40,9 @@ describe("PasswordResetForm – Back to Login button", () => {
   it("calls onBackClick when 'Back to Login' is clicked", async () => {
     const onBackClick = vi.fn();
     renderForm(onBackClick);
-    await userEvent.click(screen.getByRole("button", { name: /back to login/i }));
+    await userEvent.click(
+      screen.getByRole("button", { name: /back to login/i }),
+    );
     expect(onBackClick).toHaveBeenCalledTimes(1);
   });
 });
@@ -49,14 +51,19 @@ describe("PasswordResetForm – success path", () => {
   beforeEach(() => vi.clearAllMocks());
 
   it("calls onSuccess after requestPasswordReset resolves", async () => {
-    mockRequestPasswordReset.mockResolvedValueOnce({ success: true, message: "sent" });
+    mockRequestPasswordReset.mockResolvedValueOnce({
+      success: true,
+      message: "sent",
+    });
     const onSuccess = vi.fn();
     renderForm(vi.fn(), onSuccess);
 
     fireEvent.change(screen.getByRole("textbox", { name: /email/i }), {
       target: { value: "hero@warhammer.com" },
     });
-    fireEvent.submit(screen.getByRole("button", { name: /send reset link/i }).closest("form")!);
+    fireEvent.submit(
+      screen.getByRole("button", { name: /send reset link/i }).closest("form")!,
+    );
 
     await waitFor(() => expect(onSuccess).toHaveBeenCalledTimes(1));
     expect(mockRequestPasswordReset).toHaveBeenCalledWith("hero@warhammer.com");
@@ -74,11 +81,11 @@ describe("PasswordResetForm – catch path", () => {
     fireEvent.change(screen.getByRole("textbox", { name: /email/i }), {
       target: { value: "hero@warhammer.com" },
     });
-    fireEvent.submit(screen.getByRole("button", { name: /send reset link/i }).closest("form")!);
-
-    await waitFor(() =>
-      expect(mockRequestPasswordReset).toHaveBeenCalled(),
+    fireEvent.submit(
+      screen.getByRole("button", { name: /send reset link/i }).closest("form")!,
     );
+
+    await waitFor(() => expect(mockRequestPasswordReset).toHaveBeenCalled());
     expect(onSuccess).not.toHaveBeenCalled();
   });
 });

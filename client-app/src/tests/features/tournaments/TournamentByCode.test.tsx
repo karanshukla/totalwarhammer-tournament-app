@@ -19,12 +19,11 @@ vi.mock("@/core/api/httpClient", () => ({
   httpClient: { get: mockGet },
 }));
 
-vi.mock(
-  "@/features/tournaments/components/TournamentViewPage",
-  () => ({
-    default: ({ id }: { id: string }) => <div data-testid="view-page">id:{id}</div>,
-  }),
-);
+vi.mock("@/features/tournaments/components/TournamentViewPage", () => ({
+  default: ({ id }: { id: string }) => (
+    <div data-testid="view-page">id:{id}</div>
+  ),
+}));
 
 import TournamentByCode from "@/features/tournaments/components/TournamentByCode";
 
@@ -48,11 +47,14 @@ describe("TournamentByCode – loading state (!resolvedId, !notFound)", () => {
     mockGet.mockReturnValueOnce(new Promise(() => {}));
     renderWithCode();
     // Chakra Spinner renders a div with role="status" by default
-    const spinner = document.querySelector("[data-scope='spinner']")
-      ?? document.querySelector("svg[aria-label]")
-      ?? document.querySelector(".chakra-spinner");
+    const spinner =
+      document.querySelector("[data-scope='spinner']") ??
+      document.querySelector("svg[aria-label]") ??
+      document.querySelector(".chakra-spinner");
     // Check for loading indicator
-    expect(spinner ?? screen.queryByText(/tournament not found/i)).not.toBeNull();
+    expect(
+      spinner ?? screen.queryByText(/tournament not found/i),
+    ).not.toBeNull();
     expect(screen.queryByText(/tournament not found/i)).not.toBeInTheDocument();
   });
 });

@@ -38,12 +38,20 @@ vi.mock("@/features/authentication/components/LoginForm", () => ({
 
 vi.mock("@/features/authentication/components/RegistrationForm", () => ({
   RegistrationForm: ({ defaultIdentifier }: { defaultIdentifier?: string }) => (
-    <div data-testid="registration-form" data-default-identifier={defaultIdentifier ?? ""} />
+    <div
+      data-testid="registration-form"
+      data-default-identifier={defaultIdentifier ?? ""}
+    />
   ),
 }));
 
 vi.mock("@/features/authentication/components/PasswordResetForm", () => ({
-  PasswordResetForm: ({ onBackClick }: { onBackClick: () => void; onSuccess: () => void }) => (
+  PasswordResetForm: ({
+    onBackClick,
+  }: {
+    onBackClick: () => void;
+    onSuccess: () => void;
+  }) => (
     <div data-testid="password-reset-form">
       <button onClick={onBackClick}>Back</button>
     </div>
@@ -67,8 +75,12 @@ describe("AuthenticationForm – initial view='check'", () => {
 
   it("renders username/email field and Continue as Guest button", () => {
     renderForm();
-    expect(screen.getByRole("textbox", { name: /username or email/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /continue as guest/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("textbox", { name: /username or email/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /continue as guest/i }),
+    ).toBeInTheDocument();
   });
 });
 
@@ -78,13 +90,18 @@ describe("AuthenticationForm – userExists=true → view='login'", () => {
   it("shows LoginForm when user exists", async () => {
     mockUserExists.mockResolvedValueOnce(true);
     renderForm();
-    fireEvent.change(screen.getByRole("textbox", { name: /username or email/i }), {
-      target: { value: "existing_user" },
-    });
+    fireEvent.change(
+      screen.getByRole("textbox", { name: /username or email/i }),
+      {
+        target: { value: "existing_user" },
+      },
+    );
     fireEvent.submit(
       screen.getByRole("button", { name: /submit/i }).closest("form")!,
     );
-    await waitFor(() => expect(screen.getByTestId("login-form")).toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.getByTestId("login-form")).toBeInTheDocument(),
+    );
   });
 });
 
@@ -94,21 +111,29 @@ describe("AuthenticationForm – userExists=false → view='register'", () => {
   it("shows RegistrationForm when user does not exist", async () => {
     mockUserExists.mockResolvedValueOnce(false);
     renderForm();
-    fireEvent.change(screen.getByRole("textbox", { name: /username or email/i }), {
-      target: { value: "new_user_here" },
-    });
+    fireEvent.change(
+      screen.getByRole("textbox", { name: /username or email/i }),
+      {
+        target: { value: "new_user_here" },
+      },
+    );
     fireEvent.submit(
       screen.getByRole("button", { name: /submit/i }).closest("form")!,
     );
-    await waitFor(() => expect(screen.getByTestId("registration-form")).toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.getByTestId("registration-form")).toBeInTheDocument(),
+    );
   });
 
   it("carries the typed value into RegistrationForm as defaultIdentifier", async () => {
     mockUserExists.mockResolvedValueOnce(false);
     renderForm();
-    fireEvent.change(screen.getByRole("textbox", { name: /username or email/i }), {
-      target: { value: "someone@example.com" },
-    });
+    fireEvent.change(
+      screen.getByRole("textbox", { name: /username or email/i }),
+      {
+        target: { value: "someone@example.com" },
+      },
+    );
     fireEvent.submit(
       screen.getByRole("button", { name: /submit/i }).closest("form")!,
     );
@@ -126,15 +151,21 @@ describe("AuthenticationForm – Reset Password → view='reset-password'", () =
 
   it("shows PasswordResetForm when Reset Password is clicked", async () => {
     renderForm();
-    await userEvent.click(screen.getByRole("button", { name: /reset password/i }));
+    await userEvent.click(
+      screen.getByRole("button", { name: /reset password/i }),
+    );
     expect(screen.getByTestId("password-reset-form")).toBeInTheDocument();
   });
 
   it("goes back to check view when Back is clicked in PasswordResetForm", async () => {
     renderForm();
-    await userEvent.click(screen.getByRole("button", { name: /reset password/i }));
+    await userEvent.click(
+      screen.getByRole("button", { name: /reset password/i }),
+    );
     await userEvent.click(screen.getByRole("button", { name: /back/i }));
-    expect(screen.getByRole("textbox", { name: /username or email/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("textbox", { name: /username or email/i }),
+    ).toBeInTheDocument();
   });
 });
 
@@ -146,7 +177,9 @@ describe("AuthenticationForm – handleGuestLogin", () => {
     const handler = vi.fn();
     document.addEventListener("auth-event", handler);
     renderForm();
-    await userEvent.click(screen.getByRole("button", { name: /continue as guest/i }));
+    await userEvent.click(
+      screen.getByRole("button", { name: /continue as guest/i }),
+    );
     await waitFor(() => expect(handler).toHaveBeenCalled());
     const evt = handler.mock.calls[0][0] as CustomEvent;
     expect(evt.detail?.type).toBe("close-drawer");

@@ -48,7 +48,14 @@ const UserStatsCard: React.FC = () => {
       <HStack justify="space-between" align="center" mb={4} wrap="wrap" gap={3}>
         <Heading size="md">Your Activity</Heading>
         {/* Game-system toggle (WH3 / 40K) */}
-        <HStack gap={1} p={1} borderRadius="md" borderWidth={1} borderColor="border" bg="bg.subtle">
+        <HStack
+          gap={1}
+          p={1}
+          borderRadius="md"
+          borderWidth={1}
+          borderColor="border"
+          bg="bg.subtle"
+        >
           <chakra.button
             type="button"
             py={1}

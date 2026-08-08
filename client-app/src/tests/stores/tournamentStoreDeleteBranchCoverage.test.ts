@@ -52,7 +52,11 @@ describe("tournamentStore – deleteParticipant branch coverage (lines 237-241)"
 
     // Set p1 as participant and winner (winnerId uses the same dynamic setter)
     store.updateMatchParticipant(match.id, "participant1Id", p1.id);
-    store.updateMatchParticipant(match.id, "winnerId" as "participant1Id", p1.id);
+    store.updateMatchParticipant(
+      match.id,
+      "winnerId" as "participant1Id",
+      p1.id,
+    );
 
     // Confirm winnerId is set
     const matchWithWinner = useTournamentStore.getState().rounds[0].matches[0];

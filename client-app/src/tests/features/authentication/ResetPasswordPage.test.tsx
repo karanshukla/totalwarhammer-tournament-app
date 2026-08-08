@@ -14,14 +14,17 @@ import React from "react";
 import { ChakraProvider, defaultSystem } from "@chakra-ui/react";
 import { MemoryRouter } from "react-router";
 
-const { mockVerifyResetToken, mockResetPassword, mockNavigate, mockToasterCreate } = vi.hoisted(
-  () => ({
-    mockVerifyResetToken: vi.fn(),
-    mockResetPassword: vi.fn(),
-    mockNavigate: vi.fn(),
-    mockToasterCreate: vi.fn(),
-  }),
-);
+const {
+  mockVerifyResetToken,
+  mockResetPassword,
+  mockNavigate,
+  mockToasterCreate,
+} = vi.hoisted(() => ({
+  mockVerifyResetToken: vi.fn(),
+  mockResetPassword: vi.fn(),
+  mockNavigate: vi.fn(),
+  mockToasterCreate: vi.fn(),
+}));
 
 vi.mock("react-router", async (importOriginal) => {
   const actual = await importOriginal<typeof import("react-router")>();
@@ -39,9 +42,10 @@ vi.mock("@/shared/ui/Toaster", () => ({
 
 vi.mock("@/shared/ui/PasswordInput", () => ({
   PasswordInput: React.forwardRef(
-    (props: React.InputHTMLAttributes<HTMLInputElement>, ref: React.ForwardedRef<HTMLInputElement>) => (
-      <input ref={ref} {...props} />
-    ),
+    (
+      props: React.InputHTMLAttributes<HTMLInputElement>,
+      ref: React.ForwardedRef<HTMLInputElement>,
+    ) => <input ref={ref} {...props} />,
   ),
 }));
 
@@ -110,7 +114,9 @@ describe("ResetPasswordPage – token valid with validUntil (expiryTime branch)"
     });
     renderPage("?token=goodtoken");
     await waitFor(() =>
-      expect(screen.getByRole("button", { name: /reset password/i })).toBeInTheDocument(),
+      expect(
+        screen.getByRole("button", { name: /reset password/i }),
+      ).toBeInTheDocument(),
     );
     // expiry time is shown (toLocaleTimeString returns something)
     expect(screen.getByText(/this link will expire at/i)).toBeInTheDocument();
@@ -124,9 +130,13 @@ describe("ResetPasswordPage – token valid without validUntil (no expiryTime)",
     mockVerifyResetToken.mockResolvedValueOnce({ success: true, data: {} });
     renderPage("?token=goodtoken2");
     await waitFor(() =>
-      expect(screen.getByRole("button", { name: /reset password/i })).toBeInTheDocument(),
+      expect(
+        screen.getByRole("button", { name: /reset password/i }),
+      ).toBeInTheDocument(),
     );
-    expect(screen.queryByText(/this link will expire at/i)).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(/this link will expire at/i),
+    ).not.toBeInTheDocument();
   });
 });
 

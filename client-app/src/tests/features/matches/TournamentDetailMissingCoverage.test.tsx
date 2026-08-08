@@ -505,10 +505,7 @@ describe("TournamentDetail – non-Escape key while editing description", () => 
   beforeEach(() => vi.clearAllMocks());
 
   it("keeps the textarea open when a non-Escape key is pressed", async () => {
-    renderDetail(
-      { status: "pending", description: "" },
-      { user: adminUser },
-    );
+    renderDetail({ status: "pending", description: "" }, { user: adminUser });
     fireEvent.click(screen.getByRole("button", { name: /edit description/i }));
     await waitFor(() =>
       expect(
@@ -564,10 +561,7 @@ describe("TournamentDetail – Add Participant panel inputs", () => {
 
   it("calls onSetNewName when typing in the player name field", () => {
     const onSetNewName = vi.fn();
-    renderDetail(
-      { status: "pending" },
-      { user: adminUser, onSetNewName },
-    );
+    renderDetail({ status: "pending" }, { user: adminUser, onSetNewName });
     fireEvent.change(screen.getByPlaceholderText(/enter player name/i), {
       target: { value: "NewPlayer" },
     });
@@ -576,10 +570,7 @@ describe("TournamentDetail – Add Participant panel inputs", () => {
 
   it("calls onAddParticipant when Enter is pressed in the name field", () => {
     const onAddParticipant = vi.fn();
-    renderDetail(
-      { status: "pending" },
-      { user: adminUser, onAddParticipant },
-    );
+    renderDetail({ status: "pending" }, { user: adminUser, onAddParticipant });
     fireEvent.keyDown(screen.getByPlaceholderText(/enter player name/i), {
       key: "Enter",
     });
@@ -588,10 +579,7 @@ describe("TournamentDetail – Add Participant panel inputs", () => {
 
   it("does not call onAddParticipant for a non-Enter key", () => {
     const onAddParticipant = vi.fn();
-    renderDetail(
-      { status: "pending" },
-      { user: adminUser, onAddParticipant },
-    );
+    renderDetail({ status: "pending" }, { user: adminUser, onAddParticipant });
     fireEvent.keyDown(screen.getByPlaceholderText(/enter player name/i), {
       key: "Tab",
     });
@@ -612,19 +600,16 @@ describe("TournamentDetail – Add Participant panel inputs", () => {
     const userEventModule = await import("@testing-library/user-event");
     const user = userEventModule.default.setup({ pointerEventsCheck: 0 });
     const onSetNewFaction = vi.fn();
-    renderDetail(
-      { status: "pending" },
-      { user: adminUser, onSetNewFaction },
-    );
+    renderDetail({ status: "pending" }, { user: adminUser, onSetNewFaction });
 
     await user.click(screen.getByRole("combobox"));
     const options = await screen.findAllByRole("option");
-    const empireOption = options.find((o) =>
-      o.textContent?.includes("Empire"),
-    );
+    const empireOption = options.find((o) => o.textContent?.includes("Empire"));
     if (empireOption) {
       await user.click(empireOption);
-      await waitFor(() => expect(onSetNewFaction).toHaveBeenCalledWith("Empire"));
+      await waitFor(() =>
+        expect(onSetNewFaction).toHaveBeenCalledWith("Empire"),
+      );
     } else {
       expect(options.length).toBeGreaterThan(0);
     }
@@ -682,10 +667,7 @@ describe("TournamentDetail – description character count at limit", () => {
   beforeEach(() => vi.clearAllMocks());
 
   it("shows the loss color once the description reaches 2000 characters", async () => {
-    renderDetail(
-      { status: "pending", description: "" },
-      { user: adminUser },
-    );
+    renderDetail({ status: "pending", description: "" }, { user: adminUser });
     fireEvent.click(screen.getByRole("button", { name: /edit description/i }));
     const textarea = await screen.findByPlaceholderText(
       /tournament description/i,

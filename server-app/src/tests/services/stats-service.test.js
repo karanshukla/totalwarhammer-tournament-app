@@ -219,10 +219,7 @@ describe("stats-service", () => {
         // The match-stats-by-status pipeline is the only Match aggregate whose
         // final stage groups on _id: "$status" with no winner projection.
         const last = pipeline[pipeline.length - 1];
-        if (
-          last?.$group?._id === "$status" &&
-          last.$group.count?.$sum === 1
-        ) {
+        if (last?.$group?._id === "$status" && last.$group.count?.$sum === 1) {
           return [
             { _id: "completed", count: 8 },
             { _id: "pending", count: 2 },

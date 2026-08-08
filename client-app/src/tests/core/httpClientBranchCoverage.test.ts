@@ -65,7 +65,9 @@ describe("httpClient – branch coverage", () => {
         headers: new Headers({ "content-length": "15" }),
       });
 
-      const result = await httpClient.patch("/resource/1", { name: "New Name" });
+      const result = await httpClient.patch("/resource/1", {
+        name: "New Name",
+      });
 
       expect(result).toEqual({ updated: true });
       expect(mockFetch).toHaveBeenNthCalledWith(
@@ -110,7 +112,9 @@ describe("httpClient – branch coverage", () => {
 
       // Only one fetch call (no CSRF token fetch)
       expect(mockFetch).toHaveBeenCalledTimes(1);
-      expect(mockFetch.mock.calls[0][1].headers).not.toHaveProperty("X-CSRF-Token");
+      expect(mockFetch.mock.calls[0][1].headers).not.toHaveProperty(
+        "X-CSRF-Token",
+      );
     });
 
     it("retries PATCH with new CSRF token on 403 CSRF error (line 318)", async () => {
@@ -144,7 +148,9 @@ describe("httpClient – branch coverage", () => {
 
       expect(result).toEqual({ updated: true });
       expect(mockFetch).toHaveBeenCalledTimes(4);
-      expect(mockFetch.mock.calls[3][1].headers["X-CSRF-Token"]).toBe("new-token");
+      expect(mockFetch.mock.calls[3][1].headers["X-CSRF-Token"]).toBe(
+        "new-token",
+      );
     });
 
     it("PATCH retry with undefined data sends no body (line 318 false branch)", async () => {
@@ -190,7 +196,10 @@ describe("httpClient – branch coverage", () => {
       mockFetch.mockResolvedValueOnce({
         ok: false,
         status: 403,
-        json: async () => ({ error: "Permission denied", message: "Not authorized" }),
+        json: async () => ({
+          error: "Permission denied",
+          message: "Not authorized",
+        }),
       });
 
       // The error should be swallowed by the catch (no retry), then handleResponse called

@@ -25,6 +25,7 @@ function renderDialog({
   open = true,
   participant = baseParticipant as typeof baseParticipant | null,
   enable40kFactions = false,
+  bannedFactions = [] as string[],
   onClose = vi.fn(),
   onParticipantChange = vi.fn(),
   onSave = vi.fn(),
@@ -35,7 +36,7 @@ function renderDialog({
         open={open}
         participant={participant}
         actionLoading={false}
-        enable40kFactions={enable40kFactions}
+        tournament={{ enable40kFactions, bannedFactions }}
         onClose={onClose}
         onParticipantChange={onParticipantChange}
         onSave={onSave}
@@ -63,7 +64,9 @@ describe("EditParticipantDialog – enable40kFactions=true", () => {
     await user.click(screen.getByRole("combobox"));
     const options = await screen.findAllByRole("option", { hidden: true });
     const optionValues = options.map((o) => o.textContent);
-    expect(optionValues.some((v) => v?.includes("Adeptus Astartes"))).toBe(true);
+    expect(optionValues.some((v) => v?.includes("Adeptus Astartes"))).toBe(
+      true,
+    );
     expect(optionValues.some((v) => v?.includes("Bretonnia"))).toBe(false);
   });
 });
@@ -96,5 +99,28 @@ describe("EditParticipantDialog – Cancel button", () => {
     renderDialog({ onClose });
     fireEvent.click(screen.getByRole("button", { name: /cancel/i }));
     expect(onClose).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("EditParticipantDialog – banned factions", () => {
+  it("omits factions the organiser has banned", async () => {
+    const user = userEvent.setup({ pointerEventsCheck: 0 });
+    renderDialog({ bannedFactions: ["Greenskins", "Empire"] });
+    await user.click(screen.getByRole("combobox"));
+    const options = await screen.findAllByRole("option", { hidden: true });
+    const labels = options.map((o) => o.textContent);
+    expect(labels.some((v) => v?.includes("Greenskins"))).toBe(false);
+    expect(labels.some((v) => v?.includes("Empire"))).toBe(false);
+    expect(labels.some((v) => v?.includes("Dwarfs"))).toBe(true);
+  });
+
+  it("omits banned 40k factions too", async () => {
+    const user = userEvent.setup({ pointerEventsCheck: 0 });
+    renderDialog({ enable40kFactions: true, bannedFactions: ["Necrons"] });
+    await user.click(screen.getByRole("combobox"));
+    const options = await screen.findAllByRole("option", { hidden: true });
+    const labels = options.map((o) => o.textContent);
+    expect(labels.some((v) => v?.includes("Necrons"))).toBe(false);
+    expect(labels.some((v) => v?.includes("Orks"))).toBe(true);
   });
 });

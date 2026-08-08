@@ -100,7 +100,9 @@ describe("TournamentLookup – branch coverage", () => {
 
     const input = screen.getByPlaceholderText(/e.g., ABC123/i);
     await userEvent.type(input, "GUEST1");
-    await userEvent.click(screen.getByRole("button", { name: /View Tournament/i }));
+    await userEvent.click(
+      screen.getByRole("button", { name: /View Tournament/i }),
+    );
 
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith("/matches/tournament/GUEST1");
@@ -130,7 +132,9 @@ describe("TournamentLookup – branch coverage", () => {
 
     const input = screen.getByPlaceholderText(/e.g., ABC123/i);
     await userEvent.type(input, "IDCODE");
-    await userEvent.click(screen.getByRole("button", { name: /View Tournament/i }));
+    await userEvent.click(
+      screen.getByRole("button", { name: /View Tournament/i }),
+    );
 
     await waitFor(() => {
       // name matches user.id → navigate to tournament (participant)

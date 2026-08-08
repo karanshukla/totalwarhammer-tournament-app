@@ -186,3 +186,17 @@ export const allFactions = factionRegistry.map((f) => f.name);
 export const betaFactionNames = new Set(
   factionRegistry.filter((f) => f.isBeta).map((f) => f.name),
 );
+
+const namesByGame = new Map(
+  ["wh3", "40k"].map((game) => [
+    game,
+    new Set(factionRegistry.filter((f) => f.game === game).map((f) => f.name)),
+  ]),
+);
+
+/** @param {"wh3" | "40k"} game */
+export const factionNamesForGame = (game) => [...(namesByGame.get(game) ?? [])];
+
+/** @param {string} name @param {"wh3" | "40k"} game */
+export const isFactionInGame = (name, game) =>
+  namesByGame.get(game)?.has(name) ?? false;

@@ -78,7 +78,9 @@ describe("UserStatsCard – stats loaded with factions", () => {
       }),
     );
     renderCard();
-    await waitFor(() => expect(screen.getByText("Greenskins")).toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.getByText("Greenskins")).toBeInTheDocument(),
+    );
     expect(screen.getByText(/3 matches/)).toBeInTheDocument();
   });
 
@@ -123,7 +125,13 @@ describe("UserStatsCard – no activity message", () => {
 
   it("shows 'No activity recorded yet' when matchesPlayed=0 and tournamentsCreated=0", async () => {
     mockFetchUserStats.mockResolvedValueOnce(
-      wrap({ tournamentsCreated: 0, matchesPlayed: 0, wins: 0, losses: 0, factions: [] }),
+      wrap({
+        tournamentsCreated: 0,
+        matchesPlayed: 0,
+        wins: 0,
+        losses: 0,
+        factions: [],
+      }),
     );
     renderCard();
     await waitFor(() =>
@@ -133,12 +141,20 @@ describe("UserStatsCard – no activity message", () => {
 
   it("does not show 'No activity' when user has tournaments created", async () => {
     mockFetchUserStats.mockResolvedValueOnce(
-      wrap({ tournamentsCreated: 1, matchesPlayed: 0, wins: 0, losses: 0, factions: [] }),
+      wrap({
+        tournamentsCreated: 1,
+        matchesPlayed: 0,
+        wins: 0,
+        losses: 0,
+        factions: [],
+      }),
     );
     renderCard();
     await waitFor(() =>
       // Stats card should show but no "no activity" message
-      expect(screen.queryByText(/no activity recorded yet/i)).not.toBeInTheDocument(),
+      expect(
+        screen.queryByText(/no activity recorded yet/i),
+      ).not.toBeInTheDocument(),
     );
   });
 });
@@ -180,9 +196,7 @@ describe("UserStatsCard – game-system toggle", () => {
     });
     renderCard();
     // WH3 default — Empire faction shown.
-    await waitFor(() =>
-      expect(screen.getByText("Empire")).toBeInTheDocument(),
-    );
+    await waitFor(() => expect(screen.getByText("Empire")).toBeInTheDocument());
     expect(screen.queryByText("Necrons")).not.toBeInTheDocument();
 
     // Switch to 40K.

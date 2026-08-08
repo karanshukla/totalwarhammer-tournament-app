@@ -27,7 +27,7 @@ function renderDialog(
     participant: makeParticipant(),
     onParticipantChange: vi.fn(),
     onSave: vi.fn(),
-    enable40kFactions: false,
+    tournament: { enable40kFactions: false },
   };
   return render(
     <ChakraProvider value={defaultSystem}>
@@ -43,7 +43,7 @@ describe("ParticipantEditDialog – branch coverage", () => {
 
   it("renders with warhammer3 factions when enable40kFactions is false (line 43 false branch)", async () => {
     const user = userEvent.setup({ pointerEventsCheck: 0 });
-    renderDialog({ enable40kFactions: false });
+    renderDialog({ tournament: { enable40kFactions: false } });
     await user.click(screen.getByRole("combobox"));
     const matches = await screen.findAllByRole("option", {
       name: "Empire",
@@ -54,7 +54,7 @@ describe("ParticipantEditDialog – branch coverage", () => {
 
   it("renders with 40k factions when enable40kFactions is true (line 43 true branch)", async () => {
     const user = userEvent.setup({ pointerEventsCheck: 0 });
-    renderDialog({ enable40kFactions: true });
+    renderDialog({ tournament: { enable40kFactions: true } });
     await user.click(screen.getByRole("combobox"));
     const matches = await screen.findAllByRole("option", {
       name: "Adeptus Astartes",

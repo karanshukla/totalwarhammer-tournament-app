@@ -11,11 +11,33 @@ const HeroSection: React.FC = () => {
 
   return (
     <Box textAlign="center" py={8}>
-      <Box mx="auto" mb={4} h={{ base: "72px", md: "96px" }} w={{ base: "72px", md: "96px" }} _light={{ display: "none" }}>
-        <img src="/logo.svg" alt="TW Tournament App" width="100%" height="100%" />
+      <Box
+        mx="auto"
+        mb={4}
+        h={{ base: "72px", md: "96px" }}
+        w={{ base: "72px", md: "96px" }}
+        _light={{ display: "none" }}
+      >
+        <img
+          src="/logo.svg"
+          alt="TW Tournament App"
+          width="100%"
+          height="100%"
+        />
       </Box>
-      <Box mx="auto" mb={4} h={{ base: "72px", md: "96px" }} w={{ base: "72px", md: "96px" }} _dark={{ display: "none" }}>
-        <img src="/logo-light.svg" alt="TW Tournament App" width="100%" height="100%" />
+      <Box
+        mx="auto"
+        mb={4}
+        h={{ base: "72px", md: "96px" }}
+        w={{ base: "72px", md: "96px" }}
+        _dark={{ display: "none" }}
+      >
+        <img
+          src="/logo-light.svg"
+          alt="TW Tournament App"
+          width="100%"
+          height="100%"
+        />
       </Box>
       <Badge
         variant="subtle"
@@ -49,7 +71,9 @@ const HeroSection: React.FC = () => {
       </Text>
       <HStack gap={3} justify="center" flexWrap="wrap">
         <Button colorPalette="verdigris" size="lg" asChild>
-          <Link to="/tournaments#currentTournaments">View Ongoing Tournaments</Link>
+          <Link to="/tournaments#currentTournaments">
+            View Ongoing Tournaments
+          </Link>
         </Button>
         {showCreateAccount && (
           <Button

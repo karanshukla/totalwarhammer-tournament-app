@@ -60,9 +60,7 @@ describe("LogoutButton – error path (catch branch)", () => {
   });
 
   it("logs error and does not navigate when logoutUser throws", async () => {
-    const consoleSpy = vi
-      .spyOn(console, "error")
-      .mockImplementation(() => {});
+    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
     mockLogoutUser.mockRejectedValueOnce(new Error("Server error"));
 
     renderButton();
