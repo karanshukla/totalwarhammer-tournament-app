@@ -44,11 +44,12 @@ export function TournamentBracket() {
         <Heading size="md">Tournament Bracket</Heading>
       </Card.Header>
       <Card.Body p={4}>
-        <Text fontSize="sm" mb={3} color="fg.muted">
+        <Text fontSize="sm" mb={3} color="fg.secondary">
           Drag participants into the empty slots below
         </Text>
         <Button
           mb={4}
+          alignSelf="flex-start"
           onClick={onAddRound}
           size="sm"
           colorPalette="ink"
@@ -73,14 +74,17 @@ export function TournamentBracket() {
               maxW={{ base: "100%", lg: "280px" }} // Slightly reduced maxW
             >
               <Text
+                fontFamily="cond"
                 fontWeight="bold"
+                textTransform="uppercase"
+                letterSpacing="wide"
                 textAlign="center"
-                fontSize="md" // Kept as is, seems reasonable for round titles
+                fontSize="md"
                 color="gold.text"
                 pb={2}
                 borderBottom="1px solid"
-                borderColor="border"
-                mb={2} // Added margin bottom for space below round title
+                borderColor="gold.border"
+                mb={2}
               >
                 {round.title}
               </Text>
@@ -89,20 +93,28 @@ export function TournamentBracket() {
                 <Card.Root
                   key={match.id}
                   id={`match-${match.id}`}
-                  variant="subtle"
                   data-match-id={match.id}
-                  boxShadow="xs" // Reduced shadow for a lighter feel
-                  _hover={{ boxShadow: "md" }}
+                  bg="bg.subtle"
+                  borderWidth="1px"
+                  borderColor="border"
+                  boxShadow="xs"
+                  _hover={{ boxShadow: "md", borderColor: "border.emphasized" }}
                   transition="all 0.2s"
-                  borderRadius="sm" // Slightly smaller border radius
+                  borderRadius="sm"
                 >
-                  <Card.Header py={1.5} px={2.5} borderBottomWidth="1px">
-                    {" "}
-                    {/* Reduced padding */}
+                  <Card.Header
+                    py={1.5}
+                    px={2.5}
+                    borderBottomWidth="1px"
+                    borderColor="border"
+                  >
                     <Flex justify="space-between" align="center">
-                      <Text fontSize="xs" fontWeight="medium">
-                        {" "}
-                        {/* Reduced font size */}
+                      <Text
+                        fontSize="xs"
+                        fontFamily="cond"
+                        fontWeight="medium"
+                        color="fg.secondary"
+                      >
                         {match.title}
                       </Text>
                       <Button
@@ -118,11 +130,7 @@ export function TournamentBracket() {
                   </Card.Header>
 
                   <Card.Body py={1.5} px={2.5}>
-                    {" "}
-                    {/* Reduced padding */}
                     <VStack gap={1.5}>
-                      {" "}
-                      {/* Reduced spacing */}
                       <MatchParticipantSlot
                         matchId={match.id}
                         position={1}
@@ -133,14 +141,16 @@ export function TournamentBracket() {
                         }
                       />
                       <Text
-                        fontSize="2xs" // Reduced font size for "VS"
+                        fontSize="2xs"
+                        fontFamily="cond"
                         fontWeight="medium"
-                        color="fg.muted"
-                        bg="bg.subtle"
-                        py={0.5} // Reduced padding
+                        letterSpacing="wider"
+                        color="fg.secondary"
+                        bg="bg.muted"
+                        py={0.5}
                         textAlign="center"
                         width="100%"
-                        my={0.5} // Added small vertical margin
+                        my={0.5}
                       >
                         VS
                       </Text>

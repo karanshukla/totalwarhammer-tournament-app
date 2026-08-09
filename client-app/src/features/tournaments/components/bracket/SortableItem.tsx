@@ -19,7 +19,7 @@ export function SortableItem({ id, participant }: SortableItemProps) {
     isDragging,
   } = useSortable({ id });
 
-  const hoverBg = "bg.subtle";
+  const hoverBg = "bg.muted";
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -47,7 +47,7 @@ export function SortableItem({ id, participant }: SortableItemProps) {
         <Text fontWeight="medium" fontSize="sm" lineClamp={1} flex="1">
           {participant.name}
         </Text>
-        <Text fontSize="xs" color="fg.muted" lineClamp={1} ml={2}>
+        <Text fontSize="xs" color="fg.secondary" lineClamp={1} ml={2}>
           {participant.faction}
         </Text>
       </Flex>

@@ -33,12 +33,6 @@ const TournamentsPage: React.FC = () => {
   const tabs = useMemo(
     () => [
       {
-        id: "brackets",
-        icon: LuBrackets,
-        label: "Create a Simple Bracket",
-        content: "Create a simple bracket tournament",
-      },
-      {
         id: "createTournament",
         icon: LuTrophy,
         label: "Create a Tournament",
@@ -55,6 +49,12 @@ const TournamentsPage: React.FC = () => {
         icon: LuHistory,
         label: "View Past Tournaments",
         content: "Check past tournaments",
+      },
+      {
+        id: "brackets",
+        icon: LuBrackets,
+        label: "Create a Simple Bracket",
+        content: "Create a simple bracket tournament",
       },
     ],
     [],
@@ -73,7 +73,10 @@ const TournamentsPage: React.FC = () => {
 
   const hoverActiveBorderColor = "info.border";
   const hoverInactiveBorderColor = "border.emphasized";
-  const hoverInactiveBg = "bg.subtle";
+  // Cards lift on hover, so the hover bg must be lighter than bg.panel in both
+  // colour modes — bg.subtle is darker than panel in dark mode and made the
+  // card sink into the canvas instead.
+  const hoverInactiveBg = "bg.elevated";
 
   const getInitialTab = useCallback(() => {
     const hash = window.location.hash.replace("#", "");

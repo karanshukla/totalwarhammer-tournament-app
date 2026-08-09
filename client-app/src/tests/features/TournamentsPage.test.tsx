@@ -44,9 +44,11 @@ describe("TournamentsPage", () => {
     expect(screen.getByText("View Past Tournaments")).toBeInTheDocument();
   });
 
-  it("displays SimpleBracket by default", () => {
+  it("displays the create-tournament tab by default", () => {
     renderWithProviders(<TournamentsPage />);
-    // The default tab should be brackets
-    expect(screen.getByText(/create a simple bracket/i)).toBeInTheDocument();
+    expect(window.location.hash).toBe("#createTournament");
+    expect(
+      screen.queryByText("Tournament Participants"),
+    ).not.toBeInTheDocument();
   });
 });

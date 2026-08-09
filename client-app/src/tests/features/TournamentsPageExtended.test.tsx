@@ -61,21 +61,23 @@ describe("TournamentsPage – tab switching", () => {
     mockGet.mockResolvedValue({ success: true, data: [] });
   });
 
-  it("shows SimpleBracket content for 'brackets' tab by default", () => {
+  it("shows CreateTournamentForm for the 'createTournament' tab by default", async () => {
     renderPage();
-    expect(screen.getByText("Tournament Participants")).toBeInTheDocument();
-  });
-
-  it("switches to CreateTournamentForm when 'Create a Tournament' tab is clicked", async () => {
-    renderPage();
-    await userEvent.click(screen.getByText("Create a Tournament"));
-    // CreateTournamentForm renders a form with a tournament name field
+    expect(screen.queryByText("Tournament Participants")).toBeNull();
     await waitFor(() => {
       expect(
         screen.queryByLabelText(/tournament name/i) ||
           screen.queryByPlaceholderText(/tournament name/i) ||
           screen.queryByText(/tournament name/i),
       ).not.toBeNull();
+    });
+  });
+
+  it("switches to SimpleBracket when 'Create a Simple Bracket' tab is clicked", async () => {
+    renderPage();
+    await userEvent.click(screen.getByText("Create a Simple Bracket"));
+    await waitFor(() => {
+      expect(screen.getByText("Tournament Participants")).toBeInTheDocument();
     });
   });
 
@@ -278,28 +280,21 @@ describe("TournamentsPage – hash navigation", () => {
   it("handleHashChange switches to valid tab on hashchange event", async () => {
     renderPage();
     // Dispatch a hashchange event with a valid tab id
-    window.location.hash = "#createTournament";
+    window.location.hash = "#brackets";
     window.dispatchEvent(new HashChangeEvent("hashchange"));
 
     await waitFor(() => {
-      expect(
-        screen.queryByLabelText(/tournament name/i) ||
-          screen.queryByText(/tournament name/i) ||
-          screen.queryByText(/create a tournament/i),
-      ).toBeTruthy();
+      expect(screen.getByText("Tournament Participants")).toBeInTheDocument();
     });
   });
 
   it("handleHashChange with empty hash while on non-first tab resets to first tab", async () => {
     // Start on a non-first tab by setting hash before render
-    window.location.hash = "#createTournament";
+    window.location.hash = "#brackets";
     renderPage();
 
     await waitFor(() => {
-      expect(
-        screen.queryByText(/create a simple bracket/i) ||
-          screen.queryByText(/tournament participants/i),
-      ).toBeTruthy();
+      expect(screen.getByText("Tournament Participants")).toBeInTheDocument();
     });
 
     // Now fire hashchange with empty hash
@@ -307,22 +302,16 @@ describe("TournamentsPage – hash navigation", () => {
     window.dispatchEvent(new HashChangeEvent("hashchange"));
 
     await waitFor(() => {
-      expect(
-        screen.queryByText(/create a simple bracket/i) ||
-          screen.queryByText(/tournament participants/i),
-      ).toBeTruthy();
+      expect(screen.queryByText("Tournament Participants")).toBeNull();
     });
   });
 
   it("handleHashChange with invalid hash while on non-first tab resets to first tab", async () => {
-    window.location.hash = "#createTournament";
+    window.location.hash = "#brackets";
     renderPage();
 
     await waitFor(() => {
-      expect(
-        screen.queryByText(/create a simple bracket/i) ||
-          screen.queryByText(/tournament participants/i),
-      ).toBeTruthy();
+      expect(screen.getByText("Tournament Participants")).toBeInTheDocument();
     });
 
     // Fire hashchange with an invalid/unknown hash
@@ -330,10 +319,7 @@ describe("TournamentsPage – hash navigation", () => {
     window.dispatchEvent(new HashChangeEvent("hashchange"));
 
     await waitFor(() => {
-      expect(
-        screen.queryByText(/create a simple bracket/i) ||
-          screen.queryByText(/tournament participants/i),
-      ).toBeTruthy();
+      expect(screen.queryByText("Tournament Participants")).toBeNull();
     });
   });
 });

@@ -42,7 +42,7 @@ export function MatchParticipantSlot({
           <Text fontSize="xs" fontWeight="medium" lineClamp={1} flex="1">
             {participant.name}
           </Text>
-          <Text fontSize="2xs" color="fg.muted" mx={1} lineClamp={1}>
+          <Text fontSize="2xs" color="fg.secondary" mx={1} lineClamp={1}>
             {participant.faction}
           </Text>
           <Button

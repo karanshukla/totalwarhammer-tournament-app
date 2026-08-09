@@ -7,6 +7,7 @@ import {
   Button,
   ButtonGroup,
   Card,
+  Heading,
   VStack,
   Spacer,
   HStack,
@@ -35,7 +36,7 @@ export function ParticipantList({
   onSetNewParticipantCount,
   onEditParticipant,
 }: ParticipantListProps) {
-  const overlayBgColor = "bg.panel";
+  const overlayBgColor = "bg.elevated";
 
   const store = useTournamentStore();
   const participants = useTournamentStore((state) => state.participants);
@@ -72,130 +73,147 @@ export function ParticipantList({
   };
 
   return (
-    <Card.Root p={4} mb={5}>
-      <VStack align="stretch" gap={4}>
-        <Text fontSize="xl" fontWeight="bold">
-          Tournament Participants
-        </Text>
-
-        {/* Control panel */}
-        <Card.Root variant="subtle" p={3}>
-          <VStack align="stretch" gap={3}>
-            <Text fontWeight="medium">Add New Participants</Text>
-            <Flex
-              wrap="wrap"
-              gap={3}
-              justify="space-between"
-              align={{ base: "stretch", md: "center" }}
-            >
-              <HStack>
-                <Text>Quantity:</Text>
-                <Button
-                  onClick={decrement}
-                  size="sm"
-                  variant="outline"
-                  disabled={newParticipantCount <= 1}
-                >
-                  <LuMinus />
-                </Button>
-                <Text fontWeight="medium" px={2}>
-                  {newParticipantCount}
-                </Text>
-                <Button
-                  onClick={increment}
-                  size="sm"
-                  variant="outline"
-                  disabled={newParticipantCount >= 100}
-                >
-                  <LuPlus />
-                </Button>
-              </HStack>
-
-              <Flex gap={2} flexWrap="wrap">
-                <Button
-                  onClick={handleAddParticipants}
-                  colorPalette="crimson"
-                  size="sm"
-                >
-                  <LuPlus /> Add Participants
-                </Button>
-                <Button
-                  onClick={handleResetBracket}
-                  colorPalette="crimson"
-                  variant="outline"
-                  size="sm"
-                >
-                  Reset Bracket
-                </Button>
-                <Button
-                  onClick={handleResetParticipantsAndBracket}
-                  colorPalette="crimson"
-                  variant="outline"
-                  size="sm"
-                >
-                  Reset All
-                </Button>
-              </Flex>
-            </Flex>
-          </VStack>
-        </Card.Root>
-
-        <Text>Drag participants to tournament bracket:</Text>
-
-        {/* Participants list */}
-        <Box borderWidth="1px" borderRadius="md" p={3}>
-          <SortableContext
-            items={participants.map((p) => p.id)}
-            strategy={verticalListSortingStrategy}
+    <Card.Root mb={5} borderRadius="md" boxShadow="sm" overflow="hidden">
+      <Card.Header py={3} px={4}>
+        <Heading size="md">Tournament Participants</Heading>
+      </Card.Header>
+      <Card.Body p={4}>
+        <VStack align="stretch" gap={4}>
+          {/* Control panel */}
+          <Box
+            bg="bg.subtle"
+            borderWidth="1px"
+            borderColor="border"
+            borderRadius="md"
+            p={3}
           >
-            <SimpleGrid columns={{ base: 1, sm: 2, md: 3 }} gap={3}>
-              {participants.map((participant) => (
-                <Flex
-                  key={participant.id}
-                  borderWidth="1px"
-                  borderRadius="md"
-                  p={2}
-                  align="center"
-                >
-                  <SortableItem id={participant.id} participant={participant} />
-                  <Spacer />
-                  <ButtonGroup size="xs" variant="ghost" gap={1}>
-                    <Button
-                      onClick={() => onEditParticipant(participant)}
-                      color="fg.secondary"
-                    >
-                      Edit
-                    </Button>
-                    <Button
-                      onClick={() => handleDeleteParticipant(participant.id)}
-                      color="status.loss"
-                    >
-                      Delete
-                    </Button>
-                  </ButtonGroup>
-                </Flex>
-              ))}
-            </SimpleGrid>
-          </SortableContext>
-
-          <DragOverlay>
-            {activeParticipant ? (
-              <Box
-                p={2}
-                bg={overlayBgColor}
-                borderRadius="md"
-                boxShadow="md"
-                borderWidth="1px"
+            <VStack align="stretch" gap={3}>
+              <Text fontWeight="medium">Add New Participants</Text>
+              <Flex
+                wrap="wrap"
+                gap={3}
+                justify="space-between"
+                align={{ base: "stretch", md: "center" }}
               >
-                <SortableItem
-                  id={activeParticipant.id}
-                  participant={activeParticipant}
-                />
-              </Box>
-            ) : null}
-          </DragOverlay>
-        </Box>
-      </VStack>
+                <HStack>
+                  <Text>Quantity:</Text>
+                  <Button
+                    onClick={decrement}
+                    size="sm"
+                    variant="outline"
+                    colorPalette="ink"
+                    disabled={newParticipantCount <= 1}
+                  >
+                    <LuMinus />
+                  </Button>
+                  <Text fontWeight="medium" px={2}>
+                    {newParticipantCount}
+                  </Text>
+                  <Button
+                    onClick={increment}
+                    size="sm"
+                    variant="outline"
+                    colorPalette="ink"
+                    disabled={newParticipantCount >= 100}
+                  >
+                    <LuPlus />
+                  </Button>
+                </HStack>
+
+                <Flex gap={2} flexWrap="wrap">
+                  <Button
+                    onClick={handleAddParticipants}
+                    colorPalette="crimson"
+                    size="sm"
+                  >
+                    <LuPlus /> Add Participants
+                  </Button>
+                  <Button
+                    onClick={handleResetBracket}
+                    colorPalette="ink"
+                    variant="outline"
+                    size="sm"
+                  >
+                    Reset Bracket
+                  </Button>
+                  <Button
+                    onClick={handleResetParticipantsAndBracket}
+                    colorPalette="crimson"
+                    variant="outline"
+                    size="sm"
+                  >
+                    Reset All
+                  </Button>
+                </Flex>
+              </Flex>
+            </VStack>
+          </Box>
+
+          <Text color="fg.secondary">
+            Drag participants to tournament bracket:
+          </Text>
+
+          {/* Participants list */}
+          <Box borderWidth="1px" borderColor="border" borderRadius="md" p={3}>
+            <SortableContext
+              items={participants.map((p) => p.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              <SimpleGrid columns={{ base: 1, sm: 2, md: 3 }} gap={3}>
+                {participants.map((participant) => (
+                  <Flex
+                    key={participant.id}
+                    bg="bg.subtle"
+                    borderWidth="1px"
+                    borderColor="border"
+                    borderRadius="md"
+                    p={2}
+                    align="center"
+                  >
+                    <SortableItem
+                      id={participant.id}
+                      participant={participant}
+                    />
+                    <Spacer />
+                    <ButtonGroup size="xs" variant="ghost" gap={1}>
+                      <Button
+                        onClick={() => onEditParticipant(participant)}
+                        colorPalette="ink"
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        onClick={() => handleDeleteParticipant(participant.id)}
+                        colorPalette="crimson"
+                      >
+                        Delete
+                      </Button>
+                    </ButtonGroup>
+                  </Flex>
+                ))}
+              </SimpleGrid>
+            </SortableContext>
+
+            <DragOverlay>
+              {activeParticipant ? (
+                <Box
+                  p={2}
+                  bg={overlayBgColor}
+                  borderRadius="md"
+                  boxShadow="md"
+                  borderWidth="1px"
+                  borderColor="border.emphasized"
+                >
+                  <SortableItem
+                    id={activeParticipant.id}
+                    participant={activeParticipant}
+                  />
+                </Box>
+              ) : null}
+            </DragOverlay>
+          </Box>
+        </VStack>
+      </Card.Body>
     </Card.Root>
   );
 }
