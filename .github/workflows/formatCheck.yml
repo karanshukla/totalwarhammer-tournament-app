@@ -1,0 +1,49 @@
+name: Format Check
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "client-app/**"
+      - "server-app/**"
+      - ".prettierrc"
+      - ".gitattributes"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/formatCheck.yml"
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "client-app/**"
+      - "server-app/**"
+      - ".prettierrc"
+      - ".gitattributes"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/formatCheck.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  prettier:
+    name: Prettier
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: "npm"
+          cache-dependency-path: "package-lock.json"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check formatting
+        run: npm run format:check
