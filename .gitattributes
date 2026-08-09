@@ -1,0 +1,13 @@
+# Every text file is LF, both in the repository and in every working tree.
+#
+# Without `eol=lf`, a Windows clone with core.autocrlf=true checks files out as
+# CRLF. The committed content is unaffected (git normalizes on the way in), but
+# `npm run format:check` then fails on the whole tree, because .prettierrc pins
+# endOfLine: "lf" — formatting drift that only exists on one developer's disk.
+# It also keeps shell scripts and Dockerfiles runnable when built from a
+# Windows checkout.
+* text=auto eol=lf
+
+# Binary assets: never normalize, never diff as text.
+*.png binary
+*.jpg binary
