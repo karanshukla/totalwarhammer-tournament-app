@@ -84,8 +84,6 @@ function renderCard(
         overrideLoading={false}
         overrideWinnerId=""
         overrideReason=""
-        borderColor="border"
-        mutedBg="bg.subtle"
         {...baseFns}
         {...extraProps}
       />
@@ -300,8 +298,6 @@ describe("MatchCard – isOverriding panel", () => {
           overrideLoading={false}
           overrideWinnerId=""
           overrideReason=""
-          borderColor="border"
-          mutedBg="bg.subtle"
           {...baseFns}
           onCancelOverride={onCancelOverride}
         />

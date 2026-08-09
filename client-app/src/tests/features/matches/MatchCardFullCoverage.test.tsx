@@ -73,8 +73,6 @@ function renderCard(
         overrideLoading={false}
         overrideWinnerId=""
         overrideReason=""
-        borderColor="border"
-        mutedBg="bg.subtle"
         {...baseFns}
         {...extraProps}
       />

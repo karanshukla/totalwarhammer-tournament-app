@@ -16,20 +16,14 @@ interface ParticipantsCardProps {
   participants: Participant[];
   playerCount: number;
   isYou: (participant: Participant) => boolean;
-  cardBg: string;
-  borderColor: string;
-  mutedBg: string;
 }
 
 const ParticipantsCard: React.FC<ParticipantsCardProps> = ({
   participants,
   playerCount,
   isYou,
-  cardBg,
-  borderColor,
-  mutedBg,
 }) => (
-  <Card.Root bg={cardBg} borderColor={borderColor} shadow="sm">
+  <Card.Root bg="bg.panel" borderColor="border" shadow="sm">
     <Card.Header>
       <HStack gap={2}>
         <LuUsers />
@@ -52,8 +46,8 @@ const ParticipantsCard: React.FC<ParticipantsCardProps> = ({
                 p={3}
                 borderRadius="md"
                 borderWidth={1}
-                borderColor={borderColor}
-                bg={mutedBg}
+                borderColor="border"
+                bg="bg.subtle"
                 justifyContent="space-between"
               >
                 <VStack alignItems="flex-start" gap={0}>

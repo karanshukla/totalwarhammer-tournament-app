@@ -104,7 +104,6 @@ const StatCard: React.FC<StatCardProps> = ({
   colorPalette = "crimson",
   sub,
 }) => {
-  const bg = "bg.panel";
   const iconBg =
     colorPalette === "ink" ? "bg.subtle" : `${colorPalette}.subtle`;
   const iconColor =
@@ -113,7 +112,7 @@ const StatCard: React.FC<StatCardProps> = ({
     colorPalette === "ink" ? "border.emphasized" : `${colorPalette}.border`;
   return (
     <Card.Root
-      bg={bg}
+      bg="bg.panel"
       borderWidth={1}
       borderColor="border.subtle"
       borderTopWidth="2px"
@@ -164,8 +163,6 @@ const StatisticsPage: React.FC = () => {
   // above the light page — switching the fill to bg.muted (a prior attempt)
   // made the card visible but tanked text contrast (fg.muted dropped to 2.66:1,
   // failing WCAG). Elevation, not a darker fill, is the correct separator.
-  const cardBg = "bg.panel";
-  const barBg = "bg.muted";
 
   useEffect(() => {
     const load = async () => {
@@ -321,7 +318,7 @@ const StatisticsPage: React.FC = () => {
         <SimpleGrid columns={{ base: 1, lg: 2 }} gap={6}>
           {/* Top Factions */}
           <Card.Root
-            bg={cardBg}
+            bg="bg.panel"
             borderWidth={1}
             borderColor="border.subtle"
             borderTopWidth="2px"
@@ -366,7 +363,7 @@ const StatisticsPage: React.FC = () => {
                             {f.wins} {f.wins === 1 ? "win" : "wins"}
                           </Badge>
                         </HStack>
-                        <Box h="6px" bg={barBg} borderRadius="full">
+                        <Box h="6px" bg="bg.muted" borderRadius="full">
                           <Box
                             h="full"
                             borderRadius="full"
@@ -388,7 +385,7 @@ const StatisticsPage: React.FC = () => {
 
           {/* Top Players */}
           <Card.Root
-            bg={cardBg}
+            bg="bg.panel"
             borderWidth={1}
             borderColor="border.subtle"
             borderTopWidth="2px"
@@ -447,7 +444,7 @@ const StatisticsPage: React.FC = () => {
                             {p.wins} {p.wins === 1 ? "win" : "wins"}
                           </Badge>
                         </HStack>
-                        <Box h="6px" bg={barBg} borderRadius="full">
+                        <Box h="6px" bg="bg.muted" borderRadius="full">
                           <Box
                             h="full"
                             borderRadius="full"
@@ -469,7 +466,7 @@ const StatisticsPage: React.FC = () => {
 
           {/* Recent Tournament Winners */}
           <Card.Root
-            bg={cardBg}
+            bg="bg.panel"
             borderWidth={1}
             borderColor="border.subtle"
             borderTopWidth="2px"
@@ -552,7 +549,7 @@ const StatisticsPage: React.FC = () => {
 
           {/* Top Tournament Creators */}
           <Card.Root
-            bg={cardBg}
+            bg="bg.panel"
             borderWidth={1}
             borderColor="border.subtle"
             borderTopWidth="2px"
@@ -621,7 +618,7 @@ const StatisticsPage: React.FC = () => {
         {/* Recent Completed Tournaments */}
         {active.recentTournaments.length > 0 && (
           <Card.Root
-            bg={cardBg}
+            bg="bg.panel"
             borderWidth={1}
             borderColor="border.subtle"
             borderTopWidth="2px"

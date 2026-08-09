@@ -25,8 +25,6 @@ interface JoinTournamentCardProps {
   onFactionChange: (faction: string) => void;
   onJoin: () => void;
   onGoToMatches: () => void;
-  cardBg: string;
-  borderColor: string;
 }
 
 const JoinTournamentCard: React.FC<JoinTournamentCardProps> = ({
@@ -40,10 +38,8 @@ const JoinTournamentCard: React.FC<JoinTournamentCardProps> = ({
   onFactionChange,
   onJoin,
   onGoToMatches,
-  cardBg,
-  borderColor,
 }) => (
-  <Card.Root bg={cardBg} borderColor={borderColor} shadow="sm">
+  <Card.Root bg="bg.panel" borderColor="border" shadow="sm">
     <Card.Header>
       <HStack gap={2}>
         <LuLogIn />

@@ -3,6 +3,7 @@ import { Badge, Box, HStack, Text, VStack } from "@chakra-ui/react";
 import { LuTrophy } from "react-icons/lu";
 import { displayName as dn } from "@/shared/utils/displayName";
 import type { Match, MatchStatus, PlayerSlot } from "@/shared/tournament/types";
+import { matchStatusSurfaceMap } from "@/shared/tournament/types";
 
 const statusBadges: Record<MatchStatus, React.ReactNode> = {
   completed: (
@@ -81,34 +82,22 @@ const PlayerColumn: React.FC<PlayerColumnProps> = ({
 
 interface SpectatorMatchCardProps {
   match: Match;
-  borderColor: string;
-  mutedBg: string;
 }
 
 /** Read-only view of a match, used on the public tournament page. */
-const SpectatorMatchCard: React.FC<SpectatorMatchCardProps> = ({
-  match,
-  borderColor,
-  mutedBg,
-}) => {
+const SpectatorMatchCard: React.FC<SpectatorMatchCardProps> = ({ match }) => {
   const decided = !!match.winnerId;
   const p1Won = match.winnerId === match.player1.participantId;
   const winner = p1Won ? match.player1 : match.player2;
-
-  const accent =
-    match.status === "disputed"
-      ? { border: "status.loss.border", bg: "status.loss.subtle" }
-      : match.status === "completed"
-        ? { border: "status.win.border", bg: "status.win.subtle" }
-        : { border: borderColor, bg: mutedBg };
+  const surface = matchStatusSurfaceMap[match.status];
 
   return (
     <Box
       p={4}
       borderRadius="md"
       borderWidth={1}
-      borderColor={accent.border}
-      bg={accent.bg}
+      borderColor={surface.borderColor}
+      bg={surface.bg}
     >
       <HStack mb={2} justifyContent="space-between">
         <Text fontSize="xs" color="fg.muted">

@@ -15,17 +15,9 @@ import SpectatorMatchCard from "./SpectatorMatchCard";
 
 interface SpectatorMatchListProps {
   matches: Match[];
-  cardBg: string;
-  borderColor: string;
-  mutedBg: string;
 }
 
-const SpectatorMatchList: React.FC<SpectatorMatchListProps> = ({
-  matches,
-  cardBg,
-  borderColor,
-  mutedBg,
-}) => {
+const SpectatorMatchList: React.FC<SpectatorMatchListProps> = ({ matches }) => {
   const roundNumbers = [...new Set(matches.map((m) => m.round))].sort(
     (a, b) => a - b,
   );
@@ -33,8 +25,8 @@ const SpectatorMatchList: React.FC<SpectatorMatchListProps> = ({
   return (
     <Card.Root
       gridColumn={{ lg: "1 / -1" }}
-      bg={cardBg}
-      borderColor={borderColor}
+      bg="bg.panel"
+      borderColor="border"
       shadow="sm"
     >
       <Card.Header>
@@ -65,14 +57,7 @@ const SpectatorMatchList: React.FC<SpectatorMatchListProps> = ({
                   </Text>
                   <SimpleGrid columns={{ base: 1, md: 2 }} gap={3}>
                     <For each={matches.filter((m) => m.round === round)}>
-                      {(m) => (
-                        <SpectatorMatchCard
-                          key={m._id}
-                          match={m}
-                          borderColor={borderColor}
-                          mutedBg={mutedBg}
-                        />
-                      )}
+                      {(m) => <SpectatorMatchCard key={m._id} match={m} />}
                     </For>
                   </SimpleGrid>
                 </Box>

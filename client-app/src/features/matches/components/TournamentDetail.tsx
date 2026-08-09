@@ -60,10 +60,6 @@ interface Props {
   onSetNewFaction: (v: string) => void;
 }
 
-const cardBg = "bg.panel";
-const borderColor = "border";
-const selectedBg = "info.subtle";
-
 const TournamentDetail: React.FC<Props> = ({
   selected,
   matches,
@@ -260,9 +256,6 @@ const TournamentDetail: React.FC<Props> = ({
             setEditDialogOpen(true);
           }}
           onRemove={onRemoveParticipant}
-          cardBg={cardBg}
-          borderColor={borderColor}
-          rowBg={selectedBg}
         />
 
         {isAdmin && isPending ? (
@@ -275,7 +268,6 @@ const TournamentDetail: React.FC<Props> = ({
             onNameChange={onSetNewName}
             onFactionChange={onSetNewFaction}
             onAdd={onAddParticipant}
-            cardBg={cardBg}
           />
         ) : (
           <ManagedInfoCard
@@ -283,7 +275,6 @@ const TournamentDetail: React.FC<Props> = ({
             matches={matches}
             roundCount={roundNumbers.length}
             isActive={isActive}
-            cardBg={cardBg}
           />
         )}
 

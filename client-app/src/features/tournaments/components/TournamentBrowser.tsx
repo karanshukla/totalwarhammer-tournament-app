@@ -16,24 +16,11 @@ import { LuLogIn, LuEye, LuTrophy, LuSwords } from "react-icons/lu";
 import { useNavigate } from "react-router";
 import { httpClient } from "@/core/api/httpClient";
 import { useUserStore } from "@/shared/stores/userStore";
-
-const statusColorMap: Record<string, string> = {
-  pending: "ink",
-  active: "verdigris",
-  completed: "ink",
-};
-
-const statusAccentMap: Record<string, string> = {
-  pending: "status.pending.border",
-  active: "info.border",
-  completed: "gold.border",
-};
-
-const statusBarMap: Record<string, string> = {
-  pending: "status.pending.border",
-  active: "info.border",
-  completed: "border.emphasized",
-};
+import {
+  statusColorMap,
+  statusAccentMap,
+  statusBarMap,
+} from "@/shared/tournament/types";
 
 interface Participant {
   _id: string;
@@ -69,8 +56,6 @@ const TournamentBrowser: React.FC<Props> = ({ statusFilter, emptyMessage }) => {
 
   const { user, isAuthenticated } = useUserStore();
   const navigate = useNavigate();
-  const cardBg = "bg.panel";
-  const borderColor = "border";
 
   const fetchTournaments = useCallback(async () => {
     setLoading(true);
@@ -152,8 +137,8 @@ const TournamentBrowser: React.FC<Props> = ({ statusFilter, emptyMessage }) => {
               return (
                 <Card.Root
                   key={t._id}
-                  bg={cardBg}
-                  borderColor={borderColor}
+                  bg="bg.panel"
+                  borderColor="border"
                   borderTopColor={statusAccentMap[t.status]}
                   borderTopWidth="2px"
                   display="flex"

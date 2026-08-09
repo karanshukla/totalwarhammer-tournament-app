@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import { displayName as dn } from "@/shared/utils/displayName";
+import { matchStatusSurfaceMap } from "@/shared/tournament/types";
 import {
   Box,
   HStack,
@@ -73,8 +74,6 @@ interface MatchCardProps {
   overrideLoading: boolean;
   overrideWinnerId: string;
   overrideReason: string;
-  borderColor: string;
-  mutedBg: string;
   onRecordResult: (matchId: string, winnerId: string) => void;
   onReportResult: (matchId: string, winnerId: string) => void;
   onResolveDispute: (matchId: string, winnerId: string) => void;
@@ -100,8 +99,6 @@ const MatchCard: React.FC<MatchCardProps> = ({
   overrideLoading,
   overrideWinnerId,
   overrideReason,
-  borderColor,
-  mutedBg,
   onRecordResult,
   onReportResult,
   onResolveDispute,
@@ -131,20 +128,8 @@ const MatchCard: React.FC<MatchCardProps> = ({
       p={4}
       borderRadius="md"
       borderWidth={1}
-      borderColor={
-        m.status === "disputed"
-          ? "status.loss.border"
-          : m.status === "completed"
-            ? "status.win.border"
-            : borderColor
-      }
-      bg={
-        m.status === "disputed"
-          ? "status.loss.subtle"
-          : m.status === "completed"
-            ? "status.win.subtle"
-            : mutedBg
-      }
+      borderColor={matchStatusSurfaceMap[m.status].borderColor}
+      bg={matchStatusSurfaceMap[m.status].bg}
     >
       {/* Match status row */}
       <HStack mb={2} justifyContent="space-between">

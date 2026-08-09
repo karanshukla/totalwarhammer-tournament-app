@@ -63,8 +63,34 @@ export interface Tournament {
   createdBy: string;
 }
 
+/** Badge palette per tournament status. */
 export const statusColorMap: Record<string, string> = {
   pending: "ink",
   active: "verdigris",
   completed: "ink",
+};
+
+/** Card top-edge accent per tournament status. */
+export const statusAccentMap: Record<string, string> = {
+  pending: "status.pending.border",
+  active: "info.border",
+  completed: "gold.border",
+};
+
+/** Fill colour of the participants-progress bar per tournament status. */
+export const statusBarMap: Record<string, string> = {
+  pending: "status.pending.border",
+  active: "info.border",
+  completed: "border.emphasized",
+};
+
+/** Surface of a match card per match status — shared by the playable and spectator views. */
+export const matchStatusSurfaceMap: Record<
+  MatchStatus,
+  { bg: string; borderColor: string }
+> = {
+  pending: { bg: "bg.subtle", borderColor: "border" },
+  in_progress: { bg: "bg.subtle", borderColor: "border" },
+  completed: { bg: "status.win.subtle", borderColor: "status.win.border" },
+  disputed: { bg: "status.loss.subtle", borderColor: "status.loss.border" },
 };
