@@ -1,4 +1,4 @@
-name: Format Check
+name: Lint & Format
 
 on:
   push:
@@ -10,7 +10,7 @@ on:
       - ".gitattributes"
       - "package.json"
       - "package-lock.json"
-      - ".github/workflows/formatCheck.yml"
+      - ".github/workflows/lintAndFormat.yml"
   pull_request:
     branches: ["main"]
     paths:
@@ -20,12 +20,14 @@ on:
       - ".gitattributes"
       - "package.json"
       - "package-lock.json"
-      - ".github/workflows/formatCheck.yml"
+      - ".github/workflows/lintAndFormat.yml"
   workflow_dispatch:
 
 permissions:
   contents: read
 
+# Separate jobs so a formatting failure and a lint failure report
+# independently — as steps in one job, the first to fail hides the other.
 jobs:
   prettier:
     name: Prettier
@@ -47,3 +49,24 @@ jobs:
 
       - name: Check formatting
         run: npm run format:check
+
+  oxlint:
+    name: Oxlint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: "npm"
+          cache-dependency-path: "package-lock.json"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run oxlint
+        run: npm run lint
