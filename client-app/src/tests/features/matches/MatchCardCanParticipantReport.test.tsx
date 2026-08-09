@@ -61,8 +61,6 @@ const baseProps = {
   overrideLoading: false,
   overrideWinnerId: "",
   overrideReason: "",
-  borderColor: "border",
-  mutedBg: "bg.subtle",
   onRecordResult: vi.fn(),
   onReportResult: vi.fn(),
   onResolveDispute: vi.fn(),

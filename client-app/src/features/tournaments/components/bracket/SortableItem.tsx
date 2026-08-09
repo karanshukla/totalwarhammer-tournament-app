@@ -18,9 +18,6 @@ export function SortableItem({ id, participant }: SortableItemProps) {
     transition,
     isDragging,
   } = useSortable({ id });
-
-  const hoverBg = "bg.muted";
-
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
@@ -38,7 +35,7 @@ export function SortableItem({ id, participant }: SortableItemProps) {
       px={2}
       borderRadius="sm"
       bg={isDragging ? "info.subtle" : "transparent"}
-      _hover={{ bg: hoverBg }}
+      _hover={{ bg: "bg.muted" }}
       cursor="grab"
       height="100%"
       maxWidth="calc(100% - 80px)" // Space for the edit/delete buttons

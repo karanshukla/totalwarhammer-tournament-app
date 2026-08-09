@@ -22,11 +22,8 @@ import TournamentInfoCard from "./view/TournamentInfoCard";
 import JoinTournamentCard from "./view/JoinTournamentCard";
 import SpectatorMatchList from "./view/SpectatorMatchList";
 
-const cardBg = "bg.panel";
 // border.subtle (#BEB39B light / #473F32 dark) is the clearly-visible step;
 // the default border token washes into bg.panel in both modes.
-const borderColor = "border.subtle";
-const mutedBg = "bg.subtle";
 
 type Viewer = { id: string; username?: string } | null;
 
@@ -213,16 +210,9 @@ const TournamentViewPage: React.FC<{ id?: string }> = ({ id: propId }) => {
           participants={tournament.participants}
           playerCount={tournament.playerCount}
           isYou={(p) => alreadyJoined && isSameUser(p, user)}
-          cardBg={cardBg}
-          borderColor={borderColor}
-          mutedBg={mutedBg}
         />
 
-        <TournamentInfoCard
-          tournament={tournament}
-          cardBg={cardBg}
-          borderColor={borderColor}
-        />
+        <TournamentInfoCard tournament={tournament} />
 
         {isPending && (
           <JoinTournamentCard
@@ -236,19 +226,10 @@ const TournamentViewPage: React.FC<{ id?: string }> = ({ id: propId }) => {
             onFactionChange={setJoinFaction}
             onJoin={handleJoin}
             onGoToMatches={goToMatches}
-            cardBg={cardBg}
-            borderColor={borderColor}
           />
         )}
 
-        {showsMatches && (
-          <SpectatorMatchList
-            matches={matches}
-            cardBg={cardBg}
-            borderColor={borderColor}
-            mutedBg={mutedBg}
-          />
-        )}
+        {showsMatches && <SpectatorMatchList matches={matches} />}
       </SimpleGrid>
     </Container>
   );

@@ -29,16 +29,12 @@ const InfoRow: React.FC<InfoRowProps> = ({ label, children }) => (
 
 interface TournamentInfoCardProps {
   tournament: Tournament;
-  cardBg: string;
-  borderColor: string;
 }
 
 const TournamentInfoCard: React.FC<TournamentInfoCardProps> = ({
   tournament,
-  cardBg,
-  borderColor,
 }) => (
-  <Card.Root bg={cardBg} borderColor={borderColor} shadow="sm">
+  <Card.Root bg="bg.panel" borderColor="border" shadow="sm">
     <Card.Header>
       <HStack gap={2}>
         <LuTrophy />

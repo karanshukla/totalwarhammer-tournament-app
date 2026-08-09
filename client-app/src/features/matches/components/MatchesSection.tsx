@@ -73,10 +73,6 @@ function resolveMatchUser(
   return { isP1, isP2, myReport, canPR };
 }
 
-const cardBg = "bg.panel";
-const mutedBg = "bg.subtle";
-const borderColor = "border";
-
 const MatchesSection: React.FC<Props> = ({
   matches,
   selected,
@@ -186,7 +182,7 @@ const MatchesSection: React.FC<Props> = ({
   );
 
   return (
-    <Card.Root gridColumn={{ lg: "1 / -1" }} bg={cardBg}>
+    <Card.Root gridColumn={{ lg: "1 / -1" }} bg="bg.panel">
       <Card.Header>
         <HStack justifyContent="space-between">
           <HStack gap={2}>
@@ -338,8 +334,6 @@ const MatchesSection: React.FC<Props> = ({
                                     overrideLoading={overrideLoading}
                                     overrideWinnerId={overrideWinnerId}
                                     overrideReason={overrideReason}
-                                    borderColor={borderColor}
-                                    mutedBg={mutedBg}
                                     onRecordResult={onRecordResult}
                                     onReportResult={onReportResult}
                                     onResolveDispute={onResolveDispute}
@@ -420,8 +414,6 @@ const MatchesSection: React.FC<Props> = ({
                                     overrideLoading={overrideLoading}
                                     overrideWinnerId={overrideWinnerId}
                                     overrideReason={overrideReason}
-                                    borderColor={borderColor}
-                                    mutedBg={mutedBg}
                                     onRecordResult={onRecordResult}
                                     onReportResult={onReportResult}
                                     onResolveDispute={onResolveDispute}
@@ -490,8 +482,6 @@ const MatchesSection: React.FC<Props> = ({
                               overrideLoading={overrideLoading}
                               overrideWinnerId={overrideWinnerId}
                               overrideReason={overrideReason}
-                              borderColor={borderColor}
-                              mutedBg={mutedBg}
                               onRecordResult={onRecordResult}
                               onReportResult={onReportResult}
                               onResolveDispute={onResolveDispute}
@@ -581,8 +571,6 @@ const MatchesSection: React.FC<Props> = ({
                                 overrideLoading={overrideLoading}
                                 overrideWinnerId={overrideWinnerId}
                                 overrideReason={overrideReason}
-                                borderColor={borderColor}
-                                mutedBg={mutedBg}
                                 onRecordResult={onRecordResult}
                                 onReportResult={onReportResult}
                                 onResolveDispute={onResolveDispute}

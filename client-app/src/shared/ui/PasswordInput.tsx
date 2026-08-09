@@ -121,7 +121,7 @@ export const PasswordStrengthMeter = React.forwardRef<
             rounded="sm"
             data-selected={index < value ? "" : undefined}
             layerStyle="fill.subtle"
-            colorPalette="gray"
+            colorPalette="ink"
             _selected={{
               colorPalette,
               layerStyle: "fill.solid",

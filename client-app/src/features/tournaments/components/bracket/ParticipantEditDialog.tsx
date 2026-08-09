@@ -35,9 +35,6 @@ export function ParticipantEditDialog({
   tournament,
 }: ParticipantEditDialogProps) {
   const cancelRef = React.useRef<HTMLButtonElement>(null);
-  const bgColor = "bg.panel";
-  const borderColor = "border";
-  const inputBgColor = "bg.subtle";
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (participant) {
@@ -65,14 +62,14 @@ export function ParticipantEditDialog({
           <Dialog.Content
             maxWidth="400px"
             width="95%"
-            bg={bgColor}
+            bg="bg.panel"
             borderRadius="md"
           >
             <Dialog.Header
               py={3}
               px={4}
               borderBottomWidth="1px"
-              borderColor={borderColor}
+              borderColor="border"
             >
               <Dialog.Title fontSize="lg" fontWeight="medium">
                 Edit Participant
@@ -88,8 +85,8 @@ export function ParticipantEditDialog({
                     <Input
                       value={participant?.name || ""}
                       onChange={handleNameChange}
-                      bg={inputBgColor}
-                      borderColor={borderColor}
+                      bg="bg.subtle"
+                      borderColor="border"
                       maxLength={PARTICIPANT_NAME_MAX_LENGTH}
                       autoFocus
                     />
@@ -116,7 +113,7 @@ export function ParticipantEditDialog({
                 px={4}
                 gap={3}
                 borderTopWidth="1px"
-                borderColor={borderColor}
+                borderColor="border"
               >
                 <Button
                   ref={cancelRef}

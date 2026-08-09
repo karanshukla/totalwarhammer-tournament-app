@@ -22,7 +22,6 @@ interface AddParticipantCardProps {
   onNameChange: (value: string) => void;
   onFactionChange: (value: string) => void;
   onAdd: () => void;
-  cardBg: string;
 }
 
 const AddParticipantCard: React.FC<AddParticipantCardProps> = ({
@@ -34,9 +33,8 @@ const AddParticipantCard: React.FC<AddParticipantCardProps> = ({
   onNameChange,
   onFactionChange,
   onAdd,
-  cardBg,
 }) => (
-  <Card.Root bg={cardBg}>
+  <Card.Root bg="bg.panel">
     <Card.Header>
       <Heading size="md">Add Participant</Heading>
       {isFull && (

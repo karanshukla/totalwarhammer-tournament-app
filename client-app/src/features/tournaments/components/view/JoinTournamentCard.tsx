@@ -1,7 +1,6 @@
 import React from "react";
 import {
   Badge,
-  Box,
   Button,
   Card,
   Field,
@@ -13,6 +12,7 @@ import {
 import { LuLogIn, LuSwords } from "react-icons/lu";
 import FactionSelect from "@/shared/ui/FactionSelect";
 import type { Tournament } from "@/shared/tournament/types";
+import Callout from "@/shared/ui/Callout";
 
 interface JoinTournamentCardProps {
   tournament: Tournament;
@@ -25,8 +25,6 @@ interface JoinTournamentCardProps {
   onFactionChange: (faction: string) => void;
   onJoin: () => void;
   onGoToMatches: () => void;
-  cardBg: string;
-  borderColor: string;
 }
 
 const JoinTournamentCard: React.FC<JoinTournamentCardProps> = ({
@@ -40,10 +38,8 @@ const JoinTournamentCard: React.FC<JoinTournamentCardProps> = ({
   onFactionChange,
   onJoin,
   onGoToMatches,
-  cardBg,
-  borderColor,
 }) => (
-  <Card.Root bg={cardBg} borderColor={borderColor} shadow="sm">
+  <Card.Root bg="bg.panel" borderColor="border" shadow="sm">
     <Card.Header>
       <HStack gap={2}>
         <LuLogIn />
@@ -80,18 +76,9 @@ const JoinTournamentCard: React.FC<JoinTournamentCardProps> = ({
       ) : (
         <VStack gap={4}>
           {joinError && (
-            <Box
-              p={3}
-              bg="status.loss.subtle"
-              borderRadius="md"
-              borderWidth={1}
-              borderColor="status.loss.border"
-              width="full"
-            >
-              <Text color="status.loss" fontSize="sm">
-                {joinError}
-              </Text>
-            </Box>
+            <Callout tone="error" fontSize="sm" width="full">
+              {joinError}
+            </Callout>
           )}
           <Field.Root>
             <Field.Label fontSize="sm">

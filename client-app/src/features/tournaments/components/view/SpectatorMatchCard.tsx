@@ -1,52 +1,10 @@
 import React from "react";
-import { Badge, Box, HStack, Text, VStack } from "@chakra-ui/react";
+import { Box, HStack, Text, VStack } from "@chakra-ui/react";
 import { LuTrophy } from "react-icons/lu";
 import { displayName as dn } from "@/shared/utils/displayName";
-import type { Match, MatchStatus, PlayerSlot } from "@/shared/tournament/types";
-
-const statusBadges: Record<MatchStatus, React.ReactNode> = {
-  completed: (
-    <Badge
-      size="sm"
-      variant="subtle"
-      bg="status.win.subtle"
-      color="status.win"
-      borderColor="status.win.border"
-      borderWidth="1px"
-    >
-      Completed
-    </Badge>
-  ),
-  disputed: (
-    <Badge colorPalette="crimson" size="sm" variant="solid">
-      ⚠ Disputed
-    </Badge>
-  ),
-  in_progress: (
-    <Badge colorPalette="verdigris" size="sm" variant="subtle">
-      In Progress
-    </Badge>
-  ),
-  pending: (
-    <Badge colorPalette="ink" size="sm" variant="subtle">
-      Pending
-    </Badge>
-  ),
-};
-
-const ResultBadge: React.FC<{ won: boolean }> = ({ won }) => (
-  <Badge
-    size="sm"
-    variant={won ? "subtle" : undefined}
-    bg={won ? "status.win.subtle" : "status.loss.subtle"}
-    color={won ? "status.win" : "status.loss"}
-    borderColor={won ? "status.win.border" : "status.loss.border"}
-    borderWidth="1px"
-    fontWeight="bold"
-  >
-    {won ? "W" : "L"}
-  </Badge>
-);
+import type { Match, PlayerSlot } from "@/shared/tournament/types";
+import { matchStatusSurfaceMap } from "@/shared/tournament/types";
+import { MatchStatusBadge, ResultBadge } from "@/shared/ui/MatchBadges";
 
 interface PlayerColumnProps {
   player: PlayerSlot;
@@ -81,40 +39,28 @@ const PlayerColumn: React.FC<PlayerColumnProps> = ({
 
 interface SpectatorMatchCardProps {
   match: Match;
-  borderColor: string;
-  mutedBg: string;
 }
 
 /** Read-only view of a match, used on the public tournament page. */
-const SpectatorMatchCard: React.FC<SpectatorMatchCardProps> = ({
-  match,
-  borderColor,
-  mutedBg,
-}) => {
+const SpectatorMatchCard: React.FC<SpectatorMatchCardProps> = ({ match }) => {
   const decided = !!match.winnerId;
   const p1Won = match.winnerId === match.player1.participantId;
   const winner = p1Won ? match.player1 : match.player2;
-
-  const accent =
-    match.status === "disputed"
-      ? { border: "status.loss.border", bg: "status.loss.subtle" }
-      : match.status === "completed"
-        ? { border: "status.win.border", bg: "status.win.subtle" }
-        : { border: borderColor, bg: mutedBg };
+  const surface = matchStatusSurfaceMap[match.status];
 
   return (
     <Box
       p={4}
       borderRadius="md"
       borderWidth={1}
-      borderColor={accent.border}
-      bg={accent.bg}
+      borderColor={surface.borderColor}
+      bg={surface.bg}
     >
       <HStack mb={2} justifyContent="space-between">
         <Text fontSize="xs" color="fg.muted">
           Match {match.matchNumber}
         </Text>
-        {statusBadges[match.status]}
+        <MatchStatusBadge status={match.status} />
       </HStack>
 
       <HStack gap={4} justifyContent="space-between" wrap="wrap">

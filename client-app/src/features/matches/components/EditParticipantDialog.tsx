@@ -15,8 +15,6 @@ interface Props {
   onSave: () => void;
 }
 
-const borderColor = "border";
-
 const EditParticipantDialog: React.FC<Props> = ({
   open,
   participant,
@@ -41,7 +39,7 @@ const EditParticipantDialog: React.FC<Props> = ({
         <Dialog.Backdrop />
         <Dialog.Positioner>
           <Dialog.Content maxWidth="400px" width="95%">
-            <Dialog.Header borderBottomWidth="1px" borderColor={borderColor}>
+            <Dialog.Header borderBottomWidth="1px" borderColor="border">
               <Dialog.Title>Edit Participant</Dialog.Title>
             </Dialog.Header>
             <Dialog.Body py={4}>
@@ -74,11 +72,7 @@ const EditParticipantDialog: React.FC<Props> = ({
                 </Field.Root>
               </VStack>
             </Dialog.Body>
-            <Dialog.Footer
-              borderTopWidth="1px"
-              borderColor={borderColor}
-              gap={3}
-            >
+            <Dialog.Footer borderTopWidth="1px" borderColor="border" gap={3}>
               <Button variant="outline" colorPalette="ink" onClick={onClose}>
                 Cancel
               </Button>

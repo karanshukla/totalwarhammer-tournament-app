@@ -59,7 +59,6 @@ interface ManagedInfoCardProps {
   matches: Match[];
   roundCount: number;
   isActive: boolean;
-  cardBg: string;
 }
 
 const ManagedInfoCard: React.FC<ManagedInfoCardProps> = ({
@@ -67,7 +66,6 @@ const ManagedInfoCard: React.FC<ManagedInfoCardProps> = ({
   matches,
   roundCount,
   isActive,
-  cardBg,
 }) => {
   const isRoundRobin = tournament.tournamentType === "Round Robin";
   const bracketRounds = matches.filter(
@@ -88,7 +86,7 @@ const ManagedInfoCard: React.FC<ManagedInfoCardProps> = ({
   };
 
   return (
-    <Card.Root bg={cardBg}>
+    <Card.Root bg="bg.panel">
       <Card.Header>
         <HStack gap={2}>
           <LuTrophy />

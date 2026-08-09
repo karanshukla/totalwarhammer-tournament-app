@@ -16,24 +16,12 @@ import { LuLogIn, LuEye, LuTrophy, LuSwords } from "react-icons/lu";
 import { useNavigate } from "react-router";
 import { httpClient } from "@/core/api/httpClient";
 import { useUserStore } from "@/shared/stores/userStore";
-
-const statusColorMap: Record<string, string> = {
-  pending: "ink",
-  active: "verdigris",
-  completed: "ink",
-};
-
-const statusAccentMap: Record<string, string> = {
-  pending: "status.pending.border",
-  active: "info.border",
-  completed: "gold.border",
-};
-
-const statusBarMap: Record<string, string> = {
-  pending: "status.pending.border",
-  active: "info.border",
-  completed: "border.emphasized",
-};
+import {
+  statusColorMap,
+  statusAccentMap,
+  statusBarMap,
+} from "@/shared/tournament/types";
+import Callout from "@/shared/ui/Callout";
 
 interface Participant {
   _id: string;
@@ -69,8 +57,6 @@ const TournamentBrowser: React.FC<Props> = ({ statusFilter, emptyMessage }) => {
 
   const { user, isAuthenticated } = useUserStore();
   const navigate = useNavigate();
-  const cardBg = "bg.panel";
-  const borderColor = "border";
 
   const fetchTournaments = useCallback(async () => {
     setLoading(true);
@@ -116,17 +102,7 @@ const TournamentBrowser: React.FC<Props> = ({ statusFilter, emptyMessage }) => {
   }
 
   if (error) {
-    return (
-      <Box
-        p={3}
-        bg="status.loss.subtle"
-        borderRadius="md"
-        borderWidth={1}
-        borderColor="status.loss.border"
-      >
-        <Text color="status.loss">{error}</Text>
-      </Box>
-    );
+    return <Callout tone="error">{error}</Callout>;
   }
 
   return (
@@ -152,8 +128,8 @@ const TournamentBrowser: React.FC<Props> = ({ statusFilter, emptyMessage }) => {
               return (
                 <Card.Root
                   key={t._id}
-                  bg={cardBg}
-                  borderColor={borderColor}
+                  bg="bg.panel"
+                  borderColor="border"
                   borderTopColor={statusAccentMap[t.status]}
                   borderTopWidth="2px"
                   display="flex"

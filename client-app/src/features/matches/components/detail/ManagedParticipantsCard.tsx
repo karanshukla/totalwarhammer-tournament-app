@@ -19,9 +19,6 @@ interface ManagedParticipantsCardProps {
   actionLoading: boolean;
   onEdit: (participant: Participant) => void;
   onRemove: (participantId: string) => void;
-  cardBg: string;
-  borderColor: string;
-  rowBg: string;
 }
 
 const ManagedParticipantsCard: React.FC<ManagedParticipantsCardProps> = ({
@@ -32,11 +29,8 @@ const ManagedParticipantsCard: React.FC<ManagedParticipantsCardProps> = ({
   actionLoading,
   onEdit,
   onRemove,
-  cardBg,
-  borderColor,
-  rowBg,
 }) => (
-  <Card.Root bg={cardBg}>
+  <Card.Root bg="bg.panel">
     <Card.Header>
       <HStack gap={2}>
         <LuUsers />
@@ -59,8 +53,8 @@ const ManagedParticipantsCard: React.FC<ManagedParticipantsCardProps> = ({
                 p={3}
                 borderRadius="md"
                 borderWidth={1}
-                borderColor={borderColor}
-                bg={rowBg}
+                borderColor="border"
+                bg="info.subtle"
                 justifyContent="space-between"
               >
                 <VStack alignItems="flex-start" gap={0}>

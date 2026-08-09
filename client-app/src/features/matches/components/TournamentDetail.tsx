@@ -3,7 +3,6 @@ import {
   Container,
   Heading,
   Text,
-  Box,
   VStack,
   HStack,
   SimpleGrid,
@@ -30,6 +29,7 @@ import DescriptionEditor from "./detail/DescriptionEditor";
 import ManagedInfoCard from "./detail/ManagedInfoCard";
 import ManagedParticipantsCard from "./detail/ManagedParticipantsCard";
 import { canAdvanceRound } from "./detail/roundProgress";
+import Callout from "@/shared/ui/Callout";
 
 interface Props {
   selected: Tournament;
@@ -59,10 +59,6 @@ interface Props {
   onSetNewName: (v: string) => void;
   onSetNewFaction: (v: string) => void;
 }
-
-const cardBg = "bg.panel";
-const borderColor = "border";
-const selectedBg = "info.subtle";
 
 const TournamentDetail: React.FC<Props> = ({
   selected,
@@ -236,16 +232,9 @@ const TournamentDetail: React.FC<Props> = ({
       </HStack>
 
       {actionError && (
-        <Box
-          mb={6}
-          p={3}
-          bg="status.loss.subtle"
-          borderRadius="md"
-          borderWidth={1}
-          borderColor="status.loss.border"
-        >
-          <Text color="status.loss">{actionError}</Text>
-        </Box>
+        <Callout tone="error" mb={6}>
+          {actionError}
+        </Callout>
       )}
 
       <SimpleGrid columns={{ base: 1, lg: 2 }} gap={6}>
@@ -260,9 +249,6 @@ const TournamentDetail: React.FC<Props> = ({
             setEditDialogOpen(true);
           }}
           onRemove={onRemoveParticipant}
-          cardBg={cardBg}
-          borderColor={borderColor}
-          rowBg={selectedBg}
         />
 
         {isAdmin && isPending ? (
@@ -275,7 +261,6 @@ const TournamentDetail: React.FC<Props> = ({
             onNameChange={onSetNewName}
             onFactionChange={onSetNewFaction}
             onAdd={onAddParticipant}
-            cardBg={cardBg}
           />
         ) : (
           <ManagedInfoCard
@@ -283,7 +268,6 @@ const TournamentDetail: React.FC<Props> = ({
             matches={matches}
             roundCount={roundNumbers.length}
             isActive={isActive}
-            cardBg={cardBg}
           />
         )}
 

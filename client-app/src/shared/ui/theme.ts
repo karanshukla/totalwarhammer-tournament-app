@@ -1,4 +1,9 @@
-import { createSystem, defaultConfig, defineConfig } from "@chakra-ui/react";
+import {
+  createSystem,
+  defaultConfig,
+  defineConfig,
+  defineRecipe,
+} from "@chakra-ui/react";
 
 // Crimson — Khorne / Imperial blood: primary brand, active states, focus rings
 const CRIMSON = {
@@ -364,3 +369,40 @@ const config = defineConfig({
 });
 
 export const system = createSystem(defaultConfig, config);
+
+// Consumed via the `chakra()` factory in shared/ui rather than registered on the
+// system, so the variant props stay typed without a typegen step.
+
+// Clickable card that reads as chosen vs. available — tab pickers, tournament
+// selection lists. Both states lift on hover: the unselected hover bg must stay
+// lighter than bg.panel in dark mode or the card sinks into the canvas.
+export const selectableCardRecipe = defineRecipe({
+  base: {
+    cursor: "pointer",
+    borderWidth: "1px",
+    borderRadius: "md",
+    transition: "all 0.2s ease-in-out",
+  },
+  variants: {
+    selected: {
+      true: {
+        bg: "info.subtle",
+        borderColor: "info.border",
+        color: "info.text",
+        shadow: "sm",
+        _hover: { shadow: "md" },
+      },
+      false: {
+        bg: "bg.panel",
+        borderColor: "border",
+        color: "fg.secondary",
+        _hover: {
+          shadow: "md",
+          borderColor: "border.emphasized",
+          bg: "bg.elevated",
+        },
+      },
+    },
+  },
+  defaultVariants: { selected: false },
+});

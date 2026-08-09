@@ -16,6 +16,7 @@ import {
 } from "@chakra-ui/react";
 import { LuTrophy, LuUsers, LuSearch } from "react-icons/lu";
 import { Tournament, statusColorMap } from "./types";
+import Callout from "@/shared/ui/Callout";
 
 export type GameFilter = "all" | "wh3" | "40k";
 
@@ -40,10 +41,6 @@ interface Props {
   onGameFilterChange: (g: GameFilter) => void;
   onPageChange: (p: number) => void;
 }
-
-const cardBg = "bg.panel";
-const borderColor = "border";
-const selectedBg = "info.subtle";
 
 const TournamentList: React.FC<Props> = ({
   tournaments,
@@ -108,16 +105,9 @@ const TournamentList: React.FC<Props> = ({
       </HStack>
 
       {error && (
-        <Box
-          mb={4}
-          p={3}
-          bg="status.loss.subtle"
-          borderRadius="md"
-          borderWidth={1}
-          borderColor="status.loss.border"
-        >
-          <Text color="status.loss">{error}</Text>
-        </Box>
+        <Callout tone="error" mb={4}>
+          {error}
+        </Callout>
       )}
 
       {statusCounts.all > 0 && (
@@ -239,9 +229,9 @@ const TournamentList: React.FC<Props> = ({
                   key={t._id}
                   cursor="pointer"
                   onClick={() => onSelectTournament(t)}
-                  bg={cardBg}
-                  borderColor={borderColor}
-                  _hover={{ shadow: "md", bg: selectedBg }}
+                  bg="bg.panel"
+                  borderColor="border"
+                  _hover={{ shadow: "md", bg: "info.subtle" }}
                   transition="all 0.15s ease"
                 >
                   <Card.Body>
