@@ -62,6 +62,19 @@ import TournamentViewPage from "@/features/tournaments/components/TournamentView
 
 const fakeSocket = { emit: vi.fn(), on: vi.fn(), off: vi.fn() };
 
+// Handlers are registered in a passive effect, which React flushes *after* the
+// commit that paints the tournament. Waiting on the DOM is therefore not
+// enough — poll the registration itself.
+async function waitForSocketHandler<T>(event: string) {
+  let handler: ((payload: T) => void) | undefined;
+  await waitFor(() => {
+    const call = fakeSocket.on.mock.calls.find((c) => c[0] === event);
+    expect(call).toBeDefined();
+    handler = call?.[1];
+  });
+  return handler as (payload: T) => void;
+}
+
 function makeTournament(overrides: Record<string, unknown> = {}) {
   return {
     _id: "t1",
@@ -181,11 +194,7 @@ describe("TournamentViewPage – socket event callback bodies", () => {
 
     await screen.findByText("Original Cup");
 
-    // Find the onTournamentUpdated socket.on callback
-    const onCall = fakeSocket.on.mock.calls.find(
-      (c) => c[0] === "tournament:updated",
-    );
-    expect(onCall).toBeDefined();
+    const handler = await waitForSocketHandler<unknown>("tournament:updated");
 
     // Invoke the callback with updated data
     const updatedTournament = makeTournament({
@@ -193,7 +202,7 @@ describe("TournamentViewPage – socket event callback bodies", () => {
       status: "pending",
     });
     await import("@testing-library/react").then(({ act }) =>
-      act(() => onCall?.[1]?.(updatedTournament)),
+      act(() => handler(updatedTournament)),
     );
 
     await waitFor(() =>
@@ -214,10 +223,7 @@ describe("TournamentViewPage – socket event callback bodies", () => {
       expect(screen.getByText(/no matches yet/i)).toBeInTheDocument(),
     );
 
-    const onCall = fakeSocket.on.mock.calls.find(
-      (c) => c[0] === "matches:updated",
-    );
-    expect(onCall).toBeDefined();
+    const handler = await waitForSocketHandler<unknown[]>("matches:updated");
 
     const match = {
       _id: "m1",
@@ -236,7 +242,7 @@ describe("TournamentViewPage – socket event callback bodies", () => {
     };
 
     await import("@testing-library/react").then(({ act }) =>
-      act(() => onCall?.[1]?.([match])),
+      act(() => handler([match])),
     );
 
     await waitFor(() =>
@@ -272,14 +278,11 @@ describe("TournamentViewPage – socket event callback bodies", () => {
       expect(screen.getByText("Match 1")).toBeInTheDocument(),
     );
 
-    const onCall = fakeSocket.on.mock.calls.find(
-      (c) => c[0] === "matches:appended",
-    );
-    expect(onCall).toBeDefined();
+    const handler = await waitForSocketHandler<unknown[]>("matches:appended");
 
     const newMatch = { ...initialMatch, _id: "m2", matchNumber: 2 };
     await import("@testing-library/react").then(({ act }) =>
-      act(() => onCall?.[1]?.([newMatch])),
+      act(() => handler([newMatch])),
     );
 
     await waitFor(() =>
@@ -315,10 +318,7 @@ describe("TournamentViewPage – socket event callback bodies", () => {
       expect(screen.getByText("Match 1")).toBeInTheDocument(),
     );
 
-    const onCall = fakeSocket.on.mock.calls.find(
-      (c) => c[0] === "match:updated",
-    );
-    expect(onCall).toBeDefined();
+    const handler = await waitForSocketHandler<unknown>("match:updated");
 
     const updatedMatch = {
       ...match,
@@ -326,7 +326,7 @@ describe("TournamentViewPage – socket event callback bodies", () => {
       status: "completed" as const,
     };
     await import("@testing-library/react").then(({ act }) =>
-      act(() => onCall?.[1]?.(updatedMatch)),
+      act(() => handler(updatedMatch)),
     );
 
     // Match still shows (state was updated)
@@ -377,15 +377,10 @@ describe("TournamentViewPage – onMatchUpdated with multiple matches in the lis
     );
     expect(screen.getByText("Match 2")).toBeInTheDocument();
 
-    const onCall = fakeSocket.on.mock.calls.find(
-      (c) => c[0] === "match:updated",
-    );
-    expect(onCall).toBeDefined();
+    const handler = await waitForSocketHandler<unknown>("match:updated");
 
     const { act } = await import("@testing-library/react");
-    act(() =>
-      onCall?.[1]?.({ ...match1, winnerId: "p1", status: "completed" }),
-    );
+    act(() => handler({ ...match1, winnerId: "p1", status: "completed" }));
 
     await waitFor(() =>
       expect(screen.getByText("Match 1")).toBeInTheDocument(),

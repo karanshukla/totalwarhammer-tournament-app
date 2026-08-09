@@ -234,6 +234,19 @@ const fakeSocket = {
   off: vi.fn(),
 };
 
+// Handlers are registered in a passive effect, which React flushes *after* the
+// commit that paints the detail view. Waiting on the DOM is therefore not
+// enough — poll the registration itself.
+async function waitForSocketHandler<T>(event: string) {
+  let handler: ((payload: T) => void) | undefined;
+  await waitFor(() => {
+    const call = fakeSocket.on.mock.calls.find((c) => c[0] === event);
+    expect(call).toBeDefined();
+    handler = call?.[1];
+  });
+  return handler as (payload: T) => void;
+}
+
 function makeStore(
   isAuthenticated: boolean,
   userId = "u1",
@@ -656,15 +669,11 @@ describe("MatchesPage – socket event callback bodies", () => {
   it("invokes onTournamentUpdated callback updating selected + tournaments list", async () => {
     await setupWithDetail();
 
-    // Find the registered 'tournament:updated' handler
-    const updateCall = fakeSocket.on.mock.calls.find(
-      (c) => c[0] === "tournament:updated",
-    );
-    const handler = updateCall?.[1];
-    expect(handler).toBeDefined();
+    const handler =
+      await waitForSocketHandler<typeof activeTournament>("tournament:updated");
 
     const updatedTournament = { ...activeTournament, name: "Updated Name" };
-    handler?.(updatedTournament);
+    handler(updatedTournament);
 
     await waitFor(() => {
       expect(screen.getByTestId("selected-id")).toHaveTextContent("t1");
@@ -674,44 +683,26 @@ describe("MatchesPage – socket event callback bodies", () => {
   it("invokes onMatchesUpdated callback replacing matches", async () => {
     await setupWithDetail();
 
-    let handler: ((matches: unknown[]) => void) | undefined;
-    await waitFor(() => {
-      const matchesUpdateCall = fakeSocket.on.mock.calls.find(
-        (c) => c[0] === "matches:updated",
-      );
-      handler = matchesUpdateCall?.[1];
-      expect(handler).toBeDefined();
-    });
+    const handler = await waitForSocketHandler<unknown[]>("matches:updated");
 
     // Calling the handler should not throw
-    handler?.([{ _id: "m1", round: 1 }]);
+    handler([{ _id: "m1", round: 1 }]);
   });
 
   it("invokes onMatchesAppended callback appending matches", async () => {
     await setupWithDetail();
 
-    let handler: ((matches: unknown[]) => void) | undefined;
-    await waitFor(() => {
-      const appendCall = fakeSocket.on.mock.calls.find(
-        (c) => c[0] === "matches:appended",
-      );
-      handler = appendCall?.[1];
-      expect(handler).toBeDefined();
-    });
+    const handler = await waitForSocketHandler<unknown[]>("matches:appended");
 
-    handler?.([{ _id: "m2", round: 2 }]);
+    handler([{ _id: "m2", round: 2 }]);
   });
 
   it("invokes onMatchUpdated callback updating a single match", async () => {
     await setupWithDetail();
 
-    const matchUpdateCall = fakeSocket.on.mock.calls.find(
-      (c) => c[0] === "match:updated",
-    );
-    const handler = matchUpdateCall?.[1];
-    expect(handler).toBeDefined();
+    const handler = await waitForSocketHandler<unknown>("match:updated");
 
-    handler?.({ _id: "m1", round: 1, status: "completed" });
+    handler({ _id: "m1", round: 1, status: "completed" });
   });
 
   it("emits tournament:leave and calls socket.off on cleanup", async () => {
@@ -1085,14 +1076,11 @@ describe("MatchesPage – socket handlers with multiple items (act-wrapped)", ()
       expect(screen.getByTestId("tournament-detail")).toBeInTheDocument(),
     );
 
-    const updateCall = fakeSocket.on.mock.calls.find(
-      (c) => c[0] === "tournament:updated",
-    );
-    const handler = updateCall?.[1];
-    expect(handler).toBeDefined();
+    const handler =
+      await waitForSocketHandler<typeof activeTournament>("tournament:updated");
 
     const updatedTournament = { ...activeTournament, name: "Updated Name" };
-    act(() => handler?.(updatedTournament));
+    act(() => handler(updatedTournament));
 
     await waitFor(() => {
       expect(screen.getByTestId("selected-id")).toHaveTextContent("t1");
@@ -1102,13 +1090,9 @@ describe("MatchesPage – socket handlers with multiple items (act-wrapped)", ()
   it("onMatchesAppended actually appends via the functional setMatches updater", async () => {
     await setupWithDetail();
 
-    const appendCall = fakeSocket.on.mock.calls.find(
-      (c) => c[0] === "matches:appended",
-    );
-    const handler = appendCall?.[1];
-    expect(handler).toBeDefined();
+    const handler = await waitForSocketHandler<unknown[]>("matches:appended");
 
-    act(() => handler?.([{ _id: "m2", round: 2 }]));
+    act(() => handler([{ _id: "m2", round: 2 }]));
 
     // No crash + handler executed the functional updater (covered via act()).
     expect(screen.getByTestId("tournament-detail")).toBeInTheDocument();
@@ -1134,13 +1118,9 @@ describe("MatchesPage – socket handlers with multiple items (act-wrapped)", ()
       expect(screen.getByTestId("tournament-detail")).toBeInTheDocument(),
     );
 
-    const matchUpdateCall = fakeSocket.on.mock.calls.find(
-      (c) => c[0] === "match:updated",
-    );
-    const handler = matchUpdateCall?.[1];
-    expect(handler).toBeDefined();
+    const handler = await waitForSocketHandler<unknown>("match:updated");
 
-    act(() => handler?.({ _id: "m1", round: 1, status: "completed" }));
+    act(() => handler({ _id: "m1", round: 1, status: "completed" }));
 
     expect(screen.getByTestId("tournament-detail")).toBeInTheDocument();
   });

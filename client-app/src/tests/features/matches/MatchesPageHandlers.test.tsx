@@ -785,23 +785,27 @@ describe("MatchesPage – socket effects", () => {
       expect(screen.getByTestId("tournament-detail")).toBeInTheDocument(),
     );
 
-    expect(fakeSocket.emit).toHaveBeenCalledWith("tournament:join", "t1");
-    expect(fakeSocket.on).toHaveBeenCalledWith(
-      "tournament:updated",
-      expect.any(Function),
-    );
-    expect(fakeSocket.on).toHaveBeenCalledWith(
-      "matches:updated",
-      expect.any(Function),
-    );
-    expect(fakeSocket.on).toHaveBeenCalledWith(
-      "matches:appended",
-      expect.any(Function),
-    );
-    expect(fakeSocket.on).toHaveBeenCalledWith(
-      "match:updated",
-      expect.any(Function),
-    );
+    // Registration happens in a passive effect, flushed after the commit that
+    // paints the detail view — so poll rather than assert straight away.
+    await waitFor(() => {
+      expect(fakeSocket.emit).toHaveBeenCalledWith("tournament:join", "t1");
+      expect(fakeSocket.on).toHaveBeenCalledWith(
+        "tournament:updated",
+        expect.any(Function),
+      );
+      expect(fakeSocket.on).toHaveBeenCalledWith(
+        "matches:updated",
+        expect.any(Function),
+      );
+      expect(fakeSocket.on).toHaveBeenCalledWith(
+        "matches:appended",
+        expect.any(Function),
+      );
+      expect(fakeSocket.on).toHaveBeenCalledWith(
+        "match:updated",
+        expect.any(Function),
+      );
+    });
   });
 });
 

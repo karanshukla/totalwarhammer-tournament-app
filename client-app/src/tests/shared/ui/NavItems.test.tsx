@@ -8,7 +8,7 @@
  * - isPortrait=false: shows all desktop items including Terms/GitHub
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom";
 import React from "react";
@@ -221,7 +221,11 @@ describe("NavItems – mobile burger/overflow menu (issue #147)", () => {
     );
     const help = await screen.findByText(/get help/i);
     await userEvent.click(help);
-    // Menu collapsed: the overflow labels are no longer visible.
-    expect(screen.queryByText(/privacy policy/i)).not.toBeVisible();
+    // Menu collapsed: the overflow labels are no longer visible. The popover
+    // tears down asynchronously, so poll rather than assert on the first tick.
+    await waitFor(() => {
+      const privacy = screen.queryByText(/privacy policy/i);
+      if (privacy) expect(privacy).not.toBeVisible();
+    });
   });
 });
