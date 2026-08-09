@@ -1,53 +1,10 @@
 import React from "react";
-import { Badge, Box, HStack, Text, VStack } from "@chakra-ui/react";
+import { Box, HStack, Text, VStack } from "@chakra-ui/react";
 import { LuTrophy } from "react-icons/lu";
 import { displayName as dn } from "@/shared/utils/displayName";
-import type { Match, MatchStatus, PlayerSlot } from "@/shared/tournament/types";
+import type { Match, PlayerSlot } from "@/shared/tournament/types";
 import { matchStatusSurfaceMap } from "@/shared/tournament/types";
-
-const statusBadges: Record<MatchStatus, React.ReactNode> = {
-  completed: (
-    <Badge
-      size="sm"
-      variant="subtle"
-      bg="status.win.subtle"
-      color="status.win"
-      borderColor="status.win.border"
-      borderWidth="1px"
-    >
-      Completed
-    </Badge>
-  ),
-  disputed: (
-    <Badge colorPalette="crimson" size="sm" variant="solid">
-      ⚠ Disputed
-    </Badge>
-  ),
-  in_progress: (
-    <Badge colorPalette="verdigris" size="sm" variant="subtle">
-      In Progress
-    </Badge>
-  ),
-  pending: (
-    <Badge colorPalette="ink" size="sm" variant="subtle">
-      Pending
-    </Badge>
-  ),
-};
-
-const ResultBadge: React.FC<{ won: boolean }> = ({ won }) => (
-  <Badge
-    size="sm"
-    variant={won ? "subtle" : undefined}
-    bg={won ? "status.win.subtle" : "status.loss.subtle"}
-    color={won ? "status.win" : "status.loss"}
-    borderColor={won ? "status.win.border" : "status.loss.border"}
-    borderWidth="1px"
-    fontWeight="bold"
-  >
-    {won ? "W" : "L"}
-  </Badge>
-);
+import { MatchStatusBadge, ResultBadge } from "@/shared/ui/MatchBadges";
 
 interface PlayerColumnProps {
   player: PlayerSlot;
@@ -103,7 +60,7 @@ const SpectatorMatchCard: React.FC<SpectatorMatchCardProps> = ({ match }) => {
         <Text fontSize="xs" color="fg.muted">
           Match {match.matchNumber}
         </Text>
-        {statusBadges[match.status]}
+        <MatchStatusBadge status={match.status} />
       </HStack>
 
       <HStack gap={4} justifyContent="space-between" wrap="wrap">

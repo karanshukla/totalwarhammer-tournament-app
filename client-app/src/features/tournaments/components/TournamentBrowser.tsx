@@ -21,6 +21,7 @@ import {
   statusAccentMap,
   statusBarMap,
 } from "@/shared/tournament/types";
+import Callout from "@/shared/ui/Callout";
 
 interface Participant {
   _id: string;
@@ -101,17 +102,7 @@ const TournamentBrowser: React.FC<Props> = ({ statusFilter, emptyMessage }) => {
   }
 
   if (error) {
-    return (
-      <Box
-        p={3}
-        bg="status.loss.subtle"
-        borderRadius="md"
-        borderWidth={1}
-        borderColor="status.loss.border"
-      >
-        <Text color="status.loss">{error}</Text>
-      </Box>
-    );
+    return <Callout tone="error">{error}</Callout>;
   }
 
   return (

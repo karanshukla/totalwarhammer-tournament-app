@@ -36,8 +36,6 @@ export function ParticipantList({
   onSetNewParticipantCount,
   onEditParticipant,
 }: ParticipantListProps) {
-  const overlayBgColor = "bg.elevated";
-
   const store = useTournamentStore();
   const participants = useTournamentStore((state) => state.participants);
 
@@ -198,7 +196,7 @@ export function ParticipantList({
               {activeParticipant ? (
                 <Box
                   p={2}
-                  bg={overlayBgColor}
+                  bg="bg.elevated"
                   borderRadius="md"
                   boxShadow="md"
                   borderWidth="1px"

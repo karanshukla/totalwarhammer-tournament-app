@@ -1,20 +1,18 @@
 import React, { useEffect } from "react";
 import { displayName as dn } from "@/shared/utils/displayName";
 import { matchStatusSurfaceMap } from "@/shared/tournament/types";
+import { MatchStatusBadge, ResultBadge } from "@/shared/ui/MatchBadges";
 import {
   Box,
   HStack,
   VStack,
   Text,
-  Badge,
   Button,
   Input,
   Popover,
   Separator,
 } from "@chakra-ui/react";
 import {
-  LuCircleCheck,
-  LuClock,
   LuSwords,
   LuShieldAlert,
   LuTrophy,
@@ -210,63 +208,14 @@ const MatchCard: React.FC<MatchCardProps> = ({
               </Popover.Positioner>
             </Popover.Root>
           )}
-          {m.status === "completed" && (
-            <Badge
-              size="sm"
-              variant="subtle"
-              bg="status.win.subtle"
-              color="status.win"
-              borderColor="status.win.border"
-              borderWidth="1px"
-            >
-              <LuCircleCheck /> Completed
-            </Badge>
-          )}
-          {m.status === "disputed" && (
-            <Badge colorPalette="crimson" size="sm" variant="solid">
-              ⚠ Disputed
-            </Badge>
-          )}
-          {m.status === "in_progress" && (
-            <Badge colorPalette="verdigris" size="sm" variant="subtle">
-              <LuClock /> In Progress
-            </Badge>
-          )}
-          {m.status === "pending" && (
-            <Badge colorPalette="ink" size="sm" variant="subtle">
-              Pending
-            </Badge>
-          )}
+          <MatchStatusBadge status={m.status} withIcon />
         </HStack>
       </HStack>
       <HStack gap={4} justifyContent="space-between" wrap="wrap">
         <VStack alignItems="flex-start" gap={0} flex={1}>
           <HStack gap={1}>
-            {p1Won && (
-              <Badge
-                size="sm"
-                variant="subtle"
-                bg="status.win.subtle"
-                color="status.win"
-                borderColor="status.win.border"
-                borderWidth="1px"
-                fontWeight="bold"
-              >
-                W
-              </Badge>
-            )}
-            {m.winnerId && !p1Won && (
-              <Badge
-                size="sm"
-                bg="status.loss.subtle"
-                color="status.loss"
-                borderColor="status.loss.border"
-                borderWidth="1px"
-                fontWeight="bold"
-              >
-                L
-              </Badge>
-            )}
+            {p1Won && <ResultBadge won />}
+            {m.winnerId && !p1Won && <ResultBadge won={false} />}
             <Text
               fontWeight={p1Won ? "bold" : "medium"}
               color={m.winnerId && !p1Won ? "fg.muted" : undefined}
@@ -287,30 +236,9 @@ const MatchCard: React.FC<MatchCardProps> = ({
         </VStack>
         <VStack alignItems="flex-end" gap={0} flex={1}>
           <HStack gap={1}>
-            {p2Won && (
-              <Badge
-                size="sm"
-                variant="subtle"
-                bg="status.win.subtle"
-                color="status.win"
-                borderColor="status.win.border"
-                borderWidth="1px"
-                fontWeight="bold"
-              >
-                W
-              </Badge>
-            )}
+            {p2Won && <ResultBadge won />}
             {m.winnerId && !p2Won && m.player2.name !== "BYE" && (
-              <Badge
-                size="sm"
-                bg="status.loss.subtle"
-                color="status.loss"
-                borderColor="status.loss.border"
-                borderWidth="1px"
-                fontWeight="bold"
-              >
-                L
-              </Badge>
+              <ResultBadge won={false} />
             )}
             <Text
               fontWeight={p2Won ? "bold" : "medium"}

@@ -24,6 +24,7 @@ import {
 } from "react-icons/lu";
 import { httpClient } from "@/core/api/httpClient";
 import { displayName as dn } from "@/shared/utils/displayName";
+import Callout from "@/shared/ui/Callout";
 
 type Game = "wh3" | "40k";
 
@@ -197,15 +198,9 @@ const StatisticsPage: React.FC = () => {
   if (error || !stats) {
     return (
       <Container maxW="container.xl" py={8}>
-        <Box
-          p={4}
-          bg="status.loss.subtle"
-          borderRadius="md"
-          borderWidth={1}
-          borderColor="status.loss.border"
-        >
-          <Text color="status.loss">{error ?? "No data available."}</Text>
-        </Box>
+        <Callout tone="error" p={4}>
+          {error ?? "No data available."}
+        </Callout>
       </Container>
     );
   }

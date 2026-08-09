@@ -16,6 +16,7 @@ import {
 } from "@chakra-ui/react";
 import { LuTrophy, LuUsers, LuSearch } from "react-icons/lu";
 import { Tournament, statusColorMap } from "./types";
+import Callout from "@/shared/ui/Callout";
 
 export type GameFilter = "all" | "wh3" | "40k";
 
@@ -104,16 +105,9 @@ const TournamentList: React.FC<Props> = ({
       </HStack>
 
       {error && (
-        <Box
-          mb={4}
-          p={3}
-          bg="status.loss.subtle"
-          borderRadius="md"
-          borderWidth={1}
-          borderColor="status.loss.border"
-        >
-          <Text color="status.loss">{error}</Text>
-        </Box>
+        <Callout tone="error" mb={4}>
+          {error}
+        </Callout>
       )}
 
       {statusCounts.all > 0 && (

@@ -73,7 +73,7 @@ export const LightMode = React.forwardRef(function LightMode(
       color="fg"
       display="contents"
       className="chakra-theme light"
-      colorPalette="gray"
+      colorPalette="ink"
       colorScheme="light"
       ref={ref}
       {...props}
@@ -90,7 +90,7 @@ export const DarkMode = React.forwardRef(function DarkMode(
       color="fg"
       display="contents"
       className="chakra-theme dark"
-      colorPalette="gray"
+      colorPalette="ink"
       colorScheme="dark"
       ref={ref}
       {...props}
