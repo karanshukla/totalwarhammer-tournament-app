@@ -172,7 +172,11 @@ const config = defineConfig({
         },
 
         verdigris: {
-          contrast: { value: "#FFFFFF" },
+          // Dark-mode solid sits at the 400 step, where white text only reaches
+          // 3.03:1 — dark contrast text on that step gives 5.4:1 instead.
+          contrast: {
+            value: { _light: "#FFFFFF", _dark: "{colors.verdigris.900}" },
+          },
           solid: {
             value: {
               _light: "{colors.verdigris.600}",
@@ -208,7 +212,7 @@ const config = defineConfig({
         // ── Foreground / Text ────────────────────────────────────────────────
         "fg.primary": { value: { _light: "#1C1812", _dark: "#F3EFE6" } },
         "fg.secondary": { value: { _light: "#564E40", _dark: "#C2B9A7" } },
-        "fg.muted": { value: { _light: "#857C6C", _dark: "#94896F" } },
+        "fg.muted": { value: { _light: "#605949", _dark: "#AA9E83" } },
 
         // ── Brand — Crimson (primary actions, active states, focus rings) ────
         "brand.solid": {
@@ -275,7 +279,7 @@ const config = defineConfig({
         },
 
         // ── Match Status ─────────────────────────────────────────────────────
-        "status.win": { value: { _light: "#1B7F45", _dark: "#34B86A" } },
+        "status.win": { value: { _light: "#166B3A", _dark: "#34B86A" } },
         "status.win.subtle": { value: { _light: "#D7EDDF", _dark: "#0E2C1A" } },
         "status.win.border": { value: { _light: "#A7D6BA", _dark: "#1C5733" } },
 
@@ -290,7 +294,7 @@ const config = defineConfig({
         },
 
         "status.draw": {
-          value: { _light: "{colors.brass.600}", _dark: "#D7B254" },
+          value: { _light: "#7E5B0A", _dark: "#D7B254" },
         },
         "status.draw.subtle": {
           value: { _light: "#F4E6C2", _dark: "#33280E" },

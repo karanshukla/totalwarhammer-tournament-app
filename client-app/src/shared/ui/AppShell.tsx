@@ -6,6 +6,7 @@ import {
   Flex,
   HStack,
   Badge,
+  Link as ChakraLink,
 } from "@chakra-ui/react";
 import { ColorModeButton } from "@/shared/ui/ColorMode";
 import { useLocation } from "react-router";
@@ -43,6 +44,25 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
       position="fixed"
       inset={0}
     >
+      <ChakraLink
+        href="#main-content"
+        position="absolute"
+        left={2}
+        top={2}
+        zIndex="skipLink"
+        px={3}
+        py={2}
+        borderRadius="md"
+        bg="bg.elevated"
+        color="fg.primary"
+        borderWidth="1px"
+        borderColor="border.emphasized"
+        transform="translateY(-150%)"
+        _focusVisible={{ transform: "translateY(0)" }}
+      >
+        Skip to main content
+      </ChakraLink>
+
       {/* Header — always at top, never scrolls */}
       <Flex
         as="header"
@@ -108,6 +128,7 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
         {!isPortrait && (
           <Box
             as="nav"
+            aria-label="Main"
             w={NAVBAR_WIDTH_DESKTOP}
             flexShrink={0}
             bg="chakra-body-bg"
@@ -126,7 +147,15 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
         )}
 
         {/* Scrollable content — fills remaining space exactly */}
-        <Box flex="1" overflowY="auto" overflowX="hidden" minW={0}>
+        <Box
+          as="main"
+          id="main-content"
+          tabIndex={-1}
+          flex="1"
+          overflowY="auto"
+          overflowX="hidden"
+          minW={0}
+        >
           {children}
         </Box>
       </Flex>
@@ -135,6 +164,7 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
       {isPortrait && (
         <Box
           as="nav"
+          aria-label="Main"
           flexShrink={0}
           h={NAVBAR_HEIGHT_MOBILE}
           bg="chakra-body-bg"

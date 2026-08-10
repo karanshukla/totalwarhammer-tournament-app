@@ -95,7 +95,7 @@ const TournamentBrowser: React.FC<Props> = ({ statusFilter, emptyMessage }) => {
   if (loading) {
     return (
       <VStack gap={4} py={8}>
-        <Spinner />
+        <Spinner role="status" aria-label="Loading tournaments" />
         <Text color="fg.muted">Loading tournaments...</Text>
       </VStack>
     );

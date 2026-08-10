@@ -51,7 +51,7 @@ const AccountPage: React.FC = () => {
 
       {isValidatingSession ? (
         <VStack gap={4} mt={8}>
-          <Spinner size="xl" />
+          <Spinner size="xl" role="status" aria-label="Loading account" />
           <Text>Validating your session...</Text>
         </VStack>
       ) : (

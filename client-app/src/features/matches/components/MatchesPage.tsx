@@ -486,7 +486,7 @@ const MatchesPage: React.FC = () => {
     return (
       <Container maxW="container.xl" py={8}>
         <VStack gap={4} py={16}>
-          <Spinner size="xl" />
+          <Spinner size="xl" role="status" aria-label="Loading matches" />
           <Text color="fg.muted">Loading Matches...</Text>
         </VStack>
       </Container>

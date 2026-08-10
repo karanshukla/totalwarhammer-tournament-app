@@ -15,7 +15,7 @@ import {
  */
 const DefaultLoadingFallback = () => (
   <Center h="100%" minH="200px" w="100%">
-    <Spinner size="xl" />
+    <Spinner size="xl" role="status" aria-label="Loading page" />
   </Center>
 );
 
@@ -24,7 +24,7 @@ const DefaultLoadingFallback = () => (
  */
 const DefaultErrorFallback = () => (
   <Center h="100%" minH="200px" w="100%">
-    <Stack align="center">
+    <Stack align="center" role="alert">
       <Text color="status.loss">Failed to load component</Text>
       <Text fontSize="sm">Please try refreshing the page</Text>
     </Stack>

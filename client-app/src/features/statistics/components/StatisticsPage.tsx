@@ -188,7 +188,7 @@ const StatisticsPage: React.FC = () => {
     return (
       <Container maxW="container.xl" py={16}>
         <VStack gap={4}>
-          <Spinner size="xl" />
+          <Spinner size="xl" role="status" aria-label="Loading statistics" />
           <Text color="fg.muted">Loading statistics…</Text>
         </VStack>
       </Container>

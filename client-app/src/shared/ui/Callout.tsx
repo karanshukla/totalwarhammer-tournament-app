@@ -44,6 +44,7 @@ const Callout: React.FC<CalloutProps> = ({
   const { bg, borderColor, color, Icon } = tones[tone];
   return (
     <Box
+      role={tone === "error" ? "alert" : undefined}
       p={3}
       borderRadius="md"
       bg={bg}

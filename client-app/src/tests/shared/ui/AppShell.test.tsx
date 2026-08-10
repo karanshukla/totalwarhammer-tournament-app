@@ -147,3 +147,30 @@ describe("AppShell – renders children", () => {
     expect(screen.getByTestId("child-content")).toBeInTheDocument();
   });
 });
+
+describe("AppShell – landmarks and skip link", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("wraps page content in a main landmark the skip link targets", () => {
+    renderShell(false, false);
+    const main = screen.getByRole("main");
+    expect(main).toHaveAttribute("id", "main-content");
+    expect(main).toContainElement(screen.getByTestId("child-content"));
+    expect(
+      screen.getByRole("link", { name: /skip to main content/i }),
+    ).toHaveAttribute("href", "#main-content");
+  });
+
+  it("labels the navigation landmark in both layouts", () => {
+    const { unmount } = renderShell(false, false);
+    expect(
+      screen.getByRole("navigation", { name: "Main" }),
+    ).toBeInTheDocument();
+    unmount();
+
+    renderShell(true, false);
+    expect(
+      screen.getByRole("navigation", { name: "Main" }),
+    ).toBeInTheDocument();
+  });
+});

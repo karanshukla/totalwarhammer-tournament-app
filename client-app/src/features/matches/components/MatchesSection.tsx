@@ -212,7 +212,9 @@ const MatchesSection: React.FC<Props> = ({
               </Badge>
             )}
           </HStack>
-          {matchLoading && <Spinner size="sm" />}
+          {matchLoading && (
+            <Spinner size="sm" role="status" aria-label="Loading matches" />
+          )}
         </HStack>
       </Card.Header>
       <Card.Body>

@@ -112,7 +112,12 @@ const ManagedInfoCard: React.FC<ManagedInfoCardProps> = ({
               >
                 {tournament.code}
               </Box>
-              <Button size="xs" variant="ghost" onClick={copyCode}>
+              <Button
+                size="xs"
+                variant="ghost"
+                aria-label="Copy tournament code"
+                onClick={copyCode}
+              >
                 <LuCopy size={14} />
               </Button>
             </HStack>

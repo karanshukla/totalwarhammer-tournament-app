@@ -1,14 +1,14 @@
 /**
  * Branch coverage for shared/ui/NavItems.tsx:
- * - NavItem: toExternal → window.open() on click
- * - NavItem: to → navigate(to) on click
- * - NavItem: Enter/Space key → handleClick
+ * - NavItem: toExternal → anchor with href/target/rel
+ * - NavItem: to → router link with href
+ * - NavItem: active item carries aria-current="page"
  * - isPortrait=true: Account shows Guest badge when isUserGuest=true
  * - isPortrait=true: hides desktop-only items (Terms, GitHub etc.)
  * - isPortrait=false: shows all desktop items including Terms/GitHub
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom";
 import React from "react";
@@ -16,7 +16,6 @@ import { ChakraProvider, defaultSystem } from "@chakra-ui/react";
 import { MemoryRouter } from "react-router";
 
 const mockNavigate = vi.fn();
-const mockWindowOpen = vi.fn();
 
 vi.mock("react-router", async (importOriginal) => {
   const actual = await importOriginal<typeof import("react-router")>();
@@ -76,56 +75,37 @@ describe("NavItems – portrait mode (isPortrait=true)", () => {
   });
 });
 
-describe("NavItems – NavItem click (to vs toExternal)", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    window.open = mockWindowOpen;
-  });
-
-  it("calls navigate when NavItem has 'to' prop", async () => {
-    renderNav({ isPortrait: false });
-    await userEvent.click(screen.getByText(/home/i));
-    expect(mockNavigate).toHaveBeenCalledWith("/");
-  });
-
-  it("calls window.open when NavItem has 'toExternal' prop (Source Code link)", async () => {
-    renderNav({ isPortrait: false });
-    await userEvent.click(screen.getByText(/source code/i));
-    expect(mockWindowOpen).toHaveBeenCalledWith(
-      expect.stringContaining("github.com"),
-      "_blank",
-    );
-  });
-});
-
-describe("NavItems – NavItem keyboard navigation (Enter/Space)", () => {
+describe("NavItems – NavItem renders real links (to vs toExternal)", () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it("triggers navigation on Enter key press", () => {
+  it("renders an internal NavItem as a link pointing at its route", () => {
     renderNav({ isPortrait: false });
-    const homeItem =
-      screen.getByText(/home/i).closest("[role]") ??
-      screen.getByText(/home/i).parentElement!;
-    fireEvent.keyDown(homeItem, { key: "Enter" });
-    expect(mockNavigate).toHaveBeenCalledWith("/");
+    expect(screen.getByRole("link", { name: /home/i })).toHaveAttribute(
+      "href",
+      "/",
+    );
   });
 
-  it("triggers navigation on Space key press", () => {
+  it("renders a toExternal NavItem as an anchor that opens safely in a new tab", () => {
     renderNav({ isPortrait: false });
-    const matchesItem =
-      screen.getByText(/matches/i).closest("[role]") ??
-      screen.getByText(/matches/i).parentElement!;
-    fireEvent.keyDown(matchesItem, { key: " " });
-    expect(mockNavigate).toHaveBeenCalledWith("/matches");
+    const source = screen.getByRole("link", { name: /source code/i });
+    expect(source).toHaveAttribute(
+      "href",
+      expect.stringContaining("github.com"),
+    );
+    expect(source).toHaveAttribute("target", "_blank");
+    expect(source).toHaveAttribute("rel", "noopener noreferrer");
   });
 
-  it("does nothing on an unrelated key press (e.g. Tab)", () => {
-    renderNav({ isPortrait: false });
-    const homeItem =
-      screen.getByText(/home/i).closest("[role]") ??
-      screen.getByText(/home/i).parentElement!;
-    fireEvent.keyDown(homeItem, { key: "Tab" });
-    expect(mockNavigate).not.toHaveBeenCalled();
+  it("marks only the active NavItem with aria-current=page", () => {
+    renderNav({ isPortrait: false, currentPath: "/matches" });
+    expect(screen.getByRole("link", { name: /matches/i })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+    expect(screen.getByRole("link", { name: /home/i })).not.toHaveAttribute(
+      "aria-current",
+    );
   });
 });
 
@@ -166,7 +146,7 @@ describe("NavItems – mobile burger/overflow menu (issue #147)", () => {
       "Account",
     ]) {
       expect(
-        screen.getByRole("button", { name: new RegExp(label, "i") }),
+        screen.getByRole("link", { name: new RegExp(label, "i") }),
       ).toBeInTheDocument();
     }
   });
@@ -192,26 +172,27 @@ describe("NavItems – mobile burger/overflow menu (issue #147)", () => {
     expect(await screen.findByText(/TW Tournament App/i)).toBeVisible();
   });
 
-  it("navigates when an overflow item is clicked (Get Help)", async () => {
+  it("exposes overflow items as links to their routes (Get Help)", async () => {
     renderNav({ isPortrait: true, isMobile: true });
     await userEvent.click(
       screen.getByRole("button", { name: /open more navigation options/i }),
     );
-    await userEvent.click(await screen.findByText(/get help/i));
-    expect(mockNavigate).toHaveBeenCalledWith("/contact");
+    expect(
+      await screen.findByRole("link", { name: /get help/i }),
+    ).toHaveAttribute("href", "/contact");
   });
 
-  it("opens the Source Code external link in a new tab", async () => {
-    window.open = mockWindowOpen;
+  it("exposes the Source Code overflow item as an external link", async () => {
     renderNav({ isPortrait: true, isMobile: true });
     await userEvent.click(
       screen.getByRole("button", { name: /open more navigation options/i }),
     );
-    await userEvent.click(await screen.findByText(/source code/i));
-    expect(mockWindowOpen).toHaveBeenCalledWith(
+    const source = await screen.findByRole("link", { name: /source code/i });
+    expect(source).toHaveAttribute(
+      "href",
       expect.stringContaining("github.com"),
-      "_blank",
     );
+    expect(source).toHaveAttribute("target", "_blank");
   });
 
   it("closes the menu after navigating from an overflow item", async () => {

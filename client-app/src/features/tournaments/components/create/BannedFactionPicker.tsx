@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Box, Flex, SimpleGrid, Text, VStack } from "@chakra-ui/react";
+import { Box, chakra, Flex, SimpleGrid, Text, VStack } from "@chakra-ui/react";
 
 interface BannedFactionPickerProps {
   factions: string[];
@@ -71,11 +71,17 @@ const BannedFactionPicker: React.FC<BannedFactionPickerProps> = ({
         overflowX="hidden"
         pr={1}
       >
-        <SimpleGrid columns={2} gap={2}>
+        <SimpleGrid
+          columns={2}
+          gap={2}
+          role="group"
+          aria-label="Banned factions"
+        >
           {factions.map((faction) => {
             const isChecked = banned.includes(faction);
             return (
               <Flex
+                as="label"
                 key={faction}
                 data-scope="faction-checkbox"
                 data-state={isChecked ? "checked" : undefined}
@@ -93,15 +99,14 @@ const BannedFactionPicker: React.FC<BannedFactionPickerProps> = ({
                   borderColor: isChecked ? "brand.border" : "border.emphasized",
                 }}
                 transition="all 0.15s"
-                onClick={() => toggle(faction)}
               >
-                <input
+                <chakra.input
                   type="checkbox"
                   value={faction}
                   checked={isChecked}
-                  onChange={() => {}}
-                  width={16}
-                  height={16}
+                  onChange={() => toggle(faction)}
+                  boxSize="16px"
+                  flexShrink={0}
                 />
                 <Text
                   fontSize="sm"
