@@ -6,6 +6,7 @@ import {
   Flex,
   HStack,
   Badge,
+  SkipNavLink,
 } from "@chakra-ui/react";
 import { ColorModeButton } from "@/shared/ui/ColorMode";
 import { useLocation } from "react-router";
@@ -18,6 +19,7 @@ interface AppShellProps {
   children: React.ReactNode;
 }
 
+const MAIN_CONTENT_ID = "main-content";
 const HEADER_HEIGHT = "60px";
 const NAVBAR_WIDTH_DESKTOP = { base: "70px", md: "250px" };
 const NAVBAR_HEIGHT_MOBILE = "70px";
@@ -43,6 +45,19 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
       position="fixed"
       inset={0}
     >
+      {/* The header below owns a stacking context, so the skip link needs an
+          explicit z-index to surface above it once focused. */}
+      <SkipNavLink
+        id={MAIN_CONTENT_ID}
+        zIndex={2000}
+        bg="bg.elevated"
+        color="fg.primary"
+        borderWidth="1px"
+        borderColor="border.emphasized"
+      >
+        Skip to main content
+      </SkipNavLink>
+
       {/* Header — always at top, never scrolls */}
       <Flex
         as="header"
@@ -108,6 +123,7 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
         {!isPortrait && (
           <Box
             as="nav"
+            aria-label="Main"
             w={NAVBAR_WIDTH_DESKTOP}
             flexShrink={0}
             bg="chakra-body-bg"
@@ -126,7 +142,15 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
         )}
 
         {/* Scrollable content — fills remaining space exactly */}
-        <Box flex="1" overflowY="auto" overflowX="hidden" minW={0}>
+        <Box
+          as="main"
+          id={MAIN_CONTENT_ID}
+          tabIndex={-1}
+          flex="1"
+          overflowY="auto"
+          overflowX="hidden"
+          minW={0}
+        >
           {children}
         </Box>
       </Flex>
@@ -135,6 +159,7 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
       {isPortrait && (
         <Box
           as="nav"
+          aria-label="Main"
           flexShrink={0}
           h={NAVBAR_HEIGHT_MOBILE}
           bg="chakra-body-bg"

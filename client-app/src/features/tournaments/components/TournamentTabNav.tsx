@@ -27,12 +27,6 @@ const TournamentTabNav: React.FC<TournamentTabNavProps> = ({
         selected={activeTab === tab.id}
         aria-pressed={activeTab === tab.id}
         onClick={() => onSelectTab(tab.id)}
-        onKeyDown={(event: React.KeyboardEvent) => {
-          if (event.key === "Enter" || event.key === " ") {
-            event.preventDefault();
-            onSelectTab(tab.id);
-          }
-        }}
         p={4}
       >
         <VStack gap={3} alignItems="center">

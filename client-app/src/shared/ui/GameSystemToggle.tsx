@@ -19,7 +19,7 @@ const GameSystemToggle: React.FC<GameSystemToggleProps> = ({
   onChange,
   size = "md",
 }) => (
-  <HStack gap={1}>
+  <HStack gap={1} role="group" aria-label="Game system">
     {options.map(({ game, label, palette }) => {
       const active = value === game;
       return (

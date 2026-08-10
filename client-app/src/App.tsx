@@ -1,3 +1,4 @@
+import { Center, Heading } from "@chakra-ui/react";
 import { Toaster } from "@/shared/ui/Toaster";
 import AppShell from "@/shared/ui/AppShell";
 import { BrowserRouter, Routes, Route } from "react-router";
@@ -57,9 +58,11 @@ export function App() {
           <Route
             path="*"
             element={
-              <div className="flex items-center justify-center h-screen text-2xl font-bold text-gray-700">
-                404 - Invalid URL
-              </div>
+              <Center h="100%" minH="200px" px={4}>
+                <Heading as="h1" size="2xl" textAlign="center">
+                  404 - Invalid URL
+                </Heading>
+              </Center>
             }
           />
         </Routes>

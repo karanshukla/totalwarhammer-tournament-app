@@ -44,7 +44,7 @@ const TournamentByCode: React.FC = () => {
   if (!resolvedId) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" py={20}>
-        <Spinner size="lg" />
+        <Spinner size="lg" role="status" aria-label="Loading tournament" />
       </Box>
     );
   }

@@ -514,6 +514,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
             </HStack>
             <Input
               size="sm"
+              aria-label="Reason for overriding the result"
               placeholder="Reason (optional)"
               value={overrideReason}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) =>

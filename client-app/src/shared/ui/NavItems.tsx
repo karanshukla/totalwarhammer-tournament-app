@@ -10,7 +10,7 @@ import {
   Popover,
   Portal,
   useDisclosure,
-  VStack,
+  chakra,
 } from "@chakra-ui/react";
 import {
   FiHome,
@@ -25,6 +25,8 @@ import {
 } from "react-icons/fi";
 import { Link, useNavigate } from "react-router";
 import { LuSword } from "react-icons/lu";
+
+const RouterLink = chakra(Link);
 
 // Define keyboard shortcuts
 const KEYBOARD_SHORTCUTS = {
@@ -60,27 +62,6 @@ const NavItem: React.FC<NavItemProps> = ({
   isMobile,
   shortcut,
 }) => {
-  const navigate = useNavigate();
-
-  const handleClick = () => {
-    if (toExternal) {
-      window.open(toExternal, "_blank");
-      return;
-    }
-    // Every rendered NavItem provides either `to` or `toExternal` (see the
-    // unreachable fallthrough below), so `to` is always set here in practice.
-    /* v8 ignore next */
-    if (!to) return;
-    navigate(to);
-  };
-
-  const handleKeyDown = (event: React.KeyboardEvent) => {
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
-      handleClick();
-    }
-  };
-
   const content = (
     <>
       <Icon
@@ -115,7 +96,6 @@ const NavItem: React.FC<NavItemProps> = ({
     </>
   );
 
-  // Common props for both link and div
   const commonProps = {
     display: "flex",
     alignItems: "center",
@@ -125,34 +105,35 @@ const NavItem: React.FC<NavItemProps> = ({
     width: "full",
     bg: isActive ? "bg.muted" : "transparent",
     borderRadius: "md",
-    role: "button",
-    tabIndex: 0,
     "aria-current": isActive ? ("page" as const) : undefined,
     _hover: {
       bg: "bg.muted",
     },
     transition: "all 0.2s",
-    onKeyDown: handleKeyDown,
   };
 
-  // For external links
   if (toExternal) {
     return (
-      <Box onClick={handleClick} {...commonProps}>
+      <chakra.a
+        href={toExternal}
+        target="_blank"
+        rel="noopener noreferrer"
+        {...commonProps}
+      >
         {content}
-      </Box>
+        <VisuallyHidden>(opens in a new tab)</VisuallyHidden>
+      </chakra.a>
     );
   }
 
-  // For internal links with react-router
   // All NavItems in this file use `to` or `toExternal`, so the fallthrough
   // below (no link) is unreachable in practice — excluded from branch coverage.
   /* v8 ignore else */
   if (to) {
     return (
-      <Box as="div" onClick={() => navigate(to)} {...commonProps}>
+      <RouterLink to={to} {...commonProps}>
         {content}
-      </Box>
+      </RouterLink>
     );
   }
 
@@ -309,8 +290,6 @@ const NavItems: React.FC<NavItemsProps> = ({
       justify={isPortrait ? "space-around" : "flex-start"}
       width="full"
       height="full"
-      role="navigation"
-      aria-label="Main Navigation"
     >
       <NavItem
         icon={FiHome}
@@ -375,16 +354,15 @@ const NavItems: React.FC<NavItemsProps> = ({
           positioning={{ placement: "top" }}
         >
           <Popover.Trigger asChild>
-            <VStack
+            <chakra.button
+              type="button"
+              display="flex"
+              flexDirection="column"
               gap={1}
-              align="center"
-              justify="center"
+              alignItems="center"
+              justifyContent="center"
               flex="1"
-              role="button"
-              tabIndex={0}
               aria-label="Open more navigation options"
-              aria-haspopup="dialog"
-              aria-expanded={isOverflowOpen}
               cursor="pointer"
               borderRadius="md"
               px={2}
@@ -394,16 +372,10 @@ const NavItems: React.FC<NavItemsProps> = ({
               _hover={{ bg: "bg.muted" }}
               transition="all 0.2s"
               onClick={onOverflowOpen}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  onOverflowOpen();
-                }
-              }}
             >
               <Icon as={FiMenu} boxSize={5} aria-hidden="true" />
               <VisuallyHidden>More</VisuallyHidden>
-            </VStack>
+            </chakra.button>
           </Popover.Trigger>
           <Portal>
             <Popover.Positioner>
