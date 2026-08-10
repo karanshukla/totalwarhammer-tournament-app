@@ -6,7 +6,7 @@ import {
   Flex,
   HStack,
   Badge,
-  Link as ChakraLink,
+  SkipNavLink,
 } from "@chakra-ui/react";
 import { ColorModeButton } from "@/shared/ui/ColorMode";
 import { useLocation } from "react-router";
@@ -19,6 +19,7 @@ interface AppShellProps {
   children: React.ReactNode;
 }
 
+const MAIN_CONTENT_ID = "main-content";
 const HEADER_HEIGHT = "60px";
 const NAVBAR_WIDTH_DESKTOP = { base: "70px", md: "250px" };
 const NAVBAR_HEIGHT_MOBILE = "70px";
@@ -44,24 +45,18 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
       position="fixed"
       inset={0}
     >
-      <ChakraLink
-        href="#main-content"
-        position="absolute"
-        left={2}
-        top={2}
-        zIndex="skipLink"
-        px={3}
-        py={2}
-        borderRadius="md"
+      {/* The header below owns a stacking context, so the skip link needs an
+          explicit z-index to surface above it once focused. */}
+      <SkipNavLink
+        id={MAIN_CONTENT_ID}
+        zIndex={2000}
         bg="bg.elevated"
         color="fg.primary"
         borderWidth="1px"
         borderColor="border.emphasized"
-        transform="translateY(-150%)"
-        _focusVisible={{ transform: "translateY(0)" }}
       >
         Skip to main content
-      </ChakraLink>
+      </SkipNavLink>
 
       {/* Header — always at top, never scrolls */}
       <Flex
@@ -149,7 +144,7 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
         {/* Scrollable content — fills remaining space exactly */}
         <Box
           as="main"
-          id="main-content"
+          id={MAIN_CONTENT_ID}
           tabIndex={-1}
           flex="1"
           overflowY="auto"
