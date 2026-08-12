@@ -228,53 +228,56 @@ const NavItems: React.FC<NavItemsProps> = ({
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.altKey) {
-        switch (event.key) {
-          case "1":
-            event.preventDefault();
-            navigate("/");
-            break;
-          case "2":
-            event.preventDefault();
-            navigate("/tournaments");
-            break;
-          case "3":
-            event.preventDefault();
-            navigate("/matches");
-            break;
-          case "4":
-            event.preventDefault();
-            navigate("/statistics");
-            break;
-          case "5":
-            event.preventDefault();
-            navigate("/account");
-            break;
-          case "6":
-            event.preventDefault();
-            navigate("/contact");
-            break;
-          case "7":
-            event.preventDefault();
-            navigate("/terms");
-            break;
-          case "8":
-            // Alt+8 = Privacy (see KEYBOARD_SHORTCUTS.privacy). Previously this
-            // branch opened GitHub and Alt+9 (Source) was a dead binding — both
-            // are corrected here so each shortcut matches its label.
-            event.preventDefault();
-            navigate("/privacy");
-            break;
-          case "9":
-            event.preventDefault();
-            window.open(
-              "https://github.com/karanshukla/totalwarhammer-tournament-app",
-              "_blank",
-            );
-            break;
-          default:
-            break;
-        }
+      if (!event.altKey) return;
+
+      // Alt (Option on macOS) remaps `event.key` to layout-specific glyphs —
+      // e.g. Alt/Option+1 reports key "¡" rather than "1" on macOS keyboard
+      // layouts. `event.code` reports the physical key ("Digit1") regardless
+      // of modifiers or OS, so shortcuts stay consistent across macOS,
+      // Windows, and Linux (and any external keyboard on Android/iOS).
+      switch (event.code) {
+        case "Digit1":
+          event.preventDefault();
+          navigate("/");
+          break;
+        case "Digit2":
+          event.preventDefault();
+          navigate("/tournaments");
+          break;
+        case "Digit3":
+          event.preventDefault();
+          navigate("/matches");
+          break;
+        case "Digit4":
+          event.preventDefault();
+          navigate("/statistics");
+          break;
+        case "Digit5":
+          event.preventDefault();
+          navigate("/account");
+          break;
+        case "Digit6":
+          event.preventDefault();
+          navigate("/contact");
+          break;
+        case "Digit7":
+          event.preventDefault();
+          navigate("/terms");
+          break;
+        case "Digit8":
+          // Alt+8 = Privacy (see KEYBOARD_SHORTCUTS.privacy).
+          event.preventDefault();
+          navigate("/privacy");
+          break;
+        case "Digit9":
+          event.preventDefault();
+          window.open(
+            "https://github.com/karanshukla/totalwarhammer-tournament-app",
+            "_blank",
+          );
+          break;
+        default:
+          break;
       }
     };
 
