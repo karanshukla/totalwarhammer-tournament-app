@@ -12,11 +12,10 @@ on:
 
 jobs:
   claude-review:
-    # Optional: Filter by PR author
-    if: |
-      github.event.pull_request.user.login == 'external-contributor' ||
-      github.event.pull_request.user.login == 'new-developer' ||
-      github.event.pull_request.author_association == 'FIRST_TIME_CONTRIBUTOR'
+    # Reviews PRs from anyone who isn't the repo owner. The two placeholder
+    # usernames this replaces came from the action's template and matched
+    # nobody, so the job had never run. Drop the condition to review every PR.
+    if: github.event.pull_request.author_association != 'OWNER'
 
     runs-on: ubuntu-latest
     permissions:

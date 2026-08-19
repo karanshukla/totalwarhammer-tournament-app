@@ -33,7 +33,6 @@ print(`deleted ${result.deletedCount} records`);
 | Script | Description |
 |---|---|
 | `scripts/example.js` | Expires pending matches older than 48 hours |
-| `scripts/delete-guest-accounts.js` | Deletes guest accounts (no password) older than 48 hours |
 
 ## Deploying on Railway
 
