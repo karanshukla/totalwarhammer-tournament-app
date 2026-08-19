@@ -11,6 +11,8 @@ import {
   Separator,
   For,
   Flex,
+  Heading,
+  Icon,
   Table,
   Button,
 } from "@chakra-ui/react";
@@ -181,15 +183,62 @@ const MatchesSection: React.FC<Props> = ({
     (a, b) => a - b,
   );
 
+  const renderMatchGrid = (group: Match[]) => (
+    <SimpleGrid columns={{ base: 1, md: 2 }} gap={3} alignItems="start">
+      <For each={group}>
+        {(m) => {
+          const { isP1, isP2, myReport, canPR } = resolveMatchUser(
+            m,
+            user,
+            isAdmin,
+            isActive,
+          );
+          return (
+            <MatchCard
+              key={m._id}
+              m={m}
+              isOverriding={overrideMatchId === m._id}
+              isAdmin={isAdmin}
+              isActive={isActive}
+              myReport={myReport}
+              canParticipantReport={canPR}
+              isP1={isP1}
+              isP2={isP2}
+              actionLoading={actionLoading}
+              overrideLoading={overrideLoading}
+              overrideWinnerId={overrideWinnerId}
+              overrideReason={overrideReason}
+              onRecordResult={onRecordResult}
+              onReportResult={onReportResult}
+              onResolveDispute={onResolveDispute}
+              onStartOverride={() => {
+                setOverrideMatchId(m._id);
+                setOverrideWinnerId("");
+                setOverrideReason("");
+              }}
+              onCancelOverride={() => setOverrideMatchId(null)}
+              onSetOverrideWinner={setOverrideWinnerId}
+              onSetOverrideReason={setOverrideReason}
+              onConfirmOverride={handleOverrideConfirm}
+            />
+          );
+        }}
+      </For>
+    </SimpleGrid>
+  );
+
   return (
-    <Card.Root gridColumn={{ lg: "1 / -1" }} bg="bg.panel">
+    <Card.Root
+      gridColumn={{ lg: "1 / -1" }}
+      bg="bg.panel"
+      borderColor="border"
+      shadow="sm"
+    >
       <Card.Header>
         <HStack justifyContent="space-between">
           <HStack gap={2}>
-            <LuSwords />
-            <Text fontWeight="semibold" fontSize="lg">
-              Matches
-            </Text>
+            <Icon as={LuSwords} boxSize={4} color="fg.muted" />
+            <Heading size="md">Matches</Heading>
             {matches.length > 0 && !isDoubleElim && !isRROrSwiss && (
               <Badge colorPalette="ink" variant="subtle">
                 Round {Math.max(...matches.map((m) => m.round))} of{" "}
@@ -307,54 +356,9 @@ const MatchesSection: React.FC<Props> = ({
                           >
                             Round {round}
                           </Text>
-                          <SimpleGrid columns={{ base: 1, md: 2 }} gap={3}>
-                            <For
-                              each={wbMatches.filter((m) => m.round === round)}
-                            >
-                              {(m) => {
-                                const p1Won =
-                                  m.winnerId === m.player1.participantId;
-                                const p2Won =
-                                  m.winnerId === m.player2.participantId;
-                                const isOverriding = overrideMatchId === m._id;
-                                const { isP1, isP2, myReport, canPR } =
-                                  resolveMatchUser(m, user, isAdmin, isActive);
-                                return (
-                                  <MatchCard
-                                    key={m._id}
-                                    m={m}
-                                    p1Won={p1Won}
-                                    p2Won={p2Won}
-                                    isOverriding={isOverriding}
-                                    isAdmin={isAdmin}
-                                    isActive={isActive}
-                                    myReport={myReport}
-                                    canParticipantReport={canPR}
-                                    isP1={isP1}
-                                    isP2={isP2}
-                                    actionLoading={actionLoading}
-                                    overrideLoading={overrideLoading}
-                                    overrideWinnerId={overrideWinnerId}
-                                    overrideReason={overrideReason}
-                                    onRecordResult={onRecordResult}
-                                    onReportResult={onReportResult}
-                                    onResolveDispute={onResolveDispute}
-                                    onStartOverride={() => {
-                                      setOverrideMatchId(m._id);
-                                      setOverrideWinnerId("");
-                                      setOverrideReason("");
-                                    }}
-                                    onCancelOverride={() =>
-                                      setOverrideMatchId(null)
-                                    }
-                                    onSetOverrideWinner={setOverrideWinnerId}
-                                    onSetOverrideReason={setOverrideReason}
-                                    onConfirmOverride={handleOverrideConfirm}
-                                  />
-                                );
-                              }}
-                            </For>
-                          </SimpleGrid>
+                          {renderMatchGrid(
+                            wbMatches.filter((m) => m.round === round),
+                          )}
                         </Box>
                       ))}
                     </VStack>
@@ -387,54 +391,9 @@ const MatchesSection: React.FC<Props> = ({
                           >
                             Round {round}
                           </Text>
-                          <SimpleGrid columns={{ base: 1, md: 2 }} gap={3}>
-                            <For
-                              each={lbMatches.filter((m) => m.round === round)}
-                            >
-                              {(m) => {
-                                const p1Won =
-                                  m.winnerId === m.player1.participantId;
-                                const p2Won =
-                                  m.winnerId === m.player2.participantId;
-                                const isOverriding = overrideMatchId === m._id;
-                                const { isP1, isP2, myReport, canPR } =
-                                  resolveMatchUser(m, user, isAdmin, isActive);
-                                return (
-                                  <MatchCard
-                                    key={m._id}
-                                    m={m}
-                                    p1Won={p1Won}
-                                    p2Won={p2Won}
-                                    isOverriding={isOverriding}
-                                    isAdmin={isAdmin}
-                                    isActive={isActive}
-                                    myReport={myReport}
-                                    canParticipantReport={canPR}
-                                    isP1={isP1}
-                                    isP2={isP2}
-                                    actionLoading={actionLoading}
-                                    overrideLoading={overrideLoading}
-                                    overrideWinnerId={overrideWinnerId}
-                                    overrideReason={overrideReason}
-                                    onRecordResult={onRecordResult}
-                                    onReportResult={onReportResult}
-                                    onResolveDispute={onResolveDispute}
-                                    onStartOverride={() => {
-                                      setOverrideMatchId(m._id);
-                                      setOverrideWinnerId("");
-                                      setOverrideReason("");
-                                    }}
-                                    onCancelOverride={() =>
-                                      setOverrideMatchId(null)
-                                    }
-                                    onSetOverrideWinner={setOverrideWinnerId}
-                                    onSetOverrideReason={setOverrideReason}
-                                    onConfirmOverride={handleOverrideConfirm}
-                                  />
-                                );
-                              }}
-                            </For>
-                          </SimpleGrid>
+                          {renderMatchGrid(
+                            lbMatches.filter((m) => m.round === round),
+                          )}
                         </Box>
                       ))}
                     </VStack>
@@ -459,48 +418,7 @@ const MatchesSection: React.FC<Props> = ({
                         </Badge>
                       )}
                     </HStack>
-                    <SimpleGrid columns={{ base: 1, md: 2 }} gap={3}>
-                      <For each={gfMatches}>
-                        {(m) => {
-                          const p1Won = m.winnerId === m.player1.participantId;
-                          const p2Won = m.winnerId === m.player2.participantId;
-                          const isOverriding = overrideMatchId === m._id;
-                          const { isP1, isP2, myReport, canPR } =
-                            resolveMatchUser(m, user, isAdmin, isActive);
-                          return (
-                            <MatchCard
-                              key={m._id}
-                              m={m}
-                              p1Won={p1Won}
-                              p2Won={p2Won}
-                              isOverriding={isOverriding}
-                              isAdmin={isAdmin}
-                              isActive={isActive}
-                              myReport={myReport}
-                              canParticipantReport={canPR}
-                              isP1={isP1}
-                              isP2={isP2}
-                              actionLoading={actionLoading}
-                              overrideLoading={overrideLoading}
-                              overrideWinnerId={overrideWinnerId}
-                              overrideReason={overrideReason}
-                              onRecordResult={onRecordResult}
-                              onReportResult={onReportResult}
-                              onResolveDispute={onResolveDispute}
-                              onStartOverride={() => {
-                                setOverrideMatchId(m._id);
-                                setOverrideWinnerId("");
-                                setOverrideReason("");
-                              }}
-                              onCancelOverride={() => setOverrideMatchId(null)}
-                              onSetOverrideWinner={setOverrideWinnerId}
-                              onSetOverrideReason={setOverrideReason}
-                              onConfirmOverride={handleOverrideConfirm}
-                            />
-                          );
-                        }}
-                      </For>
-                    </SimpleGrid>
+                    {renderMatchGrid(gfMatches)}
                   </Box>
                 )}
               </>
@@ -546,52 +464,9 @@ const MatchesSection: React.FC<Props> = ({
                             </Badge>
                           )}
                       </HStack>
-                      <SimpleGrid columns={{ base: 1, md: 2 }} gap={3}>
-                        <For each={matches.filter((m) => m.round === round)}>
-                          {(m) => {
-                            const p1Won =
-                              m.winnerId === m.player1.participantId;
-                            const p2Won =
-                              m.winnerId === m.player2.participantId;
-                            const isOverriding = overrideMatchId === m._id;
-                            const { isP1, isP2, myReport, canPR } =
-                              resolveMatchUser(m, user, isAdmin, isActive);
-                            return (
-                              <MatchCard
-                                key={m._id}
-                                m={m}
-                                p1Won={p1Won}
-                                p2Won={p2Won}
-                                isOverriding={isOverriding}
-                                isAdmin={isAdmin}
-                                isActive={isActive}
-                                myReport={myReport}
-                                canParticipantReport={canPR}
-                                isP1={isP1}
-                                isP2={isP2}
-                                actionLoading={actionLoading}
-                                overrideLoading={overrideLoading}
-                                overrideWinnerId={overrideWinnerId}
-                                overrideReason={overrideReason}
-                                onRecordResult={onRecordResult}
-                                onReportResult={onReportResult}
-                                onResolveDispute={onResolveDispute}
-                                onStartOverride={() => {
-                                  setOverrideMatchId(m._id);
-                                  setOverrideWinnerId("");
-                                  setOverrideReason("");
-                                }}
-                                onCancelOverride={() =>
-                                  setOverrideMatchId(null)
-                                }
-                                onSetOverrideWinner={setOverrideWinnerId}
-                                onSetOverrideReason={setOverrideReason}
-                                onConfirmOverride={handleOverrideConfirm}
-                              />
-                            );
-                          }}
-                        </For>
-                      </SimpleGrid>
+                      {renderMatchGrid(
+                        matches.filter((m) => m.round === round),
+                      )}
                     </Box>
                   );
                 }}
@@ -625,7 +500,7 @@ const MatchesSection: React.FC<Props> = ({
               </Badge>
             </HStack>
             <Button
-              colorPalette="crimson"
+              colorPalette="brass"
               size="sm"
               onClick={onAdvanceRound}
               loading={actionLoading}

@@ -1,19 +1,17 @@
 import React from "react";
+import { Button } from "@chakra-ui/react";
+import { LuPencil, LuX } from "react-icons/lu";
+import ParticipantRosterCard from "@/shared/ui/ParticipantRosterCard";
 import {
-  Button,
-  Card,
-  For,
-  Heading,
-  HStack,
-  Text,
-  VStack,
-} from "@chakra-ui/react";
-import { LuPencil, LuUsers, LuX } from "react-icons/lu";
+  isSameUser,
+  type ParticipantViewer,
+} from "@/shared/tournament/participants";
 import type { Participant } from "@/shared/tournament/types";
 
 interface ManagedParticipantsCardProps {
   participants: Participant[];
   playerCount: number;
+  user: ParticipantViewer;
   isAdmin: boolean;
   isPending: boolean;
   actionLoading: boolean;
@@ -24,79 +22,45 @@ interface ManagedParticipantsCardProps {
 const ManagedParticipantsCard: React.FC<ManagedParticipantsCardProps> = ({
   participants,
   playerCount,
+  user,
   isAdmin,
   isPending,
   actionLoading,
   onEdit,
   onRemove,
 }) => (
-  <Card.Root bg="bg.panel">
-    <Card.Header>
-      <HStack gap={2}>
-        <LuUsers />
-        <Heading size="md">
-          Participants ({participants.length}/{playerCount})
-        </Heading>
-      </HStack>
-    </Card.Header>
-    <Card.Body>
-      {participants.length === 0 ? (
-        <Text color="fg.muted" textAlign="center" py={4}>
-          No Participants Yet
-        </Text>
-      ) : (
-        <VStack gap={2} alignItems="stretch">
-          <For each={participants}>
-            {(p) => (
-              <HStack
-                key={p._id}
-                p={3}
-                borderRadius="md"
-                borderWidth={1}
-                borderColor="border"
-                bg="info.subtle"
-                justifyContent="space-between"
-              >
-                <VStack alignItems="flex-start" gap={0}>
-                  <Text fontWeight="medium">{p.name}</Text>
-                  {p.faction && (
-                    <Text fontSize="xs" color="fg.muted">
-                      {p.faction}
-                    </Text>
-                  )}
-                </VStack>
-                <HStack gap={1}>
-                  {isAdmin && (
-                    <Button
-                      size="xs"
-                      variant="ghost"
-                      colorPalette="ink"
-                      onClick={() => onEdit(p)}
-                      aria-label="Edit participant"
-                    >
-                      <LuPencil />
-                    </Button>
-                  )}
-                  {isAdmin && isPending && (
-                    <Button
-                      size="xs"
-                      variant="ghost"
-                      colorPalette="crimson"
-                      onClick={() => onRemove(p._id)}
-                      loading={actionLoading}
-                      aria-label="Remove participant"
-                    >
-                      <LuX />
-                    </Button>
-                  )}
-                </HStack>
-              </HStack>
-            )}
-          </For>
-        </VStack>
-      )}
-    </Card.Body>
-  </Card.Root>
+  <ParticipantRosterCard
+    participants={participants}
+    playerCount={playerCount}
+    isYou={(p) => isSameUser(p, user)}
+    renderActions={(p) =>
+      isAdmin && (
+        <>
+          <Button
+            size="xs"
+            variant="ghost"
+            colorPalette="ink"
+            onClick={() => onEdit(p)}
+            aria-label="Edit participant"
+          >
+            <LuPencil />
+          </Button>
+          {isPending && (
+            <Button
+              size="xs"
+              variant="ghost"
+              colorPalette="crimson"
+              onClick={() => onRemove(p._id)}
+              loading={actionLoading}
+              aria-label="Remove participant"
+            >
+              <LuX />
+            </Button>
+          )}
+        </>
+      )
+    }
+  />
 );
 
 export default ManagedParticipantsCard;

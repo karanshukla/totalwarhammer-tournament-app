@@ -99,7 +99,7 @@ The Chakra UI v3 theme is defined in a single file — **not** a `theme/` direct
 
 #### Buttons & Badges
 
-Chakra v3 uses `colorPalette` + `variant` — never `colorScheme` (v2 API), and there is no custom `buttonRecipe` or `badgeRecipe` in this codebase.
+Chakra v3 uses `colorPalette` + `variant` — never `colorScheme` (v2 API). `theme.ts` overrides only the `outline` variant of the button and badge recipes, giving it a `colorPalette.subtle` fill and `colorPalette.muted` border so an outline control still reads as its intent colour on the dark canvas.
 
 **Buttons** — `colorPalette` maps to intent:
 - `colorPalette="crimson" variant="solid"` — primary CTA (Join, Register, Submit)
@@ -138,10 +138,27 @@ import { Popover, Tooltip } from "@chakra-ui/react"
 </Tooltip.Root>
 ```
 
+#### Shared UI primitives (`client-app/src/shared/ui/`)
+
+Compose these rather than rebuilding a card, header, or matchup row per feature — the
+organiser view (`features/matches/`) and the public view (`features/tournaments/`)
+render the same tournament and must stay identical.
+
+| Component | Use |
+|-----------|-----|
+| `PanelCard` | Every card surface — applies `bg.panel` + `border` + `shadow="sm"` and the standard icon/title header |
+| `ParticipantRosterCard` | Participant list; `renderActions` adds per-row controls, `isYou` highlights the viewer |
+| `TournamentInfoPanel` | The Code/Format/Players/Status/Created rows; extra rows appear when `matches` are passed |
+| `TournamentPageHeader` | Title + status/role badges + meta line + code chip, with `actions` and a description slot |
+| `TournamentCode` | The gold join-code chip |
+| `MatchupRow` / `MatchWinnerLine` | Player-vs-player row (`1fr auto 1fr`, so "vs" stays centred) and the winner caption |
+
 #### Rules
 - Never use a raw hex value for a UI colour — map it to a semantic token first
 - Never use `colorScheme` prop (Chakra v2 API)
 - Faction colours in `shared/constants/factions.ts` are raw hex by design — do not tokenise them
+- Every palette needs a semantic-token block in `theme.ts`; without one, `colorPalette` silently falls back to Chakra's stock grey
+- Match-card controls belong below the matchup row, never inside it
 
 ### Server (`server-app/`)
 

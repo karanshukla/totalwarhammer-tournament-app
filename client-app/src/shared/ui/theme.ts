@@ -70,7 +70,8 @@ const config = defineConfig({
         variants: {
           variant: {
             outline: {
-              bg: "bg.emphasized",
+              bg: "colorPalette.subtle",
+              borderColor: "colorPalette.muted",
             },
           },
         },
@@ -79,7 +80,8 @@ const config = defineConfig({
         variants: {
           variant: {
             outline: {
-              bg: "bg.emphasized",
+              bg: "colorPalette.subtle",
+              borderColor: "colorPalette.muted",
             },
           },
         },
@@ -206,6 +208,25 @@ const config = defineConfig({
               _light: "{colors.verdigris.300}",
               _dark: "{colors.verdigris.700}",
             },
+          },
+        },
+
+        ink: {
+          contrast: { value: { _light: "#FFFFFF", _dark: "{colors.ink.950}" } },
+          solid: {
+            value: { _light: "{colors.ink.600}", _dark: "{colors.ink.400}" },
+          },
+          fg: {
+            value: { _light: "{colors.ink.700}", _dark: "{colors.ink.200}" },
+          },
+          subtle: {
+            value: { _light: "{colors.ink.100}", _dark: "{colors.ink.800}" },
+          },
+          muted: {
+            value: { _light: "{colors.ink.200}", _dark: "{colors.ink.700}" },
+          },
+          emphasized: {
+            value: { _light: "{colors.ink.300}", _dark: "{colors.ink.600}" },
           },
         },
 

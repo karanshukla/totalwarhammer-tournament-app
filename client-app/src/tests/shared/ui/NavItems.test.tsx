@@ -3,6 +3,7 @@
  * - NavItem: toExternal → anchor with href/target/rel
  * - NavItem: to → router link with href
  * - NavItem: active item carries aria-current="page"
+ * - NavItem: a nav entry stays active on the nested routes it owns
  * - isPortrait=true: Account shows Guest badge when isUserGuest=true
  * - isPortrait=true: hides desktop-only items (Terms, GitHub etc.)
  * - isPortrait=false: shows all desktop items including Terms/GitHub
@@ -103,6 +104,25 @@ describe("NavItems – NavItem renders real links (to vs toExternal)", () => {
       "aria-current",
       "page",
     );
+    expect(screen.getByRole("link", { name: /home/i })).not.toHaveAttribute(
+      "aria-current",
+    );
+  });
+
+  it.each([
+    ["/matches/tournament/R1MT3H", /matches/i],
+    ["/matches/spectate/R1MT3H", /matches/i],
+    ["/tournament/abc123", /tournaments/i],
+  ])("keeps the owning nav entry active on %s", (currentPath, label) => {
+    renderNav({ isPortrait: false, currentPath });
+    expect(screen.getByRole("link", { name: label })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+  });
+
+  it("does not mark Home active on a nested route", () => {
+    renderNav({ isPortrait: false, currentPath: "/matches/tournament/ABC123" });
     expect(screen.getByRole("link", { name: /home/i })).not.toHaveAttribute(
       "aria-current",
     );
