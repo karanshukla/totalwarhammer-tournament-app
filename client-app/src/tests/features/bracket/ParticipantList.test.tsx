@@ -121,10 +121,9 @@ describe("ParticipantList", () => {
     const onEditParticipant = vi.fn();
     renderParticipantList({ onEditParticipant });
     const editButtons = screen.getAllByRole("button", { name: /edit/i });
-    if (editButtons.length > 0) {
-      await userEvent.click(editButtons[0]);
-      expect(onEditParticipant).toHaveBeenCalled();
-    }
+    expect(editButtons.length).toBeGreaterThan(0);
+    await userEvent.click(editButtons[0]);
+    expect(onEditParticipant).toHaveBeenCalled();
   });
 
   it("deletes participant when Delete button is clicked", async () => {
@@ -132,11 +131,10 @@ describe("ParticipantList", () => {
     const initialCount = useTournamentStore.getState().participants.length;
     renderParticipantList();
     const deleteButtons = screen.getAllByRole("button", { name: /delete/i });
-    if (deleteButtons.length > 0) {
-      await userEvent.click(deleteButtons[0]);
-      const newCount = useTournamentStore.getState().participants.length;
-      expect(newCount).toBe(initialCount - 1);
-    }
+    expect(deleteButtons.length).toBeGreaterThan(0);
+    await userEvent.click(deleteButtons[0]);
+    const newCount = useTournamentStore.getState().participants.length;
+    expect(newCount).toBe(initialCount - 1);
   });
 
   it("adds participants when Add Participants button is clicked", async () => {

@@ -1,13 +1,8 @@
 import react from "@vitejs/plugin-react";
-import { defineConfig } from "vitest/config";
+import { defineConfig } from "vite";
 import tsconfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig({
-  test: {
-    environment: "happy-dom",
-    globals: true,
-    setupFiles: ["./src/tests/setup.ts"],
-  },
   plugins: [react(), tsconfigPaths()],
   build: {
     chunkSizeWarningLimit: 800, // Increased warning limit (in kB)

@@ -138,24 +138,20 @@ describe("TournamentBracket", () => {
       name: /remove participant/i,
     });
 
-    if (removeParticipantBtns.length > 0) {
-      const initialState = useTournamentStore.getState();
-      const round1 = initialState.rounds[0];
-      const match1 = round1?.matches[0];
-      const initialP1 = match1?.participant1Id;
+    expect(removeParticipantBtns.length).toBeGreaterThan(0);
+    const initialState = useTournamentStore.getState();
+    const round1 = initialState.rounds[0];
+    const match1 = round1?.matches[0];
+    const initialP1 = match1?.participant1Id;
 
-      await userEvent.click(removeParticipantBtns[0]);
+    await userEvent.click(removeParticipantBtns[0]);
 
-      const newState = useTournamentStore.getState();
-      const newMatch1 = newState.rounds[0]?.matches.find(
-        (m) => m.id === match1?.id,
-      );
-      // Participant slot should have been cleared to null
-      expect(newMatch1?.participant1Id ?? null).not.toBe(initialP1);
-    } else {
-      // If no participants are in slots (unexpected for default state), just verify rendering
-      expect(screen.getByText("Tournament Bracket")).toBeInTheDocument();
-    }
+    const newState = useTournamentStore.getState();
+    const newMatch1 = newState.rounds[0]?.matches.find(
+      (m) => m.id === match1?.id,
+    );
+    // Participant slot should have been cleared to null
+    expect(newMatch1?.participant1Id ?? null).not.toBe(initialP1);
   });
 
   it("renders Drop player here when slot is empty", () => {

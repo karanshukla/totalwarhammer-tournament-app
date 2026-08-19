@@ -8,5 +8,9 @@ export default defineConfig({
     environment: "jsdom",
     setupFiles: ["./src/tests/setup.ts"],
     globals: true,
+    // Coverage instrumentation roughly doubles run time, and the heavier
+    // interaction tests sit close enough to the 5s default to make failures
+    // look like flakes rather than real regressions.
+    testTimeout: 15000,
   },
 });

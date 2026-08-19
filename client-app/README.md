@@ -5,7 +5,7 @@ The React frontend for the Total War: Warhammer Tournament App.
 ## Tech Stack
 
 - **React 19** with TypeScript
-- **Vite 6** — build tool and dev server
+- **Vite 8** — build tool and dev server
 - **Chakra UI v3** — component library and theming
 - **React Router v7** — client-side routing
 - **Zustand** — global auth/user state
@@ -36,7 +36,7 @@ The dev server runs at `http://localhost:5173` and expects the backend API at `h
 | `npm run dev` | Start Vite dev server with HMR |
 | `npm run build` | Production build to `dist/` |
 | `npm run preview` | Preview the production build locally |
-| `npm run lint` | Run ESLint |
+| `npm run lint` | Run oxlint (fails on any warning) |
 | `npm run test` | Run Vitest test suite |
 
 ## Project Structure
@@ -59,4 +59,4 @@ src/
 
 ## Environment
 
-The API base URL is configured in `src/core/api/httpClient.ts`. For local development it points to `http://localhost:3000`. Update this for production deployments.
+The API base URL comes from `VITE_API_URL` via `src/core/config/apiConfig.ts`; `src/core/api/httpClient.ts` consumes it. An unset value means same-origin, which is what the Caddy-fronted deployment relies on.

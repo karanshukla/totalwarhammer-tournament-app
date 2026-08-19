@@ -30,7 +30,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 24
+          node-version-file: .nvmrc
           cache: "npm"
           cache-dependency-path: "package-lock.json"
 
@@ -44,7 +44,6 @@ jobs:
       - name: Run coverage
         working-directory: ./client-app
         run: npx vitest run --coverage --coverage.reporter=lcov --coverage.reporter=text --coverage.reporter=json-summary
-        continue-on-error: true
 
       - name: Upload coverage artifact
         uses: actions/upload-artifact@v4

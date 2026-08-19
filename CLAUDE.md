@@ -58,8 +58,8 @@ This is an **npm workspace monorepo** with two packages: `client-app/` (React) a
 
 ### Client (`client-app/`)
 
-- **React 19 + Vite 6 + TypeScript**, Chakra UI v3 for all UI components
-- **Routing**: React Router v7 with lazy-loaded pages
+- **React 19 + Vite 8 + TypeScript**, Chakra UI v3 for all UI components
+- **Routing**: React Router v8 with lazy-loaded pages
 - **State**: Two Zustand stores — `userStore` (auth session, persisted to localStorage) and `tournamentStore` (active tournament + match data)
 - **HTTP**: All requests go through `src/core/api/httpClient.ts`, which manages CSRF token fetching/caching and session validation. Do not bypass this with raw fetch/axios.
 - **Forms**: React Hook Form + Zod validation everywhere
@@ -162,33 +162,48 @@ render the same tournament and must stay identical.
 
 ### Server (`server-app/`)
 
-- **Node.js 24+ ESM**, Express 4, Mongoose 8, all files use `.js` extension with ES6 `import`/`export`
+- **Node.js 24+ ESM**, Express 5, Mongoose 9, all files use `.js` extension with ES6 `import`/`export`
 - **Architecture layers**:
   - `domain/` — Mongoose schemas + core tournament bracket logic (`tournament-service.js`)
-  - `infrastructure/` — DB connection, session store, Redis, Socket.IO, email, logger, rate limiters
+  - `infrastructure/` — DB connection, session store, Redis, Socket.IO, email, logger, and the Socket.IO rate limiter (`utils/rate-limiter.js`). The HTTP rate limiters are declared inline in `app.js`.
   - `interfaces/http/` — controllers, routes, middleware
 - **Middleware order matters** (see `app.js`): security headers → CORS → session/Passport → CSRF check → body parser → rate limiters → routes
 - **CSRF**: All mutating requests require a CSRF token. The client fetches it from `GET /auth/csrf-token`; the server validates via `csrf-csrf`.
 - **Auth**: Session-based. Guest users get a UUID identity stored in session. Registered users use bcrypt-hashed passwords. A PKCE-like flow exists for OAuth-style registration.
 - **Real-time**: Socket.IO with Redis pub/sub adapter (falls back to MongoDB adapter). Match result changes broadcast to all clients watching a tournament.
 - **Match result flow**: Both participants report independently → if consensus, auto-complete + broadcast; if conflict, status becomes `disputed`; tournament creator can resolve or override. Overrides are stored as an array of `resultOverrides` on each match document (`{ newWinnerId, previousWinnerId, overriddenBy, reason, overriddenAt }`); the reason is surfaced on the `MatchCard` via a Popover.
-- **Environment config**: `infrastructure/config/env-loader.js` loads `.env` from the repo root; `infrastructure/config/env.js` exports values per `NODE_ENV`. Three environment profiles: `development.js`, `production.js`, `test.js`.
+- **Environment config**: `infrastructure/config/env-loader.js` loads `server-app/.env` (not the repo root — the root `.env.example` is for docker-compose); `infrastructure/config/env.js` exports values per `NODE_ENV`. Three environment profiles: `development.js`, `production.js`, `test.js`.
 
 ### Key environment variables
+
+Server (`server-app/.env`):
 
 ```env
 MONGO_URI=                # MongoDB connection string
 REDIS_URL=                # Optional; enables Redis for sessions + Socket.IO
 USE_MONGO_SESSION=false   # true = MongoDB session store instead of Redis
-SESSION_SECRET=
-CSRF_SECRET=
-JWT_SECRET=
+SESSION_SECRET=           # Required; the server exits if unset
+CSRF_SECRET=              # Required in production; the server exits if unset
 RESEND_API_KEY=           # Email delivery for password reset
-CLIENT_URL=               # CORS allowed origin
+CLIENT_URL=               # CORS allowed origin, and the base for password-reset links
+BASE_URL=                 # This server's own public URL
 PORT=3000
 NODE_ENV=development
 AXIOM_TOKEN=              # Optional; Axiom API token — enables structured log shipping
 AXIOM_DATASET=            # Optional; Axiom dataset name (required when AXIOM_TOKEN is set)
+
+# Read only by infrastructure/services/jwt-service.js, which nothing currently
+# imports. Session cookies, not JWTs, carry auth.
+JWT_SECRET=
+JWT_EXPIRES_IN=
+JWT_GUEST_EXPIRES_IN=
+JWT_REMEMBER_ME_EXPIRES_IN=
+```
+
+Client (`client-app/.env`):
+
+```env
+VITE_API_URL=             # API base URL; empty means same-origin
 ```
 
 ### Logging
@@ -207,10 +222,12 @@ Log levels used across the codebase:
 
 GitHub Actions workflows in `.github/workflows/`:
 - `clientTests.yml` — Vitest on client changes
-- `serverTests.yml` — Node test runner with a MongoDB service container
-- `authBoundaries.yml` — auth/session boundary integration tests ("Skaven Underway Tests")
-- `coverage.yml` — test coverage reporting
-- `codacy.yml` — Codacy security scan
-- `zapScan.yml` — OWASP ZAP API security scan
+- `serverTests.yml` — Node test runner. A MongoDB service container is started but no server test connects to it — they all mock mongoose.
+- `authBoundaries.yml` — auth/session boundary integration tests ("Skaven Underway Tests"), via Hurl against docker-compose
+- `lintAndFormat.yml` — oxlint + Prettier on both workspaces
+- `cronTests.yml` — smoke-runs the `cron/scripts/*` mongosh scripts
+- `coverage.yml` — test coverage reporting (push to `main` only; it does not gate PRs, and no threshold is enforced)
+- `codacy.yml` — Codacy security scan (`continue-on-error`, so it reports rather than gates)
+- `zapScan.yml` — OWASP ZAP API security scan (`fail_action: false`, so it reports rather than gates)
 - `claude-code-review.yml` — automated review via Claude
 - `claude.yml` — Claude Code agent integration
