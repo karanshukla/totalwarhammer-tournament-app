@@ -12,10 +12,12 @@ mock.module("../domain/models/user.js", {
 
 const mockCreateResetToken = mock.fn();
 const mockValidateResetToken = mock.fn();
+const mockInvalidateOutstandingTokens = mock.fn(async () => {});
 mock.module("../domain/models/password-reset.js", {
   defaultExport: {
     createResetToken: mockCreateResetToken,
     validateResetToken: mockValidateResetToken,
+    invalidateOutstandingTokens: mockInvalidateOutstandingTokens,
   },
 });
 
@@ -54,6 +56,7 @@ describe("password-reset-controller", () => {
     mockUserFindById.mock.resetCalls();
     mockCreateResetToken.mock.resetCalls();
     mockValidateResetToken.mock.resetCalls();
+    mockInvalidateOutstandingTokens.mock.resetCalls();
     mockSendEmail.mock.resetCalls();
     mockCreatePasswordResetEmail.mock.resetCalls();
     mockSendEmail.mock.mockImplementation(async () => ({ success: true }));
@@ -143,7 +146,7 @@ describe("password-reset-controller", () => {
       assert.strictEqual(res.status.mock.calls[0].arguments[0], 400);
     });
 
-    it("should return 200 with userId and expiry for a valid token", async () => {
+    it("should return 200 with the expiry, and without the userId, for a valid token", async () => {
       const createdAt = new Date(Date.now() - 5000);
       mockValidateResetToken.mock.mockImplementation(async () => ({
         userId: "user1",
@@ -154,8 +157,11 @@ describe("password-reset-controller", () => {
       await verifyResetToken(req, res);
       assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
       const data = res.json.mock.calls[0].arguments[0].data;
-      assert.strictEqual(data.userId, "user1");
       assert.strictEqual(data.validUntil, createdAt.getTime() + 3600000);
+      assert.ok(
+        !("userId" in data),
+        "verify response must not disclose which account the token belongs to",
+      );
     });
 
     it("should return 500 on unexpected error", async () => {
@@ -220,7 +226,9 @@ describe("password-reset-controller", () => {
       };
       mockValidateResetToken.mock.mockImplementation(async () => resetToken);
       const user = {
+        _id: "user1",
         password: "old_hash",
+        passwordChangedAt: null,
         save: mock.fn(async () => {}),
       };
       mockUserFindById.mock.mockImplementation(async () => user);
@@ -234,6 +242,57 @@ describe("password-reset-controller", () => {
       assert.strictEqual(resetToken.isUsed, true);
       assert.strictEqual(user.save.mock.calls.length, 1);
       assert.strictEqual(resetToken.save.mock.calls.length, 1);
+    });
+
+    it("stamps passwordChangedAt so sessions predating the reset are evicted", async () => {
+      const resetToken = {
+        userId: "user1",
+        isUsed: false,
+        save: mock.fn(async () => {}),
+      };
+      mockValidateResetToken.mock.mockImplementation(async () => resetToken);
+      const user = {
+        _id: "user1",
+        password: "old_hash",
+        passwordChangedAt: null,
+        save: mock.fn(async () => {}),
+      };
+      mockUserFindById.mock.mockImplementation(async () => user);
+      const before = Date.now();
+      const res = mockRes();
+      await resetPassword(
+        { body: { token: "validtok", newPassword: "newvalidpassword" } },
+        res,
+      );
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
+      assert.ok(
+        user.passwordChangedAt instanceof Date,
+        "passwordChangedAt must be stamped on reset",
+      );
+      assert.ok(user.passwordChangedAt.getTime() >= before);
+    });
+
+    it("invalidates the account's other outstanding reset tokens", async () => {
+      const resetToken = {
+        userId: "user1",
+        isUsed: false,
+        save: mock.fn(async () => {}),
+      };
+      mockValidateResetToken.mock.mockImplementation(async () => resetToken);
+      mockUserFindById.mock.mockImplementation(async () => ({
+        _id: "user1",
+        password: "old_hash",
+        save: mock.fn(async () => {}),
+      }));
+      await resetPassword(
+        { body: { token: "validtok", newPassword: "newvalidpassword" } },
+        mockRes(),
+      );
+      assert.strictEqual(mockInvalidateOutstandingTokens.mock.calls.length, 1);
+      assert.strictEqual(
+        mockInvalidateOutstandingTokens.mock.calls[0].arguments[0],
+        "user1",
+      );
     });
 
     it("should return 500 on unexpected error", async () => {

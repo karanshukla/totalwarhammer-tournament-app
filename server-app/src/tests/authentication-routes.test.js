@@ -19,7 +19,7 @@ mock.module("express", {
 
 const mockLoggerInfo = mock.fn();
 mock.module("../infrastructure/utils/logger.js", {
-  defaultExport: { info: mockLoggerInfo, error: mock.fn() },
+  defaultExport: { info: mockLoggerInfo, debug: mock.fn(), error: mock.fn() },
 });
 
 const mockLogin = mock.fn();
@@ -96,10 +96,7 @@ describe("authentication-routes wiring", () => {
 
       assert.strictEqual(req.session.initialized, true);
       assert.ok(req.session.createdAt);
-      assert.deepStrictEqual(jsonCalls[0], {
-        csrfToken: "csrf-token-value",
-        sessionId: undefined,
-      });
+      assert.deepStrictEqual(jsonCalls[0], { csrfToken: "csrf-token-value" });
     });
 
     it("does not reset createdAt on an already-initialized session", () => {
@@ -133,7 +130,6 @@ describe("authentication-routes wiring", () => {
       assert.deepStrictEqual(statusCalls, [500]);
       assert.deepStrictEqual(jsonCalls[0], {
         error: "Failed to generate CSRF token",
-        message: "csrf secret missing",
       });
     });
   });

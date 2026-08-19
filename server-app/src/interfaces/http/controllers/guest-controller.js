@@ -2,6 +2,7 @@
 import crypto from "crypto";
 
 import Tournament from "../../../domain/models/tournament.js";
+import User from "../../../domain/models/user.js";
 import AuthStateService from "../../../infrastructure/services/auth-state-service.js";
 import logger from "../../../infrastructure/utils/logger.js";
 
@@ -87,28 +88,40 @@ export const updateGuestUsername = async (req, res) => {
       });
     }
 
+    const registeredHolder = await User.findOne({ username: { $eq: username } })
+      .select("_id")
+      .lean();
+    if (registeredHolder) {
+      return res.status(400).json({
+        success: false,
+        message: "Username already taken",
+      });
+    }
+
+    const guestId = req.user.id;
     const oldUsername = req.user.username;
     req.user.username = username;
     if (req.session && req.session.user) {
       req.session.user.username = username;
     }
 
-    // Update participant name in any tournaments where the old name was used
-    if (oldUsername) {
-      try {
-        await Tournament.updateMany(
-          { "participants.name": oldUsername },
-          { $set: { "participants.$[elem].name": username } },
-          { arrayFilters: [{ "elem.name": oldUsername }] },
-        );
-        logger.debug(
-          `Updated participant name from "${oldUsername}" to "${username}" in tournaments`,
-        );
-      } catch (err) {
-        logger.warn(
-          `Failed to update participant names in tournaments: ${err.message}`,
-        );
-      }
+    // Rename only the rows this guest owns. Filtering on the old display name
+    // alone would rename every identically-named participant in every
+    // tournament, since a guest chooses their own name and names are not
+    // unique.
+    try {
+      await Tournament.updateMany(
+        { "participants.guestId": guestId },
+        { $set: { "participants.$[elem].name": username } },
+        { arrayFilters: [{ "elem.guestId": guestId }] },
+      );
+      logger.info(
+        `Guest ${guestId} renamed from "${oldUsername}" to "${username}"`,
+      );
+    } catch (err) {
+      logger.warn(
+        `Failed to update participant names in tournaments: ${err.message}`,
+      );
     }
 
     const expiresAt =

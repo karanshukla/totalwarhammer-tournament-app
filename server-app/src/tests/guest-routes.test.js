@@ -32,6 +32,11 @@ mock.module("../interfaces/http/middleware/auth-middleware.js", {
 });
 
 const mockValidateGuestUsername = mock.fn();
+const mockDoubleCsrfProtection = mock.fn();
+mock.module("../interfaces/http/middleware/csrf-middleware.js", {
+  namedExports: { doubleCsrfProtection: mockDoubleCsrfProtection },
+});
+
 mock.module("../interfaces/http/middleware/validation/user-validation.js", {
   namedExports: { validateGuestUsername: mockValidateGuestUsername },
 });
@@ -52,9 +57,10 @@ describe("guest-routes wiring", () => {
     assert.deepStrictEqual(find("post", "/").handlers, [mockCreateGuestUser]);
   });
 
-  it("wires POST /username through auth, validation, and updateGuestUsername", () => {
+  it("wires POST /username through auth, CSRF, validation, and updateGuestUsername", () => {
     assert.deepStrictEqual(find("post", "/username").handlers, [
       mockAuthenticateGuestSession,
+      mockDoubleCsrfProtection,
       mockValidateGuestUsername,
       mockValidationHandler,
       mockUpdateGuestUsername,

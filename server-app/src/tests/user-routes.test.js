@@ -68,6 +68,12 @@ mock.module("../interfaces/http/middleware/validation/validation-handler.js", {
   namedExports: { validationHandler: mockValidationHandler },
 });
 
+const mockValidateLogin = mock.fn();
+mock.module(
+  "../interfaces/http/middleware/validation/authentication-validation.js",
+  { namedExports: { validateLogin: mockValidateLogin } },
+);
+
 await import("../interfaces/http/routes/user-routes.js");
 
 function find(method, path) {
@@ -83,8 +89,12 @@ describe("user-routes wiring", () => {
     ]);
   });
 
-  it("wires POST /login directly to the login controller", () => {
-    assert.deepStrictEqual(find("post", "/login").handlers, [mockLogin]);
+  it("wires POST /login through the same validation chain as /auth/login", () => {
+    assert.deepStrictEqual(find("post", "/login").handlers, [
+      mockValidateLogin,
+      mockValidationHandler,
+      mockLogin,
+    ]);
   });
 
   it("wires POST /logout through CSRF protection to the logout controller", () => {
@@ -102,18 +112,20 @@ describe("user-routes wiring", () => {
     ]);
   });
 
-  it("wires POST /update-username through auth, validation, and the controller", () => {
+  it("wires POST /update-username through auth, CSRF, validation, and the controller", () => {
     assert.deepStrictEqual(find("post", "/update-username").handlers, [
       mockAuthenticateSession,
+      mockDoubleCsrfProtection,
       mockValidateUpdateUsername,
       mockValidationHandler,
       mockUpdateUsername,
     ]);
   });
 
-  it("wires POST /update-password through auth, validation, and the controller", () => {
+  it("wires POST /update-password through auth, CSRF, validation, and the controller", () => {
     assert.deepStrictEqual(find("post", "/update-password").handlers, [
       mockAuthenticateSession,
+      mockDoubleCsrfProtection,
       mockValidateUpdatePassword,
       mockValidationHandler,
       mockUpdatePassword,

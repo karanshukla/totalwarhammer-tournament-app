@@ -19,20 +19,12 @@ router.get("/csrf-token", (req, res) => {
 
   try {
     const token = generateCsrfToken(req, res);
-    logger.info("CSRF token generated successfully", {
-      sessionId: req.session.id,
-    });
+    logger.debug("CSRF token generated successfully");
 
-    res.json({
-      csrfToken: token,
-      sessionId: req.session.id,
-    });
+    res.json({ csrfToken: token });
   } catch (error) {
-    console.error("Error generating CSRF token:", error);
-    res.status(500).json({
-      error: "Failed to generate CSRF token",
-      message: error.message,
-    });
+    logger.error(`Error generating CSRF token: ${error.message}`, { error });
+    res.status(500).json({ error: "Failed to generate CSRF token" });
   }
 });
 

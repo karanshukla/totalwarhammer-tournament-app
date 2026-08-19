@@ -1,3 +1,5 @@
+import crypto from "crypto";
+
 import { doubleCsrf } from "csrf-csrf";
 
 import logger from "../../../infrastructure/utils/logger.js";
@@ -10,9 +12,11 @@ if (process.env.NODE_ENV === "production" && !process.env.CSRF_SECRET) {
 }
 /* node:coverage enable */
 
+// A per-process random secret keeps tokens unforgeable when CSRF_SECRET is
+// unset; the trade-off is that tokens don't survive a restart, which is the
+// correct failure mode for a non-production environment.
 const CSRF_SECRET =
-  process.env.CSRF_SECRET ||
-  "development-csrf-secret-key-for-testing-purposes-only";
+  process.env.CSRF_SECRET || crypto.randomBytes(32).toString("hex");
 
 // Initialize the CSRF protection middleware with more debugging
 const { doubleCsrfProtection, generateCsrfToken, invalidCsrfTokenError } =

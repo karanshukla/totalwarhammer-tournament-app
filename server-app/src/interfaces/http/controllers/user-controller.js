@@ -231,6 +231,13 @@ export const deleteAccount = async (req, res) => {
   try {
     const userId = req.user.id;
 
+    if (req.user.isGuest) {
+      return res.status(403).json({
+        success: false,
+        message: "Guest accounts cannot be deleted. Sign out instead.",
+      });
+    }
+
     const suffix = userId.toString().slice(-8);
     const anonymised = await User.findByIdAndUpdate(
       userId,
@@ -238,6 +245,10 @@ export const deleteAccount = async (req, res) => {
         username: `deleted_${suffix}`,
         email: `deleted_${suffix}@deleted.invalid`,
         password: null,
+        // Evicts this account's sessions on other devices via the freshness
+        // check in AuthStateService.isAuthenticated — destroying the current
+        // session alone would leave the rest of them usable.
+        passwordChangedAt: new Date(),
       },
       { new: true },
     );
@@ -317,9 +328,12 @@ async function computeUserGameStats(
 
   const allMatches = [...matchesAsP1, ...matchesAsP2];
   const wins = allMatches.filter((m) => {
-    if (m.player1.name === username)
-      return m.winnerId === m.player1.participantId;
-    return m.winnerId === m.player2.participantId;
+    const slot = m.player1.name === username ? m.player1 : m.player2;
+    return (
+      !!m.winnerId &&
+      !!slot.participantId &&
+      m.winnerId.toString() === slot.participantId.toString()
+    );
   }).length;
   const losses = allMatches.length - wins;
 

@@ -21,6 +21,17 @@ const eventLimiter = createRateLimiter({ windowMs: 60_000, max: 60 });
 
 let io = null;
 
+// Behind Caddy every handshake reports the proxy's address, which would put
+// all users in one rate-limit bucket. Prefer the first X-Forwarded-For hop,
+// matching the `trust proxy: 1` setting the HTTP side uses.
+function clientIpOf(socket) {
+  const forwarded = socket.handshake.headers?.["x-forwarded-for"];
+  if (typeof forwarded === "string" && forwarded.length > 0) {
+    return forwarded.split(",")[0].trim();
+  }
+  return socket.handshake.address;
+}
+
 export function initSocketIO(httpServer, corsOrigin) {
   logger.info(`[socket] initializing — corsOrigin: ${corsOrigin}`);
 
@@ -72,7 +83,7 @@ export function initSocketIO(httpServer, corsOrigin) {
   });
 
   io.use((socket, next) => {
-    const ip = socket.handshake.address;
+    const ip = clientIpOf(socket);
     if (!connectionLimiter(ip)) {
       logger.warn(`Socket connection rate limit exceeded for ${ip}`);
       return next(new Error("Too many connections"));
@@ -113,6 +124,7 @@ export function initSocketIO(httpServer, corsOrigin) {
     });
 
     socket.on("disconnect", () => {
+      eventLimiter.forget(socket.id);
       logger.debug(`Socket disconnected: ${socket.id}`);
     });
   });

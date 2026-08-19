@@ -67,25 +67,15 @@ app.use((req, _res, next) => {
     }
   }
 
-  if (req.params) {
-    for (const [key, value] of Object.entries(req.params)) {
-      if (typeof value === "string") {
-        req.params[key] = xssFilter.process(value);
-      }
-    }
-  }
-
   next();
 });
-app.use(hpp());
-
 // IMPORTANT: Add cookie parser before CORS and session
 app.use(cookieParser());
 
 // CORS configuration - make sure it's before session middleware
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || "http://localhost:3000",
+    origin: clientUrl,
     credentials: true, // IMPORTANT: needed for cookies to work cross-origin
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "X-CSRF-Token"],
@@ -105,9 +95,7 @@ const isProduction = process.env.NODE_ENV === "production";
 logger.info(
   `Starting server in ${process.env.NODE_ENV || "development"} environment`,
 );
-logger.info(
-  `CORS origin: ${process.env.CLIENT_URL || "http://localhost:3000"}`,
-);
+logger.info(`CORS origin: ${clientUrl}`);
 
 // Configure and use session middleware
 app.use(configureSessionMiddleware(SESSION_SECRET, isProduction));
@@ -126,17 +114,38 @@ app.use(express.urlencoded({ extended: true, limit: "50kb" }));
 // Sanitize parsed body and apply XSS filter to body strings.
 // Both must run after body parsing; previously mongoSanitize ran before
 // express.json() so req.body was always undefined there.
+// Escaping a password silently rewrites it (`<` becomes `&lt;`) and narrows the
+// usable character set. It is hashed, never rendered, so it must pass through
+// untouched.
+const NON_RENDERED_FIELDS = new Set([
+  "password",
+  "newPassword",
+  "currentPassword",
+  "confirmPassword",
+]);
+
+const sanitizeStringsDeep = (value, depth = 0) => {
+  if (depth > 8) return value;
+  if (typeof value === "string") return xssFilter.process(value);
+  if (Array.isArray(value))
+    return value.map((entry) => sanitizeStringsDeep(entry, depth + 1));
+  if (value && typeof value === "object") {
+    for (const key of Object.keys(value)) {
+      if (NON_RENDERED_FIELDS.has(key)) continue;
+      value[key] = sanitizeStringsDeep(value[key], depth + 1);
+    }
+  }
+  return value;
+};
+
 app.use((req, _res, next) => {
   if (req.body) {
-    req.body = mongoSanitize.sanitize(req.body);
-    for (const [key, value] of Object.entries(req.body)) {
-      if (typeof value === "string") {
-        req.body[key] = xssFilter.process(value);
-      }
-    }
+    req.body = sanitizeStringsDeep(mongoSanitize.sanitize(req.body));
   }
   next();
 });
+
+app.use(hpp());
 
 app.use(express.static("public"));
 
@@ -168,6 +177,22 @@ app.use("/user/login", authLimiter);
 app.use("/auth/login", authLimiter);
 app.use("/user/register", authLimiter);
 app.use("/auth/token", authLimiter);
+// Verifies the current password, so it is a password oracle like login is.
+app.use("/user/update-password", authLimiter);
+
+// /user/exists answers "does this account exist?" for any username or email,
+// so the global 300/15min budget is an account-enumeration allowance.
+const accountLookupLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 30,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: "Too many lookups, please try again later.",
+  },
+});
+app.use("/user/exists", accountLookupLimiter);
 
 // Tight limiter for password reset (prevents email bombing)
 const passwordResetLimiter = rateLimit({
@@ -182,10 +207,9 @@ const passwordResetLimiter = rateLimit({
 });
 app.use("/password-reset", passwordResetLimiter);
 
-// Debug middleware to log session and cookies
 app.use((req, res, next) => {
   logger.http(
-    `${req.method} ${req.url} - Session ID: ${req.session?.id || "none"}`,
+    `${req.method} ${req.url} - session: ${req.session?.id ? "present" : "none"}`,
   );
   next();
 });
@@ -203,12 +227,19 @@ app.use(csrfErrorHandler);
 
 // Generic error handler
 app.use((err, _req, res, _next) => {
-  logger.error(`Application error: ${err.message}`, { error: err });
-  res.status(500).json({ error: "Server error occurred" });
+  const status = err.status || err.statusCode || 500;
+  if (status >= 500) {
+    logger.error(`Application error: ${err.message}`, { error: err });
+  } else {
+    logger.warn(`Request rejected (${status}): ${err.message}`);
+  }
+  res.status(status).json({
+    error: status >= 500 ? "Server error occurred" : err.message,
+  });
 });
 
 // Attach socket.io to the HTTP server
-initSocketIO(httpServer, process.env.CLIENT_URL || "http://localhost:3001");
+initSocketIO(httpServer, clientUrl);
 
 // Start server
 httpServer.listen(port, "::", () => {

@@ -3,11 +3,18 @@ import { describe, it, beforeEach, mock } from "node:test";
 
 const mockCreateGuestAuthState = mock.fn();
 const mockTournamentUpdateMany = mock.fn();
+const mockUserFindOne = mock.fn(() => ({
+  select: () => ({ lean: async () => null }),
+}));
 
 mock.module("../domain/models/tournament.js", {
   defaultExport: {
     updateMany: mockTournamentUpdateMany,
   },
+});
+
+mock.module("../domain/models/user.js", {
+  defaultExport: { findOne: mockUserFindOne },
 });
 
 mock.module("../infrastructure/services/auth-state-service.js", {
@@ -51,6 +58,7 @@ describe("guest-controller", () => {
   beforeEach(() => {
     mockCreateGuestAuthState.mock.resetCalls();
     mockTournamentUpdateMany.mock.resetCalls();
+    mockUserFindOne.mock.resetCalls();
   });
 
   describe("createGuestUser", () => {
@@ -121,7 +129,7 @@ describe("guest-controller", () => {
       assert.strictEqual(req.session.user.username, "valid_name");
     });
 
-    it("should propagate new username to tournament participants", async () => {
+    it("renames only the participant rows belonging to this guest", async () => {
       mockTournamentUpdateMany.mock.mockImplementation(async () => ({
         modifiedCount: 2,
       }));
@@ -140,29 +148,45 @@ describe("guest-controller", () => {
       assert.strictEqual(mockTournamentUpdateMany.mock.calls.length, 1);
       const [filter, update, options] =
         mockTournamentUpdateMany.mock.calls[0].arguments;
-      assert.deepStrictEqual(filter, { "participants.name": "old_name" });
+      assert.deepStrictEqual(filter, { "participants.guestId": "u1" });
       assert.deepStrictEqual(update, {
         $set: { "participants.$[elem].name": "new_name" },
       });
       assert.deepStrictEqual(options, {
-        arrayFilters: [{ "elem.name": "old_name" }],
+        arrayFilters: [{ "elem.guestId": "u1" }],
       });
     });
 
-    it("should not call Tournament.updateMany if no old username", async () => {
+    it("never scopes the rename by display name, which is attacker-chosen", async () => {
       mockTournamentUpdateMany.mock.mockImplementation(async () => ({}));
       const req = mockReq({
-        body: { username: "new_name" },
-        user: { id: "u1", username: undefined, isGuest: true },
+        body: { username: "zzz" },
+        user: { id: "u1", username: "Alice", isGuest: true },
         session: {
-          user: {},
+          user: { username: "Alice" },
           save: mock.fn((cb) => cb()),
           touch: mock.fn(),
         },
       });
+      await updateGuestUsername(req, mockRes());
+      const [filter, , options] =
+        mockTournamentUpdateMany.mock.calls[0].arguments;
+      assert.ok(!("participants.name" in filter));
+      assert.ok(!("elem.name" in options.arrayFilters[0]));
+    });
+
+    it("rejects a username already held by a registered user", async () => {
+      mockUserFindOne.mock.mockImplementationOnce(() => ({
+        select: () => ({ lean: async () => ({ _id: "registered" }) }),
+      }));
+      const req = mockReq({
+        body: { username: "RealPlayer" },
+        user: { id: "u1", username: "old_name", isGuest: true },
+        session: { user: { username: "old_name" } },
+      });
       const res = mockRes();
       await updateGuestUsername(req, res);
-      assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 400);
       assert.strictEqual(mockTournamentUpdateMany.mock.calls.length, 0);
     });
 

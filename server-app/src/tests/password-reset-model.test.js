@@ -65,10 +65,12 @@ describe("password-reset model", () => {
       );
 
       assert.strictEqual(mockFindOne.mock.calls.length, 1);
-      assert.deepStrictEqual(mockFindOne.mock.calls[0].arguments[0], {
-        resetKey: "abc",
-        isUsed: false,
-      });
+      const query = mockFindOne.mock.calls[0].arguments[0];
+      assert.strictEqual(query.resetKey, "abc");
+      assert.strictEqual(query.isUsed, false);
+      // Expiry is enforced in the query, not left to the TTL sweeper alone.
+      assert.ok(query.createdAt.$gt instanceof Date);
+      assert.ok(query.createdAt.$gt.getTime() <= Date.now() - 3599_000);
       assert.strictEqual(result, foundToken);
     });
 

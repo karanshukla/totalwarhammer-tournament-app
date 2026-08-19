@@ -256,18 +256,38 @@ describe("match-controller", () => {
       assert.strictEqual(match.status, "in_progress");
     });
 
-    it("should accept report by guest using Guest_XXXX fallback name", async () => {
+    it("should accept a guest report resolved through their participant guestId", async () => {
       const guestId = "abcdef12-1234-1234-1234-123456789abc";
+      const p1Id = "aaaaaaaaaaaaaaaaaaaaaaaa";
       const match = makeMatch({
-        player1: {
-          participantId: "aaaaaaaaaaaaaaaaaaaaaaaa",
-          name: `Guest_abcdef`,
-          faction: "",
+        player1: { participantId: p1Id, name: "Guest_abcdef", faction: "" },
+        tournament: {
+          _id: { toString: () => "tttttttttttttttttttttttt" },
+          status: "active",
+          createdBy: "cccccccccccccccccccccccc",
+          participants: [{ _id: { toString: () => p1Id }, guestId }],
         },
-        player2: {
-          participantId: "bbbbbbbbbbbbbbbbbbbbbbbb",
-          name: "Bob",
-          faction: "",
+      });
+      mockMatchFindById.mock.mockImplementation(() => ({
+        populate: async () => match,
+      }));
+      const req = mockReq({
+        params: { id: "m1" },
+        body: { winnerId: p1Id },
+        user: { id: guestId, username: "Guest_abcdef", isGuest: true },
+      });
+      const res = mockRes();
+      await reportResult(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
+    });
+
+    it("should reject a guest who renamed themselves to match a player slot", async () => {
+      const match = makeMatch({
+        tournament: {
+          _id: { toString: () => "tttttttttttttttttttttttt" },
+          status: "active",
+          createdBy: "cccccccccccccccccccccccc",
+          participants: [],
         },
       });
       mockMatchFindById.mock.mockImplementation(() => ({
@@ -276,11 +296,18 @@ describe("match-controller", () => {
       const req = mockReq({
         params: { id: "m1" },
         body: { winnerId: match.player1.participantId },
-        user: { id: guestId, username: undefined, isGuest: true },
+        // Guest display names are self-chosen and not unique, so matching one
+        // must never be sufficient to claim that player's slot.
+        user: {
+          id: "abcdef12-1234-1234-1234-123456789abc",
+          username: "Alice",
+          isGuest: true,
+        },
       });
       const res = mockRes();
       await reportResult(req, res);
-      assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 403);
+      assert.strictEqual(match.save.mock.calls.length, 0);
     });
 
     it("should set status to in_progress after first report", async () => {
