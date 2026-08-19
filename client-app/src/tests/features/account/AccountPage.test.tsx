@@ -45,7 +45,7 @@ vi.mock("@/features/account/api/accountApi", () => ({
   refreshSession: mockRefreshSession,
 }));
 
-vi.mock("@/shared/ui/Toaster", () => ({
+vi.mock("@/shared/ui/toasterStore", () => ({
   toaster: { create: mockToasterCreate },
 }));
 

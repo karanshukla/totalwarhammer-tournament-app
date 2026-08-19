@@ -7,7 +7,7 @@ import { ChakraProvider, defaultSystem } from "@chakra-ui/react";
 import SimpleBracket from "@/features/tournaments/components/SimpleBracket";
 import { useTournamentStore } from "@/shared/stores/tournamentStore";
 
-vi.mock("@/shared/ui/Toaster", () => ({
+vi.mock("@/shared/ui/toasterStore", () => ({
   toaster: { success: vi.fn(), info: vi.fn(), error: vi.fn() },
 }));
 

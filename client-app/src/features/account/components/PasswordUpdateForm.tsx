@@ -1,5 +1,5 @@
 ﻿import React, { useState } from "react";
-import { Text, VStack, Button, Box } from "@chakra-ui/react";
+import { Text, VStack, Button, Box, Field } from "@chakra-ui/react";
 import { PasswordInput } from "@/shared/ui/PasswordInput";
 import { updatePassword } from "@/features/account/api/accountApi";
 import {
@@ -63,30 +63,42 @@ const PasswordUpdateForm: React.FC = () => {
   return (
     <Box as="form" onSubmit={handlePasswordSubmit} width="100%">
       <VStack gap={4} align="start">
-        <PasswordInput
-          id="currentPassword"
-          type="password"
-          placeholder="Current password"
-          value={currentPassword}
-          onChange={handlePasswordChange}
-        />
-        <PasswordInput
-          id="newPassword"
-          type="password"
-          placeholder="New password"
-          value={newPassword}
-          onChange={handlePasswordChange}
-          maxLength={PASSWORD_MAX_LENGTH}
-        />
-        <PasswordInput
-          id="confirmPassword"
-          type="password"
-          placeholder="Confirm new password"
-          value={confirmPassword}
-          onChange={handlePasswordChange}
-          maxLength={PASSWORD_MAX_LENGTH}
-        />
-        {passwordError && <Text color="status.loss">{passwordError}</Text>}
+        <Field.Root width="100%">
+          <Field.Label>Current password</Field.Label>
+          <PasswordInput
+            id="currentPassword"
+            type="password"
+            autoComplete="current-password"
+            placeholder="Current password"
+            value={currentPassword}
+            onChange={handlePasswordChange}
+          />
+        </Field.Root>
+        <Field.Root width="100%">
+          <Field.Label>New password</Field.Label>
+          <PasswordInput
+            id="newPassword"
+            type="password"
+            autoComplete="new-password"
+            placeholder="New password"
+            value={newPassword}
+            onChange={handlePasswordChange}
+            maxLength={PASSWORD_MAX_LENGTH}
+          />
+        </Field.Root>
+        <Field.Root invalid={!!passwordError} width="100%">
+          <Field.Label>Confirm new password</Field.Label>
+          <PasswordInput
+            id="confirmPassword"
+            type="password"
+            autoComplete="new-password"
+            placeholder="Confirm new password"
+            value={confirmPassword}
+            onChange={handlePasswordChange}
+            maxLength={PASSWORD_MAX_LENGTH}
+          />
+          {passwordError && <Field.ErrorText>{passwordError}</Field.ErrorText>}
+        </Field.Root>
         <Button
           type="submit"
           colorPalette="crimson"

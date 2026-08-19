@@ -48,9 +48,9 @@ const AddParticipantCard: React.FC<AddParticipantCardProps> = ({
           onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
             onNameChange(e.target.value)
           }
-          disabled={isFull}
+          disabled={isFull || actionLoading}
           onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
-            e.key === "Enter" && onAdd()
+            e.key === "Enter" && !actionLoading && onAdd()
           }
         />
       </Field.Root>

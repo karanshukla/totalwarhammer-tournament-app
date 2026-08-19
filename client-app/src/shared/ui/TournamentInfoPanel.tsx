@@ -23,7 +23,7 @@ import {
 } from "react-icons/lu";
 import PanelCard from "@/shared/ui/PanelCard";
 import TournamentCode from "@/shared/ui/TournamentCode";
-import { toaster } from "@/shared/ui/Toaster";
+import { toaster } from "@/shared/ui/toasterStore";
 import { championOf } from "@/shared/tournament/outcome";
 import type { Match, Tournament } from "@/shared/tournament/types";
 import { statusColorMap } from "@/shared/tournament/types";

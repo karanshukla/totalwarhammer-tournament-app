@@ -18,10 +18,11 @@ import {
 } from "@dnd-kit/sortable";
 import { DragOverlay } from "@dnd-kit/core";
 import { LuPlus, LuMinus } from "react-icons/lu";
+import ConfirmButton from "@/shared/ui/ConfirmButton";
 import { SortableItem } from "./SortableItem";
 import { Participant } from "./types";
 import { useTournamentStore } from "@/shared/stores/tournamentStore";
-import { toaster } from "@/shared/ui/Toaster";
+import { toaster } from "@/shared/ui/toasterStore";
 
 interface ParticipantListProps {
   activeParticipant: Participant | null;
@@ -126,22 +127,24 @@ export function ParticipantList({
                   >
                     <LuPlus /> Add Participants
                   </Button>
-                  <Button
-                    onClick={handleResetBracket}
+                  <ConfirmButton
+                    onConfirm={handleResetBracket}
                     colorPalette="ink"
                     variant="outline"
                     size="sm"
+                    confirmLabel="Clear the bracket?"
                   >
                     Reset Bracket
-                  </Button>
-                  <Button
-                    onClick={handleResetParticipantsAndBracket}
+                  </ConfirmButton>
+                  <ConfirmButton
+                    onConfirm={handleResetParticipantsAndBracket}
                     colorPalette="crimson"
                     variant="outline"
                     size="sm"
+                    confirmLabel="Clear participants and bracket?"
                   >
                     Reset All
-                  </Button>
+                  </ConfirmButton>
                 </Flex>
               </Flex>
             </VStack>

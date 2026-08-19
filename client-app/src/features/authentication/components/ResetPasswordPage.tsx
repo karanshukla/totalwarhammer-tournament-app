@@ -18,7 +18,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { verifyResetToken, resetPassword } from "../api/passwordResetApi";
 import { useNavigate } from "react-router";
-import { toaster } from "@/shared/ui/Toaster";
+import { toaster } from "@/shared/ui/toasterStore";
 import { PasswordInput } from "@/shared/ui/PasswordInput";
 import {
   passwordSchema,
@@ -122,7 +122,7 @@ const ResetPasswordPage: React.FC = () => {
   // Render different states
   if (isLoading) {
     return (
-      <Container maxW="container.sm" py={10}>
+      <Container maxW="2xl" py={10}>
         <VStack gap={6} align="center">
           <Heading size="lg">Verifying Your Reset Link</Heading>
           <Text>Please wait while we verify your reset token...</Text>
@@ -133,7 +133,7 @@ const ResetPasswordPage: React.FC = () => {
 
   if (isTokenValid === false) {
     return (
-      <Container maxW="container.sm" py={10}>
+      <Container maxW="2xl" py={10}>
         <VStack gap={6} align="center">
           <Heading size="lg">Invalid Reset Link</Heading>
           <Text textAlign="center">
@@ -149,7 +149,7 @@ const ResetPasswordPage: React.FC = () => {
   }
 
   return (
-    <Container maxW="container.sm" py={10}>
+    <Container maxW="2xl" py={10}>
       <VStack gap={8} align="stretch">
         <Box textAlign="center">
           <Heading size="lg" mb={2}>

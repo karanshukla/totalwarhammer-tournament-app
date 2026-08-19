@@ -17,6 +17,7 @@ import {
 import { LuTrophy, LuUsers, LuSearch } from "react-icons/lu";
 import { Tournament, statusColorMap } from "./types";
 import Callout from "@/shared/ui/Callout";
+import { activateOnEnterOrSpace } from "@/shared/ui/keyboardActivation";
 
 export type GameFilter = "all" | "wh3" | "40k";
 
@@ -66,7 +67,7 @@ const TournamentList: React.FC<Props> = ({
   const totalPages = Math.ceil(total / pageSize);
 
   return (
-    <Container maxW="container.xl" py={8}>
+    <Container maxW="7xl" py={8}>
       <HStack mb={4} gap={4} wrap="wrap" alignItems="flex-end">
         <Heading as="h1" size="xl" flex={1}>
           Matches
@@ -227,8 +228,22 @@ const TournamentList: React.FC<Props> = ({
               {(t) => (
                 <Card.Root
                   key={t._id}
+                  // The card is the only way to open a tournament on this
+                  // page, so without these it is unreachable by keyboard or
+                  // screen reader.
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Open tournament ${t.name}`}
                   cursor="pointer"
                   onClick={() => onSelectTournament(t)}
+                  onKeyDown={activateOnEnterOrSpace(() =>
+                    onSelectTournament(t),
+                  )}
+                  _focusVisible={{
+                    outline: "2px solid",
+                    outlineColor: "info.solid",
+                    outlineOffset: "2px",
+                  }}
                   bg="bg.panel"
                   borderColor="border"
                   _hover={{ shadow: "md", bg: "info.subtle" }}

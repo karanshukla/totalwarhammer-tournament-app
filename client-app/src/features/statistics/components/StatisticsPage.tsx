@@ -12,7 +12,6 @@ import {
   Card,
   Separator,
   For,
-  chakra,
 } from "@chakra-ui/react";
 import {
   LuTrophy,
@@ -25,6 +24,7 @@ import {
 import { httpClient } from "@/core/api/httpClient";
 import { displayName as dn } from "@/shared/utils/displayName";
 import Callout from "@/shared/ui/Callout";
+import GameSystemToggle from "@/shared/ui/GameSystemToggle";
 
 type Game = "wh3" | "40k";
 
@@ -186,7 +186,7 @@ const StatisticsPage: React.FC = () => {
 
   if (loading) {
     return (
-      <Container maxW="container.xl" py={16}>
+      <Container maxW="7xl" py={16}>
         <VStack gap={4}>
           <Spinner size="xl" role="status" aria-label="Loading statistics" />
           <Text color="fg.muted">Loading statistics…</Text>
@@ -197,7 +197,7 @@ const StatisticsPage: React.FC = () => {
 
   if (error || !stats) {
     return (
-      <Container maxW="container.xl" py={8}>
+      <Container maxW="7xl" py={8}>
         <Callout tone="error" p={4}>
           {error ?? "No data available."}
         </Callout>
@@ -210,7 +210,7 @@ const StatisticsPage: React.FC = () => {
   const maxPlayerWins = active.topPlayers[0]?.wins ?? 1;
 
   return (
-    <Container maxW="container.xl" py={8}>
+    <Container maxW="7xl" py={8}>
       <VStack gap={8} align="stretch">
         <HStack justify="space-between" align="baseline" wrap="wrap" gap={2}>
           <Heading as="h1" size="xl">
@@ -233,53 +233,15 @@ const StatisticsPage: React.FC = () => {
           )}
         </HStack>
 
-        {/* Game-system toggle (WH3 / 40K) */}
-        <HStack
-          gap={1}
-          p={2}
+        <Box
+          p={1}
           borderRadius="md"
           borderWidth={1}
           borderColor="border"
           bg="bg.subtle"
-          w="fit-content"
         >
-          <chakra.button
-            type="button"
-            py={1.5}
-            px={4}
-            borderRadius="sm"
-            borderWidth={1}
-            fontSize="sm"
-            fontWeight="medium"
-            cursor="pointer"
-            transition="all 0.15s"
-            onClick={() => setGame("wh3")}
-            bg={game === "wh3" ? "colorPalette.subtle" : "transparent"}
-            borderColor={game === "wh3" ? "colorPalette.muted" : "border"}
-            color={game === "wh3" ? "fg" : "fg.muted"}
-            colorPalette="ink"
-          >
-            WH3
-          </chakra.button>
-          <chakra.button
-            type="button"
-            py={1.5}
-            px={4}
-            borderRadius="sm"
-            borderWidth={1}
-            fontSize="sm"
-            fontWeight="medium"
-            cursor="pointer"
-            transition="all 0.15s"
-            onClick={() => setGame("40k")}
-            bg={game === "40k" ? "colorPalette.subtle" : "transparent"}
-            borderColor={game === "40k" ? "colorPalette.muted" : "border"}
-            color={game === "40k" ? "fg" : "fg.muted"}
-            colorPalette="verdigris"
-          >
-            40K
-          </chakra.button>
-        </HStack>
+          <GameSystemToggle value={game} onChange={setGame} size="sm" />
+        </Box>
 
         {/* Overview cards */}
         <SimpleGrid columns={{ base: 2, md: 4 }} gap={4}>

@@ -25,21 +25,9 @@ import {
 } from "react-icons/fi";
 import { Link, useNavigate } from "react-router";
 import { LuSword } from "react-icons/lu";
+import { KEYBOARD_SHORTCUTS } from "./keyboardShortcuts";
 
 const RouterLink = chakra(Link);
-
-// Define keyboard shortcuts
-const KEYBOARD_SHORTCUTS = {
-  home: "Alt+1",
-  tournaments: "Alt+2",
-  matches: "Alt+3",
-  statistics: "Alt+4",
-  account: "Alt+5",
-  help: "Alt+6",
-  terms: "Alt+7",
-  privacy: "Alt+8",
-  source: "Alt+9",
-};
 
 // A nav entry stays lit for every route it owns, not just its own path: the
 // Matches entry covers /matches/tournament/:code and /matches/spectate/:code,

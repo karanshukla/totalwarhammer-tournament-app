@@ -20,6 +20,7 @@ import ManagedInfoCard from "./detail/ManagedInfoCard";
 import ManagedParticipantsCard from "./detail/ManagedParticipantsCard";
 import { canAdvanceRound } from "./detail/roundProgress";
 import Callout from "@/shared/ui/Callout";
+import ConfirmButton from "@/shared/ui/ConfirmButton";
 
 interface Props {
   selected: Tournament;
@@ -118,7 +119,7 @@ const TournamentDetail: React.FC<Props> = ({
   };
 
   return (
-    <Container maxW="container.xl" py={8}>
+    <Container maxW="7xl" py={8}>
       <Button variant="ghost" size="sm" mb={6} onClick={onBack}>
         <LuChevronLeft />
         Back to Matches View
@@ -160,16 +161,17 @@ const TournamentDetail: React.FC<Props> = ({
               </Button>
             )}
             {canDelete && (
-              <Button
+              <ConfirmButton
                 colorPalette="crimson"
                 variant="outline"
                 size="sm"
-                onClick={onDelete}
+                onConfirm={onDelete}
                 loading={actionLoading}
+                confirmLabel="Delete this tournament?"
               >
                 <LuTrash2 />
                 Delete
-              </Button>
+              </ConfirmButton>
             )}
           </>
         }

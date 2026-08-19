@@ -288,44 +288,46 @@ const MatchesSection: React.FC<Props> = ({
                 >
                   Standings
                 </Text>
-                <Table.Root size="sm" variant="outline">
-                  <Table.Header>
-                    <Table.Row>
-                      <Table.ColumnHeader>#</Table.ColumnHeader>
-                      <Table.ColumnHeader>Player</Table.ColumnHeader>
-                      <Table.ColumnHeader>Faction</Table.ColumnHeader>
-                      <Table.ColumnHeader textAlign="center">
-                        W
-                      </Table.ColumnHeader>
-                      <Table.ColumnHeader textAlign="center">
-                        L
-                      </Table.ColumnHeader>
-                      <Table.ColumnHeader textAlign="center">
-                        Played
-                      </Table.ColumnHeader>
-                    </Table.Row>
-                  </Table.Header>
-                  <Table.Body>
-                    {standings.map((s, i) => (
-                      <Table.Row key={s.name}>
-                        <Table.Cell color="fg.muted">{i + 1}</Table.Cell>
-                        <Table.Cell fontWeight={i === 0 ? "bold" : "normal"}>
-                          {s.name}
-                        </Table.Cell>
-                        <Table.Cell color="fg.muted">
-                          {s.faction || "-"}
-                        </Table.Cell>
-                        <Table.Cell textAlign="center" color="status.win">
-                          {s.wins}
-                        </Table.Cell>
-                        <Table.Cell textAlign="center" color="status.loss">
-                          {s.losses}
-                        </Table.Cell>
-                        <Table.Cell textAlign="center">{s.played}</Table.Cell>
+                <Table.ScrollArea>
+                  <Table.Root size="sm" variant="outline">
+                    <Table.Header>
+                      <Table.Row>
+                        <Table.ColumnHeader>#</Table.ColumnHeader>
+                        <Table.ColumnHeader>Player</Table.ColumnHeader>
+                        <Table.ColumnHeader>Faction</Table.ColumnHeader>
+                        <Table.ColumnHeader textAlign="center">
+                          W
+                        </Table.ColumnHeader>
+                        <Table.ColumnHeader textAlign="center">
+                          L
+                        </Table.ColumnHeader>
+                        <Table.ColumnHeader textAlign="center">
+                          Played
+                        </Table.ColumnHeader>
                       </Table.Row>
-                    ))}
-                  </Table.Body>
-                </Table.Root>
+                    </Table.Header>
+                    <Table.Body>
+                      {standings.map((s, i) => (
+                        <Table.Row key={s.name}>
+                          <Table.Cell color="fg.muted">{i + 1}</Table.Cell>
+                          <Table.Cell fontWeight={i === 0 ? "bold" : "normal"}>
+                            {s.name}
+                          </Table.Cell>
+                          <Table.Cell color="fg.muted">
+                            {s.faction || "-"}
+                          </Table.Cell>
+                          <Table.Cell textAlign="center" color="status.win">
+                            {s.wins}
+                          </Table.Cell>
+                          <Table.Cell textAlign="center" color="status.loss">
+                            {s.losses}
+                          </Table.Cell>
+                          <Table.Cell textAlign="center">{s.played}</Table.Cell>
+                        </Table.Row>
+                      ))}
+                    </Table.Body>
+                  </Table.Root>
+                </Table.ScrollArea>
                 <Separator mt={4} />
               </Box>
             )}

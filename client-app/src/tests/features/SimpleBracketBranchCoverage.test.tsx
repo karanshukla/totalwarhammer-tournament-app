@@ -12,7 +12,7 @@ import SimpleBracket from "@/features/tournaments/components/SimpleBracket";
 import { useTournamentStore } from "@/shared/stores/tournamentStore";
 import type { DragEndEvent } from "@dnd-kit/core";
 
-vi.mock("@/shared/ui/Toaster", () => ({
+vi.mock("@/shared/ui/toasterStore", () => ({
   toaster: { success: vi.fn(), info: vi.fn(), error: vi.fn() },
 }));
 

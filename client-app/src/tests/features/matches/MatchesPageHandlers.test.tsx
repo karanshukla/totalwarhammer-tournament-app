@@ -70,7 +70,7 @@ vi.mock("@/core/socket/socketClient", () => ({
     mockGetSocket().emit("tournament:leave", id),
 }));
 
-vi.mock("@/shared/ui/Toaster", () => ({
+vi.mock("@/shared/ui/toasterStore", () => ({
   toaster: { create: vi.fn() },
 }));
 
@@ -232,7 +232,7 @@ vi.mock("@/features/matches/components/TournamentDetail", () => ({
 // Import component AFTER mocks
 // ---------------------------------------------------------------------------
 import MatchesPage from "@/features/matches/components/MatchesPage";
-import { toaster } from "@/shared/ui/Toaster";
+import { toaster } from "@/shared/ui/toasterStore";
 
 // ---------------------------------------------------------------------------
 // Helpers

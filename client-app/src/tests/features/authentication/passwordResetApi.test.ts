@@ -23,7 +23,7 @@ vi.mock("@/core/api/httpClient", () => ({
   httpClient: { post: mockPost },
 }));
 
-vi.mock("@/shared/ui/Toaster", () => ({
+vi.mock("@/shared/ui/toasterStore", () => ({
   toaster: { create: mockToasterCreate },
 }));
 

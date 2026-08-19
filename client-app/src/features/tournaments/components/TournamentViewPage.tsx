@@ -135,7 +135,7 @@ const TournamentViewPage: React.FC<{ id?: string }> = ({ id: propId }) => {
 
   if (loading) {
     return (
-      <Container maxW="container.xl" py={16}>
+      <Container maxW="7xl" py={16}>
         <VStack gap={4}>
           <Spinner size="xl" role="status" aria-label="Loading tournament" />
           <Text color="fg.muted">Loading tournament...</Text>
@@ -146,7 +146,7 @@ const TournamentViewPage: React.FC<{ id?: string }> = ({ id: propId }) => {
 
   if (error || !tournament) {
     return (
-      <Container maxW="container.xl" py={8}>
+      <Container maxW="7xl" py={8}>
         <VStack gap={4} py={16} alignItems="center">
           <Text fontSize="xl" fontWeight="bold">
             Tournament Not Found
@@ -184,7 +184,7 @@ const TournamentViewPage: React.FC<{ id?: string }> = ({ id: propId }) => {
       : null;
 
   return (
-    <Container maxW="container.xl" py={8}>
+    <Container maxW="7xl" py={8}>
       <Button
         variant="ghost"
         size="sm"

@@ -57,7 +57,7 @@ vi.mock("react-markdown", () => ({
   default: ({ children }: { children: string }) => <>{children}</>,
 }));
 
-vi.mock("@/shared/ui/Toaster", () => ({
+vi.mock("@/shared/ui/toasterStore", () => ({
   toaster: { create: vi.fn() },
 }));
 

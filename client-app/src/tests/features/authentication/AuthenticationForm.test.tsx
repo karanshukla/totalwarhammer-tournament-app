@@ -27,7 +27,7 @@ vi.mock("@/features/authentication/api/guestApi", () => ({
   createGuestUser: mockCreateGuestUser,
 }));
 
-vi.mock("@/shared/ui/Toaster", () => ({
+vi.mock("@/shared/ui/toasterStore", () => ({
   Toaster: () => null,
   toaster: { create: vi.fn() },
 }));

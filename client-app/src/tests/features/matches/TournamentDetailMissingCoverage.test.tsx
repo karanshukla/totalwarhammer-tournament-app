@@ -68,7 +68,7 @@ vi.mock("@/features/matches/components/EditParticipantDialog", () => ({
   ),
 }));
 
-vi.mock("@/shared/ui/Toaster", () => ({
+vi.mock("@/shared/ui/toasterStore", () => ({
   toaster: { create: vi.fn() },
 }));
 
@@ -532,7 +532,7 @@ describe("TournamentDetail – Tournament Info inline copy button click", () => 
   });
 
   it("copies the code and shows a toaster on click", async () => {
-    const { toaster } = await import("@/shared/ui/Toaster");
+    const { toaster } = await import("@/shared/ui/toasterStore");
     renderDetail({ status: "active", code: "ZZZZZZ" }, { user: null });
 
     // The Tournament Info card's copy button is icon-only; find it via the

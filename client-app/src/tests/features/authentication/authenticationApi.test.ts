@@ -22,7 +22,7 @@ vi.mock("@/shared/stores/userStore", () => ({
   useUserStore: { getState: vi.fn(() => ({ clearUser: mockClearUser })) },
 }));
 
-vi.mock("@/shared/ui/Toaster", () => ({
+vi.mock("@/shared/ui/toasterStore", () => ({
   toaster: { create: mockToasterCreate },
 }));
 

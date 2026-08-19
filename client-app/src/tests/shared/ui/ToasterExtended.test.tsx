@@ -10,7 +10,8 @@ import { render, waitFor, act } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import React from "react";
 import { ChakraProvider, defaultSystem } from "@chakra-ui/react";
-import { Toaster, toaster } from "@/shared/ui/Toaster";
+import { Toaster } from "@/shared/ui/Toaster";
+import { toaster } from "@/shared/ui/toasterStore";
 
 beforeAll(() => {
   Object.defineProperty(window, "matchMedia", {

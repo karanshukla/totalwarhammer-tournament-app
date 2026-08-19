@@ -42,7 +42,7 @@ vi.mock("@/shared/stores/userStore", () => ({
   },
 }));
 
-vi.mock("@/shared/ui/Toaster", () => ({
+vi.mock("@/shared/ui/toasterStore", () => ({
   toaster: { create: mockToasterCreate },
 }));
 
