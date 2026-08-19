@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Container, SimpleGrid, VStack, Button } from "@chakra-ui/react";
+import { Container, Button } from "@chakra-ui/react";
 import {
   LuTrash2,
   LuPlay,
@@ -9,6 +9,7 @@ import {
 } from "react-icons/lu";
 import { useNavigate } from "react-router";
 import ChampionBanner from "@/shared/ui/ChampionBanner";
+import SidebarLayout from "@/shared/ui/SidebarLayout";
 import TournamentPageHeader from "@/shared/ui/TournamentPageHeader";
 import { championOf, isLeagueFormat } from "@/shared/tournament/outcome";
 import { Match, Participant, Tournament } from "./types";
@@ -189,7 +190,25 @@ const TournamentDetail: React.FC<Props> = ({
         </Callout>
       )}
 
-      <SimpleGrid columns={{ base: 1, lg: 2 }} gap={6} alignItems="start">
+      <SidebarLayout
+        sidebar={
+          <>
+            {isAdmin && isPending && (
+              <AddParticipantCard
+                tournament={selected}
+                isFull={isFull}
+                name={newName}
+                faction={newFaction}
+                actionLoading={actionLoading}
+                onNameChange={onSetNewName}
+                onFactionChange={onSetNewFaction}
+                onAdd={onAddParticipant}
+              />
+            )}
+            <ManagedInfoCard tournament={selected} matches={matches} />
+          </>
+        }
+      >
         <ManagedParticipantsCard
           participants={selected.participants}
           playerCount={selected.playerCount}
@@ -204,23 +223,7 @@ const TournamentDetail: React.FC<Props> = ({
           onRemove={onRemoveParticipant}
         />
 
-        <VStack gap={6} alignItems="stretch">
-          {isAdmin && isPending && (
-            <AddParticipantCard
-              tournament={selected}
-              isFull={isFull}
-              name={newName}
-              faction={newFaction}
-              actionLoading={actionLoading}
-              onNameChange={onSetNewName}
-              onFactionChange={onSetNewFaction}
-              onAdd={onAddParticipant}
-            />
-          )}
-          <ManagedInfoCard tournament={selected} matches={matches} />
-        </VStack>
-
-        <ChampionBanner champion={champion} gridColumn={{ lg: "1 / -1" }} />
+        <ChampionBanner champion={champion} />
 
         {(isActive || isCompleted) && (
           <MatchesSection
@@ -238,7 +241,7 @@ const TournamentDetail: React.FC<Props> = ({
             onAdvanceRound={onAdvanceRound}
           />
         )}
-      </SimpleGrid>
+      </SidebarLayout>
 
       <EditParticipantDialog
         open={editDialogOpen}

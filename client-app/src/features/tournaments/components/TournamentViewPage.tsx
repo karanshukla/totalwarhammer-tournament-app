@@ -1,13 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router";
-import {
-  Container,
-  Text,
-  VStack,
-  SimpleGrid,
-  Button,
-  Spinner,
-} from "@chakra-ui/react";
+import { Container, Text, VStack, Button, Spinner } from "@chakra-ui/react";
 import { LuChevronLeft } from "react-icons/lu";
 import { httpClient } from "@/core/api/httpClient";
 import {
@@ -18,6 +11,7 @@ import {
 import { useUserStore } from "@/shared/stores/userStore";
 import { displayName as dn } from "@/shared/utils/displayName";
 import ChampionBanner from "@/shared/ui/ChampionBanner";
+import SidebarLayout from "@/shared/ui/SidebarLayout";
 import { championOf } from "@/shared/tournament/outcome";
 import type { Match, Tournament } from "@/shared/tournament/types";
 import { isSameUser } from "@/shared/tournament/participants";
@@ -202,10 +196,27 @@ const TournamentViewPage: React.FC<{ id?: string }> = ({ id: propId }) => {
         onManage={goToMatches}
       />
 
-      <SimpleGrid
-        columns={{ base: 1, lg: isPending ? 3 : 2 }}
-        gap={6}
-        alignItems="start"
+      <SidebarLayout
+        sidebar={
+          <>
+            <TournamentInfoCard tournament={tournament} matches={matches} />
+
+            {isPending && (
+              <JoinTournamentCard
+                tournament={tournament}
+                joined={alreadyJoined || joinSuccess}
+                isFull={isFull}
+                isAuthenticated={isAuthenticated()}
+                joinFaction={joinFaction}
+                joining={joining}
+                joinError={joinError}
+                onFactionChange={setJoinFaction}
+                onJoin={handleJoin}
+                onGoToMatches={goToMatches}
+              />
+            )}
+          </>
+        }
       >
         <ParticipantsCard
           participants={tournament.participants}
@@ -213,25 +224,8 @@ const TournamentViewPage: React.FC<{ id?: string }> = ({ id: propId }) => {
           isYou={(p) => alreadyJoined && isSameUser(p, user)}
         />
 
-        <TournamentInfoCard tournament={tournament} matches={matches} />
-
-        {isPending && (
-          <JoinTournamentCard
-            tournament={tournament}
-            joined={alreadyJoined || joinSuccess}
-            isFull={isFull}
-            isAuthenticated={isAuthenticated()}
-            joinFaction={joinFaction}
-            joining={joining}
-            joinError={joinError}
-            onFactionChange={setJoinFaction}
-            onJoin={handleJoin}
-            onGoToMatches={goToMatches}
-          />
-        )}
-
         {showsMatches && <SpectatorMatchList matches={matches} />}
-      </SimpleGrid>
+      </SidebarLayout>
     </Container>
   );
 };

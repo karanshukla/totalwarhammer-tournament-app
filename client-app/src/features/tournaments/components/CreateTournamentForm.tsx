@@ -151,7 +151,7 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
 
   return (
     <form onSubmit={handleSubmit}>
-      <Card.Root maxW="5xl" mx="auto">
+      <Card.Root>
         <Card.Body>
           <VStack gap={6} align="stretch">
             <SimpleGrid columns={{ base: 1, md: 3 }} gap={4}>
@@ -278,75 +278,70 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
                 />
 
                 <Flex direction="column" gap={3} flex={1} minW={0}>
-                  <VStack gap={2} alignItems="stretch" flex={1}>
-                    {guidance.warnings.map((warning) => (
-                      <GuidanceNote key={warning} tone="warning">
-                        {warning}
-                      </GuidanceNote>
-                    ))}
-                    {guidance.infos.map((info) => (
-                      <GuidanceNote key={info} tone="info">
-                        {info}
-                      </GuidanceNote>
-                    ))}
+                  <HStack
+                    gap={2}
+                    p={2}
+                    borderRadius="md"
+                    borderWidth={1}
+                    borderColor="border"
+                    bg="bg.subtle"
+                    alignItems="center"
+                  >
+                    <Text
+                      fontSize="xs"
+                      color="fg.muted"
+                      fontWeight="medium"
+                      flex={1}
+                    >
+                      Factions
+                    </Text>
+                    <GameSystemToggle
+                      value={formData.enable40kFactions ? "40k" : "wh3"}
+                      onChange={handleGameChange}
+                    />
+                  </HStack>
 
-                    <Box mt="auto">
-                      <HStack
-                        gap={2}
-                        mb={2}
-                        p={2}
-                        borderRadius="md"
-                        borderWidth={1}
-                        borderColor="border"
-                        bg="bg.subtle"
-                        alignItems="center"
-                      >
-                        <HStack gap={1} flex={1} alignItems="center">
-                          <Text
-                            fontSize="xs"
-                            color="fg.muted"
-                            fontWeight="medium"
-                          >
-                            Factions
-                          </Text>
-                        </HStack>
-                        <GameSystemToggle
-                          value={formData.enable40kFactions ? "40k" : "wh3"}
-                          onChange={handleGameChange}
-                        />
-                      </HStack>
-                      {isGuest && (
-                        <Box
-                          p={3}
-                          borderRadius="md"
-                          bg="gold.subtle"
-                          borderWidth={1}
-                          borderColor="gold.border"
-                          mb={3}
-                        >
-                          <HStack gap={2} alignItems="flex-start">
-                            <Box color="gold.text" flexShrink={0} mt="1px">
-                              <LuLock size={14} />
-                            </Box>
-                            <VStack gap={1} alignItems="flex-start">
-                              <Text
-                                fontSize="sm"
-                                fontWeight="semibold"
-                                color="gold.text"
-                              >
-                                Registration Required
-                              </Text>
-                              <Text fontSize="sm" color="gold.text">
-                                Only registered users can create tournaments.
-                                Guest users can join and participate.
-                              </Text>
-                            </VStack>
-                          </HStack>
+                  {isGuest && (
+                    <Box
+                      p={3}
+                      borderRadius="md"
+                      bg="gold.subtle"
+                      borderWidth={1}
+                      borderColor="gold.border"
+                    >
+                      <HStack gap={2} alignItems="flex-start">
+                        <Box color="gold.text" flexShrink={0} mt="1px">
+                          <LuLock size={14} />
                         </Box>
-                      )}
-                      <NextStepsPanel />
+                        <VStack gap={1} alignItems="flex-start">
+                          <Text
+                            fontSize="sm"
+                            fontWeight="semibold"
+                            color="gold.text"
+                          >
+                            Registration Required
+                          </Text>
+                          <Text fontSize="sm" color="gold.text">
+                            Only registered users can create tournaments. Guest
+                            users can join and participate.
+                          </Text>
+                        </VStack>
+                      </HStack>
                     </Box>
-                  </VStack>
+                  )}
+
+                  {guidance.warnings.map((warning) => (
+                    <GuidanceNote key={warning} tone="warning">
+                      {warning}
+                    </GuidanceNote>
+                  ))}
+                  {guidance.infos.map((info) => (
+                    <GuidanceNote key={info} tone="info">
+                      {info}
+                    </GuidanceNote>
+                  ))}
+
+                  <NextStepsPanel />
                 </Flex>
               </SimpleGrid>
             </Field.Root>
