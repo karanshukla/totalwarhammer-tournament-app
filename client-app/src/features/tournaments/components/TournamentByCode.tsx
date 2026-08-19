@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useParams, Link } from "react-router";
 import { Box, Spinner, Text, VStack, Button } from "@chakra-ui/react";
 import { httpClient } from "@/core/api/httpClient";
@@ -9,14 +9,29 @@ const TournamentByCode: React.FC = () => {
   const [resolvedId, setResolvedId] = useState<string | null>(null);
   const [notFound, setNotFound] = useState(false);
 
+  const lookupSeq = useRef(0);
+
   useEffect(() => {
     if (!code) return;
+    // React Router keeps this component mounted across code changes, so
+    // without resetting, a failed lookup latched "Not Found" forever — the
+    // next, valid code rendered the not-found page because that branch is
+    // checked first. The sequence guard stops a slow earlier lookup from
+    // overwriting a newer one.
+    const seq = ++lookupSeq.current;
+    setNotFound(false);
+    setResolvedId(null);
+
     httpClient
       .get<{ success: boolean; data: { _id: string } }>(
         `/tournament/code/${code.toUpperCase()}`,
       )
-      .then((res) => setResolvedId(res.data._id))
-      .catch(() => setNotFound(true));
+      .then((res) => {
+        if (seq === lookupSeq.current) setResolvedId(res.data._id);
+      })
+      .catch(() => {
+        if (seq === lookupSeq.current) setNotFound(true);
+      });
   }, [code]);
 
   if (notFound) {

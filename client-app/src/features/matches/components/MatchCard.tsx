@@ -21,6 +21,7 @@ import {
   LuTrophy,
   LuTriangleAlert,
 } from "react-icons/lu";
+import { OVERRIDE_REASON_MAX_LENGTH } from "@/shared/constants/validation";
 
 interface MatchCardProps {
   m: Match;
@@ -419,6 +420,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
                 aria-label="Reason for overriding the result"
                 placeholder="Reason (optional)"
                 value={overrideReason}
+                maxLength={OVERRIDE_REASON_MAX_LENGTH}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                   onSetOverrideReason(e.target.value)
                 }

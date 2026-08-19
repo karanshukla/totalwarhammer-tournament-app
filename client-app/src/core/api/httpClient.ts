@@ -9,6 +9,10 @@ class HttpClient {
   private baseUrl: string;
   private csrfToken: string | null = null;
   private tokenPromise: Promise<string | null> | null = null;
+  // Set by the app root. The HTTP layer can't import the user store directly
+  // without a cycle (store -> feature api -> httpClient), so the app registers
+  // what should happen when the server tells us the session is gone.
+  private unauthorizedHandler: (() => void) | null = null;
   private debug: boolean = false; // Set to false by default
 
   constructor(baseUrl: string) {
@@ -434,6 +438,15 @@ class HttpClient {
 
   private async handleResponse<T>(response: Response): Promise<T> {
     if (!response.ok) {
+      // A 401 means the server-side session is gone. Without this the client
+      // kept its persisted "logged in" state and rendered raw `Error 401`
+      // messages in place of content, with no route back to a sign-in form.
+      if (response.status === 401) {
+        this.csrfToken = null;
+        this.tokenPromise = null;
+        this.unauthorizedHandler?.();
+      }
+
       let errorMessage = `Error ${response.status}: ${response.statusText}`;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let errorData: any;
@@ -468,6 +481,10 @@ class HttpClient {
     }
 
     return await response.json();
+  }
+
+  setUnauthorizedHandler(handler: (() => void) | null): void {
+    this.unauthorizedHandler = handler;
   }
 
   resetCsrfToken(): void {

@@ -35,10 +35,12 @@ const UserStatsCard: React.FC = () => {
   const [game, setGame] = useState<Game>("wh3");
 
   useEffect(() => {
-    fetchUserStats().then((data) => {
-      setStats(data);
-      setLoading(false);
-    });
+    // Without the catch a failed request left `loading` true forever, so the
+    // card sat on animated skeletons with no error and no retry.
+    fetchUserStats()
+      .then((data) => setStats(data))
+      .catch(() => setStats(null))
+      .finally(() => setLoading(false));
   }, []);
 
   const active: GameUserStats = stats?.[game] ?? EMPTY_STATS;

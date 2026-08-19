@@ -29,6 +29,10 @@ vi.mock("@/shared/stores/userStore", () => ({
 
 vi.mock("@/core/socket/socketClient", () => ({
   getSocket: mockGetSocket,
+  joinTournamentRoom: (id: string) =>
+    mockGetSocket().emit("tournament:join", id),
+  leaveTournamentRoom: (id: string) =>
+    mockGetSocket().emit("tournament:leave", id),
 }));
 
 vi.mock("@/shared/ui/Toaster", () => ({

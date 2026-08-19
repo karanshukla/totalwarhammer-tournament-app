@@ -37,6 +37,10 @@ vi.mock("@/core/api/httpClient", () => ({
 
 vi.mock("@/core/socket/socketClient", () => ({
   getSocket: mockGetSocket,
+  joinTournamentRoom: (id: string) =>
+    mockGetSocket().emit("tournament:join", id),
+  leaveTournamentRoom: (id: string) =>
+    mockGetSocket().emit("tournament:leave", id),
 }));
 
 vi.mock("@/shared/stores/userStore", () => ({
@@ -288,6 +292,52 @@ describe("TournamentViewPage – socket event callback bodies", () => {
     await waitFor(() =>
       expect(screen.getByText("Match 2")).toBeInTheDocument(),
     );
+  });
+
+  it("onMatchesAppended ignores matches already in the list", async () => {
+    const initialMatch = {
+      _id: "m1",
+      round: 1,
+      matchNumber: 1,
+      player1: { participantId: "p1", name: "Alpha", faction: "" },
+      player2: { participantId: "p2", name: "Beta", faction: "" },
+      winnerId: null,
+      loserId: null,
+      status: "pending",
+      notes: "",
+      reportedResults: [],
+      resultOverrides: [],
+      completedAt: null,
+      bracketSide: null,
+    };
+    mockGet.mockResolvedValueOnce({
+      success: true,
+      data: makeTournament({ status: "active" }),
+    });
+    mockGet.mockResolvedValueOnce({ success: true, data: [initialMatch] });
+
+    renderPage();
+
+    await waitFor(() =>
+      expect(screen.getByText("Match 1")).toBeInTheDocument(),
+    );
+
+    const handler = await waitForSocketHandler<unknown[]>("matches:appended");
+
+    // The organiser who advanced the round also refetches over HTTP, so the
+    // broadcast can arrive carrying matches the list already holds. Appending
+    // blindly rendered the round twice with duplicate React keys.
+    const { act } = await import("@testing-library/react");
+    const newMatch = { ...initialMatch, _id: "m2", matchNumber: 2 };
+    act(() => handler([newMatch]));
+    await waitFor(() =>
+      expect(screen.getByText("Match 2")).toBeInTheDocument(),
+    );
+
+    act(() => handler([newMatch]));
+
+    await waitFor(() => expect(screen.getAllByText("Match 2")).toHaveLength(1));
+    expect(screen.getAllByText("Match 1")).toHaveLength(1);
   });
 
   it("onMatchUpdated updates a specific match in the list", async () => {

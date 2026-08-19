@@ -32,6 +32,12 @@ const TABS: TournamentTab[] = [
   },
 ];
 
+// Module scope so the reference is stable across renders.
+const OPEN_TOURNAMENT_STATUSES: ("pending" | "active")[] = [
+  "pending",
+  "active",
+];
+
 const TournamentsPage: React.FC = () => {
   const { user } = useUserStore();
   const isGuest = !user.isAuthenticated || user.isGuest;
@@ -62,7 +68,7 @@ const TournamentsPage: React.FC = () => {
           )}
           {activeTab === "currentTournaments" && (
             <TournamentBrowser
-              statusFilter={["pending", "active"]}
+              statusFilter={OPEN_TOURNAMENT_STATUSES}
               emptyMessage="No open tournaments right now. Create one!"
             />
           )}
