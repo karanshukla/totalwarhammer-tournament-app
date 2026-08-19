@@ -24,8 +24,8 @@ vi.mock("@/features/account/components/UsernameUpdateForm", () => ({
 vi.mock("@/features/account/components/PasswordUpdateForm", () => ({
   default: () => <div data-testid="password-form" />,
 }));
-vi.mock("@/features/account/components/LogoutButton", () => ({
-  default: () => <div data-testid="logout-button" />,
+vi.mock("@/features/authentication/components/LogoutButton", () => ({
+  LogoutButton: () => <div data-testid="logout-button" />,
 }));
 vi.mock("@/features/account/components/DeleteAccountSection", () => ({
   default: () => <div data-testid="delete-section" />,

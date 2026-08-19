@@ -12,7 +12,7 @@ import {
 import { LuUser, LuMail } from "react-icons/lu";
 import UsernameUpdateForm from "./UsernameUpdateForm";
 import PasswordUpdateForm from "./PasswordUpdateForm";
-import LogoutButton from "./LogoutButton";
+import { LogoutButton } from "@/features/authentication/components/LogoutButton";
 import DeleteAccountSection from "./DeleteAccountSection";
 import UserStatsCard from "./UserStatsCard";
 import { useUserStore } from "@/shared/stores/userStore";

@@ -2,6 +2,7 @@ import React from "react";
 import { Box, For, SimpleGrid, Text, VStack } from "@chakra-ui/react";
 import { LuSwords } from "react-icons/lu";
 import PanelCard from "@/shared/ui/PanelCard";
+import SectionLabel from "@/shared/ui/SectionLabel";
 import type { Match } from "@/shared/tournament/types";
 import SpectatorMatchCard from "./SpectatorMatchCard";
 
@@ -15,7 +16,7 @@ const SpectatorMatchList: React.FC<SpectatorMatchListProps> = ({ matches }) => {
   );
 
   return (
-    <PanelCard icon={LuSwords} title="Matches" gridColumn={{ lg: "1 / -1" }}>
+    <PanelCard icon={LuSwords} title="Matches">
       {matches.length === 0 ? (
         <Text color="fg.muted" textAlign="center" py={4}>
           No matches yet.
@@ -25,16 +26,7 @@ const SpectatorMatchList: React.FC<SpectatorMatchListProps> = ({ matches }) => {
           <For each={roundNumbers}>
             {(round) => (
               <Box key={round}>
-                <Text
-                  fontWeight="semibold"
-                  mb={3}
-                  fontSize="sm"
-                  color="fg.muted"
-                  textTransform="uppercase"
-                  letterSpacing="wider"
-                >
-                  Round {round}
-                </Text>
+                <SectionLabel mb={3}>Round {round}</SectionLabel>
                 <SimpleGrid
                   columns={{ base: 1, md: 2 }}
                   gap={3}

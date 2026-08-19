@@ -12,6 +12,24 @@ components:
       in: cookie
       name: connect.sid
   schemas:
+    ObjectId:
+      type: string
+      pattern: "^[0-9a-fA-F]{24}$"
+      example: "507f1f77bcf86cd799439011"
+    MatchPlayer:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          maxLength: 100
+          example: Karl Franz
+        faction:
+          type: string
+          description: Empty string or a known faction name
+          example: Empire
+        participantId:
+          $ref: "#/components/schemas/ObjectId"
     Error:
       type: object
       properties:
@@ -89,12 +107,21 @@ paths:
           application/json:
             schema:
               type: object
-              required: [code, codeVerifier]
+              required: [grant_type, code, code_verifier]
               properties:
+                grant_type:
+                  type: string
+                  enum: [authorization_code]
+                  example: authorization_code
                 code:
                   type: string
-                codeVerifier:
+                  minLength: 10
+                  example: 0123456789abcdef0123456789abcdef
+                code_verifier:
                   type: string
+                  minLength: 43
+                  maxLength: 128
+                  example: dBjftJeZ4CVPmB92K27uhbUJU1p1r_wW1gFWFOEjXk0
       responses:
         "200":
           description: Session established
@@ -164,8 +191,11 @@ paths:
               properties:
                 identifier:
                   type: string
+                  minLength: 3
+                  example: player1@example.com
                 password:
                   type: string
+                  example: SecurePass1!
       responses:
         "200":
           description: Authenticated
@@ -200,6 +230,10 @@ paths:
               properties:
                 username:
                   type: string
+                  minLength: 3
+                  maxLength: 30
+                  pattern: "^[a-zA-Z0-9_-]+$"
+                  example: player1
       responses:
         "200":
           description: Username updated
@@ -220,12 +254,20 @@ paths:
           application/json:
             schema:
               type: object
-              required: [currentPassword, newPassword]
+              required: [currentPassword, newPassword, confirmPassword]
               properties:
                 currentPassword:
                   type: string
+                  example: SecurePass1!
                 newPassword:
                   type: string
+                  minLength: 8
+                  maxLength: 72
+                  example: SecurePass2!
+                confirmPassword:
+                  type: string
+                  description: Must equal newPassword
+                  example: SecurePass2!
       responses:
         "200":
           description: Password updated
@@ -285,6 +327,10 @@ paths:
               properties:
                 username:
                   type: string
+                  minLength: 3
+                  maxLength: 30
+                  pattern: "^[a-zA-Z0-9_-]+$"
+                  example: player1
       responses:
         "200":
           description: Username set
@@ -327,6 +373,8 @@ paths:
               properties:
                 token:
                   type: string
+                  minLength: 20
+                  example: 0123456789abcdef0123456789abcdef
       responses:
         "200":
           description: Token valid
@@ -347,8 +395,13 @@ paths:
               properties:
                 token:
                   type: string
+                  minLength: 20
+                  example: 0123456789abcdef0123456789abcdef
                 newPassword:
                   type: string
+                  minLength: 8
+                  maxLength: 72
+                  example: SecurePass2!
       responses:
         "200":
           description: Password reset
@@ -360,6 +413,14 @@ paths:
     get:
       summary: List all public tournaments
       operationId: getTournaments
+      parameters:
+        - name: status
+          in: query
+          required: false
+          description: Comma-separated subset of pending, active, completed
+          schema:
+            type: string
+            example: pending,active
       responses:
         "200":
           description: List of tournaments
@@ -374,17 +435,39 @@ paths:
           application/json:
             schema:
               type: object
-              required: [name, format]
+              required: [name, playerCount, tournamentType]
               properties:
                 name:
                   type: string
-                format:
+                  minLength: 3
+                  maxLength: 100
+                  example: Damnos Campaign
+                playerCount:
+                  type: integer
+                  minimum: 2
+                  maximum: 128
+                  example: 8
+                tournamentType:
                   type: string
-                  enum: [single_elimination, double_elimination, round_robin, swiss]
+                  enum:
+                    - Single Elimination
+                    - Double Elimination
+                    - Round Robin
+                    - Swiss System
+                  example: Single Elimination
                 description:
                   type: string
-                maxParticipants:
-                  type: integer
+                  maxLength: 2000
+                  example: Six commanders, five rounds, everyone plays everyone.
+                enable40kFactions:
+                  type: boolean
+                  example: false
+                bannedFactions:
+                  type: array
+                  description: Must be factions of the tournament's game system
+                  items:
+                    type: string
+                  example: [Empire]
       responses:
         "201":
           description: Tournament created
@@ -415,6 +498,8 @@ paths:
           required: true
           schema:
             type: string
+            pattern: "^[a-zA-Z0-9]{1,12}$"
+            example: W5NE4F
       responses:
         "200":
           description: Tournament data
@@ -430,7 +515,7 @@ paths:
           in: path
           required: true
           schema:
-            type: string
+            $ref: "#/components/schemas/ObjectId"
       responses:
         "200":
           description: Tournament data
@@ -446,7 +531,7 @@ paths:
           in: path
           required: true
           schema:
-            type: string
+            $ref: "#/components/schemas/ObjectId"
       responses:
         "200":
           description: Deleted
@@ -468,7 +553,7 @@ paths:
           in: path
           required: true
           schema:
-            type: string
+            $ref: "#/components/schemas/ObjectId"
       requestBody:
         required: true
         content:
@@ -479,6 +564,12 @@ paths:
               properties:
                 name:
                   type: string
+                  maxLength: 100
+                  example: Karl Franz
+                faction:
+                  type: string
+                  description: Empty string or a known faction name
+                  example: Empire
       responses:
         "200":
           description: Participant added
@@ -498,12 +589,12 @@ paths:
           in: path
           required: true
           schema:
-            type: string
+            $ref: "#/components/schemas/ObjectId"
         - name: participantId
           in: path
           required: true
           schema:
-            type: string
+            $ref: "#/components/schemas/ObjectId"
       requestBody:
         required: true
         content:
@@ -514,9 +605,11 @@ paths:
                 name:
                   type: string
                   maxLength: 100
+                  example: Karl Franz
                 faction:
                   type: string
-                  maxLength: 100
+                  description: Empty string or a known faction name
+                  example: Empire
       responses:
         "200":
           description: Participant updated
@@ -538,12 +631,12 @@ paths:
           in: path
           required: true
           schema:
-            type: string
+            $ref: "#/components/schemas/ObjectId"
         - name: participantId
           in: path
           required: true
           schema:
-            type: string
+            $ref: "#/components/schemas/ObjectId"
       responses:
         "200":
           description: Participant removed
@@ -563,7 +656,18 @@ paths:
           in: path
           required: true
           schema:
-            type: string
+            $ref: "#/components/schemas/ObjectId"
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                faction:
+                  type: string
+                  description: Empty string or a known faction name
+                  example: Empire
       responses:
         "200":
           description: Joined
@@ -585,7 +689,7 @@ paths:
           in: path
           required: true
           schema:
-            type: string
+            $ref: "#/components/schemas/ObjectId"
       responses:
         "200":
           description: Started
@@ -605,7 +709,7 @@ paths:
           in: path
           required: true
           schema:
-            type: string
+            $ref: "#/components/schemas/ObjectId"
       responses:
         "200":
           description: Round advanced
@@ -625,7 +729,7 @@ paths:
           in: path
           required: true
           schema:
-            type: string
+            $ref: "#/components/schemas/ObjectId"
       requestBody:
         required: true
         content:
@@ -636,6 +740,8 @@ paths:
               properties:
                 description:
                   type: string
+                  maxLength: 2000
+                  example: Six commanders, five rounds, everyone plays everyone.
       responses:
         "200":
           description: Description updated
@@ -654,7 +760,7 @@ paths:
           in: path
           required: true
           schema:
-            type: string
+            $ref: "#/components/schemas/ObjectId"
       responses:
         "200":
           description: List of matches
@@ -670,7 +776,7 @@ paths:
           in: path
           required: true
           schema:
-            type: string
+            $ref: "#/components/schemas/ObjectId"
       responses:
         "200":
           description: Match data
@@ -689,14 +795,24 @@ paths:
           application/json:
             schema:
               type: object
-              required: [tournamentId, player1, player2]
+              required: [tournamentId, round, matchNumber, player1, player2]
               properties:
                 tournamentId:
-                  type: string
+                  $ref: "#/components/schemas/ObjectId"
+                round:
+                  type: integer
+                  minimum: 1
+                  maximum: 64
+                  example: 1
+                matchNumber:
+                  type: integer
+                  minimum: 1
+                  maximum: 512
+                  example: 1
                 player1:
-                  type: string
+                  $ref: "#/components/schemas/MatchPlayer"
                 player2:
-                  type: string
+                  $ref: "#/components/schemas/MatchPlayer"
       responses:
         "201":
           description: Match created
@@ -716,7 +832,7 @@ paths:
           in: path
           required: true
           schema:
-            type: string
+            $ref: "#/components/schemas/ObjectId"
       requestBody:
         required: true
         content:
@@ -726,7 +842,7 @@ paths:
               required: [winnerId]
               properties:
                 winnerId:
-                  type: string
+                  $ref: "#/components/schemas/ObjectId"
       responses:
         "200":
           description: Result reported
@@ -746,7 +862,7 @@ paths:
           in: path
           required: true
           schema:
-            type: string
+            $ref: "#/components/schemas/ObjectId"
       requestBody:
         required: true
         content:
@@ -756,7 +872,7 @@ paths:
               required: [winnerId]
               properties:
                 winnerId:
-                  type: string
+                  $ref: "#/components/schemas/ObjectId"
       responses:
         "200":
           description: Result recorded
@@ -776,7 +892,7 @@ paths:
           in: path
           required: true
           schema:
-            type: string
+            $ref: "#/components/schemas/ObjectId"
       requestBody:
         required: true
         content:
@@ -786,7 +902,7 @@ paths:
               required: [winnerId]
               properties:
                 winnerId:
-                  type: string
+                  $ref: "#/components/schemas/ObjectId"
       responses:
         "200":
           description: Dispute resolved
@@ -806,7 +922,7 @@ paths:
           in: path
           required: true
           schema:
-            type: string
+            $ref: "#/components/schemas/ObjectId"
       requestBody:
         required: true
         content:
@@ -816,9 +932,11 @@ paths:
               required: [winnerId]
               properties:
                 winnerId:
-                  type: string
+                  $ref: "#/components/schemas/ObjectId"
                 reason:
                   type: string
+                  maxLength: 500
+                  example: Both players agreed the reported result was wrong
       responses:
         "200":
           description: Result overridden
@@ -838,7 +956,7 @@ paths:
           in: path
           required: true
           schema:
-            type: string
+            $ref: "#/components/schemas/ObjectId"
       requestBody:
         required: true
         content:
@@ -849,7 +967,8 @@ paths:
               properties:
                 status:
                   type: string
-                  enum: [pending, in_progress, completed, disputed]
+                  enum: [pending, in_progress]
+                  example: in_progress
       responses:
         "200":
           description: Status updated

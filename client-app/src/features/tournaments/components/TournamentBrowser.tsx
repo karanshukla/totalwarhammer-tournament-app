@@ -1,16 +1,17 @@
 ﻿import React, { useState, useEffect, useCallback } from "react";
 import {
+  Badge,
   Box,
+  Button,
+  Card,
+  For,
+  HStack,
+  Heading,
+  Separator,
+  SimpleGrid,
+  Spinner,
   Text,
   VStack,
-  HStack,
-  SimpleGrid,
-  Card,
-  Badge,
-  Button,
-  Spinner,
-  Separator,
-  For,
 } from "@chakra-ui/react";
 import { LuLogIn, LuEye, LuTrophy, LuSwords } from "react-icons/lu";
 import { useNavigate } from "react-router";
@@ -140,9 +141,9 @@ const TournamentBrowser: React.FC<Props> = ({ statusFilter, emptyMessage }) => {
                   <Card.Body flex={1}>
                     <VStack alignItems="flex-start" gap={2}>
                       <HStack justifyContent="space-between" width="full">
-                        <Text fontWeight="semibold" fontSize="md" truncate>
+                        <Heading as="h3" size="md" truncate>
                           {t.name}
-                        </Text>
+                        </Heading>
                         <Badge
                           colorPalette={statusColorMap[t.status]}
                           size="sm"

@@ -252,9 +252,9 @@ const TournamentList: React.FC<Props> = ({
                   <Card.Body>
                     <VStack alignItems="flex-start" gap={2}>
                       <HStack justifyContent="space-between" width="full">
-                        <Text fontWeight="semibold" fontSize="md" truncate>
+                        <Heading as="h3" size="md" truncate>
                           {t.name}
-                        </Text>
+                        </Heading>
                         <Badge
                           colorPalette={statusColorMap[t.status]}
                           size="sm"

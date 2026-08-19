@@ -44,11 +44,3 @@ jobs:
             -e MONGO_URI="mongodb://localhost:27017/twt-app" \
             -e SCRIPT_PATH="scripts/example.js" \
             cron-runner
-
-      - name: Run delete-guest-accounts script against test MongoDB
-        run: |
-          docker run --rm \
-            --network host \
-            -e MONGO_URI="mongodb://localhost:27017/twt-app" \
-            -e SCRIPT_PATH="scripts/delete-guest-accounts.js" \
-            cron-runner

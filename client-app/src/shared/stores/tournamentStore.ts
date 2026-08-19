@@ -6,6 +6,7 @@ import {
   Round,
 } from "@/features/tournaments/components/bracket/types";
 import { warhammer3Factions } from "../constants/factions";
+import { uniqueId } from "../utils/id";
 
 // Helper to create default participants
 const createDefaultParticipants = (): Participant[] => [
@@ -198,7 +199,7 @@ export const useTournamentStore = create<TournamentState>()(
           const newParticipants: Participant[] = [];
           for (let i = 0; i < count; i++) {
             newParticipants.push({
-              id: `p${currentCount + i + Date.now()}`, // Unique ID
+              id: uniqueId("p"),
               name: `Player ${currentCount + i + 1}`,
               faction:
                 warhammer3Factions[
@@ -274,7 +275,7 @@ export const useTournamentStore = create<TournamentState>()(
           const highestRoundNumber =
             numericRounds.length > 0 ? Math.max(...numericRounds) : 0;
           const nextRoundNumber = highestRoundNumber + 1;
-          const newRoundId = `r${Date.now()}`; // Fixed template literal
+          const newRoundId = uniqueId("r");
 
           const newRound: Round = {
             id: newRoundId,
@@ -296,7 +297,7 @@ export const useTournamentStore = create<TournamentState>()(
         set((state) => {
           let newRounds = state.rounds.map((r) => {
             if (r.id === roundId) {
-              const newMatchId = `m${Date.now()}_${r.matches.length + 1}`;
+              const newMatchId = uniqueId("m");
               const newMatch = {
                 id: newMatchId,
                 title: "Match", // Placeholder title, will be correctly numbered
@@ -381,7 +382,11 @@ export const useTournamentStore = create<TournamentState>()(
     {
       name: "tournament-storage",
       storage: createJSONStorage(() => localStorage),
-      // Consider partializing if some state shouldn't be persisted or needs migration
+      // Stamped so a future shape change can migrate rather than have zustand
+      // silently discard someone's in-progress bracket. v0 (unversioned) has
+      // the same shape, so it passes through untouched.
+      version: 1,
+      migrate: (persisted) => persisted as TournamentState,
     },
   ),
 );
