@@ -271,13 +271,22 @@ describe("AuthStateService", () => {
       assert.strictEqual(authStateService.isAuthenticated(req), true);
     });
 
-    it("should return true when the current request has no user-agent header", () => {
+    it("should reject a session whose request omits the user-agent it was created with", () => {
       const req = createMockRequest({
         session: {
           isAuthenticated: true,
           user: { id: "123" },
           fingerprint: { browser: "Chrome", os: "Windows" },
         },
+        userAgent: null,
+      });
+
+      assert.strictEqual(authStateService.isAuthenticated(req), false);
+    });
+
+    it("should allow a session that never recorded a fingerprint", () => {
+      const req = createMockRequest({
+        session: { isAuthenticated: true, user: { id: "123" } },
         userAgent: null,
       });
 

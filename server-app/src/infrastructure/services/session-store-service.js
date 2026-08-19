@@ -59,7 +59,7 @@ export function configureSessionMiddleware(sessionSecret, isProduction) {
     store: sessionStore,
     proxy: true, // Because we set 'trust proxy'
     cookie: {
-      secure: "auto",
+      secure: isProduction,
       httpOnly: true,
       maxAge: 2 * 60 * 60 * 1000, // 2 hours default; overridden per-session by auth-state-service
       sameSite: isProduction ? "strict" : "lax",

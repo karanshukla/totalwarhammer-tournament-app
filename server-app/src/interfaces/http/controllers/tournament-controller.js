@@ -171,7 +171,8 @@ export const getUserTournaments = async (req, res) => {
         queryConditions.push({ "participants.name": userName });
       }
     } else {
-      // Guests have no userId; match by name/id string only
+      queryConditions.push({ "participants.guestId": userId });
+      // Fallback for guest rows written before guestId existed
       const possibleNames = [userId];
       if (userName && userName !== userId) possibleNames.push(userName);
       queryConditions.push({ "participants.name": { $in: possibleNames } });
@@ -426,7 +427,9 @@ export const joinTournament = async (req, res) => {
     const playerName =
       req.user.username || `Guest_${req.user.id.substring(0, 6)}`;
     const alreadyJoined = req.user.isGuest
-      ? tournament.participants.some((p) => p.name === playerName)
+      ? tournament.participants.some(
+          (p) => p.guestId === req.user.id || p.name === playerName,
+        )
       : tournament.participants.some(
           (p) =>
             (p.userId && p.userId.toString() === req.user.id) ||
@@ -440,6 +443,7 @@ export const joinTournament = async (req, res) => {
     }
     tournament.participants.push({
       userId: req.user.isGuest ? null : req.user.id,
+      guestId: req.user.isGuest ? req.user.id : null,
       name: playerName,
       faction: faction || "",
     });

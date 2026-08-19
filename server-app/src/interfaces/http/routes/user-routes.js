@@ -4,6 +4,7 @@ import * as authenticationController from "../controllers/authentication-control
 import * as userController from "../controllers/user-controller.js";
 import authenticateSession from "../middleware/auth-middleware.js";
 import { doubleCsrfProtection } from "../middleware/csrf-middleware.js";
+import { validateLogin } from "../middleware/validation/authentication-validation.js";
 import {
   validateUserExists,
   validateUserRegistration,
@@ -21,7 +22,12 @@ router.post(
   validationHandler,
   userController.register,
 );
-router.post("/login", authenticationController.login);
+router.post(
+  "/login",
+  validateLogin,
+  validationHandler,
+  authenticationController.login,
+);
 router.post("/logout", doubleCsrfProtection, authenticationController.logout);
 router.get(
   "/exists",
@@ -35,6 +41,7 @@ router.get(
 router.post(
   "/update-username",
   authenticateSession,
+  doubleCsrfProtection,
   validateUpdateUsername,
   validationHandler,
   userController.updateUsername,
@@ -43,6 +50,7 @@ router.post(
 router.post(
   "/update-password",
   authenticateSession,
+  doubleCsrfProtection,
   validateUpdatePassword,
   validationHandler,
   userController.updatePassword,

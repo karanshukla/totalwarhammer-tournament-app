@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema({
   username: { type: String, required: true },
-  password: { type: String, required: false },
+  password: { type: String, required: false, select: false },
   email: { type: String, required: true },
   createdAt: { type: Date, default: Date.now },
   // Set whenever the password changes (updatePassword). Sessions issued before

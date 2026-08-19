@@ -129,22 +129,15 @@ export const reportResult = async (req, res) => {
 
     // Look up the user's participant subdoc in the tournament to get their
     // participant _id, which is what the match player slots reference.
-    const userParticipant = tournament.participants?.find(
-      (p) => p.userId?.toString() === userId,
+    const userParticipant = tournament.participants?.find((p) =>
+      req.user.isGuest ? p.guestId === userId : p.userId?.toString() === userId,
     );
     const userParticipantSubId = userParticipant?._id?.toString();
 
     const lowerUserName = userName?.trim().toLowerCase();
-    const guestFallbackName =
-      req.user.isGuest && userId
-        ? `Guest_${userId.substring(0, 6)}`.toLowerCase()
-        : null;
     const nameMatch = (n) => {
       const ln = n.trim().toLowerCase();
-      return (
-        (lowerUserName && ln === lowerUserName) ||
-        (guestFallbackName && ln === guestFallbackName)
-      );
+      return !!lowerUserName && ln === lowerUserName;
     };
 
     // Primary: match via participant subdoc _id (stable across renames)
@@ -155,11 +148,17 @@ export const reportResult = async (req, res) => {
       !!userParticipantSubId &&
       match.player2.participantId?.toString() === userParticipantSubId;
 
-    // Fallback: name match for guests and legacy records without userId
+    // Fallback for legacy rows written before participants carried an id.
+    // Restricted to registered users: their usernames are unique-indexed,
+    // whereas a guest chooses any name and could otherwise claim a slot
+    // belonging to someone else simply by renaming themselves to match.
+    const nameFallbackAllowed = !req.user.isGuest;
     const isPlayer1ByName =
+      nameFallbackAllowed &&
       !isPlayer1ById &&
       (nameMatch(match.player1.name) || match.player1.name === userId);
     const isPlayer2ByName =
+      nameFallbackAllowed &&
       !isPlayer2ById &&
       (nameMatch(match.player2.name) || match.player2.name === userId);
 

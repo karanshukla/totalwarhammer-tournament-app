@@ -2,6 +2,8 @@ import crypto from "crypto";
 
 import mongoose from "mongoose";
 
+const RESET_TOKEN_TTL_MS = 60 * 60 * 1000;
+
 const passwordResetSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -16,7 +18,7 @@ const passwordResetSchema = new mongoose.Schema({
   createdAt: {
     type: Date,
     default: Date.now,
-    expires: 3600, // Token expires after 1 hour (3600 seconds)
+    expires: RESET_TOKEN_TTL_MS / 1000,
   },
   isUsed: {
     type: Boolean,
@@ -36,8 +38,21 @@ passwordResetSchema.statics.createResetToken = async function (userId) {
 };
 
 passwordResetSchema.statics.validateResetToken = async function (resetKey) {
-  const resetToken = await this.findOne({ resetKey, isUsed: false });
+  // The TTL index only guarantees eventual deletion (MongoDB sweeps once a
+  // minute, and the index may be absent on a restored collection), so the
+  // lifetime is enforced in the query too.
+  const resetToken = await this.findOne({
+    resetKey,
+    isUsed: false,
+    createdAt: { $gt: new Date(Date.now() - RESET_TOKEN_TTL_MS) },
+  });
   return resetToken;
+};
+
+passwordResetSchema.statics.invalidateOutstandingTokens = async function (
+  userId,
+) {
+  await this.updateMany({ userId, isUsed: false }, { $set: { isUsed: true } });
 };
 
 const PasswordReset = mongoose.model("PasswordReset", passwordResetSchema);

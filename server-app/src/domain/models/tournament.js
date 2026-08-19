@@ -31,6 +31,10 @@ const tournamentSchema = new mongoose.Schema({
           ref: "User",
           default: null,
         },
+        // Guests have no User document, so their session UUID is the only
+        // stable handle on the row. Without it a guest can only be identified
+        // by their freely-chosen display name, which is not unique.
+        guestId: { type: String, default: null },
         name: { type: String, required: true, trim: true },
         faction: { type: String, default: "" },
       },

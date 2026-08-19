@@ -27,7 +27,11 @@ function parseUAFingerprint(uaString) {
  * @returns {boolean}
  */
 function fingerprintMatches(stored, current) {
-  if (!stored || !current) return true;
+  // No stored fingerprint means the session predates the check — nothing to
+  // compare against. But once one is stored, an absent current fingerprint is
+  // a mismatch, otherwise dropping the User-Agent header bypasses the check.
+  if (!stored) return true;
+  if (!current) return false;
   return stored.browser === current.browser && stored.os === current.os;
 }
 
