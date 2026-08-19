@@ -102,6 +102,9 @@ const MatchesSection: React.FC<Props> = ({
       setOverrideMatchId(null);
       setOverrideWinnerId("");
       setOverrideReason("");
+    } catch {
+      // The parent handler already surfaced this via a toast; swallowing here
+      // keeps it off window.onunhandledrejection.
     } finally {
       setOverrideLoading(false);
     }

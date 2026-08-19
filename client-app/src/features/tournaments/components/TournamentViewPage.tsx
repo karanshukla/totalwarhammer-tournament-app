@@ -10,7 +10,11 @@ import {
 } from "@chakra-ui/react";
 import { LuChevronLeft } from "react-icons/lu";
 import { httpClient } from "@/core/api/httpClient";
-import { getSocket } from "@/core/socket/socketClient";
+import {
+  getSocket,
+  joinTournamentRoom,
+  leaveTournamentRoom,
+} from "@/core/socket/socketClient";
 import { useUserStore } from "@/shared/stores/userStore";
 import { displayName as dn } from "@/shared/utils/displayName";
 import ChampionBanner from "@/shared/ui/ChampionBanner";
@@ -77,12 +81,19 @@ const TournamentViewPage: React.FC<{ id?: string }> = ({ id: propId }) => {
   useEffect(() => {
     if (!id) return;
     const socket = getSocket();
-    socket.emit("tournament:join", id);
+    joinTournamentRoom(id);
 
     const onTournamentUpdated = (data: Tournament) => setTournament(data);
     const onMatchesUpdated = (data: Match[]) => setMatches(data);
+    // The organiser who triggered the advance also refetches over HTTP, and
+    // the broadcast can land after that response — appending blindly would
+    // render the new round twice with duplicate React keys. Also covers a
+    // redelivered frame after a reconnect.
     const onMatchesAppended = (newMatches: Match[]) =>
-      setMatches((prev) => [...prev, ...newMatches]);
+      setMatches((prev) => {
+        const known = new Set(prev.map((m) => m._id));
+        return [...prev, ...newMatches.filter((m) => !known.has(m._id))];
+      });
     const onMatchUpdated = (updated: Match) =>
       setMatches((prev) =>
         prev.map((m) => (m._id === updated._id ? updated : m)),
@@ -94,7 +105,7 @@ const TournamentViewPage: React.FC<{ id?: string }> = ({ id: propId }) => {
     socket.on("match:updated", onMatchUpdated);
 
     return () => {
-      socket.emit("tournament:leave", id);
+      leaveTournamentRoom(id);
       socket.off("tournament:updated", onTournamentUpdated);
       socket.off("matches:updated", onMatchesUpdated);
       socket.off("matches:appended", onMatchesAppended);

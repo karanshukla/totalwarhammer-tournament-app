@@ -10,7 +10,7 @@ import { render, waitFor, act } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import React from "react";
 import { ChakraProvider, defaultSystem } from "@chakra-ui/react";
-import { Toaster, toaster, mobileToaster } from "@/shared/ui/Toaster";
+import { Toaster, toaster } from "@/shared/ui/Toaster";
 
 beforeAll(() => {
   Object.defineProperty(window, "matchMedia", {
@@ -31,7 +31,6 @@ beforeAll(() => {
 afterEach(() => {
   // Dismiss all toasts after each test to avoid state leakage between tests.
   toaster.dismiss();
-  mobileToaster.dismiss();
 });
 
 function renderToaster() {

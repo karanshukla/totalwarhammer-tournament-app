@@ -55,8 +55,9 @@ describe("userStore – isAuthenticated with expiry", () => {
     }));
     const result = useUserStore.getState().isAuthenticated();
     expect(result).toBe(false);
-    // clearUser should have been called
-    expect(useUserStore.getState().user.isAuthenticated).toBe(false);
+    // The predicate reports; it no longer writes to the store, because every
+    // call site invokes it during render.
+    expect(useUserStore.getState().user.expiresAt).toBeLessThan(Date.now());
   });
 
   it("returns true when authenticated and not expired", () => {
@@ -64,6 +65,7 @@ describe("userStore – isAuthenticated with expiry", () => {
       id: "u3",
       email: "valid@test.com",
       expiresAt: Date.now() + 60_000,
+      isAuthenticated: true,
     });
     expect(useUserStore.getState().isAuthenticated()).toBe(true);
   });
@@ -98,9 +100,12 @@ describe("userStore – setUser and clearUser", () => {
   });
 
   it("setUser merges partial user data", () => {
-    useUserStore
-      .getState()
-      .setUser({ id: "u5", email: "a@b.com", username: "alpha" });
+    useUserStore.getState().setUser({
+      id: "u5",
+      email: "a@b.com",
+      username: "alpha",
+      isAuthenticated: true,
+    });
     const state = useUserStore.getState();
     expect(state.user.id).toBe("u5");
     expect(state.user.username).toBe("alpha");

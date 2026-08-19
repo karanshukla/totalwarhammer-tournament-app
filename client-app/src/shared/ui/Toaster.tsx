@@ -7,27 +7,22 @@ import {
   Stack,
   Toast,
   createToaster,
-  useMediaQuery,
 } from "@chakra-ui/react";
 
-export const mobileToaster = createToaster({
-  placement: "top-start",
-  pauseOnPageIdle: true,
-});
-
+// One store, one subscriber. There was previously a second `mobileToaster`
+// that the rendered toaster switched to below 48em — but every call site in
+// the app publishes to `toaster`, so on a phone the subscriber was listening
+// to a store nothing ever wrote to and no toast appeared at all. Failures
+// looked exactly like successes: nothing happened.
 export const toaster = createToaster({
   placement: "bottom-end",
   pauseOnPageIdle: true,
 });
 
 export const Toaster = () => {
-  const [isMobile] = useMediaQuery(["(max-width: 48em)"], { ssr: true });
   return (
     <Portal>
-      <ChakraToaster
-        toaster={isMobile ? mobileToaster : toaster}
-        insetInline={{ mdDown: "4" }}
-      >
+      <ChakraToaster toaster={toaster} insetInline={{ mdDown: "4" }}>
         {(toast) => (
           <Toast.Root width={{ md: "sm" }}>
             {toast.type === "loading" ? (

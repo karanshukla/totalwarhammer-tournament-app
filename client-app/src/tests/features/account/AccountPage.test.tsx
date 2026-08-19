@@ -129,14 +129,17 @@ describe("AccountPage – authenticated registered user, session valid", () => {
 describe("AccountPage – authenticated, session invalid (valid=false branch)", () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it("calls clearUser, navigate('/auth'), shows warning toast, then UnauthenticatedSection", async () => {
+  it("clears the user, warns, and renders UnauthenticatedSection in place", async () => {
     mockRefreshSession.mockResolvedValueOnce(false);
     renderPage(makeUser({ isAuthenticated: true, isGuest: false }));
-    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith("/auth"));
-    expect(mockClearUser).toHaveBeenCalled();
+    await waitFor(() => expect(mockClearUser).toHaveBeenCalled());
     expect(mockToasterCreate).toHaveBeenCalledWith(
       expect.objectContaining({ type: "warning" }),
     );
+    expect(await screen.findByTestId("unauth-section")).toBeInTheDocument();
+    // There is no /auth route — redirecting there landed the user on the 404
+    // page. This page already renders the signed-out view itself.
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 });
 

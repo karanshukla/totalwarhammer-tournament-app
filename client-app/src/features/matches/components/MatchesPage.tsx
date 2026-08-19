@@ -2,7 +2,11 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Container, VStack, Text, Spinner } from "@chakra-ui/react";
 import { useNavigate, useLocation, useMatch } from "react-router";
 import { httpClient } from "@/core/api/httpClient";
-import { getSocket } from "@/core/socket/socketClient";
+import {
+  getSocket,
+  joinTournamentRoom,
+  leaveTournamentRoom,
+} from "@/core/socket/socketClient";
 import { useUserStore } from "@/shared/stores/userStore";
 import { toaster } from "@/shared/ui/Toaster";
 import { Match, Participant, Tournament } from "./types";
@@ -97,17 +101,19 @@ const MatchesPage: React.FC = () => {
     fetchTournaments();
   }, [fetchTournaments]);
 
+  const matchFetchSeq = useRef(0);
   const fetchMatches = useCallback(async (tournamentId: string) => {
+    const seq = ++matchFetchSeq.current;
     setMatchLoading(true);
     try {
       const res = (await httpClient.get(
         `/match/tournament/${tournamentId}`,
       )) as { success: boolean; data: Match[] };
-      setMatches(res.data ?? []);
+      if (seq === matchFetchSeq.current) setMatches(res.data ?? []);
     } catch {
-      setMatches([]);
+      if (seq === matchFetchSeq.current) setMatches([]);
     } finally {
-      setMatchLoading(false);
+      if (seq === matchFetchSeq.current) setMatchLoading(false);
     }
   }, []);
 
@@ -452,7 +458,7 @@ const MatchesPage: React.FC = () => {
   useEffect(() => {
     if (!selectedId) return;
     const socket = getSocket();
-    socket.emit("tournament:join", selectedId);
+    joinTournamentRoom(selectedId);
 
     const onTournamentUpdated = (data: Tournament) => {
       setSelected(data);
@@ -461,8 +467,15 @@ const MatchesPage: React.FC = () => {
       );
     };
     const onMatchesUpdated = (data: Match[]) => setMatches(data);
+    // The organiser who triggered the advance also refetches over HTTP, and
+    // the broadcast can land after that response — appending blindly would
+    // render the new round twice with duplicate React keys. Also covers a
+    // redelivered frame after a reconnect.
     const onMatchesAppended = (newMatches: Match[]) =>
-      setMatches((prev) => [...prev, ...newMatches]);
+      setMatches((prev) => {
+        const known = new Set(prev.map((m) => m._id));
+        return [...prev, ...newMatches.filter((m) => !known.has(m._id))];
+      });
     const onMatchUpdated = (updated: Match) =>
       setMatches((prev) =>
         prev.map((m) => (m._id === updated._id ? updated : m)),
@@ -474,7 +487,7 @@ const MatchesPage: React.FC = () => {
     socket.on("match:updated", onMatchUpdated);
 
     return () => {
-      socket.emit("tournament:leave", selectedId);
+      leaveTournamentRoom(selectedId);
       socket.off("tournament:updated", onTournamentUpdated);
       socket.off("matches:updated", onMatchesUpdated);
       socket.off("matches:appended", onMatchesAppended);
@@ -547,7 +560,10 @@ const MatchesPage: React.FC = () => {
         setStatusFilter(s);
         setPage(1);
       }}
-      onGameFilterChange={setGameFilter}
+      onGameFilterChange={(g) => {
+        setGameFilter(g);
+        setPage(1);
+      }}
       onPageChange={setPage}
     />
   );

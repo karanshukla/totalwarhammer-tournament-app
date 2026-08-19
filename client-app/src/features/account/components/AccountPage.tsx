@@ -5,7 +5,6 @@ import GuestAccountSection from "./GuestAccountSection";
 import AuthenticatedAccountSection from "./AuthenticatedAccountSection";
 import UnauthenticatedSection from "./UnauthenticatedSection";
 import { refreshSession } from "../api/accountApi";
-import { useNavigate } from "react-router";
 import { toaster } from "@/shared/ui/Toaster";
 
 const AccountPage: React.FC = () => {
@@ -13,7 +12,6 @@ const AccountPage: React.FC = () => {
   const clearUser = useUserStore((state) => state.clearUser);
   const [isValidatingSession, setIsValidatingSession] = useState(true);
   const [sessionValid, setSessionValid] = useState(true);
-  const navigate = useNavigate();
 
   useEffect(() => {
     if (user.isAuthenticated) {
@@ -29,7 +27,10 @@ const AccountPage: React.FC = () => {
               type: "warning",
             });
             clearUser();
-            navigate("/auth");
+            // Deliberately no redirect: there is no /auth route (this used to
+            // navigate there and land the user on the 404 page), and this page
+            // already renders UnauthenticatedSection once sessionValid is
+            // false, which is where they need to be.
           }
         })
         .catch((err) => {
@@ -42,7 +43,7 @@ const AccountPage: React.FC = () => {
     } else {
       setIsValidatingSession(false);
     }
-  }, [user.isAuthenticated, clearUser, navigate]);
+  }, [user.isAuthenticated, clearUser]);
   return (
     <Container maxW="5xl" py={10} px={{ base: 4, md: 8, lg: 12 }}>
       <Heading as="h1" size="xl" mb={4}>

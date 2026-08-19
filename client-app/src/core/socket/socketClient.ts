@@ -3,6 +3,23 @@ import { apiConfig } from "../config/apiConfig";
 
 let socket: Socket | null = null;
 
+// Server-side room membership lives on the socket instance, so a reconnect
+// lands in a brand-new socket that belongs to no rooms. Callers that joined
+// before the drop would go silently deaf — the UI looks healthy and simply
+// stops receiving updates. Tracking the rooms here lets us replay the joins
+// on every `connect`.
+const joinedTournamentRooms = new Set<string>();
+
+export function joinTournamentRoom(tournamentId: string): void {
+  joinedTournamentRooms.add(tournamentId);
+  getSocket().emit("tournament:join", tournamentId);
+}
+
+export function leaveTournamentRoom(tournamentId: string): void {
+  joinedTournamentRooms.delete(tournamentId);
+  getSocket().emit("tournament:leave", tournamentId);
+}
+
 export function getSocket(): Socket {
   if (!socket) {
     // Use only the origin — if apiConfig.baseUrl includes a path (e.g. /api
@@ -32,6 +49,9 @@ export function getSocket(): Socket {
         "transport:",
         socket?.io.engine.transport.name,
       );
+      for (const tournamentId of joinedTournamentRooms) {
+        socket?.emit("tournament:join", tournamentId);
+      }
     });
     socket.on("connect_error", (err) => {
       console.error("[socket] connect_error —", err.message, err);

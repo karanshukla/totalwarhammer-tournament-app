@@ -3,7 +3,7 @@ import { render, screen, waitFor, act } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import React from "react";
 import { ChakraProvider, defaultSystem } from "@chakra-ui/react";
-import { Toaster, toaster, mobileToaster } from "@/shared/ui/Toaster";
+import { Toaster, toaster } from "@/shared/ui/Toaster";
 
 const defaultMatchMedia = (matches: boolean) =>
   vi.fn().mockImplementation((query: string) => ({
@@ -26,9 +26,8 @@ beforeAll(() => {
 });
 
 afterEach(() => {
-  // Clear all toasts from both stores between tests so they don't bleed over
+  // Clear all toasts between tests so they don't bleed over
   toaster.remove();
-  mobileToaster.remove();
   // Restore non-mobile matchMedia
   window.matchMedia = defaultMatchMedia(false);
 });
@@ -54,11 +53,6 @@ describe("Toaster component", () => {
     expect(typeof toaster.info).toBe("function");
   });
 
-  it("exports mobileToaster object", () => {
-    expect(mobileToaster).toBeDefined();
-    expect(typeof mobileToaster.success).toBe("function");
-  });
-
   it("renders a portal container in the DOM", () => {
     renderToaster();
     // The Toaster wraps content in a Portal, which should be mounted to document.body
@@ -80,21 +74,20 @@ describe("Toaster exported createToaster instances", () => {
   it("toaster.info can be called without throwing", () => {
     expect(() => toaster.info({ description: "Test info" })).not.toThrow();
   });
-
-  it("mobileToaster.success can be called without throwing", () => {
-    expect(() =>
-      mobileToaster.success({ description: "Mobile test" }),
-    ).not.toThrow();
-  });
 });
 
-describe("Toaster – mobile branch", () => {
-  it("renders using mobileToaster when isMobile is true", async () => {
-    // Override matchMedia to simulate a mobile viewport
+describe("Toaster – mobile viewport", () => {
+  it("still renders toasts published to the single store", async () => {
+    // Regression: the component used to switch to a second `mobileToaster`
+    // store below 48em that no call site in the app ever published to, so
+    // toasts silently never appeared on a phone.
     window.matchMedia = defaultMatchMedia(true);
-    const { container } = renderToaster();
-    // isMobile=true → the component uses mobileToaster instead of toaster
-    expect(container).toBeDefined();
+    renderToaster();
+    act(() => {
+      toaster.success({ title: "Saved", description: "On mobile" });
+    });
+    expect(await screen.findByText("Saved")).toBeInTheDocument();
+    expect(screen.getByText("On mobile")).toBeInTheDocument();
   });
 });
 

@@ -2,7 +2,7 @@ import { Button, Field, Input, Stack, Text, Separator } from "@chakra-ui/react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Toaster } from "@/shared/ui/Toaster";
+import { Toaster, toaster } from "@/shared/ui/Toaster";
 import { userExists } from "../api/registrationApi";
 import { LoginForm } from "./LoginForm";
 import { RegistrationForm } from "./RegistrationForm";
@@ -43,25 +43,43 @@ export function AuthenticationForm() {
     );
   };
 
+  // Both of these await calls rethrow (userExists silently, createGuestUser
+  // after toasting). Without a catch the loading flag was never cleared, so a
+  // rate-limited or offline request left the button spinning and disabled
+  // until the user reloaded the page.
   const onSubmit = async (data: authenticationFormValues) => {
     setFormState((prev) => ({
       ...prev,
       isCheckingUser: true,
       usernameOrEmail: data.usernameOrEmail,
     }));
-    const exists = await userExists(data.usernameOrEmail);
-    setFormState((prev) => ({
-      ...prev,
-      view: exists ? "login" : "register",
-      isCheckingUser: false,
-    }));
+    try {
+      const exists = await userExists(data.usernameOrEmail);
+      setFormState((prev) => ({
+        ...prev,
+        view: exists ? "login" : "register",
+        isCheckingUser: false,
+      }));
+    } catch {
+      setFormState((prev) => ({ ...prev, isCheckingUser: false }));
+      toaster.create({
+        title: "Could not continue",
+        description: "We couldn't reach the server. Please try again.",
+        type: "error",
+      });
+    }
   };
 
   const handleGuestLogin = async () => {
     setFormState((prev) => ({ ...prev, isCreatingGuest: true }));
-    await createGuestUser();
-    closeDrawer();
-    setFormState((prev) => ({ ...prev, isCreatingGuest: false }));
+    try {
+      await createGuestUser();
+      closeDrawer();
+    } catch {
+      // createGuestUser has already surfaced the failure via a toast.
+    } finally {
+      setFormState((prev) => ({ ...prev, isCreatingGuest: false }));
+    }
   };
 
   const handlePasswordResetClick = () => {

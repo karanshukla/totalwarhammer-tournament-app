@@ -21,6 +21,7 @@ export const PLAYER_COUNT_MIN = 2;
 export const PLAYER_COUNT_MAX = 128;
 
 export const PARTICIPANT_NAME_MAX_LENGTH = 100;
+export const OVERRIDE_REASON_MAX_LENGTH = 500;
 
 export const usernameSchema = z
   .string()

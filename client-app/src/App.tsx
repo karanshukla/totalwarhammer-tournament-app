@@ -1,8 +1,11 @@
+import { useEffect } from "react";
 import { Center, Heading } from "@chakra-ui/react";
 import { Toaster } from "@/shared/ui/Toaster";
 import AppShell from "@/shared/ui/AppShell";
 import { BrowserRouter, Routes, Route } from "react-router";
 import { lazyLoad } from "@/shared/utils/LazyLoad";
+import { httpClient } from "@/core/api/httpClient";
+import { useUserStore } from "@/shared/stores/userStore";
 
 const HomePage = lazyLoad(() => import("@/features/home/components/HomePage"));
 const TournamentsPage = lazyLoad(
@@ -37,6 +40,17 @@ const ResetPasswordPage = lazyLoad(
 );
 
 export function App() {
+  useEffect(() => {
+    // The persisted store survives a server restart, a Redis flush, or plain
+    // expiry, so the client can believe it is logged in when it is not. Drop
+    // that state as soon as the server says otherwise.
+    httpClient.setUnauthorizedHandler(() =>
+      useUserStore.getState().clearUser(),
+    );
+    useUserStore.getState().evictExpiredSession();
+    return () => httpClient.setUnauthorizedHandler(null);
+  }, []);
+
   return (
     <BrowserRouter>
       <AppShell>

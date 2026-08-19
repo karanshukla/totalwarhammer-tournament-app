@@ -39,6 +39,9 @@ const DescriptionEditor: React.FC<DescriptionEditorProps> = ({
     try {
       await onSave(draft);
       setEditing(false);
+    } catch {
+      // The parent handler already surfaced this via a toast; swallowing here
+      // keeps it off window.onunhandledrejection.
     } finally {
       setSaving(false);
     }
