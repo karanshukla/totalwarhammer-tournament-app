@@ -11,7 +11,7 @@ vi.mock("react-router", async (importOriginal) => {
   return { ...actual, useNavigate: () => vi.fn() };
 });
 
-vi.mock("@/shared/ui/Toaster", () => ({
+vi.mock("@/shared/ui/toasterStore", () => ({
   toaster: {
     create: vi.fn(),
   },
@@ -41,7 +41,7 @@ vi.mock("@/shared/ui/NumberInput", () => ({
   NumberInputField: () => <input data-testid="number-input-field" />,
 }));
 
-import { toaster } from "@/shared/ui/Toaster";
+import { toaster } from "@/shared/ui/toasterStore";
 import { httpClient } from "@/core/api/httpClient";
 import CreateTournamentForm from "@/features/tournaments/components/CreateTournamentForm";
 

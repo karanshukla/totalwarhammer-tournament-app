@@ -8,7 +8,7 @@ import { DndContext } from "@dnd-kit/core";
 import { ParticipantList } from "@/features/tournaments/components/bracket/ParticipantList";
 import { useTournamentStore } from "@/shared/stores/tournamentStore";
 
-vi.mock("@/shared/ui/Toaster", () => ({
+vi.mock("@/shared/ui/toasterStore", () => ({
   toaster: { success: vi.fn(), info: vi.fn(), error: vi.fn() },
 }));
 

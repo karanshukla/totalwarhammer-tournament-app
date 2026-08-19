@@ -30,7 +30,7 @@ vi.mock("@/shared/stores/userStore", () => ({
   useUserStore: { getState: vi.fn(() => ({ setUser: mockSetUser })) },
 }));
 
-vi.mock("@/shared/ui/Toaster", () => ({
+vi.mock("@/shared/ui/toasterStore", () => ({
   toaster: { create: mockToasterCreate },
 }));
 

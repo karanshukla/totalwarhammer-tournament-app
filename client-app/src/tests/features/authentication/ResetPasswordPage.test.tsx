@@ -36,7 +36,7 @@ vi.mock("@/features/authentication/api/passwordResetApi", () => ({
   resetPassword: mockResetPassword,
 }));
 
-vi.mock("@/shared/ui/Toaster", () => ({
+vi.mock("@/shared/ui/toasterStore", () => ({
   toaster: { create: mockToasterCreate },
 }));
 

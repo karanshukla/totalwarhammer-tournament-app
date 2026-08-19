@@ -46,7 +46,7 @@ const TournamentsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useHashTab(tabIds);
 
   return (
-    <Container maxW="container.xl" py={8}>
+    <Container maxW="7xl" py={8}>
       <VStack gap={6} align="stretch">
         <HStack gap={4} wrap="wrap" alignItems="flex-end">
           <Heading as="h1" size="xl" flex={1}>

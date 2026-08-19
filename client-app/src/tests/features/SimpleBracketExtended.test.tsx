@@ -7,11 +7,11 @@ import SimpleBracket from "@/features/tournaments/components/SimpleBracket";
 import { useTournamentStore } from "@/shared/stores/tournamentStore";
 import type { DragStartEvent, DragEndEvent } from "@dnd-kit/core";
 
-vi.mock("@/shared/ui/Toaster", () => ({
+vi.mock("@/shared/ui/toasterStore", () => ({
   toaster: { success: vi.fn(), info: vi.fn(), error: vi.fn() },
 }));
 
-import { toaster } from "@/shared/ui/Toaster";
+import { toaster } from "@/shared/ui/toasterStore";
 
 // Capture DndContext event callbacks so we can call them directly in tests
 let capturedOnDragStart: ((event: DragStartEvent) => void) | null = null;

@@ -2,7 +2,7 @@ import { Button, Field, Input, Stack, Text, Separator } from "@chakra-ui/react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Toaster, toaster } from "@/shared/ui/Toaster";
+import { toaster } from "@/shared/ui/toasterStore";
 import { userExists } from "../api/registrationApi";
 import { LoginForm } from "./LoginForm";
 import { RegistrationForm } from "./RegistrationForm";
@@ -99,7 +99,6 @@ export function AuthenticationForm() {
   if (formState.view === "login") {
     return (
       <>
-        <Toaster />
         <LoginForm
           key="login-form"
           defaultIdentifier={formState.usernameOrEmail}
@@ -112,7 +111,6 @@ export function AuthenticationForm() {
   if (formState.view === "register") {
     return (
       <>
-        <Toaster />
         <RegistrationForm
           key="registration-form"
           defaultIdentifier={formState.usernameOrEmail}
@@ -132,7 +130,6 @@ export function AuthenticationForm() {
 
   return (
     <>
-      <Toaster />
       <Stack gap={6}>
         <form onSubmit={handleSubmit(onSubmit)}>
           <Stack gap="4" align="flex-start" maxW="sm">

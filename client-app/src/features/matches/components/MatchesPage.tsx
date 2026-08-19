@@ -8,7 +8,7 @@ import {
   leaveTournamentRoom,
 } from "@/core/socket/socketClient";
 import { useUserStore } from "@/shared/stores/userStore";
-import { toaster } from "@/shared/ui/Toaster";
+import { toaster } from "@/shared/ui/toasterStore";
 import { Match, Participant, Tournament } from "./types";
 import TournamentList, { type GameFilter } from "./TournamentList";
 import TournamentDetail from "./TournamentDetail";
@@ -167,6 +167,9 @@ const MatchesPage: React.FC = () => {
   };
 
   const handleAddParticipant = async () => {
+    // The name input stays enabled while the POST is in flight and Enter also
+    // submits, so two quick presses added the participant twice.
+    if (actionLoading) return;
     if (!selected || !newName.trim()) return;
     setActionLoading(true);
     setActionError(null);
@@ -497,7 +500,7 @@ const MatchesPage: React.FC = () => {
 
   if (loading) {
     return (
-      <Container maxW="container.xl" py={8}>
+      <Container maxW="7xl" py={8}>
         <VStack gap={4} py={16}>
           <Spinner size="xl" role="status" aria-label="Loading matches" />
           <Text color="fg.muted">Loading Matches...</Text>

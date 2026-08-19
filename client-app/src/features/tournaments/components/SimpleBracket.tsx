@@ -17,7 +17,7 @@ import {
   TournamentBracket,
   ParticipantEditDialog,
 } from "./bracket";
-import { toaster } from "@/shared/ui/Toaster";
+import { toaster } from "@/shared/ui/toasterStore";
 import { useTournamentStore } from "@/shared/stores/tournamentStore";
 
 // Matches the `slot-${matchId}-${position}` id produced by

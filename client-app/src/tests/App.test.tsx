@@ -15,6 +15,9 @@ vi.mock("@/shared/ui/AppShell", () => ({
 
 vi.mock("@/shared/ui/Toaster", () => ({
   Toaster: () => null,
+}));
+
+vi.mock("@/shared/ui/toasterStore", () => ({
   toaster: { create: vi.fn() },
 }));
 

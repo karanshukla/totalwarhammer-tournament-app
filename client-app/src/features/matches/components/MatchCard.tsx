@@ -12,6 +12,7 @@ import {
   Button,
   Input,
   Popover,
+  Portal,
   SimpleGrid,
   Separator,
 } from "@chakra-ui/react";
@@ -236,57 +237,59 @@ const MatchCard: React.FC<MatchCardProps> = ({
                   Overridden
                 </Button>
               </Popover.Trigger>
-              <Popover.Positioner>
-                <Popover.Content maxW="300px">
-                  <Popover.Arrow>
-                    <Popover.ArrowTip />
-                  </Popover.Arrow>
-                  <Popover.Body p={3}>
-                    <VStack gap={2} alignItems="stretch">
-                      <Text
-                        fontSize="xs"
-                        fontWeight="bold"
-                        fontFamily="cond"
-                        color="fg.secondary"
-                        textTransform="uppercase"
-                        letterSpacing="wide"
-                      >
-                        Result Override History
-                      </Text>
-                      {m.resultOverrides.map((o, i) => {
-                        const newWinnerName =
-                          o.newWinnerId === m.player1.participantId
-                            ? dn(m.player1.name)
-                            : dn(m.player2.name);
-                        return (
-                          <Box key={i}>
-                            {i > 0 && <Separator mb={2} />}
-                            <Text fontSize="xs" color="fg.primary">
-                              Winner set to{" "}
-                              <Text as="span" fontWeight="bold">
-                                {newWinnerName}
+              <Portal>
+                <Popover.Positioner>
+                  <Popover.Content maxW="300px">
+                    <Popover.Arrow>
+                      <Popover.ArrowTip />
+                    </Popover.Arrow>
+                    <Popover.Body p={3}>
+                      <VStack gap={2} alignItems="stretch">
+                        <Text
+                          fontSize="xs"
+                          fontWeight="bold"
+                          fontFamily="cond"
+                          color="fg.secondary"
+                          textTransform="uppercase"
+                          letterSpacing="wide"
+                        >
+                          Result Override History
+                        </Text>
+                        {m.resultOverrides.map((o, i) => {
+                          const newWinnerName =
+                            o.newWinnerId === m.player1.participantId
+                              ? dn(m.player1.name)
+                              : dn(m.player2.name);
+                          return (
+                            <Box key={i}>
+                              {i > 0 && <Separator mb={2} />}
+                              <Text fontSize="xs" color="fg.primary">
+                                Winner set to{" "}
+                                <Text as="span" fontWeight="bold">
+                                  {newWinnerName}
+                                </Text>
                               </Text>
-                            </Text>
-                            <Text
-                              fontSize="xs"
-                              color="fg.muted"
-                              fontStyle={o.reason ? "italic" : "normal"}
-                              mt="2px"
-                            >
-                              {o.reason
-                                ? `"${o.reason}"`
-                                : "No reason provided"}
-                            </Text>
-                            <Text fontSize="2xs" color="fg.muted" mt="2px">
-                              {new Date(o.overriddenAt).toLocaleString()}
-                            </Text>
-                          </Box>
-                        );
-                      })}
-                    </VStack>
-                  </Popover.Body>
-                </Popover.Content>
-              </Popover.Positioner>
+                              <Text
+                                fontSize="xs"
+                                color="fg.muted"
+                                fontStyle={o.reason ? "italic" : "normal"}
+                                mt="2px"
+                              >
+                                {o.reason
+                                  ? `"${o.reason}"`
+                                  : "No reason provided"}
+                              </Text>
+                              <Text fontSize="2xs" color="fg.muted" mt="2px">
+                                {new Date(o.overriddenAt).toLocaleString()}
+                              </Text>
+                            </Box>
+                          );
+                        })}
+                      </VStack>
+                    </Popover.Body>
+                  </Popover.Content>
+                </Popover.Positioner>
+              </Portal>
             </Popover.Root>
           )}
           <MatchStatusBadge status={m.status} withIcon />

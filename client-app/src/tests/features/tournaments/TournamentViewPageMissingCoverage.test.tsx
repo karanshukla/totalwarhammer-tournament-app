@@ -58,7 +58,7 @@ vi.mock("react-markdown", () => ({
   ),
 }));
 
-vi.mock("@/shared/ui/Toaster", () => ({
+vi.mock("@/shared/ui/toasterStore", () => ({
   toaster: { create: mockToasterCreate },
 }));
 

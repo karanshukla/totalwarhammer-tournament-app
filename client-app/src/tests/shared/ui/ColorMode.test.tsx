@@ -37,12 +37,8 @@ vi.mock("react-icons/lu", () => ({
   LuEyeOff: () => null,
 }));
 
-import {
-  useColorMode,
-  useColorModeValue,
-  ColorModeIcon,
-  ColorModeButton,
-} from "@/shared/ui/ColorMode";
+import { ColorModeIcon, ColorModeButton } from "@/shared/ui/ColorMode";
+import { useColorMode, useColorModeValue } from "@/shared/ui/useColorMode";
 
 describe("useColorMode – toggleColorMode branch", () => {
   beforeEach(() => vi.clearAllMocks());

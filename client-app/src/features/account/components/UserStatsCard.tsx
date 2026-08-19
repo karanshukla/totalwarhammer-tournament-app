@@ -10,7 +10,6 @@ import {
   Skeleton,
   Separator,
   Box,
-  chakra,
 } from "@chakra-ui/react";
 import { LuTrophy, LuSwords, LuShield, LuChartBar } from "react-icons/lu";
 import {
@@ -18,6 +17,7 @@ import {
   UserStatsData,
   GameUserStats,
 } from "../api/accountApi";
+import GameSystemToggle from "@/shared/ui/GameSystemToggle";
 
 type Game = "wh3" | "40k";
 
@@ -49,52 +49,15 @@ const UserStatsCard: React.FC = () => {
     <CardRoot p={5} borderWidth="1px" borderRadius="lg" bg="bg.panel">
       <HStack justify="space-between" align="center" mb={4} wrap="wrap" gap={3}>
         <Heading size="md">Your Activity</Heading>
-        {/* Game-system toggle (WH3 / 40K) */}
-        <HStack
-          gap={1}
+        <Box
           p={1}
           borderRadius="md"
           borderWidth={1}
           borderColor="border"
           bg="bg.subtle"
         >
-          <chakra.button
-            type="button"
-            py={1}
-            px={3}
-            borderRadius="sm"
-            borderWidth={1}
-            fontSize="sm"
-            fontWeight="medium"
-            cursor="pointer"
-            transition="all 0.15s"
-            onClick={() => setGame("wh3")}
-            bg={game === "wh3" ? "colorPalette.subtle" : "transparent"}
-            borderColor={game === "wh3" ? "colorPalette.muted" : "border"}
-            color={game === "wh3" ? "fg" : "fg.muted"}
-            colorPalette="ink"
-          >
-            WH3
-          </chakra.button>
-          <chakra.button
-            type="button"
-            py={1}
-            px={3}
-            borderRadius="sm"
-            borderWidth={1}
-            fontSize="sm"
-            fontWeight="medium"
-            cursor="pointer"
-            transition="all 0.15s"
-            onClick={() => setGame("40k")}
-            bg={game === "40k" ? "colorPalette.subtle" : "transparent"}
-            borderColor={game === "40k" ? "colorPalette.muted" : "border"}
-            color={game === "40k" ? "fg" : "fg.muted"}
-            colorPalette="verdigris"
-          >
-            40K
-          </chakra.button>
-        </HStack>
+          <GameSystemToggle value={game} onChange={setGame} size="sm" />
+        </Box>
       </HStack>
 
       {/* Summary stats */}

@@ -10,7 +10,6 @@ import {
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Toaster } from "@/shared/ui/Toaster";
 import { useState } from "react";
 import { requestPasswordReset } from "../api/passwordResetApi";
 import { FiArrowLeft } from "react-icons/fi";
@@ -54,7 +53,6 @@ export function PasswordResetForm({
 
   return (
     <>
-      <Toaster />
       <Stack gap={4}>
         <Button size="sm" variant="ghost" onClick={onBackClick}>
           <Icon as={FiArrowLeft} />

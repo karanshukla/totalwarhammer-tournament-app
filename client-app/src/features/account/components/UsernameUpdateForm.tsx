@@ -1,5 +1,5 @@
 ﻿import React, { useState } from "react";
-import { Text, VStack, Button, Input, Box } from "@chakra-ui/react";
+import { Text, VStack, Button, Input, Box, Field } from "@chakra-ui/react";
 import { useUserStore } from "@/shared/stores/userStore";
 import { updateGuestUsername } from "@/features/authentication/api/guestApi";
 import { updateUsername as updateAuthUsername } from "@/features/account/api/accountApi";
@@ -54,14 +54,18 @@ const UsernameUpdateForm: React.FC<UsernameUpdateFormProps> = ({
   return (
     <Box as="form" onSubmit={handleSubmit} width="100%">
       <VStack gap={4} align="start">
-        <Input
-          id="username"
-          placeholder="Enter your new username"
-          value={username}
-          onChange={handleUsernameChange}
-          maxLength={USERNAME_MAX_LENGTH}
-        />
-        {error && <Text color="status.loss">{error}</Text>}
+        <Field.Root invalid={!!error} width="100%">
+          <Field.Label>New username</Field.Label>
+          <Input
+            id="username"
+            autoComplete="username"
+            placeholder="Enter your new username"
+            value={username}
+            onChange={handleUsernameChange}
+            maxLength={USERNAME_MAX_LENGTH}
+          />
+          {error && <Field.ErrorText>{error}</Field.ErrorText>}
+        </Field.Root>
         <Button
           type="submit"
           colorPalette="crimson"

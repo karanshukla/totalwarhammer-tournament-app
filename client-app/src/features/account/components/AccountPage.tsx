@@ -5,7 +5,7 @@ import GuestAccountSection from "./GuestAccountSection";
 import AuthenticatedAccountSection from "./AuthenticatedAccountSection";
 import UnauthenticatedSection from "./UnauthenticatedSection";
 import { refreshSession } from "../api/accountApi";
-import { toaster } from "@/shared/ui/Toaster";
+import { toaster } from "@/shared/ui/toasterStore";
 
 const AccountPage: React.FC = () => {
   const user = useUserStore((state) => state.user);

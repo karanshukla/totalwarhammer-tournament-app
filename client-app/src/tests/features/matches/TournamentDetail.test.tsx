@@ -46,7 +46,7 @@ vi.mock("@/features/matches/components/EditParticipantDialog", () => ({
   default: () => null,
 }));
 
-vi.mock("@/shared/ui/Toaster", () => ({
+vi.mock("@/shared/ui/toasterStore", () => ({
   toaster: { create: vi.fn() },
 }));
 

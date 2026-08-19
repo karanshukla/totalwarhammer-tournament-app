@@ -47,7 +47,7 @@ vi.mock("@/features/matches/components/EditParticipantDialog", () => ({
     open ? <div data-testid="edit-dialog" /> : null,
 }));
 
-vi.mock("@/shared/ui/Toaster", () => ({
+vi.mock("@/shared/ui/toasterStore", () => ({
   toaster: { create: vi.fn() },
 }));
 

@@ -24,6 +24,10 @@ import {
   LuHash,
   LuUser,
 } from "react-icons/lu";
+import {
+  KEYBOARD_SHORTCUTS,
+  KEYBOARD_SHORTCUT_LABELS,
+} from "@/shared/ui/keyboardShortcuts";
 
 interface FaqItemProps {
   question: string;
@@ -78,7 +82,7 @@ const Section: React.FC<{
 
 const ContactPage: React.FC = () => {
   return (
-    <Container maxW="container.lg" py={8}>
+    <Container maxW="5xl" py={8}>
       <VStack gap={2} align="flex-start" mb={8}>
         <Heading as="h1" size="xl">
           Get Help
@@ -506,35 +510,35 @@ const ContactPage: React.FC = () => {
         {/* Keyboard shortcuts */}
         <Section icon={<LuInfo />} title="Keyboard Shortcuts">
           <SimpleGrid columns={{ base: 2, md: 4 }} gap={2}>
-            {[
-              { key: "Alt+1", label: "Home" },
-              { key: "Alt+2", label: "Tournaments" },
-              { key: "Alt+3", label: "Matches" },
-              { key: "Alt+4", label: "Statistics" },
-              { key: "Alt+5", label: "Account" },
-              { key: "Alt+6", label: "Get Help" },
-              { key: "Alt+7", label: "Terms of Use" },
-              { key: "Alt+8", label: "Source Code" },
-            ].map(({ key, label }) => (
-              <HStack key={key} gap={2}>
-                <Text
-                  as="kbd"
-                  fontSize="sm"
-                  fontFamily="mono"
-                  px={2}
-                  py={1}
-                  borderRadius="sm"
-                  borderWidth={1}
-                  borderColor="border"
-                  bg="bg.muted"
-                >
-                  {key}
-                </Text>
-                <Text fontSize="sm" color="fg.muted">
-                  {label}
-                </Text>
-              </HStack>
-            ))}
+            {(
+              Object.keys(
+                KEYBOARD_SHORTCUTS,
+              ) as (keyof typeof KEYBOARD_SHORTCUTS)[]
+            )
+              .map((name) => ({
+                key: KEYBOARD_SHORTCUTS[name],
+                label: KEYBOARD_SHORTCUT_LABELS[name],
+              }))
+              .map(({ key, label }) => (
+                <HStack key={key} gap={2}>
+                  <Text
+                    as="kbd"
+                    fontSize="sm"
+                    fontFamily="mono"
+                    px={2}
+                    py={1}
+                    borderRadius="sm"
+                    borderWidth={1}
+                    borderColor="border"
+                    bg="bg.muted"
+                  >
+                    {key}
+                  </Text>
+                  <Text fontSize="sm" color="fg.muted">
+                    {label}
+                  </Text>
+                </HStack>
+              ))}
           </SimpleGrid>
         </Section>
       </VStack>

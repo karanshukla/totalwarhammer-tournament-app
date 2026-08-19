@@ -10,7 +10,7 @@
     "dev": "vite",
     "build": "vite build",
     "start": "serve -s dist",
-    "lint": "oxlint .",
+    "lint": "oxlint . --max-warnings=0",
     "lint:fix": "oxlint . --fix",
     "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,js,jsx,json}\"",

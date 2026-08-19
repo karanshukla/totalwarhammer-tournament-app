@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import {
   Box,
   useMediaQuery,
@@ -31,6 +31,17 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
   const [isMobile] = useMediaQuery(["(max-width: 768px)"]);
   const location = useLocation();
   const currentPath = location.pathname;
+  const mainRef = useRef<HTMLDivElement>(null);
+
+  // <main> is the scroll container, not the window, so React Router's own
+  // scroll behaviour doesn't apply and nothing reset it — navigating from a
+  // scrolled-down page dropped you mid-way through the next one. Moving focus
+  // here also announces the change and puts keyboard users at the new content
+  // rather than back in the sidebar.
+  useEffect(() => {
+    mainRef.current?.scrollTo({ top: 0 });
+    mainRef.current?.focus({ preventScroll: true });
+  }, [currentPath]);
 
   const userStore = useUserStore();
   const user = userStore.user;
@@ -145,6 +156,7 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
         <Box
           as="main"
           id={MAIN_CONTENT_ID}
+          ref={mainRef}
           tabIndex={-1}
           flex="1"
           overflowY="auto"

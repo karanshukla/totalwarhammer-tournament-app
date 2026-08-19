@@ -19,7 +19,7 @@ import { LuLock } from "react-icons/lu";
 import { NumberInputRoot, NumberInputField } from "@/shared/ui/NumberInput";
 import { httpClient } from "@/core/api/httpClient";
 import { useNavigate } from "react-router";
-import { toaster } from "@/shared/ui/Toaster";
+import { toaster } from "@/shared/ui/toasterStore";
 import GameSystemToggle from "@/shared/ui/GameSystemToggle";
 import {
   factionsForGameSystem,
@@ -151,7 +151,7 @@ const CreateTournamentForm: React.FC<CreateTournamentFormProps> = ({
 
   return (
     <form onSubmit={handleSubmit}>
-      <Card.Root maxW="container.lg" mx="auto">
+      <Card.Root maxW="5xl" mx="auto">
         <Card.Body>
           <VStack gap={6} align="stretch">
             <SimpleGrid columns={{ base: 1, md: 3 }} gap={4}>

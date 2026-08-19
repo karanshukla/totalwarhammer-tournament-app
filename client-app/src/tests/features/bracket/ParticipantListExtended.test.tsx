@@ -12,7 +12,7 @@ import { ParticipantList } from "@/features/tournaments/components/bracket/Parti
 import { useTournamentStore } from "@/shared/stores/tournamentStore";
 import type { Participant } from "@/features/tournaments/components/bracket/types";
 
-vi.mock("@/shared/ui/Toaster", () => ({
+vi.mock("@/shared/ui/toasterStore", () => ({
   toaster: { success: vi.fn(), info: vi.fn(), error: vi.fn() },
 }));
 

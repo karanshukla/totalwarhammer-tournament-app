@@ -1,6 +1,7 @@
 import React from "react";
 import { chakra } from "@chakra-ui/react";
 import { selectableCardRecipe } from "./theme";
+import { activateOnEnterOrSpace } from "./keyboardActivation";
 
 const StyledSelectableCard = chakra("div", selectableCardRecipe, {
   defaultProps: { role: "button", tabIndex: 0 },
@@ -21,13 +22,11 @@ export const SelectableCard = React.forwardRef<
       onClick={onClick}
       onKeyDown={(event: React.KeyboardEvent<HTMLDivElement>) => {
         onKeyDown?.(event);
-        if (event.defaultPrevented) return;
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
+        activateOnEnterOrSpace<HTMLDivElement>((keyEvent) =>
           onClick?.(
-            event as unknown as React.MouseEvent<HTMLDivElement, MouseEvent>,
-          );
-        }
+            keyEvent as unknown as React.MouseEvent<HTMLDivElement, MouseEvent>,
+          ),
+        )(event);
       }}
       {...props}
     />

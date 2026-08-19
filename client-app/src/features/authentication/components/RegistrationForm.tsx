@@ -3,7 +3,6 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { registerUser } from "../api/registrationApi";
-import { Toaster } from "@/shared/ui/Toaster";
 import { useNavigate } from "react-router";
 import { useState } from "react";
 import { PasswordInput } from "@/shared/ui/PasswordInput";
@@ -64,7 +63,6 @@ export function RegistrationForm({
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <Stack gap="4" align="flex-start" maxW="sm">
-        <Toaster />
         <Field.Root invalid={!!errors.username} required>
           <Field.Label>Username</Field.Label>
           <Input {...register("username")} maxLength={USERNAME_MAX_LENGTH} />
