@@ -1,6 +1,7 @@
 ﻿import React from "react";
 import { Box, Flex, Text, Button } from "@chakra-ui/react";
 import { useDroppable } from "@dnd-kit/core";
+import { slotIdFor } from "./slotId";
 import { Participant } from "./types";
 
 interface MatchParticipantSlotProps {
@@ -19,7 +20,7 @@ export function MatchParticipantSlot({
   onRemove,
 }: MatchParticipantSlotProps) {
   const { setNodeRef, isOver } = useDroppable({
-    id: `slot-${matchId}-${position}`,
+    id: slotIdFor(matchId, position),
   });
 
   const participant = participantId

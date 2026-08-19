@@ -3,13 +3,19 @@ import { Box, HStack, Text } from "@chakra-ui/react";
 import type { BoxProps } from "@chakra-ui/react";
 import { LuTriangleAlert, LuInfo, LuCircleCheck } from "react-icons/lu";
 
-export type CalloutTone = "error" | "info" | "success";
+export type CalloutTone = "error" | "warning" | "info" | "success";
 
 const tones = {
   error: {
     bg: "status.loss.subtle",
     borderColor: "status.loss.border",
     color: "status.loss",
+    Icon: LuTriangleAlert,
+  },
+  warning: {
+    bg: "gold.subtle",
+    borderColor: "gold.border",
+    color: "gold.text",
     Icon: LuTriangleAlert,
   },
   info: {

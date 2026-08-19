@@ -17,6 +17,7 @@ import {
   Button,
 } from "@chakra-ui/react";
 import { LuSwords, LuTrophy, LuChevronsRight } from "react-icons/lu";
+import SectionLabel from "@/shared/ui/SectionLabel";
 import MatchCard from "./MatchCard";
 import { Match, Tournament } from "./types";
 
@@ -278,16 +279,7 @@ const MatchesSection: React.FC<Props> = ({
           <VStack gap={6} alignItems="stretch">
             {isRROrSwiss && standings.length > 0 && (
               <Box>
-                <Text
-                  fontWeight="semibold"
-                  fontSize="sm"
-                  color="fg.muted"
-                  textTransform="uppercase"
-                  letterSpacing="wider"
-                  mb={2}
-                >
-                  Standings
-                </Text>
+                <SectionLabel mb={2}>Standings</SectionLabel>
                 <Table.ScrollArea>
                   <Table.Root size="sm" variant="outline">
                     <Table.Header>
@@ -337,15 +329,7 @@ const MatchesSection: React.FC<Props> = ({
                 {wbRounds.length > 0 && (
                   <Box>
                     <HStack mb={3} gap={2}>
-                      <Text
-                        fontWeight="semibold"
-                        fontSize="sm"
-                        textTransform="uppercase"
-                        letterSpacing="wider"
-                        color="fg.muted"
-                      >
-                        Winners Bracket
-                      </Text>
+                      <SectionLabel>Winners Bracket</SectionLabel>
                       <Badge colorPalette="ink" size="sm" variant="subtle">
                         W
                       </Badge>
@@ -372,15 +356,7 @@ const MatchesSection: React.FC<Props> = ({
                 {lbRounds.length > 0 && (
                   <Box>
                     <HStack mb={3} gap={2}>
-                      <Text
-                        fontWeight="semibold"
-                        fontSize="sm"
-                        textTransform="uppercase"
-                        letterSpacing="wider"
-                        color="fg.muted"
-                      >
-                        Losers Bracket
-                      </Text>
+                      <SectionLabel>Losers Bracket</SectionLabel>
                       <Badge colorPalette="ink" size="sm" variant="subtle">
                         L
                       </Badge>
@@ -408,15 +384,7 @@ const MatchesSection: React.FC<Props> = ({
                   <Box>
                     <HStack mb={3} gap={2}>
                       <LuTrophy />
-                      <Text
-                        fontWeight="semibold"
-                        fontSize="sm"
-                        textTransform="uppercase"
-                        letterSpacing="wider"
-                        color="gold.text"
-                      >
-                        Grand Final
-                      </Text>
+                      <SectionLabel color="gold.text">Grand Final</SectionLabel>
                       {gfMatches.length > 1 && (
                         <Badge colorPalette="ink" size="sm" variant="subtle">
                           Bracket Reset
@@ -437,17 +405,13 @@ const MatchesSection: React.FC<Props> = ({
                   return (
                     <Box key={round}>
                       <HStack mb={3} gap={2}>
-                        <Text
-                          fontWeight="semibold"
-                          fontSize="sm"
+                        <SectionLabel
                           color={isCurrentRound ? "info.text" : "fg.muted"}
-                          textTransform="uppercase"
-                          letterSpacing="wider"
                         >
                           {isRROrSwiss
                             ? `Round ${round} of ${roundNumbers.length}`
                             : `Round ${round}`}
-                        </Text>
+                        </SectionLabel>
                         {isCurrentRound && !isRROrSwiss && (
                           <Badge
                             colorPalette="verdigris"

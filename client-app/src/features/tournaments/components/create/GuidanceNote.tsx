@@ -7,7 +7,7 @@ interface GuidanceNoteProps {
 }
 
 const GuidanceNote: React.FC<GuidanceNoteProps> = ({ tone, children }) => (
-  <Callout tone={tone === "warning" ? "error" : "info"} icon fontSize="xs">
+  <Callout tone={tone} icon fontSize="xs">
     {children}
   </Callout>
 );

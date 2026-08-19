@@ -119,89 +119,18 @@ class HttpClient {
     data?: unknown,
     options: RequestOptions = {},
   ): Promise<T> {
-    const shouldSkipCsrf =
+    const isAuthEndpoint =
       endpoint.includes("/auth/login") ||
       endpoint.includes("/auth/logout") ||
-      endpoint.includes("/auth/token") ||
-      options.skipCsrf;
+      endpoint.includes("/auth/token");
 
-    // Always include CSRF token for guest endpoints
+    // Guest endpoints mint a session, so they always need the token even
+    // though they are otherwise unauthenticated.
     const isGuestEndpoint = endpoint.includes("/guest");
-    const skipCsrfForEndpoint = isGuestEndpoint ? false : shouldSkipCsrf;
 
-    const {
-      params,
-      skipCsrf = skipCsrfForEndpoint,
-      ...requestOptions
-    } = options;
-
-    let token = null;
-    if (!skipCsrf) {
-      token = await this.ensureCsrfToken();
-      if (!token) {
-        console.warn("Could not fetch CSRF token for POST request");
-      }
-    }
-
-    const url = this.buildUrl(endpoint, params);
-
-    const headers: Record<string, string> = {
-      "Content-Type": "application/json",
-      ...(requestOptions.headers as Record<string, string>),
-    };
-
-    if (token && !skipCsrf) {
-      headers["X-CSRF-Token"] = token;
-    }
-
-    const response = await fetch(url, {
-      method: "POST",
-      credentials: "include",
-      ...requestOptions,
-      headers,
-      body: data ? JSON.stringify(data) : undefined,
+    return this.mutate<T>("POST", endpoint, data, options, {
+      skipCsrfByDefault: isAuthEndpoint && !isGuestEndpoint,
     });
-
-    if (response.status === 403) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      let errorData: any = null;
-      try {
-        errorData = await response.json();
-      } catch {
-        // body unparseable — fall through to handleResponse
-      }
-
-      if (errorData !== null) {
-        if (errorData.error === "CSRF validation failed") {
-          this.csrfToken = null;
-          token = await this.ensureCsrfToken();
-          if (token) {
-            const retryResponse = await fetch(url, {
-              method: "POST",
-              credentials: "include",
-              ...requestOptions,
-              headers: {
-                "Content-Type": "application/json",
-                "X-CSRF-Token": token,
-                ...requestOptions.headers,
-              },
-              body: data ? JSON.stringify(data) : undefined,
-            });
-            return this.handleResponse<T>(retryResponse);
-          }
-          throw new Error(
-            errorData.message || "Could not refresh CSRF token after failure",
-          );
-        }
-        // Non-CSRF 403 — body already consumed, throw with the message we read.
-        throw new Error(
-          errorData.message ||
-            `Error ${response.status}: ${response.statusText}`,
-        );
-      }
-    }
-
-    return this.handleResponse<T>(response);
   }
 
   async put<T>(
@@ -209,74 +138,7 @@ class HttpClient {
     data?: unknown,
     options: RequestOptions = {},
   ): Promise<T> {
-    const { params, skipCsrf = false, ...requestOptions } = options;
-
-    let token = null;
-    if (!skipCsrf) {
-      token = await this.ensureCsrfToken();
-      if (!token) {
-        console.warn("Could not fetch CSRF token for PUT request");
-      }
-    }
-
-    const url = this.buildUrl(endpoint, params);
-
-    const headers: Record<string, string> = {
-      "Content-Type": "application/json",
-      ...(requestOptions.headers as Record<string, string>),
-    };
-
-    if (token && !skipCsrf) {
-      headers["X-CSRF-Token"] = token;
-    }
-
-    const response = await fetch(url, {
-      method: "PUT",
-      credentials: "include",
-      ...requestOptions,
-      headers,
-      body: data ? JSON.stringify(data) : undefined,
-    });
-
-    if (response.status === 403) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      let errorData: any = null;
-      try {
-        errorData = await response.json();
-      } catch {
-        // body unparseable — fall through to handleResponse
-      }
-
-      if (errorData !== null) {
-        if (errorData.error === "CSRF validation failed") {
-          this.csrfToken = null;
-          token = await this.ensureCsrfToken();
-          if (token) {
-            const retryResponse = await fetch(url, {
-              method: "PUT",
-              credentials: "include",
-              ...requestOptions,
-              headers: {
-                "Content-Type": "application/json",
-                "X-CSRF-Token": token,
-                ...requestOptions.headers,
-              },
-              body: data ? JSON.stringify(data) : undefined,
-            });
-            return this.handleResponse<T>(retryResponse);
-          }
-          throw new Error(
-            errorData.message || "Could not refresh CSRF token after failure",
-          );
-        }
-        throw new Error(
-          errorData.message ||
-            `Error ${response.status}: ${response.statusText}`,
-        );
-      }
-    }
-
-    return this.handleResponse<T>(response);
+    return this.mutate<T>("PUT", endpoint, data, options);
   }
 
   async patch<T>(
@@ -284,104 +146,56 @@ class HttpClient {
     data?: unknown,
     options: RequestOptions = {},
   ): Promise<T> {
-    const { params, skipCsrf = false, ...requestOptions } = options;
-
-    let token = null;
-    if (!skipCsrf) {
-      token = await this.ensureCsrfToken();
-      if (!token) {
-        console.warn("Could not fetch CSRF token for PATCH request");
-      }
-    }
-
-    const url = this.buildUrl(endpoint, params);
-
-    const headers: Record<string, string> = {
-      "Content-Type": "application/json",
-      ...(requestOptions.headers as Record<string, string>),
-    };
-
-    if (token && !skipCsrf) {
-      headers["X-CSRF-Token"] = token;
-    }
-
-    const response = await fetch(url, {
-      method: "PATCH",
-      credentials: "include",
-      ...requestOptions,
-      headers,
-      body: data ? JSON.stringify(data) : undefined,
-    });
-
-    if (response.status === 403) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      let errorData: any = null;
-      try {
-        errorData = await response.json();
-      } catch {
-        // body unparseable — fall through to handleResponse
-      }
-
-      if (errorData !== null) {
-        if (errorData.error === "CSRF validation failed") {
-          this.csrfToken = null;
-          token = await this.ensureCsrfToken();
-          if (token) {
-            const retryResponse = await fetch(url, {
-              method: "PATCH",
-              credentials: "include",
-              ...requestOptions,
-              headers: {
-                "Content-Type": "application/json",
-                "X-CSRF-Token": token,
-                ...requestOptions.headers,
-              },
-              body: data ? JSON.stringify(data) : undefined,
-            });
-            return this.handleResponse<T>(retryResponse);
-          }
-          throw new Error(
-            errorData.message || "Could not refresh CSRF token after failure",
-          );
-        }
-        throw new Error(
-          errorData.message ||
-            `Error ${response.status}: ${response.statusText}`,
-        );
-      }
-    }
-
-    return this.handleResponse<T>(response);
+    return this.mutate<T>("PATCH", endpoint, data, options);
   }
 
   async delete<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
-    const { params, skipCsrf = false, ...requestOptions } = options;
+    return this.mutate<T>("DELETE", endpoint, undefined, options);
+  }
 
-    let token = null;
+  /**
+   * Every mutating verb needs the same CSRF dance: attach the cached token,
+   * and if the server rejects it, drop the token, fetch a fresh one and replay
+   * the request once. Four hand-rolled copies of this drifted apart.
+   */
+  private async mutate<T>(
+    method: "POST" | "PUT" | "PATCH" | "DELETE",
+    endpoint: string,
+    data: unknown,
+    options: RequestOptions,
+    { skipCsrfByDefault = false }: { skipCsrfByDefault?: boolean } = {},
+  ): Promise<T> {
+    const { params, skipCsrf = skipCsrfByDefault, ...requestOptions } = options;
+
+    let token: string | null = null;
     if (!skipCsrf) {
       token = await this.ensureCsrfToken();
       if (!token) {
-        console.warn("Could not fetch CSRF token for DELETE request");
+        console.warn(`Could not fetch CSRF token for ${method} request`);
       }
     }
 
     const url = this.buildUrl(endpoint, params);
+    const body = data ? JSON.stringify(data) : undefined;
 
-    const headers: Record<string, string> = {
-      "Content-Type": "application/json",
-      ...(requestOptions.headers as Record<string, string>),
+    const send = (csrfToken: string | null) => {
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+        ...(requestOptions.headers as Record<string, string>),
+      };
+      if (csrfToken) {
+        headers["X-CSRF-Token"] = csrfToken;
+      }
+      return fetch(url, {
+        method,
+        credentials: "include",
+        ...requestOptions,
+        headers,
+        body,
+      });
     };
 
-    if (token && !skipCsrf) {
-      headers["X-CSRF-Token"] = token;
-    }
-
-    const response = await fetch(url, {
-      method: "DELETE",
-      credentials: "include",
-      ...requestOptions,
-      headers,
-    });
+    const response = await send(skipCsrf ? null : token);
 
     if (response.status === 403) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -395,24 +209,15 @@ class HttpClient {
       if (errorData !== null) {
         if (errorData.error === "CSRF validation failed") {
           this.csrfToken = null;
-          token = await this.ensureCsrfToken();
-          if (token) {
-            const retryResponse = await fetch(url, {
-              method: "DELETE",
-              credentials: "include",
-              ...requestOptions,
-              headers: {
-                "Content-Type": "application/json",
-                "X-CSRF-Token": token,
-                ...requestOptions.headers,
-              },
-            });
-            return this.handleResponse<T>(retryResponse);
+          const freshToken = await this.ensureCsrfToken();
+          if (freshToken) {
+            return this.handleResponse<T>(await send(freshToken));
           }
           throw new Error(
             errorData.message || "Could not refresh CSRF token after failure",
           );
         }
+        // Non-CSRF 403 — body already consumed, throw with the message we read.
         throw new Error(
           errorData.message ||
             `Error ${response.status}: ${response.statusText}`,

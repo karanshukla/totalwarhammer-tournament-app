@@ -17,13 +17,10 @@ import {
   TournamentBracket,
   ParticipantEditDialog,
 } from "./bracket";
+import { buildDragAnnouncements } from "./bracket/dragAnnouncements";
+import { SLOT_ID_PATTERN } from "./bracket/slotId";
 import { toaster } from "@/shared/ui/toasterStore";
 import { useTournamentStore } from "@/shared/stores/tournamentStore";
-
-// Matches the `slot-${matchId}-${position}` id produced by
-// MatchParticipantSlot's useDroppable(). Validating it here means a future
-// change to the slot id scheme fails loudly instead of silently no-op'ing.
-const SLOT_ID_PATTERN = /^slot-(.+)-(1|2)$/;
 
 const SimpleBracket = () => {
   const store = useTournamentStore();
@@ -43,6 +40,8 @@ const SimpleBracket = () => {
     onOpen: onEditParticipantDialogOnOpen,
     onClose: onEditParticipantDialogOnClose,
   } = useDisclosure();
+
+  const announcements = buildDragAnnouncements(storeParticipants, storeRounds);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -132,6 +131,7 @@ const SimpleBracket = () => {
   return (
     <DndContext
       sensors={sensors}
+      accessibility={{ announcements }}
       collisionDetection={closestCenter}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
