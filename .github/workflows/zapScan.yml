@@ -35,7 +35,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Create .env for Docker Compose
         env:
@@ -75,7 +75,7 @@ jobs:
           fi
 
       - name: Run OWASP ZAP API Scan
-        uses: zaproxy/action-api-scan@v0.9.0
+        uses: zaproxy/action-api-scan@v0.10.0
         with:
           target: ".github/openapi.yml"
           format: openapi
