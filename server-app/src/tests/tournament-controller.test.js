@@ -650,9 +650,14 @@ describe("tournament-controller", () => {
         status: "pending",
         playerCount: 8,
         participants: [],
-        save: mock.fn(async () => {}),
       };
       mockTournamentFindById.mock.mockImplementation(async () => t);
+      mockTournamentFindOneAndUpdate.mock.mockImplementation(
+        async (_filter, update) => ({
+          ...t,
+          participants: [update.$push.participants],
+        }),
+      );
       const req = mockReq({
         params: { id: "t1" },
         body: { faction: "Empire" },
@@ -661,8 +666,58 @@ describe("tournament-controller", () => {
       const res = mockRes();
       await joinTournament(req, res);
       assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
-      assert.strictEqual(t.participants.length, 1);
-      assert.strictEqual(t.participants[0].name, "tester");
+      const pushed =
+        mockTournamentFindOneAndUpdate.mock.calls[0].arguments[1].$push
+          .participants;
+      assert.strictEqual(pushed.name, "tester");
+      assert.strictEqual(pushed.faction, "Empire");
+    });
+
+    it("guards capacity and status on the write, not just on the read", async () => {
+      const t = {
+        _id: { toString: () => "t1" },
+        status: "pending",
+        playerCount: 8,
+        participants: [],
+      };
+      mockTournamentFindById.mock.mockImplementation(async () => t);
+      mockTournamentFindOneAndUpdate.mock.mockImplementation(async () => ({
+        ...t,
+      }));
+      await joinTournament(
+        mockReq({
+          params: { id: "t1" },
+          body: {},
+          user: { id: "u1", username: "tester" },
+        }),
+        mockRes(),
+      );
+      const filter = mockTournamentFindOneAndUpdate.mock.calls[0].arguments[0];
+      assert.strictEqual(filter.status, "pending");
+      assert.deepStrictEqual(filter.$expr, {
+        $lt: [{ $size: "$participants" }, "$playerCount"],
+      });
+      assert.deepStrictEqual(filter["participants.userId"], { $ne: "u1" });
+    });
+
+    it("returns 409 when the conditional write loses the race", async () => {
+      mockTournamentFindById.mock.mockImplementation(async () => ({
+        _id: { toString: () => "t1" },
+        status: "pending",
+        playerCount: 8,
+        participants: [],
+      }));
+      mockTournamentFindOneAndUpdate.mock.mockImplementation(async () => null);
+      const res = mockRes();
+      await joinTournament(
+        mockReq({
+          params: { id: "t1" },
+          body: {},
+          user: { id: "u1", username: "tester" },
+        }),
+        res,
+      );
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 409);
     });
 
     it("should use Guest_XXXX name when no username", async () => {
@@ -674,6 +729,7 @@ describe("tournament-controller", () => {
         save: mock.fn(async () => {}),
       };
       mockTournamentFindById.mock.mockImplementation(async () => t);
+      mockTournamentFindOneAndUpdate.mock.mockImplementation(async () => t);
       const req = mockReq({
         params: { id: "t1" },
         body: {},
@@ -682,7 +738,10 @@ describe("tournament-controller", () => {
       const res = mockRes();
       await joinTournament(req, res);
       assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
-      assert.ok(t.participants[0].name.startsWith("Guest_"));
+      const pushed =
+        mockTournamentFindOneAndUpdate.mock.calls[0].arguments[1].$push
+          .participants;
+      assert.ok(pushed.name.startsWith("Guest_"));
     });
 
     it("should store a null userId and use guest name-matching for already-joined check when isGuest", async () => {
@@ -713,6 +772,7 @@ describe("tournament-controller", () => {
         save: mock.fn(async () => {}),
       };
       mockTournamentFindById.mock.mockImplementation(async () => t);
+      mockTournamentFindOneAndUpdate.mock.mockImplementation(async () => t);
       const req = mockReq({
         params: { id: "t1" },
         body: {},
@@ -721,7 +781,12 @@ describe("tournament-controller", () => {
       const res = mockRes();
       await joinTournament(req, res);
       assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
-      assert.strictEqual(t.participants[0].userId, null);
+      const pushed =
+        mockTournamentFindOneAndUpdate.mock.calls[0].arguments[1].$push
+          .participants;
+      assert.strictEqual(pushed.userId, null);
+      // Guests need a stable handle so a later rename touches only their rows.
+      assert.strictEqual(pushed.guestId, "abcdef123456");
     });
 
     it("should detect already-joined via matching userId (non-guest)", async () => {
@@ -800,7 +865,11 @@ describe("tournament-controller", () => {
     });
 
     it("should update description and return 200", async () => {
-      const t = { description: "old", save: mock.fn(async () => {}) };
+      const t = {
+        _id: { toString: () => "t1" },
+        description: "old",
+        save: mock.fn(async () => {}),
+      };
       mockTournamentFindOne.mock.mockImplementation(async () => t);
       const req = mockReq({
         params: { id: "t1" },
@@ -873,8 +942,11 @@ describe("tournament-controller", () => {
   // ── startTournament ─────────────────────────────────────────────────────────
 
   describe("startTournament", () => {
+    // startTournament claims the tournament with a conditional
+    // findOneAndUpdate before generating a bracket, so the claim has to be
+    // stubbed alongside the read.
     function makePendingTournament(overrides = {}) {
-      return {
+      const tournament = {
         _id: "t1",
         status: "pending",
         tournamentType: "Single Elimination",
@@ -882,6 +954,11 @@ describe("tournament-controller", () => {
         save: mock.fn(async () => {}),
         ...overrides,
       };
+      mockTournamentFindOneAndUpdate.mock.mockImplementation(async () => {
+        tournament.status = "active";
+        return tournament;
+      });
+      return tournament;
     }
 
     it("should return 404 if tournament not found", async () => {
@@ -1609,8 +1686,11 @@ describe("tournament-controller", () => {
   // ── startTournament extra tournament types ────────────────────────────────────
 
   describe("startTournament - extra tournament types", () => {
+    // startTournament claims the tournament with a conditional
+    // findOneAndUpdate before generating a bracket, so the claim has to be
+    // stubbed alongside the read.
     function makePendingTournament(overrides = {}) {
-      return {
+      const tournament = {
         _id: "t1",
         status: "pending",
         tournamentType: "Single Elimination",
@@ -1618,6 +1698,11 @@ describe("tournament-controller", () => {
         save: mock.fn(async () => {}),
         ...overrides,
       };
+      mockTournamentFindOneAndUpdate.mock.mockImplementation(async () => {
+        tournament.status = "active";
+        return tournament;
+      });
+      return tournament;
     }
 
     it("should start Double Elimination tournament", async () => {

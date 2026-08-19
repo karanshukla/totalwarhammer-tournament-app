@@ -257,7 +257,30 @@ export function doubleElimAdvance(tournamentId, allMatches) {
           .filter((p) => p.name !== "BYE")
       : [];
 
-    if (wbWinners.length === 1 && lbWinners.length === 1) {
+    // Only include WB losers not already in the LB (prevents re-injection when
+    // the WB final round stays as wbCurrent across multiple advance calls).
+    const lbParticipantIds = new Set(
+      lb
+        .flatMap((m) => [
+          m.player1.participantId?.toString(),
+          m.player2.participantId?.toString(),
+        ])
+        .filter((id) => id && id !== "null"),
+    );
+    const incomingLosers = wbLosers.filter(
+      (p) => !lbParticipantIds.has(p.participantId?.toString()),
+    );
+
+    // The grand final can only be built once the losers bracket is exhausted.
+    // Without the incomingLosers check the WB final's loser is stranded — they
+    // are dropped from the winners bracket but never given their LB match, so
+    // they leave the tournament on a single loss. Only reachable at n = 3, 4
+    // and 5, where the WB final and the last LB round complete together.
+    if (
+      wbWinners.length === 1 &&
+      lbWinners.length === 1 &&
+      incomingLosers.length === 0
+    ) {
       const docs = [
         {
           tournament: tournamentId,
@@ -302,20 +325,7 @@ export function doubleElimAdvance(tournamentId, allMatches) {
       }
     }
 
-    // Feed WB losers into new LB round + advance existing LB winners.
-    // Only include WB losers not already in the LB (prevents re-injection when
-    // the WB final round stays as wbCurrent across multiple advance calls).
-    const lbParticipantIds = new Set(
-      lb
-        .flatMap((m) => [
-          m.player1.participantId?.toString(),
-          m.player2.participantId?.toString(),
-        ])
-        .filter((id) => id && id !== "null"),
-    );
-    const incomingLosers = wbLosers.filter(
-      (p) => !lbParticipantIds.has(p.participantId?.toString()),
-    );
+    // Feed WB losers into a new LB round + advance existing LB winners.
     const existingLbWinners = lbCurrent.length
       ? lbCurrent
           .filter((m) => m.status === "completed")
@@ -456,9 +466,17 @@ export function roundRobinStandings(participants, allMatches) {
       });
   }
   for (const m of allMatches) {
-    if (m.status !== "completed" || !m.winnerId || m.player2.name === "BYE")
-      continue;
+    if (m.status !== "completed" || !m.winnerId) continue;
     const wId = m.winnerId.toString();
+    // A bye is a win with no opponent — it must score, or a player who drew
+    // one is ranked below players with the same record who did not.
+    if (m.player2.name === "BYE") {
+      if (map.has(wId)) {
+        map.get(wId).wins++;
+        map.get(wId).played++;
+      }
+      continue;
+    }
     const lId =
       wId === m.player1.participantId?.toString()
         ? m.player2.participantId?.toString()
@@ -536,11 +554,24 @@ export function swissAdvance(
         },
         wins: 0,
         avoid: [],
+        receivedBye: false,
       });
   }
 
   for (const m of allMatches) {
-    if (m.status !== "completed" || m.player2.name === "BYE") continue;
+    if (m.status !== "completed") continue;
+    // A bye is a free win. Scoring it as nothing left the player in the bottom
+    // score group, which is exactly who the pairing engine hands the next bye
+    // to — so the same player kept drawing byes round after round.
+    if (m.player2.name === "BYE") {
+      const byeId = m.player1.participantId?.toString();
+      const entry = byeId && scores.get(byeId);
+      if (entry) {
+        entry.wins++;
+        entry.receivedBye = true;
+      }
+      continue;
+    }
     const a = m.player1.participantId?.toString();
     const b = m.player2.participantId?.toString();
     if (a && b) {
@@ -551,11 +582,14 @@ export function swissAdvance(
     if (wId && scores.has(wId)) scores.get(wId).wins++;
   }
 
-  const players = [...scores.values()].map(({ p, wins, avoid }) => ({
-    id: p.participantId,
-    score: wins,
-    avoid,
-  }));
+  const players = [...scores.values()].map(
+    ({ p, wins, avoid, receivedBye }) => ({
+      id: p.participantId,
+      score: wins,
+      avoid,
+      receivedBye,
+    }),
+  );
 
   // Blossom throws when avoid constraints make a valid matching impossible.
   // In that case strip the avoid lists and force rematches (last-resort behavior).

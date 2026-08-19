@@ -163,6 +163,35 @@ describe("doubleElimAdvance", () => {
     });
   }
 
+  // The defining property of the format: a single loss never ends your run.
+  // Regression for a grand final that was built as soon as one WB winner and
+  // one LB winner existed, without waiting for the WB final's loser to play
+  // their losers-bracket match — stranding them on one loss at n = 3, 4 and 5.
+  for (const n of [3, 4, 5, 6, 7, 8, 9]) {
+    it(`eliminates nobody on a single loss with ${n} players`, () => {
+      const participants = makeParticipants(n);
+      for (const run of [runDoubleElim, runDoubleElimAlternating]) {
+        const allMatches = run(tid, participants);
+
+        const losses = new Map(participants.map((p) => [p._id.toString(), 0]));
+        for (const m of allMatches) {
+          const loserId = m.loserId?.toString();
+          if (!loserId || !losses.has(loserId)) continue;
+          losses.set(loserId, losses.get(loserId) + 1);
+        }
+
+        const survivors = [...losses.entries()].filter(([, l]) => l < 2);
+        assert.strictEqual(
+          survivors.length,
+          1,
+          `expected only the champion to finish with fewer than 2 losses, got ${JSON.stringify(
+            survivors,
+          )}`,
+        );
+      }
+    });
+  }
+
   it("WB losers are never injected into LB twice", () => {
     const participants = makeParticipants(7);
     const allMatches = runDoubleElim(tid, participants);
@@ -655,7 +684,7 @@ describe("roundRobinStandings", () => {
     assert.strictEqual(alice.losses, 1);
   });
 
-  it("skips BYE matches when computing standings", () => {
+  it("scores a BYE as a win, with no loss recorded against anyone", () => {
     const matches = [
       {
         status: "completed",
@@ -665,9 +694,16 @@ describe("roundRobinStandings", () => {
       },
     ];
     const standings = roundRobinStandings(participants, matches);
-    // BYE match should not count toward standings
     const alice = standings.find((s) => s.name === "Alice");
-    assert.strictEqual(alice.wins, 0);
+    // A bye is an unopposed win. Scoring it as nothing sinks the player to the
+    // bottom of their score group, which is who the pairing engine hands the
+    // next bye to.
+    assert.strictEqual(alice.wins, 1);
+    assert.strictEqual(alice.played, 1);
+    assert.strictEqual(alice.losses, 0);
+    for (const other of standings.filter((st) => st.name !== "Alice")) {
+      assert.strictEqual(other.losses, 0);
+    }
   });
 
   it("skips incomplete matches", () => {

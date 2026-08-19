@@ -24,6 +24,8 @@ mock.module("winston", {
       timestamp: mock.fn(() => ({})),
       colorize: mock.fn(() => ({})),
       printf: mock.fn(() => ({})),
+      errors: mock.fn(() => ({})),
+      json: mock.fn(() => ({})),
     },
     transports: {
       Console: class {},

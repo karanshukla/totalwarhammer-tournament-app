@@ -119,6 +119,44 @@ describe("match-controller", () => {
     });
   });
 
+  describe("updateMatchStatus reopening a completed match", () => {
+    it("clears the recorded result so the match cannot read as both", async () => {
+      const match = {
+        status: "completed",
+        winnerId: "aaaaaaaaaaaaaaaaaaaaaaaa",
+        loserId: "bbbbbbbbbbbbbbbbbbbbbbbb",
+        completedAt: new Date(),
+        reportedResults: [{ reportedBy: "aaaaaaaaaaaaaaaaaaaaaaaa" }],
+        player1: { participantId: "aaaaaaaaaaaaaaaaaaaaaaaa", name: "Alice" },
+        player2: { participantId: "bbbbbbbbbbbbbbbbbbbbbbbb", name: "Bob" },
+        tournament: {
+          _id: { toString: () => "tttttttttttttttttttttttt" },
+          status: "active",
+          createdBy: { toString: () => "u1" },
+        },
+        save: mock.fn(async () => {}),
+      };
+      mockMatchFindById.mock.mockImplementation(() => ({
+        populate: async () => match,
+      }));
+      const res = mockRes();
+      await updateMatchStatus(
+        mockReq({ params: { id: "m1" }, body: { status: "pending" } }),
+        res,
+      );
+
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
+      assert.strictEqual(match.status, "pending");
+      // A pending match that still carries a winnerId is read as completed by
+      // the stats aggregations and as pending by the advance check.
+      assert.strictEqual(match.winnerId, null);
+      assert.strictEqual(match.loserId, null);
+      assert.strictEqual(match.completedAt, null);
+      assert.deepStrictEqual(match.reportedResults, []);
+      assert.strictEqual(mockInvalidateStatsCache.mock.calls.length, 1);
+    });
+  });
+
   describe("createMatch", () => {
     const validTournamentId = "aaaaaaaaaaaaaaaaaaaaaaaa";
 
@@ -133,6 +171,7 @@ describe("match-controller", () => {
     it("should create match and return 201", async () => {
       mockTournamentFindOne.mock.mockImplementation(async () => ({
         status: "active",
+        participants: [],
       }));
       mockMatchCreate.mock.mockImplementation(async (data) => data);
       const req = mockReq({
@@ -148,6 +187,27 @@ describe("match-controller", () => {
       await createMatch(req, res);
       assert.strictEqual(res.status.mock.calls[0].arguments[0], 201);
       assert.strictEqual(mockMatchCreate.mock.calls.length, 1);
+    });
+
+    it("rejects a player slot that is not a participant of this tournament", async () => {
+      mockTournamentFindOne.mock.mockImplementation(async () => ({
+        status: "active",
+        participants: [{ _id: { toString: () => "aaaaaaaaaaaaaaaaaaaaaaaa" } }],
+      }));
+      const req = mockReq({
+        body: {
+          tournamentId: validTournamentId,
+          round: 1,
+          matchNumber: 1,
+          player1: { name: "p1", participantId: "aaaaaaaaaaaaaaaaaaaaaaaa" },
+          // Belongs to some other tournament.
+          player2: { name: "p2", participantId: "cccccccccccccccccccccccc" },
+        },
+      });
+      const res = mockRes();
+      await createMatch(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 400);
+      assert.strictEqual(mockMatchCreate.mock.calls.length, 0);
     });
   });
 
@@ -182,6 +242,74 @@ describe("match-controller", () => {
       const res = mockRes();
       await reportResult(req, res);
       assert.strictEqual(res.status.mock.calls[0].arguments[0], 404);
+    });
+
+    it("does not treat a creator's report as the second player's agreement", async () => {
+      const p1Id = "aaaaaaaaaaaaaaaaaaaaaaaa";
+      const creatorId = "cccccccccccccccccccccccc";
+      const match = makeMatch({
+        status: "in_progress",
+        // Player 1 has reported; player 2 has not.
+        reportedResults: [
+          { reportedBy: p1Id, reportedByName: "Alice", winnerId: p1Id },
+        ],
+        tournament: {
+          _id: { toString: () => "tttttttttttttttttttttttt" },
+          status: "active",
+          createdBy: creatorId,
+          participants: [],
+        },
+      });
+      mockMatchFindById.mock.mockImplementation(() => ({
+        populate: async () => match,
+      }));
+      const req = mockReq({
+        params: { id: "m1" },
+        body: { winnerId: p1Id },
+        user: { id: creatorId, username: "Organiser" },
+      });
+      const res = mockRes();
+      await reportResult(req, res);
+
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
+      // Two agreeing reports exist, but only one is from a player, so the
+      // match must not complete — player 2 never had a chance to dispute.
+      assert.notStrictEqual(match.status, "completed");
+      assert.ok(!match.winnerId);
+    });
+
+    it("completes only once both player slots have reported the same winner", async () => {
+      const p1Id = "aaaaaaaaaaaaaaaaaaaaaaaa";
+      const p2Id = "bbbbbbbbbbbbbbbbbbbbbbbb";
+      const match = makeMatch({
+        status: "in_progress",
+        reportedResults: [
+          { reportedBy: p1Id, reportedByName: "Alice", winnerId: p1Id },
+        ],
+        tournament: {
+          _id: { toString: () => "tttttttttttttttttttttttt" },
+          status: "active",
+          createdBy: "cccccccccccccccccccccccc",
+          participants: [
+            { _id: { toString: () => p2Id }, userId: { toString: () => "u2" } },
+          ],
+        },
+      });
+      mockMatchFindById.mock.mockImplementation(() => ({
+        populate: async () => match,
+      }));
+      const req = mockReq({
+        params: { id: "m1" },
+        body: { winnerId: p1Id },
+        user: { id: "u2", username: "Bob" },
+      });
+      const res = mockRes();
+      await reportResult(req, res);
+
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
+      assert.strictEqual(match.status, "completed");
+      assert.strictEqual(match.winnerId?.toString(), p1Id);
+      assert.strictEqual(match.loserId?.toString(), p2Id);
     });
 
     it("should return 400 if match already completed", async () => {

@@ -98,71 +98,16 @@ export const register = async (req, res) => {
 };
 
 /** @type {import('express').RequestHandler} */
-export const updateGuestUsername = async (req, res) => {
-  try {
-    const { username } = req.body;
-    const userId = req.user.id;
-
-    if (!req.user.isGuest) {
-      return res.status(403).json({
-        success: false,
-        message:
-          "Only guest users can update their username using this endpoint",
-      });
-    }
-
-    const existingUsername = await User.findOne({
-      username,
-      _id: { $ne: userId },
-    });
-
-    if (existingUsername) {
-      return res.status(400).json({
-        success: false,
-        message: "Username already taken",
-      });
-    }
-
-    const updatedUser = await User.findByIdAndUpdate(
-      userId,
-      { username },
-      { new: true },
-    );
-
-    if (!updatedUser) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found",
-      });
-    }
-
-    logger.info(
-      `Guest username updated: user=${userId}, new username="${username}"`,
-    );
-    res.status(200).json({
-      success: true,
-      message: "Username updated successfully",
-      data: {
-        id: updatedUser.id,
-        username: updatedUser.username,
-        email: updatedUser.email,
-        isGuest: true,
-      },
-    });
-  } catch (error) {
-    logger.error(`Error updating guest username: ${error.message}`);
-    res.status(500).json({
-      success: false,
-      message: "Failed to update username",
-    });
-  }
-};
-
-/** @type {import('express').RequestHandler} */
 export const updateUsername = async (req, res) => {
   try {
     const { username } = req.body;
     const userId = req.user.id;
+    if (req.user.isGuest) {
+      return res.status(403).json({
+        success: false,
+        message: "This action requires a registered account.",
+      });
+    }
 
     // Validate username is a string to prevent NoSQL injection
     if (typeof username !== "string") {
@@ -360,6 +305,13 @@ async function computeUserGameStats(
 export const getUserStats = async (req, res) => {
   try {
     const userId = req.user.id;
+    if (req.user.isGuest) {
+      return res.status(403).json({
+        success: false,
+        message: "This action requires a registered account.",
+      });
+    }
+
     const user = await User.findById(userId).select("username").lean();
     if (!user) {
       return res
@@ -391,6 +343,12 @@ export const updatePassword = async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
     const userId = req.user.id;
+    if (req.user.isGuest) {
+      return res.status(403).json({
+        success: false,
+        message: "This action requires a registered account.",
+      });
+    }
 
     const user = await User.findById(userId).select("+password");
     if (!user) {

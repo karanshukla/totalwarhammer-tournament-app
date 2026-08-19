@@ -1,3 +1,5 @@
+import crypto from "crypto";
+
 import mongoose from "mongoose";
 
 import Match from "../../../domain/models/match.js";
@@ -24,8 +26,24 @@ import logger from "../../../infrastructure/utils/logger.js";
 const isValidObjectId = (id) =>
   mongoose.Types.ObjectId.isValid(id) && /^[a-f\d]{24}$/i.test(id);
 
+// Math.random().toString(36) drops trailing zeros, so slicing it produced codes
+// shorter than 6 characters (and, for a value like 0.5, a single character),
+// which made collisions on the unique index far likelier than the nominal
+// space suggests. Ambiguous glyphs (0/O, 1/I) are excluded so codes survive
+// being read aloud or copied by hand.
+const CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+const CODE_LENGTH = 6;
+
 function generateCode() {
-  return Math.random().toString(36).substring(2, 8).toUpperCase();
+  // crypto.randomInt rejection-samples, so the distribution stays uniform
+  // whatever the alphabet length. Taking randomBytes modulo the length is only
+  // unbiased while that length divides 256 — a silent trap the next time
+  // someone edits the alphabet.
+  let code = "";
+  for (let i = 0; i < CODE_LENGTH; i++) {
+    code += CODE_ALPHABET[crypto.randomInt(CODE_ALPHABET.length)];
+  }
+  return code;
 }
 
 async function ensureCode(tournament) {
@@ -44,6 +62,24 @@ async function ensureCode(tournament) {
     return (await Tournament.findById(tournament._id)) || tournament;
   }
   return tournament;
+}
+
+const CODE_COLLISION_RETRIES = 5;
+
+async function createWithUniqueCode(attributes) {
+  for (let attempt = 0; attempt < CODE_COLLISION_RETRIES; attempt++) {
+    try {
+      return await Tournament.create({ ...attributes, code: generateCode() });
+    } catch (error) {
+      const isDuplicateCode =
+        error?.code === 11000 && "code" in (error.keyPattern ?? {});
+      if (!isDuplicateCode) throw error;
+      logger.warn("Tournament join code collided, regenerating");
+    }
+  }
+  throw new Error(
+    `Could not allocate a unique join code in ${CODE_COLLISION_RETRIES} attempts`,
+  );
 }
 
 /** @type {import('express').RequestHandler} */
@@ -67,7 +103,7 @@ export const createTournament = async (req, res) => {
       enable40kFactions,
     } = req.body;
 
-    const tournament = await Tournament.create({
+    const tournament = await createWithUniqueCode({
       name,
       description: description || "",
       playerCount,
@@ -75,7 +111,6 @@ export const createTournament = async (req, res) => {
       bannedFactions: bannedFactions || [],
       enable40kFactions: !!enable40kFactions,
       createdBy: req.user.id,
-      code: generateCode(),
       participants: [
         {
           userId: req.user.id,
@@ -441,18 +476,45 @@ export const joinTournament = async (req, res) => {
         message: "You have already joined this tournament",
       });
     }
-    tournament.participants.push({
-      userId: req.user.isGuest ? null : req.user.id,
-      guestId: req.user.isGuest ? req.user.id : null,
-      name: playerName,
-      faction: faction || "",
-    });
-    await tournament.save();
-    emitTournamentUpdated(tournament._id.toString(), tournament);
-    logger.info(
-      `User "${playerName}" (${req.user.id}) joined tournament ${tournament._id} with faction "${faction || "none"}"`,
+
+    // The checks above give the caller a specific message, but they are read
+    // from a snapshot. Re-assert capacity, status and non-duplication as
+    // conditions on the write itself, so two simultaneous joins on the last
+    // slot cannot both succeed.
+    const identityCondition = req.user.isGuest
+      ? { "participants.guestId": { $ne: req.user.id } }
+      : { "participants.userId": { $ne: req.user.id } };
+    const joined = await Tournament.findOneAndUpdate(
+      {
+        _id: req.params.id,
+        status: "pending",
+        $expr: { $lt: [{ $size: "$participants" }, "$playerCount"] },
+        "participants.name": { $ne: playerName },
+        ...identityCondition,
+      },
+      {
+        $push: {
+          participants: {
+            userId: req.user.isGuest ? null : req.user.id,
+            guestId: req.user.isGuest ? req.user.id : null,
+            name: playerName,
+            faction: faction || "",
+          },
+        },
+      },
+      { new: true },
     );
-    return res.status(200).json({ success: true, data: tournament });
+    if (!joined) {
+      return res.status(409).json({
+        success: false,
+        message: "Could not join — the tournament filled up or already started",
+      });
+    }
+    emitTournamentUpdated(joined._id.toString(), joined);
+    logger.info(
+      `User "${playerName}" (${req.user.id}) joined tournament ${joined._id} with faction "${faction || "none"}"`,
+    );
+    return res.status(200).json({ success: true, data: joined });
   } catch (error) {
     logger.error(`Join tournament error: ${error.message}`, { error });
     return res.status(500).json({
@@ -487,41 +549,56 @@ export const startTournament = async (req, res) => {
       });
     }
 
-    tournament.status = "active";
-    await tournament.save();
+    // Claim the tournament atomically so a double-click can't have both
+    // requests generate a bracket. The loser sees 409 rather than a duplicate
+    // key 500 from the unique match index.
+    const started = await Tournament.findOneAndUpdate(
+      { _id: req.params.id, createdBy: req.user.id, status: "pending" },
+      { $set: { status: "active" } },
+      { new: true },
+    );
+    if (!started) {
+      return res
+        .status(409)
+        .json({ success: false, message: "Tournament has already started" });
+    }
 
-    let matchDocs;
     const {
       tournamentType,
       _id: tId,
       participants,
       enable40kFactions,
-    } = tournament;
+    } = started;
 
-    switch (tournamentType) {
-      case "Single Elimination":
-        matchDocs = singleElimStart(tId, participants, enable40kFactions);
-        break;
-      case "Double Elimination":
-        matchDocs = doubleElimStart(tId, participants, enable40kFactions);
-        break;
-      case "Round Robin":
-        matchDocs = roundRobinStart(tId, participants, enable40kFactions);
-        break;
-      case "Swiss System":
-        matchDocs = swissStart(tId, participants, enable40kFactions);
-        break;
-      default:
-        matchDocs = singleElimStart(tId, participants, enable40kFactions);
+    const bracketBuilders = {
+      "Single Elimination": singleElimStart,
+      "Double Elimination": doubleElimStart,
+      "Round Robin": roundRobinStart,
+      "Swiss System": swissStart,
+    };
+    const buildBracket = bracketBuilders[tournamentType] ?? singleElimStart;
+
+    let matches;
+    try {
+      matches = await Match.insertMany(
+        buildBracket(tId, participants, enable40kFactions),
+      );
+    } catch (error) {
+      // Without this the tournament is stranded: active with no matches, so it
+      // can no longer be started, advanced, or deleted.
+      await Tournament.updateOne(
+        { _id: tId, status: "active" },
+        { $set: { status: "pending" } },
+      );
+      throw error;
     }
 
-    const matches = await Match.insertMany(matchDocs);
-    emitTournamentUpdated(tId.toString(), tournament);
+    emitTournamentUpdated(tId.toString(), started);
     emitMatchesUpdated(tId.toString(), matches);
     logger.info(
-      `Tournament started: "${tournament.name}" (${tId}) type=${tournamentType} participants=${participants.length} matches=${matches.length}`,
+      `Tournament started: "${started.name}" (${tId}) type=${tournamentType} participants=${participants.length} matches=${matches.length}`,
     );
-    return res.status(200).json({ success: true, data: tournament, matches });
+    return res.status(200).json({ success: true, data: started, matches });
   } catch (error) {
     logger.error(`Start tournament error: ${error.message}`, { error });
     return res.status(500).json({
@@ -552,6 +629,7 @@ export const advanceRound = async (req, res) => {
 
     const allMatches = await Match.find({ tournament: tournament._id }).sort({
       round: 1,
+      matchNumber: 1,
     });
     if (!allMatches.length) {
       return res
@@ -725,6 +803,14 @@ export const advanceRound = async (req, res) => {
       .status(200)
       .json({ success: true, round: maxRound + 1, matches: newMatches });
   } catch (error) {
+    if (error?.code === 11000) {
+      logger.warn(
+        `Advance round rejected as duplicate for tournament ${req.params.id}`,
+      );
+      return res
+        .status(409)
+        .json({ success: false, message: "Round has already been advanced" });
+    }
     logger.error(`Advance round error: ${error.message}`, { error });
     return res.status(500).json({
       success: false,
@@ -753,6 +839,7 @@ export const updateDescription = async (req, res) => {
 
     tournament.description = description;
     await tournament.save();
+    emitTournamentUpdated(tournament._id.toString(), tournament);
 
     return res.status(200).json({
       success: true,

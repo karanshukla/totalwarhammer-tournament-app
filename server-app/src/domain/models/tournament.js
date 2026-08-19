@@ -7,7 +7,6 @@ const tournamentSchema = new mongoose.Schema({
     unique: true,
     sparse: true,
     uppercase: true,
-    index: true,
   },
   description: { type: String, default: "" },
   playerCount: { type: Number, required: true, min: 2, max: 128 },
@@ -55,6 +54,8 @@ const tournamentSchema = new mongoose.Schema({
 });
 
 tournamentSchema.index({ createdBy: 1, status: 1 });
+tournamentSchema.index({ "participants.userId": 1 });
+tournamentSchema.index({ "participants.guestId": 1 });
 tournamentSchema.index({ status: 1, createdAt: -1 });
 
 const Tournament = mongoose.model("Tournament", tournamentSchema);

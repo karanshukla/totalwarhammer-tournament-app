@@ -75,9 +75,9 @@ export const login = async (req, res) => {
     }
 
     if (!user) {
-      logger.warn(
-        `Failed login attempt for identifier: ${normalizedIdentifier}`,
-      );
+      // The identifier is usually an email address, and this line ships to the
+      // log files and to Axiom on every failed attempt.
+      logger.warn("Failed login attempt for an unrecognised identifier");
       return res.status(401).json({
         success: false,
         message: "Invalid credentials",
