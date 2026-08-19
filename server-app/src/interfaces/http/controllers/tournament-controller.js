@@ -35,10 +35,13 @@ const CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 const CODE_LENGTH = 6;
 
 function generateCode() {
-  const bytes = crypto.randomBytes(CODE_LENGTH);
+  // crypto.randomInt rejection-samples, so the distribution stays uniform
+  // whatever the alphabet length. Taking randomBytes modulo the length is only
+  // unbiased while that length divides 256 — a silent trap the next time
+  // someone edits the alphabet.
   let code = "";
   for (let i = 0; i < CODE_LENGTH; i++) {
-    code += CODE_ALPHABET[bytes[i] % CODE_ALPHABET.length];
+    code += CODE_ALPHABET[crypto.randomInt(CODE_ALPHABET.length)];
   }
   return code;
 }
