@@ -1,41 +1,9 @@
 import React from "react";
-import { Box, HStack, Text, VStack } from "@chakra-ui/react";
-import { LuTrophy } from "react-icons/lu";
-import { displayName as dn } from "@/shared/utils/displayName";
-import type { Match, PlayerSlot } from "@/shared/tournament/types";
+import { Box, HStack, Text } from "@chakra-ui/react";
+import type { Match } from "@/shared/tournament/types";
 import { matchStatusSurfaceMap } from "@/shared/tournament/types";
-import { MatchStatusBadge, ResultBadge } from "@/shared/ui/MatchBadges";
-
-interface PlayerColumnProps {
-  player: PlayerSlot;
-  won: boolean;
-  decided: boolean;
-  align: "flex-start" | "flex-end";
-}
-
-const PlayerColumn: React.FC<PlayerColumnProps> = ({
-  player,
-  won,
-  decided,
-  align,
-}) => (
-  <VStack alignItems={align} gap={0} flex={1}>
-    <HStack gap={1}>
-      {decided && <ResultBadge won={won} />}
-      <Text
-        fontWeight={won ? "bold" : "medium"}
-        color={decided && !won ? "fg.muted" : undefined}
-      >
-        {dn(player.name)}
-      </Text>
-    </HStack>
-    {player.faction && (
-      <Text fontSize="xs" color="fg.muted">
-        {player.faction}
-      </Text>
-    )}
-  </VStack>
-);
+import { MatchStatusBadge } from "@/shared/ui/MatchBadges";
+import { MatchupRow, MatchWinnerLine } from "@/shared/ui/MatchupRow";
 
 interface SpectatorMatchCardProps {
   match: Match;
@@ -43,9 +11,6 @@ interface SpectatorMatchCardProps {
 
 /** Read-only view of a match, used on the public tournament page. */
 const SpectatorMatchCard: React.FC<SpectatorMatchCardProps> = ({ match }) => {
-  const decided = !!match.winnerId;
-  const p1Won = match.winnerId === match.player1.participantId;
-  const winner = p1Won ? match.player1 : match.player2;
   const surface = matchStatusSurfaceMap[match.status];
 
   return (
@@ -56,52 +21,22 @@ const SpectatorMatchCard: React.FC<SpectatorMatchCardProps> = ({ match }) => {
       borderColor={surface.borderColor}
       bg={surface.bg}
     >
-      <HStack mb={2} justifyContent="space-between">
+      <HStack mb={3} justifyContent="space-between">
         <Text fontSize="xs" color="fg.muted">
           Match {match.matchNumber}
         </Text>
         <MatchStatusBadge status={match.status} />
       </HStack>
 
-      <HStack gap={4} justifyContent="space-between" wrap="wrap">
-        <PlayerColumn
-          player={match.player1}
-          won={p1Won}
-          decided={decided}
-          align="flex-start"
-        />
-        <Text color="fg.muted" fontWeight="bold">
-          vs
-        </Text>
-        <PlayerColumn
-          player={match.player2}
-          won={decided && !p1Won}
-          decided={decided}
-          align="flex-end"
-        />
-      </HStack>
+      <MatchupRow match={match} />
 
-      {decided && (
-        <Box mt={2} pt={2} borderTopWidth={1} borderColor="border">
-          <HStack gap={1} justifyContent="center">
-            <Box color="gold.text" display="inline-flex">
-              <LuTrophy size={12} />
-            </Box>
-            <Text fontSize="xs" color="fg.muted" fontWeight="medium">
-              Winner:{" "}
-              <Text as="span" color="gold.text" fontWeight="bold">
-                {dn(winner.name)}
-              </Text>
-            </Text>
-          </HStack>
-        </Box>
-      )}
+      <MatchWinnerLine match={match} />
 
       {match.status === "disputed" && (
         <Text
           fontSize="xs"
           color="status.loss"
-          mt={2}
+          mt={3}
           textAlign="center"
           fontWeight="medium"
         >

@@ -1,27 +1,17 @@
 import React, { useState } from "react";
-import {
-  Container,
-  Heading,
-  Text,
-  VStack,
-  HStack,
-  SimpleGrid,
-  Badge,
-  Button,
-} from "@chakra-ui/react";
+import { Container, SimpleGrid, VStack, Button } from "@chakra-ui/react";
 import {
   LuTrash2,
   LuPlay,
   LuChevronLeft,
-  LuCopy,
   LuEye,
   LuChevronsRight,
 } from "react-icons/lu";
 import { useNavigate } from "react-router";
 import ChampionBanner from "@/shared/ui/ChampionBanner";
-import GameSystemBadge from "@/shared/ui/GameSystemBadge";
+import TournamentPageHeader from "@/shared/ui/TournamentPageHeader";
 import { championOf, isLeagueFormat } from "@/shared/tournament/outcome";
-import { Match, Participant, Tournament, statusColorMap } from "./types";
+import { Match, Participant, Tournament } from "./types";
 import MatchesSection from "./MatchesSection";
 import EditParticipantDialog from "./EditParticipantDialog";
 import AddParticipantCard from "./detail/AddParticipantCard";
@@ -89,7 +79,6 @@ const TournamentDetail: React.FC<Props> = ({
   const [editingParticipant, setEditingParticipant] =
     useState<Participant | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [codeCopied, setCodeCopied] = useState(false);
 
   const isAdmin =
     !!user &&
@@ -117,12 +106,6 @@ const TournamentDetail: React.FC<Props> = ({
     ? championOf(selected.tournamentType, selected.participants, matches)
     : null;
 
-  const handleCopyCode = (code: string) => {
-    navigator.clipboard.writeText(code);
-    setCodeCopied(true);
-    setTimeout(() => setCodeCopied(false), 2000);
-  };
-
   const handleUpdateParticipant = async () => {
     if (!editingParticipant) return;
     try {
@@ -141,95 +124,62 @@ const TournamentDetail: React.FC<Props> = ({
         Back to Matches View
       </Button>
 
-      <HStack mb={6} gap={4} wrap="wrap" alignItems="flex-start">
-        <VStack alignItems="flex-start" gap={1} flex={1}>
-          <HStack gap={3} wrap="wrap">
-            <Heading as="h1" size="xl">
-              {selected.name}
-            </Heading>
-            <Badge colorPalette={statusColorMap[selected.status]} size="lg">
-              {selected.status.charAt(0).toUpperCase() +
-                selected.status.slice(1)}
-            </Badge>
-          </HStack>
-          <HStack gap={3} color="fg.muted" fontSize="sm" wrap="wrap">
-            <Text>{selected.tournamentType}</Text>
-            <GameSystemBadge enable40kFactions={selected.enable40kFactions} />
-            <Text>·</Text>
-            <Text>
-              {selected.participants.length}/{selected.playerCount} players
-            </Text>
-            {selected.code && (
-              <>
-                <Text>·</Text>
-                <Text fontFamily="mono" fontWeight="bold" letterSpacing="wider">
-                  Code: {selected.code}
-                </Text>
-                <Button
-                  size="xs"
-                  variant="ghost"
-                  onClick={() => handleCopyCode(selected.code)}
-                  colorPalette={codeCopied ? "verdigris" : "ink"}
-                >
-                  <LuCopy />
-                  {codeCopied ? "Copied!" : "Copy"}
-                </Button>
-              </>
-            )}
-          </HStack>
-          <DescriptionEditor
-            description={selected.description}
-            editable={isAdmin && !isCompleted}
-            onSave={onSaveDescription}
-          />
-        </VStack>
-
-        <HStack gap={2}>
-          <Button
-            size="sm"
-            variant="ghost"
-            colorPalette="verdigris"
-            onClick={() => navigate(`/matches/spectate/${selected.code}`)}
-          >
-            <LuEye />
-            Spectator View
-          </Button>
-          {canStart && (
+      <TournamentPageHeader
+        tournament={selected}
+        actions={
+          <>
             <Button
+              size="sm"
+              variant="ghost"
               colorPalette="verdigris"
-              size="sm"
-              onClick={onStart}
-              loading={actionLoading}
+              onClick={() => navigate(`/matches/spectate/${selected.code}`)}
             >
-              <LuPlay />
-              Start Tournament
+              <LuEye />
+              Spectator View
             </Button>
-          )}
-          {canAdvance && (
-            <Button
-              colorPalette="crimson"
-              size="sm"
-              onClick={onAdvanceRound}
-              loading={actionLoading}
-            >
-              <LuChevronsRight />
-              {isFinalRound ? "Finalize Tournament" : "Advance Round"}
-            </Button>
-          )}
-          {canDelete && (
-            <Button
-              colorPalette="crimson"
-              variant="outline"
-              size="sm"
-              onClick={onDelete}
-              loading={actionLoading}
-            >
-              <LuTrash2 />
-              Delete
-            </Button>
-          )}
-        </HStack>
-      </HStack>
+            {canStart && (
+              <Button
+                colorPalette="verdigris"
+                size="sm"
+                onClick={onStart}
+                loading={actionLoading}
+              >
+                <LuPlay />
+                Start Tournament
+              </Button>
+            )}
+            {canAdvance && (
+              <Button
+                colorPalette="brass"
+                size="sm"
+                onClick={onAdvanceRound}
+                loading={actionLoading}
+              >
+                <LuChevronsRight />
+                {isFinalRound ? "Finalize Tournament" : "Advance Round"}
+              </Button>
+            )}
+            {canDelete && (
+              <Button
+                colorPalette="crimson"
+                variant="outline"
+                size="sm"
+                onClick={onDelete}
+                loading={actionLoading}
+              >
+                <LuTrash2 />
+                Delete
+              </Button>
+            )}
+          </>
+        }
+      >
+        <DescriptionEditor
+          description={selected.description}
+          editable={isAdmin && !isCompleted}
+          onSave={onSaveDescription}
+        />
+      </TournamentPageHeader>
 
       {actionError && (
         <Callout tone="error" mb={6}>
@@ -237,10 +187,11 @@ const TournamentDetail: React.FC<Props> = ({
         </Callout>
       )}
 
-      <SimpleGrid columns={{ base: 1, lg: 2 }} gap={6}>
+      <SimpleGrid columns={{ base: 1, lg: 2 }} gap={6} alignItems="start">
         <ManagedParticipantsCard
           participants={selected.participants}
           playerCount={selected.playerCount}
+          user={user}
           isAdmin={isAdmin}
           isPending={isPending}
           actionLoading={actionLoading}
@@ -251,25 +202,21 @@ const TournamentDetail: React.FC<Props> = ({
           onRemove={onRemoveParticipant}
         />
 
-        {isAdmin && isPending ? (
-          <AddParticipantCard
-            tournament={selected}
-            isFull={isFull}
-            name={newName}
-            faction={newFaction}
-            actionLoading={actionLoading}
-            onNameChange={onSetNewName}
-            onFactionChange={onSetNewFaction}
-            onAdd={onAddParticipant}
-          />
-        ) : (
-          <ManagedInfoCard
-            tournament={selected}
-            matches={matches}
-            roundCount={roundNumbers.length}
-            isActive={isActive}
-          />
-        )}
+        <VStack gap={6} alignItems="stretch">
+          {isAdmin && isPending && (
+            <AddParticipantCard
+              tournament={selected}
+              isFull={isFull}
+              name={newName}
+              faction={newFaction}
+              actionLoading={actionLoading}
+              onNameChange={onSetNewName}
+              onFactionChange={onSetNewFaction}
+              onAdd={onAddParticipant}
+            />
+          )}
+          <ManagedInfoCard tournament={selected} matches={matches} />
+        </VStack>
 
         <ChampionBanner champion={champion} gridColumn={{ lg: "1 / -1" }} />
 

@@ -3,6 +3,7 @@
  * - participants.length === 0 → "No Participants Yet"
  * - participants.length > 0 → participant list shown
  * - p.faction present → faction text shown
+ * - participant is the viewer → You badge on that row only
  * - isAdmin && isPending → Add Participant panel + remove button
  * - !isAdmin || !isPending → Tournament Info card instead
  * - isFull → "Tournament is full" in add panel
@@ -134,6 +135,39 @@ describe("TournamentDetail – participants list", () => {
       participants: [{ _id: "p1", name: "Grimgork", faction: "Greenskins" }],
     });
     expect(screen.getByText("Greenskins")).toBeInTheDocument();
+  });
+
+  it("marks the viewer's own row with a You badge, matched by userId", () => {
+    renderDetail(
+      {
+        participants: [
+          { _id: "p1", name: "Grimgork", faction: "Greenskins", userId: "u1" },
+          { _id: "p2", name: "Luthor", faction: "Empire", userId: "u2" },
+        ],
+      },
+      { user: { id: "u1", username: "Grimgork" } },
+    );
+    expect(screen.getAllByText("You")).toHaveLength(1);
+  });
+
+  it("matches the viewer by username when the entry has no userId", () => {
+    renderDetail(
+      {
+        participants: [{ _id: "p1", name: "Grimgork", faction: "Greenskins" }],
+      },
+      { user: { id: "u1", username: "grimgork" } },
+    );
+    expect(screen.getByText("You")).toBeInTheDocument();
+  });
+
+  it("shows no You badge when the viewer is not on the roster", () => {
+    renderDetail(
+      {
+        participants: [{ _id: "p1", name: "Grimgork", faction: "Greenskins" }],
+      },
+      { user: { id: "u9", username: "Someone Else" } },
+    );
+    expect(screen.queryByText("You")).not.toBeInTheDocument();
   });
 });
 

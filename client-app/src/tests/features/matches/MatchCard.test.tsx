@@ -4,10 +4,10 @@
  * - m.status === "in_progress" → "In Progress" badge
  * - m.status === "completed" → "Completed" badge
  * - m.status === "disputed" → "⚠ Disputed" badge
- * - p1Won → W badge on player1
- * - m.winnerId && !p1Won → L badge on player1
- * - p2Won → W badge on player2
- * - m.winnerId && !p2Won && player2 !== "BYE" → L badge on player2
+ * - winner → W badge on the winning player
+ * - loser → L badge on the losing player
+
+ * - player2 = BYE → no L badge
  * - player2.name === "BYE" → no L badge
  * - resultOverrides.length > 0 → "Overridden" button shown
  * - resultOverrides.length > 1 → "2×" count prefix
@@ -71,8 +71,6 @@ function renderCard(
     <ChakraProvider value={defaultSystem}>
       <MatchCard
         m={m}
-        p1Won={false}
-        p2Won={false}
         isOverriding={false}
         isAdmin={false}
         isActive={false}
@@ -118,41 +116,29 @@ describe("MatchCard – status badges", () => {
 describe("MatchCard – W/L badges", () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it("shows W badge when p1Won=true", () => {
-    renderCard(
-      { status: "completed", winnerId: "p1" },
-      { p1Won: true, p2Won: false },
-    );
+  it("shows W badge for the winning player", () => {
+    renderCard({ status: "completed", winnerId: "p1" });
     const wBadges = screen.getAllByText("W");
     expect(wBadges.length).toBeGreaterThan(0);
   });
 
-  it("shows L badge on player1 when winnerId is set and !p1Won", () => {
-    renderCard(
-      { status: "completed", winnerId: "p2" },
-      { p1Won: false, p2Won: true },
-    );
+  it("shows L badge on player1 when player2 won", () => {
+    renderCard({ status: "completed", winnerId: "p2" });
     expect(screen.getByText("L")).toBeInTheDocument();
   });
 
-  it("shows W badge when p2Won=true", () => {
-    renderCard(
-      { status: "completed", winnerId: "p2" },
-      { p1Won: false, p2Won: true },
-    );
+  it("shows W badge when player2 won", () => {
+    renderCard({ status: "completed", winnerId: "p2" });
     const wBadges = screen.getAllByText("W");
     expect(wBadges.length).toBeGreaterThan(0);
   });
 
   it("does not show L badge for player2 when player2 is BYE", () => {
-    renderCard(
-      {
-        status: "completed",
-        winnerId: "p1",
-        player2: { participantId: "bye", name: "BYE", faction: "" },
-      },
-      { p1Won: true, p2Won: false },
-    );
+    renderCard({
+      status: "completed",
+      winnerId: "p1",
+      player2: { participantId: "bye", name: "BYE", faction: "" },
+    });
     expect(screen.queryByText("L")).not.toBeInTheDocument();
   });
 });
@@ -285,8 +271,6 @@ describe("MatchCard – isOverriding panel", () => {
       <ChakraProvider value={defaultSystem}>
         <MatchCard
           m={{ ...baseMatch }}
-          p1Won={false}
-          p2Won={false}
           isOverriding={false}
           isAdmin={false}
           isActive={false}

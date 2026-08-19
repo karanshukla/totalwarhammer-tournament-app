@@ -48,8 +48,6 @@ const baseMatch = {
 const baseProps = {
   isAdmin: false,
   isActive: true,
-  p1Won: false,
-  p2Won: false,
   isOverriding: false,
   isP1: true,
   isP2: false,

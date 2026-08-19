@@ -60,8 +60,6 @@ function renderCard(
     <ChakraProvider value={defaultSystem}>
       <MatchCard
         m={m}
-        p1Won={false}
-        p2Won={false}
         isOverriding={false}
         isAdmin={false}
         isActive={false}
@@ -315,7 +313,7 @@ describe("MatchCard – admin Override button (lines 441-450)", () => {
   it("renders Override button even for completed matches", () => {
     renderCard(
       { status: "completed", winnerId: "p1" },
-      { isAdmin: true, isActive: true, p1Won: true },
+      { isAdmin: true, isActive: true },
     );
     expect(
       screen.getByRole("button", { name: /override/i }),

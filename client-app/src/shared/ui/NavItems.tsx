@@ -41,11 +41,23 @@ const KEYBOARD_SHORTCUTS = {
   source: "Alt+9",
 };
 
+// A nav entry stays lit for every route it owns, not just its own path: the
+// Matches entry covers /matches/tournament/:code and /matches/spectate/:code,
+// and the Tournaments entry covers the /tournament/:id detail route.
+const ROUTES_OWNED_BY_NAV_PATH: Record<string, string[]> = {
+  "/tournaments": ["/tournaments", "/tournament"],
+};
+
+const isNavPathActive = (currentPath: string, navPath: string) =>
+  (ROUTES_OWNED_BY_NAV_PATH[navPath] ?? [navPath]).some(
+    (route) => currentPath === route || currentPath.startsWith(`${route}/`),
+  );
+
 type NavItemProps = {
   icon: React.ElementType;
   children: React.ReactNode;
   to?: string;
-  isActive?: boolean;
+  currentPath: string;
   toExternal?: string;
   isPortrait: boolean;
   isMobile: boolean;
@@ -56,12 +68,14 @@ const NavItem: React.FC<NavItemProps> = ({
   icon,
   children,
   to,
-  isActive,
+  currentPath,
   toExternal,
   isPortrait,
   isMobile,
   shortcut,
 }) => {
+  const isActive = !!to && isNavPathActive(currentPath, to);
+
   const content = (
     <>
       <Icon
@@ -159,7 +173,7 @@ const OverflowNavItems: React.FC<{ currentPath: string }> = ({
     <NavItem
       icon={FiHelpCircle}
       to="/contact"
-      isActive={currentPath === "/contact"}
+      currentPath={currentPath}
       isPortrait={false}
       isMobile={false}
       shortcut={KEYBOARD_SHORTCUTS.help}
@@ -169,7 +183,7 @@ const OverflowNavItems: React.FC<{ currentPath: string }> = ({
     <NavItem
       icon={FiLock}
       to="/terms"
-      isActive={currentPath === "/terms"}
+      currentPath={currentPath}
       isPortrait={false}
       isMobile={false}
       shortcut={KEYBOARD_SHORTCUTS.terms}
@@ -179,7 +193,7 @@ const OverflowNavItems: React.FC<{ currentPath: string }> = ({
     <NavItem
       icon={FiShield}
       to="/privacy"
-      isActive={currentPath === "/privacy"}
+      currentPath={currentPath}
       isPortrait={false}
       isMobile={false}
       shortcut={KEYBOARD_SHORTCUTS.privacy}
@@ -189,6 +203,7 @@ const OverflowNavItems: React.FC<{ currentPath: string }> = ({
     <NavItem
       icon={FiGithub}
       toExternal="https://github.com/karanshukla/totalwarhammer-tournament-app"
+      currentPath={currentPath}
       isPortrait={false}
       isMobile={false}
       shortcut={KEYBOARD_SHORTCUTS.source}
@@ -297,7 +312,7 @@ const NavItems: React.FC<NavItemsProps> = ({
       <NavItem
         icon={FiHome}
         to="/"
-        isActive={currentPath === "/"}
+        currentPath={currentPath}
         isPortrait={isPortrait}
         isMobile={isMobile}
         shortcut={KEYBOARD_SHORTCUTS.home}
@@ -307,7 +322,7 @@ const NavItems: React.FC<NavItemsProps> = ({
       <NavItem
         icon={FiAward}
         to="/tournaments"
-        isActive={currentPath === "/tournaments"}
+        currentPath={currentPath}
         isPortrait={isPortrait}
         isMobile={isMobile}
         shortcut={KEYBOARD_SHORTCUTS.tournaments}
@@ -317,7 +332,7 @@ const NavItems: React.FC<NavItemsProps> = ({
       <NavItem
         icon={LuSword}
         to="/matches"
-        isActive={currentPath === "/matches"}
+        currentPath={currentPath}
         isPortrait={isPortrait}
         isMobile={isMobile}
         shortcut={KEYBOARD_SHORTCUTS.matches}
@@ -327,7 +342,7 @@ const NavItems: React.FC<NavItemsProps> = ({
       <NavItem
         icon={FiBarChart2}
         to="/statistics"
-        isActive={currentPath === "/statistics"}
+        currentPath={currentPath}
         isPortrait={isPortrait}
         isMobile={isMobile}
         shortcut={KEYBOARD_SHORTCUTS.statistics}
@@ -337,7 +352,7 @@ const NavItems: React.FC<NavItemsProps> = ({
       <NavItem
         icon={FiUser}
         to="/account"
-        isActive={currentPath === "/account"}
+        currentPath={currentPath}
         isPortrait={isPortrait}
         isMobile={isMobile}
         shortcut={KEYBOARD_SHORTCUTS.account}
@@ -395,7 +410,7 @@ const NavItems: React.FC<NavItemsProps> = ({
                     <NavItem
                       icon={FiHelpCircle}
                       to="/contact"
-                      isActive={currentPath === "/contact"}
+                      currentPath={currentPath}
                       isPortrait={false}
                       isMobile={false}
                     >
@@ -404,7 +419,7 @@ const NavItems: React.FC<NavItemsProps> = ({
                     <NavItem
                       icon={FiLock}
                       to="/terms"
-                      isActive={currentPath === "/terms"}
+                      currentPath={currentPath}
                       isPortrait={false}
                       isMobile={false}
                     >
@@ -413,7 +428,7 @@ const NavItems: React.FC<NavItemsProps> = ({
                     <NavItem
                       icon={FiShield}
                       to="/privacy"
-                      isActive={currentPath === "/privacy"}
+                      currentPath={currentPath}
                       isPortrait={false}
                       isMobile={false}
                     >
@@ -422,6 +437,7 @@ const NavItems: React.FC<NavItemsProps> = ({
                     <NavItem
                       icon={FiGithub}
                       toExternal="https://github.com/karanshukla/totalwarhammer-tournament-app"
+                      currentPath={currentPath}
                       isPortrait={false}
                       isMobile={false}
                     >

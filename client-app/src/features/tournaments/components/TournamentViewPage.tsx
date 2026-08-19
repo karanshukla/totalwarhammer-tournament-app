@@ -15,27 +15,13 @@ import { useUserStore } from "@/shared/stores/userStore";
 import { displayName as dn } from "@/shared/utils/displayName";
 import ChampionBanner from "@/shared/ui/ChampionBanner";
 import { championOf } from "@/shared/tournament/outcome";
-import type { Match, Participant, Tournament } from "@/shared/tournament/types";
+import type { Match, Tournament } from "@/shared/tournament/types";
+import { isSameUser } from "@/shared/tournament/participants";
 import TournamentHeader from "./view/TournamentHeader";
 import ParticipantsCard from "./view/ParticipantsCard";
 import TournamentInfoCard from "./view/TournamentInfoCard";
 import JoinTournamentCard from "./view/JoinTournamentCard";
 import SpectatorMatchList from "./view/SpectatorMatchList";
-
-// border.subtle (#BEB39B light / #473F32 dark) is the clearly-visible step;
-// the default border token washes into bg.panel in both modes.
-
-type Viewer = { id: string; username?: string } | null;
-
-function isSameUser(participant: Participant, user: Viewer) {
-  if (!user) return false;
-  if (participant.userId) return participant.userId === user.id;
-  const lowerName = user.username?.trim().toLowerCase();
-  return (
-    participant.name === user.id ||
-    (!!lowerName && participant.name.trim().toLowerCase() === lowerName)
-  );
-}
 
 const TournamentViewPage: React.FC<{ id?: string }> = ({ id: propId }) => {
   const { id: paramId } = useParams<{ id: string }>();
@@ -205,14 +191,18 @@ const TournamentViewPage: React.FC<{ id?: string }> = ({ id: propId }) => {
         onManage={goToMatches}
       />
 
-      <SimpleGrid columns={{ base: 1, lg: isPending ? 3 : 2 }} gap={6}>
+      <SimpleGrid
+        columns={{ base: 1, lg: isPending ? 3 : 2 }}
+        gap={6}
+        alignItems="start"
+      >
         <ParticipantsCard
           participants={tournament.participants}
           playerCount={tournament.playerCount}
           isYou={(p) => alreadyJoined && isSameUser(p, user)}
         />
 
-        <TournamentInfoCard tournament={tournament} />
+        <TournamentInfoCard tournament={tournament} matches={matches} />
 
         {isPending && (
           <JoinTournamentCard
