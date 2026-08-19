@@ -84,6 +84,10 @@ matchSchema.index(
   { unique: true },
 );
 
+// Per-user stats look matches up by player name, which was a collection scan.
+matchSchema.index({ "player1.name": 1, status: 1 });
+matchSchema.index({ "player2.name": 1, status: 1 });
+
 const Match = mongoose.model("Match", matchSchema);
 
 export default Match;

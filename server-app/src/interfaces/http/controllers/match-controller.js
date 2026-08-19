@@ -68,6 +68,21 @@ export const createMatch = async (req, res) => {
       });
     }
 
+    const participantIds = new Set(
+      tournament.participants.map((p) => p._id.toString()),
+    );
+    const unknownSlot = [player1, player2].find(
+      (slot) =>
+        slot.participantId &&
+        !participantIds.has(slot.participantId.toString()),
+    );
+    if (unknownSlot) {
+      return res.status(400).json({
+        success: false,
+        message: "Both players must be participants in this tournament",
+      });
+    }
+
     const match = await Match.create({
       tournament: tournamentId,
       round,
@@ -204,20 +219,33 @@ export const reportResult = async (req, res) => {
       winnerId,
     });
 
-    // Check for consensus — both players have reported the same winner
+    // Consensus means the two players agree — not merely that two reports
+    // agree. Counting any two would let the creator, who is authorised to
+    // report but may not be playing, stand in for the absent second player and
+    // complete a match they never agreed to.
     const reports = match.reportedResults;
-    if (reports.length >= 2) {
-      const allAgree = reports.every(
-        (r) => r.winnerId?.toString() === winnerIdStr,
-      );
+    const reportFor = (participantId) =>
+      participantId
+        ? reports.find(
+            (r) => r.reportedBy?.toString() === participantId.toString(),
+          )
+        : undefined;
+    const player1Report = reportFor(match.player1.participantId);
+    const player2Report = reportFor(match.player2.participantId);
+
+    if (player1Report && player2Report) {
+      const allAgree =
+        player1Report.winnerId?.toString() ===
+        player2Report.winnerId?.toString();
       if (allAgree) {
-        const loserId = winnerIdStr === player1Id ? player2Id : player1Id;
-        match.winnerId = winnerId;
-        match.loserId = loserId;
+        const agreedWinnerId = player1Report.winnerId;
+        const agreedWinnerStr = agreedWinnerId?.toString();
+        match.winnerId = agreedWinnerId;
+        match.loserId = agreedWinnerStr === player1Id ? player2Id : player1Id;
         match.status = "completed";
         match.completedAt = new Date();
         logger.info(
-          `Match ${match._id} completed by consensus: winner=${winnerIdStr}, reported by ${userName || userId}`,
+          `Match ${match._id} completed by consensus: winner=${agreedWinnerStr}, reported by ${userName || userId}`,
         );
       } else {
         match.status = "disputed";
@@ -274,6 +302,12 @@ export const resolveDispute = async (req, res) => {
       return res.status(403).json({
         success: false,
         message: "Only the tournament creator can resolve disputes",
+      });
+    }
+    if (match.tournament.status !== "active") {
+      return res.status(400).json({
+        success: false,
+        message: "Disputes can only be resolved while the tournament is active",
       });
     }
 
@@ -423,6 +457,13 @@ export const overrideResult = async (req, res) => {
         message: "Only the tournament admin can override results",
       });
     }
+    if (match.tournament.status !== "active") {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Results can only be overridden while the tournament is active",
+      });
+    }
 
     const { winnerId, reason } = req.body;
 
@@ -491,8 +532,16 @@ export const updateMatchStatus = async (req, res) => {
       });
     }
 
+    const wasCompleted = match.status === "completed";
     match.status = req.body.status;
+    if (wasCompleted) {
+      match.winnerId = null;
+      match.loserId = null;
+      match.completedAt = null;
+      match.reportedResults = [];
+    }
     await match.save();
+    if (wasCompleted) invalidateStatsCache().catch(() => {});
     emitMatchUpdated(match.tournament._id.toString(), match);
 
     return res.status(200).json({ success: true, data: match });

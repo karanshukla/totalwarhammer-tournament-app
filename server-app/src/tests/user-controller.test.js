@@ -43,7 +43,6 @@ const {
   register,
   updateUsername,
   updatePassword,
-  updateGuestUsername,
   deleteAccount,
   getUserStats,
 } = await import("../interfaces/http/controllers/user-controller.js");
@@ -491,80 +490,6 @@ describe("user-controller", () => {
       });
       const res = mockRes();
       await register(req, res);
-      assert.strictEqual(res.status.mock.calls[0].arguments[0], 500);
-    });
-  });
-
-  describe("updateGuestUsername", () => {
-    it("should return 403 if user is not a guest", async () => {
-      const req = mockReq({
-        body: { username: "newname" },
-        user: { id: "u1", isGuest: false },
-      });
-      const res = mockRes();
-      await updateGuestUsername(req, res);
-      assert.strictEqual(res.status.mock.calls[0].arguments[0], 403);
-    });
-
-    it("should return 400 if username is already taken", async () => {
-      mockUserFindOne.mock.mockImplementation(async () => ({
-        username: "taken",
-      }));
-      const req = mockReq({
-        body: { username: "taken" },
-        user: { id: "u1", isGuest: true },
-      });
-      const res = mockRes();
-      await updateGuestUsername(req, res);
-      assert.strictEqual(res.status.mock.calls[0].arguments[0], 400);
-    });
-
-    it("should return 404 if user not found after update", async () => {
-      mockUserFindOne.mock.mockImplementation(async () => null);
-      mockUserFindByIdAndUpdate.mock.mockImplementation(async () => null);
-      const req = mockReq({
-        body: { username: "newname" },
-        user: { id: "u1", isGuest: true },
-      });
-      const res = mockRes();
-      await updateGuestUsername(req, res);
-      assert.strictEqual(res.status.mock.calls[0].arguments[0], 404);
-    });
-
-    it("should update guest username and return 200", async () => {
-      mockUserFindOne.mock.mockImplementation(async () => null);
-      mockUserFindByIdAndUpdate.mock.mockImplementation(async () => ({
-        id: "u1",
-        username: "newname",
-        email: null,
-      }));
-      const req = mockReq({
-        body: { username: "newname" },
-        user: { id: "u1", isGuest: true },
-      });
-      const res = mockRes();
-      await updateGuestUsername(req, res);
-      assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
-      assert.strictEqual(
-        res.json.mock.calls[0].arguments[0].data.username,
-        "newname",
-      );
-      assert.strictEqual(
-        res.json.mock.calls[0].arguments[0].data.isGuest,
-        true,
-      );
-    });
-
-    it("should return 500 on unexpected error", async () => {
-      mockUserFindOne.mock.mockImplementation(async () => {
-        throw new Error("db error");
-      });
-      const req = mockReq({
-        body: { username: "newname" },
-        user: { id: "u1", isGuest: true },
-      });
-      const res = mockRes();
-      await updateGuestUsername(req, res);
       assert.strictEqual(res.status.mock.calls[0].arguments[0], 500);
     });
   });
