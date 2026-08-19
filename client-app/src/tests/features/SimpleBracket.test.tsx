@@ -50,22 +50,20 @@ describe("SimpleBracket", () => {
   it("opens edit dialog when Edit button is clicked for a participant", async () => {
     renderSimpleBracket();
     const editButtons = screen.getAllByRole("button", { name: /edit/i });
-    if (editButtons.length > 0) {
-      await userEvent.click(editButtons[0]);
-      expect(screen.getByText("Edit Participant")).toBeInTheDocument();
-    }
+    expect(editButtons.length).toBeGreaterThan(0);
+    await userEvent.click(editButtons[0]);
+    expect(screen.getByText("Edit Participant")).toBeInTheDocument();
   });
 
   it("closes edit dialog when Cancel is clicked", async () => {
     renderSimpleBracket();
     const editButtons = screen.getAllByRole("button", { name: /edit/i });
-    if (editButtons.length > 0) {
-      await userEvent.click(editButtons[0]);
-      expect(screen.getByText("Edit Participant")).toBeInTheDocument();
-      const cancelBtn = screen.getByRole("button", { name: /cancel/i });
-      await userEvent.click(cancelBtn);
-      expect(screen.queryByText("Edit Participant")).not.toBeInTheDocument();
-    }
+    expect(editButtons.length).toBeGreaterThan(0);
+    await userEvent.click(editButtons[0]);
+    expect(screen.getByText("Edit Participant")).toBeInTheDocument();
+    const cancelBtn = screen.getByRole("button", { name: /cancel/i });
+    await userEvent.click(cancelBtn);
+    expect(screen.queryByText("Edit Participant")).not.toBeInTheDocument();
   });
 
   it("saves participant edits when Save is clicked", async () => {
@@ -74,21 +72,20 @@ describe("SimpleBracket", () => {
     const firstParticipant = state.participants[0];
 
     const editButtons = screen.getAllByRole("button", { name: /edit/i });
-    if (editButtons.length > 0) {
-      await userEvent.click(editButtons[0]);
-      expect(screen.getByText("Edit Participant")).toBeInTheDocument();
+    expect(editButtons.length).toBeGreaterThan(0);
+    await userEvent.click(editButtons[0]);
+    expect(screen.getByText("Edit Participant")).toBeInTheDocument();
 
-      // Change the name
-      const nameInput = screen.getByDisplayValue(firstParticipant.name);
-      await userEvent.clear(nameInput);
-      await userEvent.type(nameInput, "Updated Player");
+    // Change the name
+    const nameInput = screen.getByDisplayValue(firstParticipant.name);
+    await userEvent.clear(nameInput);
+    await userEvent.type(nameInput, "Updated Player");
 
-      const saveBtn = screen.getByRole("button", { name: /save/i });
-      await userEvent.click(saveBtn);
+    const saveBtn = screen.getByRole("button", { name: /save/i });
+    await userEvent.click(saveBtn);
 
-      // Dialog should close after save
-      expect(screen.queryByText("Edit Participant")).not.toBeInTheDocument();
-    }
+    // Dialog should close after save
+    expect(screen.queryByText("Edit Participant")).not.toBeInTheDocument();
   });
 
   it("renders add participants button", () => {

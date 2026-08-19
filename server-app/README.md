@@ -4,9 +4,9 @@ The Node.js/Express backend for the Total War: Warhammer Tournament App.
 
 ## Tech Stack
 
-- **Node.js** (ESM, v18+) + **Express 4**
-- **MongoDB** via **Mongoose 8**
-- **express-session** + **connect-mongodb-session** — server-side sessions
+- **Node.js** (ESM, v24.15.0+) + **Express 5**
+- **MongoDB** via **Mongoose 9**
+- **express-session** — server-side sessions, backed by `connect-redis` when `REDIS_URL` is set, otherwise `connect-mongodb-session`
 - **bcrypt** — password hashing
 - **helmet**, **hpp**, **express-mongo-sanitize**, **express-rate-limit** — security hardening
 - **csrf-csrf** — CSRF protection
@@ -19,7 +19,7 @@ The Node.js/Express backend for the Total War: Warhammer Tournament App.
 
 ### Prerequisites
 
-- Node.js v18+
+- Node.js v24.15.0+ (see `.nvmrc`)
 - MongoDB (local or [MongoDB Atlas](https://www.mongodb.com/atlas))
 - Redis (optional)
 
@@ -47,19 +47,25 @@ Create a `.env` file in this directory. Required variables:
 
 ```env
 PORT=3000
-MONGODB_URI=mongodb+srv://<user>:<pass>@cluster.mongodb.net/twt
+MONGO_URI=mongodb+srv://<user>:<pass>@cluster.mongodb.net/twt
 SESSION_SECRET=your-long-random-secret
 
-# Optional — Redis session store
+# Required in production; the server refuses to start without it
+CSRF_SECRET=another-long-random-secret
+
+# Optional — Redis session store and Socket.IO adapter
 REDIS_URL=redis://localhost:6379
+USE_MONGO_SESSION=false
 
 # Optional — Resend email for password resets
 RESEND_API_KEY=re_xxxxxxxxxxxx
-EMAIL_FROM=noreply@yourdomain.com
 
-# Client URL for CORS
+# Client URL — CORS origin and the base for password-reset links
 CLIENT_URL=http://localhost:5173
 ```
+
+See the root `CLAUDE.md` for the full list, including the optional Axiom
+log-shipping variables.
 
 ## Scripts
 
@@ -69,8 +75,8 @@ CLIENT_URL=http://localhost:5173
 | `npm start` | Start without nodemon (production) |
 | `npm test` | Run all tests with Node test runner |
 | `npm run test:watch` | Run tests in watch mode |
-| `npm run lint` | Run ESLint |
-| `npm run lint:fix` | Run ESLint with auto-fix |
+| `npm run lint` | Run oxlint |
+| `npm run lint:fix` | Run oxlint with auto-fix |
 
 ## API Overview
 
@@ -82,10 +88,14 @@ CLIENT_URL=http://localhost:5173
 | Tournaments | `/tournament` |
 | Matches | `/match` |
 
-Key match endpoints:
-- `POST /match/:id/report` — report a match result (participant or creator)
-- `POST /match/:id/resolve` — resolve a disputed match (creator only)
-- `POST /match/:id/override` — override a completed match result (creator only)
+| Password reset | `/password-reset` |
+| Stats | `/stats` |
+
+Key match endpoints (all `PATCH`, not `POST`):
+- `PATCH /match/:id/report` — report a match result (participant or creator)
+- `PATCH /match/:id/resolve` — resolve a disputed match (creator only)
+- `PATCH /match/:id/result` — record a result directly (creator only)
+- `PATCH /match/:id/override` — override a completed match result (creator only)
 - `PATCH /tournament/:id/description` — update tournament description (creator only, max 2000 chars)
 
 ## Project Structure

@@ -1,9 +1,9 @@
-FROM node:22-alpine AS deps
+FROM node:24-alpine AS deps
 WORKDIR /app
 COPY server-app/package.json ./
 RUN npm install --omit=dev
 
-FROM node:22-alpine AS final
+FROM node:24-alpine AS final
 WORKDIR /app
 ENV NODE_ENV=production
 

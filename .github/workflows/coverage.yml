@@ -3,6 +3,8 @@ name: Coverage
 on:
   push:
     branches: ["main"]
+  pull_request:
+    branches: ["main"]
   workflow_dispatch:
 
 permissions:
@@ -17,7 +19,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 24
+          node-version-file: .nvmrc
           cache: "npm"
           cache-dependency-path: "package-lock.json"
 
@@ -50,7 +52,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: "24"
+          node-version-file: .nvmrc
           cache: "npm"
           cache-dependency-path: "package-lock.json"
 
@@ -71,7 +73,7 @@ jobs:
 
       - name: Generate lcov
         working-directory: ./server-app
-        run: npx --yes c8 report --reporter=lcov --temp-directory=./coverage
+        run: npx c8 report --reporter=lcov --temp-directory=./coverage
         if: always()
 
       - name: Upload to Coveralls

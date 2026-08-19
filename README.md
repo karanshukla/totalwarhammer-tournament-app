@@ -68,7 +68,7 @@ This starts the client, server, MongoDB, Redis, and Caddy reverse proxy in one c
 
 **Prerequisites**
 
-- Node.js v22+
+- Node.js v24.15.0+ (see `.nvmrc`)
 - MongoDB (local or [MongoDB Atlas](https://www.mongodb.com/atlas))
 - Redis (optional - used for session caching and Socket.IO pub/sub)
 
@@ -98,11 +98,11 @@ npm run dev        # client (port 5173) + server (port 3000) concurrently
 | Layer | Technology |
 |---|---|
 | Frontend | React 19, TypeScript, Vite, Chakra UI v3 |
-| Routing | React Router v7 |
+| Routing | React Router v8 |
 | State | Zustand |
-| Backend | Node.js, Express 4 |
+| Backend | Node.js, Express 5 |
 | Database | MongoDB via Mongoose |
-| Sessions | express-session + connect-mongodb-session |
+| Sessions | express-session, backed by Redis when `REDIS_URL` is set, otherwise connect-mongodb-session |
 | Real-time | Socket.IO with Redis pub/sub |
 | Auth | Custom session-based auth with PKCE |
 | Email | Resend |
@@ -116,13 +116,16 @@ Session-based auth with a PKCE-inspired flow. Guest users get a UUID identity st
 
 ## CI
 
-| Workflow | Trigger |
-|---|---|
-| Client Tests + Coverage | Push/PR to `main` touching `client-app/` |
-| Server Tests + Coverage | Push/PR to `main` touching `server-app/` |
-| OWASP ZAP Security Scan | Push to `main` |
-| Codacy Security Scan | Push/PR to `main`, weekly |
-| Sync main → dev | After merge to `main` |
+| Workflow | Trigger | Gates merge? |
+|---|---|---|
+| Client Tests | Push/PR to `main` touching `client-app/` | Yes |
+| Server Tests | Push/PR to `main` touching `server-app/` | Yes |
+| Lint & Format | Push/PR to `main` | Yes |
+| Hurl Auth Boundary Tests | Push/PR to `main` touching the server or `tests/hurl/` | Yes |
+| Cron Script Tests | Push/PR to `main` touching `cron/` | Yes |
+| Coverage | Push to `main` only | No — reports, no threshold |
+| OWASP ZAP Security Scan | Push/PR to `main` | No — `fail_action: false` |
+| Codacy Security Scan | Push/PR to `main`, weekly | No — `continue-on-error` |
 
 ## Contributing
 
