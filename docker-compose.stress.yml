@@ -1,0 +1,30 @@
+# docker-compose.stress.yml
+# Overlay this on top of docker-compose.yml to run tests/stress/stress-test.mjs
+# against the real Docker stack (through Caddy, same as production traffic).
+#
+# Usage (local):
+#   docker compose -f docker-compose.yml -f docker-compose.stress.yml up -d --build
+#   node tests/stress/stress-test.mjs
+#   docker compose -f docker-compose.yml -f docker-compose.stress.yml down
+#
+# Override: run in development mode so the session cookie is not marked
+# Secure. express-session's `cookie.secure: true` refuses to emit the session
+# cookie at all when it decides the connection isn't HTTPS, and this local
+# stack's Caddy has `auto_https off` (plain HTTP on :8080, no
+# X-Forwarded-Proto: https) — so every login/guest/register response would
+# silently drop its session cookie and every subsequent request would come
+# back 401. Same root cause the Hurl overlay works around for the CSRF
+# cookie; here it's the session cookie itself. Development config still reads
+# MONGO_URI, SESSION_SECRET, etc. from env vars.
+#
+# The database is a separate name on the same Mongo container so a stress run
+# never touches real tournament data. Drop it afterward with:
+#   docker compose exec mongo mongosh twt-stress-test --eval "db.dropDatabase()"
+
+services:
+  server:
+    environment:
+      NODE_ENV: development
+      MONGO_URI: mongodb://mongo:27017/twt-stress-test
+      RATE_LIMIT_GLOBAL_MAX: "5000"
+      RATE_LIMIT_AUTH_MAX: "500"

@@ -191,6 +191,8 @@ PORT=3000
 NODE_ENV=development
 AXIOM_TOKEN=              # Optional; Axiom API token — enables structured log shipping
 AXIOM_DATASET=            # Optional; Axiom dataset name (required when AXIOM_TOKEN is set)
+RATE_LIMIT_GLOBAL_MAX=300 # Optional; requests per 15 min per IP across all routes
+RATE_LIMIT_AUTH_MAX=20    # Optional; requests per 15 min per IP on login/register/token routes
 
 # Read only by infrastructure/services/jwt-service.js, which nothing currently
 # imports. Session cookies, not JWTs, carry auth.

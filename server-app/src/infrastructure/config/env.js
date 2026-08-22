@@ -32,3 +32,5 @@ export const sessionSecret = config.sessionSecret;
 export const baseUrl = withoutTrailingSlash(config.baseUrl);
 export const clientUrl = withoutTrailingSlash(config.clientUrl);
 export const resendApiKey = config.resendApiKey;
+export const rateLimitGlobalMax = config.rateLimitGlobalMax;
+export const rateLimitAuthMax = config.rateLimitAuthMax;

@@ -12,7 +12,12 @@ import { FilterXSS } from "xss";
 import "./src/infrastructure/config/env-loader.js";
 
 // Import logger for centralized logging
-import { port, clientUrl } from "./src/infrastructure/config/env.js";
+import {
+  port,
+  clientUrl,
+  rateLimitGlobalMax,
+  rateLimitAuthMax,
+} from "./src/infrastructure/config/env.js";
 import { passport } from "./src/infrastructure/config/passport-config.js";
 import { connectToDatabase } from "./src/infrastructure/db/connection.js";
 import { configureSessionMiddleware } from "./src/infrastructure/services/session-store-service.js";
@@ -152,7 +157,7 @@ app.use(express.static("public"));
 // Global rate limiter — wide safety net
 const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 300,
+  max: rateLimitGlobalMax,
   standardHeaders: "draft-7",
   legacyHeaders: false,
   message: {
@@ -165,7 +170,7 @@ app.use(globalLimiter);
 // Tight limiter for authentication endpoints (login, register, token)
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 20,
+  max: rateLimitAuthMax,
   standardHeaders: "draft-7",
   legacyHeaders: false,
   message: {

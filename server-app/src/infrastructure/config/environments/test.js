@@ -7,4 +7,6 @@ export default {
   baseUrl: "http://localhost:3000/",
   clientUrl: "http://localhost:3001/",
   resendApiKey: "test_resend_api_key",
+  rateLimitGlobalMax: 300,
+  rateLimitAuthMax: 20,
 };
