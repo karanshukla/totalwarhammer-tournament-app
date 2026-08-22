@@ -12,3 +12,10 @@
 10112	IGNORE	(Session Management Response Identified - informational fingerprinting alert only)
 100000	IGNORE	(Client/Server Error Response Code - expected HTTP error handling behaviour, not a vulnerability)
 100001	IGNORE	(Unexpected Content-Type - SPA frontend routes return HTML; non-API paths are handled by React Router)
+# PII Disclosure fires on /auth/csrf-token because the random hex CSRF token
+# sometimes contains a digit run that looks like a card number: a brand prefix,
+# a valid length and a passing Luhn check. Sampling 300 freshly issued tokens
+# produced 3 such substrings, which is why the alert appears and disappears
+# between scans. Scoped to this one URL rather than IGNOREd outright, so a real
+# PII leak on any other endpoint is still reported.
+10062	OUTOFSCOPE	^https?://[^/]+/auth/csrf-token$
