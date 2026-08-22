@@ -103,175 +103,192 @@ export const createMatch = async (req, res) => {
 
 // PATCH /match/:id/report  (participant self-reports their match result)
 /** @type {import('express').RequestHandler} */
+// Two players reporting the same match within milliseconds of each other is
+// the common case, not an edge case, and both writes touch the same
+// document's reportedResults/status/winnerId — one of them always loses
+// Mongoose's optimistic-concurrency version check. Retrying with a fresh read
+// resolves it transparently instead of surfacing a 500 to whichever request
+// lost the race.
+const MAX_REPORT_ATTEMPTS = 5;
+
 export const reportResult = async (req, res) => {
-  try {
-    const match = await Match.findById(req.params.id).populate(
-      "tournament",
-      "createdBy status participants",
-    );
-    if (!match) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Match not found" });
-    }
-    if (match.status === "completed") {
-      return res
-        .status(400)
-        .json({ success: false, message: "Match is already completed" });
-    }
-    if (match.tournament.status !== "active") {
-      return res
-        .status(400)
-        .json({ success: false, message: "Tournament is not active" });
-    }
-
-    const { winnerId } = req.body;
-    const player1Id = match.player1.participantId?.toString();
-    const player2Id = match.player2.participantId?.toString();
-    const winnerIdStr = winnerId?.toString();
-
-    if (winnerIdStr !== player1Id && winnerIdStr !== player2Id) {
-      return res.status(400).json({
-        success: false,
-        message: "Winner must be one of the two players in this match",
-      });
-    }
-
-    // Identify the reporting participant by matching user id/name to a player slot
-    const userId = req.user.id?.toString();
-    const userName = req.user.username;
-    const tournament = match.tournament;
-
-    // Look up the user's participant subdoc in the tournament to get their
-    // participant _id, which is what the match player slots reference.
-    const userParticipant = tournament.participants?.find((p) =>
-      req.user.isGuest ? p.guestId === userId : p.userId?.toString() === userId,
-    );
-    const userParticipantSubId = userParticipant?._id?.toString();
-
-    const lowerUserName = userName?.trim().toLowerCase();
-    const nameMatch = (n) => {
-      const ln = n.trim().toLowerCase();
-      return !!lowerUserName && ln === lowerUserName;
-    };
-
-    // Primary: match via participant subdoc _id (stable across renames)
-    const isPlayer1ById =
-      !!userParticipantSubId &&
-      match.player1.participantId?.toString() === userParticipantSubId;
-    const isPlayer2ById =
-      !!userParticipantSubId &&
-      match.player2.participantId?.toString() === userParticipantSubId;
-
-    // Fallback for legacy rows written before participants carried an id.
-    // Restricted to registered users: their usernames are unique-indexed,
-    // whereas a guest chooses any name and could otherwise claim a slot
-    // belonging to someone else simply by renaming themselves to match.
-    const nameFallbackAllowed = !req.user.isGuest;
-    const isPlayer1ByName =
-      nameFallbackAllowed &&
-      !isPlayer1ById &&
-      (nameMatch(match.player1.name) || match.player1.name === userId);
-    const isPlayer2ByName =
-      nameFallbackAllowed &&
-      !isPlayer2ById &&
-      (nameMatch(match.player2.name) || match.player2.name === userId);
-
-    const isPlayer1 = isPlayer1ById || isPlayer1ByName;
-    const isPlayer2 = isPlayer2ById || isPlayer2ByName;
-
-    if (isPlayer1ByName || isPlayer2ByName) {
-      logger.warn(
-        `Match ${match._id}: result reported via name-match fallback by user ${userId} (${userName}) — participantId not linked`,
-      );
-    }
-    const createdById = tournament.createdBy?._id ?? tournament.createdBy;
-    const isCreator = createdById?.toString() === userId;
-
-    if (!isPlayer1 && !isPlayer2 && !isCreator) {
-      logger.warn(
-        `Unauthorized result report attempt on match ${match._id} by user ${userId}`,
-      );
-      return res.status(403).json({
-        success: false,
-        message:
-          "Only players in this match or the tournament creator can report results",
-      });
-    }
-
-    const reporterParticipantId = isPlayer1
-      ? match.player1.participantId
-      : isPlayer2
-        ? match.player2.participantId
-        : null;
-
-    // Remove any prior report from this participant
-    if (!match.reportedResults) match.reportedResults = [];
-    match.reportedResults = match.reportedResults.filter(
-      (r) =>
-        r.reportedBy?.toString() !==
-        (reporterParticipantId?.toString() ?? userId),
-    );
-
-    match.reportedResults.push({
-      reportedBy: reporterParticipantId ?? userId,
-      reportedByName: userName || userId,
-      winnerId,
-    });
-
-    // Consensus means the two players agree — not merely that two reports
-    // agree. Counting any two would let the creator, who is authorised to
-    // report but may not be playing, stand in for the absent second player and
-    // complete a match they never agreed to.
-    const reports = match.reportedResults;
-    const reportFor = (participantId) =>
-      participantId
-        ? reports.find(
-            (r) => r.reportedBy?.toString() === participantId.toString(),
-          )
-        : undefined;
-    const player1Report = reportFor(match.player1.participantId);
-    const player2Report = reportFor(match.player2.participantId);
-
-    if (player1Report && player2Report) {
-      const allAgree =
-        player1Report.winnerId?.toString() ===
-        player2Report.winnerId?.toString();
-      if (allAgree) {
-        const agreedWinnerId = player1Report.winnerId;
-        const agreedWinnerStr = agreedWinnerId?.toString();
-        match.winnerId = agreedWinnerId;
-        match.loserId = agreedWinnerStr === player1Id ? player2Id : player1Id;
-        match.status = "completed";
-        match.completedAt = new Date();
-        logger.info(
-          `Match ${match._id} completed by consensus: winner=${agreedWinnerStr}, reported by ${userName || userId}`,
-        );
-      } else {
-        match.status = "disputed";
-        logger.warn(
-          `Match ${match._id} disputed: conflicting reports from ${reports.map((r) => r.reportedByName).join(", ")}`,
-        );
+  for (let attempt = 0; attempt < MAX_REPORT_ATTEMPTS; attempt++) {
+    try {
+      return await reportResultOnce(req, res);
+    } catch (error) {
+      if (
+        error instanceof mongoose.Error.VersionError &&
+        attempt < MAX_REPORT_ATTEMPTS - 1
+      ) {
+        continue;
       }
-    } else {
-      match.status = "in_progress";
-      logger.debug(
-        `Match ${match._id} result reported by ${userName || userId}: winner=${winnerIdStr} (awaiting other player)`,
-      );
+      logger.error(`Report result error: ${error.message}`, { error });
+      return res.status(500).json({
+        success: false,
+        message: "Failed to report result",
+      });
     }
-
-    await match.save();
-    if (match.status === "completed") invalidateStatsCache().catch(() => {});
-    emitMatchUpdated(match.tournament._id.toString(), match);
-    return res.status(200).json({ success: true, data: match });
-  } catch (error) {
-    logger.error(`Report result error: ${error.message}`, { error });
-    return res.status(500).json({
-      success: false,
-      message: "Failed to report result",
-    });
   }
 };
+
+async function reportResultOnce(req, res) {
+  const match = await Match.findById(req.params.id).populate(
+    "tournament",
+    "createdBy status participants",
+  );
+  if (!match) {
+    return res.status(404).json({ success: false, message: "Match not found" });
+  }
+  if (match.status === "completed") {
+    return res
+      .status(400)
+      .json({ success: false, message: "Match is already completed" });
+  }
+  if (match.tournament.status !== "active") {
+    return res
+      .status(400)
+      .json({ success: false, message: "Tournament is not active" });
+  }
+
+  const { winnerId } = req.body;
+  const player1Id = match.player1.participantId?.toString();
+  const player2Id = match.player2.participantId?.toString();
+  const winnerIdStr = winnerId?.toString();
+
+  if (winnerIdStr !== player1Id && winnerIdStr !== player2Id) {
+    return res.status(400).json({
+      success: false,
+      message: "Winner must be one of the two players in this match",
+    });
+  }
+
+  // Identify the reporting participant by matching user id/name to a player slot
+  const userId = req.user.id?.toString();
+  const userName = req.user.username;
+  const tournament = match.tournament;
+
+  // Look up the user's participant subdoc in the tournament to get their
+  // participant _id, which is what the match player slots reference.
+  const userParticipant = tournament.participants?.find((p) =>
+    req.user.isGuest ? p.guestId === userId : p.userId?.toString() === userId,
+  );
+  const userParticipantSubId = userParticipant?._id?.toString();
+
+  const lowerUserName = userName?.trim().toLowerCase();
+  const nameMatch = (n) => {
+    const ln = n.trim().toLowerCase();
+    return !!lowerUserName && ln === lowerUserName;
+  };
+
+  // Primary: match via participant subdoc _id (stable across renames)
+  const isPlayer1ById =
+    !!userParticipantSubId &&
+    match.player1.participantId?.toString() === userParticipantSubId;
+  const isPlayer2ById =
+    !!userParticipantSubId &&
+    match.player2.participantId?.toString() === userParticipantSubId;
+
+  // Fallback for legacy rows written before participants carried an id.
+  // Restricted to registered users: their usernames are unique-indexed,
+  // whereas a guest chooses any name and could otherwise claim a slot
+  // belonging to someone else simply by renaming themselves to match.
+  const nameFallbackAllowed = !req.user.isGuest;
+  const isPlayer1ByName =
+    nameFallbackAllowed &&
+    !isPlayer1ById &&
+    (nameMatch(match.player1.name) || match.player1.name === userId);
+  const isPlayer2ByName =
+    nameFallbackAllowed &&
+    !isPlayer2ById &&
+    (nameMatch(match.player2.name) || match.player2.name === userId);
+
+  const isPlayer1 = isPlayer1ById || isPlayer1ByName;
+  const isPlayer2 = isPlayer2ById || isPlayer2ByName;
+
+  if (isPlayer1ByName || isPlayer2ByName) {
+    logger.warn(
+      `Match ${match._id}: result reported via name-match fallback by user ${userId} (${userName}) — participantId not linked`,
+    );
+  }
+  const createdById = tournament.createdBy?._id ?? tournament.createdBy;
+  const isCreator = createdById?.toString() === userId;
+
+  if (!isPlayer1 && !isPlayer2 && !isCreator) {
+    logger.warn(
+      `Unauthorized result report attempt on match ${match._id} by user ${userId}`,
+    );
+    return res.status(403).json({
+      success: false,
+      message:
+        "Only players in this match or the tournament creator can report results",
+    });
+  }
+
+  const reporterParticipantId = isPlayer1
+    ? match.player1.participantId
+    : isPlayer2
+      ? match.player2.participantId
+      : null;
+
+  // Remove any prior report from this participant
+  if (!match.reportedResults) match.reportedResults = [];
+  match.reportedResults = match.reportedResults.filter(
+    (r) =>
+      r.reportedBy?.toString() !==
+      (reporterParticipantId?.toString() ?? userId),
+  );
+
+  match.reportedResults.push({
+    reportedBy: reporterParticipantId ?? userId,
+    reportedByName: userName || userId,
+    winnerId,
+  });
+
+  // Consensus means the two players agree — not merely that two reports
+  // agree. Counting any two would let the creator, who is authorised to
+  // report but may not be playing, stand in for the absent second player and
+  // complete a match they never agreed to.
+  const reports = match.reportedResults;
+  const reportFor = (participantId) =>
+    participantId
+      ? reports.find(
+          (r) => r.reportedBy?.toString() === participantId.toString(),
+        )
+      : undefined;
+  const player1Report = reportFor(match.player1.participantId);
+  const player2Report = reportFor(match.player2.participantId);
+
+  if (player1Report && player2Report) {
+    const allAgree =
+      player1Report.winnerId?.toString() === player2Report.winnerId?.toString();
+    if (allAgree) {
+      const agreedWinnerId = player1Report.winnerId;
+      const agreedWinnerStr = agreedWinnerId?.toString();
+      match.winnerId = agreedWinnerId;
+      match.loserId = agreedWinnerStr === player1Id ? player2Id : player1Id;
+      match.status = "completed";
+      match.completedAt = new Date();
+      logger.info(
+        `Match ${match._id} completed by consensus: winner=${agreedWinnerStr}, reported by ${userName || userId}`,
+      );
+    } else {
+      match.status = "disputed";
+      logger.warn(
+        `Match ${match._id} disputed: conflicting reports from ${reports.map((r) => r.reportedByName).join(", ")}`,
+      );
+    }
+  } else {
+    match.status = "in_progress";
+    logger.debug(
+      `Match ${match._id} result reported by ${userName || userId}: winner=${winnerIdStr} (awaiting other player)`,
+    );
+  }
+
+  await match.save();
+  if (match.status === "completed") invalidateStatsCache().catch(() => {});
+  emitMatchUpdated(match.tournament._id.toString(), match);
+  return res.status(200).json({ success: true, data: match });
+}
 
 // PATCH /match/:id/resolve  (creator resolves a disputed match)
 /** @type {import('express').RequestHandler} */

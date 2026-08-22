@@ -1,6 +1,8 @@
 import assert from "node:assert";
 import { describe, it, beforeEach, mock } from "node:test";
 
+import mongoose from "mongoose";
+
 const mockMatchFind = mock.fn();
 const mockMatchFindById = mock.fn();
 const mockMatchCreate = mock.fn();
@@ -540,6 +542,40 @@ describe("match-controller", () => {
       assert.strictEqual(match.status, "disputed");
       assert.strictEqual(mockEmitMatchUpdated.mock.calls.length, 1);
       assert.strictEqual(mockInvalidateStatsCache.mock.calls.length, 0);
+    });
+
+    it("retries on a concurrent-write VersionError instead of failing the request", async () => {
+      const p1Id = "aaaaaaaaaaaaaaaaaaaaaaaa";
+      // Simulates the opponent's report having already saved between this
+      // request's read and its own save attempt.
+      const staleMatch = makeMatch({
+        save: mock.fn(async () => {
+          throw new mongoose.Error.VersionError({ _doc: { _id: "m1" } }, 2, [
+            "reportedResults",
+          ]);
+        }),
+      });
+      const freshMatch = makeMatch();
+      mockMatchFindById.mock.mockImplementationOnce(
+        () => ({ populate: async () => staleMatch }),
+        0,
+      );
+      mockMatchFindById.mock.mockImplementationOnce(
+        () => ({ populate: async () => freshMatch }),
+        1,
+      );
+      const req = mockReq({
+        params: { id: "m1" },
+        body: { winnerId: p1Id },
+        user: { id: "x", username: "Alice", isGuest: false },
+      });
+      const res = mockRes();
+      await reportResult(req, res);
+
+      assert.strictEqual(mockMatchFindById.mock.calls.length, 2);
+      assert.strictEqual(staleMatch.save.mock.calls.length, 1);
+      assert.strictEqual(freshMatch.save.mock.calls.length, 1);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
     });
   });
 
