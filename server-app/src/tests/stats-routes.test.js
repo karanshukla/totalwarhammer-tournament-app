@@ -17,6 +17,16 @@ mock.module("express", {
   defaultExport: { Router: mock.fn(() => routerMock) },
 });
 
+const mockValidateGlobalStatsQuery = mock.fn();
+mock.module("../interfaces/http/middleware/validation/stats-validation.js", {
+  namedExports: { validateGlobalStatsQuery: mockValidateGlobalStatsQuery },
+});
+
+const mockValidationHandler = mock.fn();
+mock.module("../interfaces/http/middleware/validation/validation-handler.js", {
+  namedExports: { validationHandler: mockValidationHandler },
+});
+
 const mockGetStats = mock.fn();
 mock.module("../interfaces/http/controllers/stats-controller.js", {
   namedExports: { getStats: mockGetStats },
@@ -25,10 +35,14 @@ mock.module("../interfaces/http/controllers/stats-controller.js", {
 await import("../interfaces/http/routes/stats-routes.js");
 
 describe("stats-routes wiring", () => {
-  it("wires GET / directly to getStats", () => {
+  it("wires GET / through query validation to getStats", () => {
     const registration = registrations.find(
       (r) => r.method === "get" && r.path === "/",
     );
-    assert.deepStrictEqual(registration.handlers, [mockGetStats]);
+    assert.deepStrictEqual(registration.handlers, [
+      mockValidateGlobalStatsQuery,
+      mockValidationHandler,
+      mockGetStats,
+    ]);
   });
 });

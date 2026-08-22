@@ -7,6 +7,9 @@
  * - f.count === 1 → "match" (singular)
  * - f.count > 1 → "matches" (plural)
  * - matchesPlayed === 0 && tournamentsCreated === 0 → "No activity recorded"
+ * - range switch → refetch with the new range and an updated window caption
+ * - detail=full response → per-faction wins badge alongside the match count
+ * - export → CSV download of the current game + range
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
@@ -205,5 +208,103 @@ describe("UserStatsCard – game-system toggle", () => {
       expect(screen.getByText("Necrons")).toBeInTheDocument(),
     );
     expect(screen.queryByText("Empire")).not.toBeInTheDocument();
+  });
+});
+
+describe("UserStatsCard – time range", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("asks for all-time detail=full on mount and refetches on range change", async () => {
+    const user = userEvent.setup();
+    mockFetchUserStats.mockResolvedValue(wrap({}));
+    renderCard();
+
+    await waitFor(() => expect(mockFetchUserStats).toHaveBeenCalledTimes(1));
+    expect(mockFetchUserStats).toHaveBeenCalledWith({
+      range: "all",
+      detail: "full",
+    });
+    expect(screen.getByText(/all time/i)).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "90d" }));
+
+    await waitFor(() =>
+      expect(mockFetchUserStats).toHaveBeenLastCalledWith({
+        range: "90d",
+        detail: "full",
+      }),
+    );
+    await waitFor(() =>
+      expect(screen.getByText(/last 90 days/i)).toBeInTheDocument(),
+    );
+  });
+});
+
+describe("UserStatsCard – per-faction wins", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("shows a wins badge beside the match count when the server sends one", async () => {
+    mockFetchUserStats.mockResolvedValueOnce(
+      wrap({
+        matchesPlayed: 4,
+        wins: 3,
+        losses: 1,
+        factions: [{ name: "Empire", count: 4, wins: 3 }],
+      }),
+    );
+    renderCard();
+
+    await waitFor(() => expect(screen.getByText("Empire")).toBeInTheDocument());
+    expect(screen.getByText(/3 wins/)).toBeInTheDocument();
+    expect(screen.getByText(/4 matches/)).toBeInTheDocument();
+  });
+
+  it("omits the wins badge when the server sends only counts", async () => {
+    mockFetchUserStats.mockResolvedValueOnce(
+      wrap({ matchesPlayed: 4, factions: [{ name: "Empire", count: 4 }] }),
+    );
+    renderCard();
+
+    await waitFor(() => expect(screen.getByText("Empire")).toBeInTheDocument());
+    expect(screen.queryByText(/wins/)).not.toBeInTheDocument();
+  });
+});
+
+describe("UserStatsCard – CSV export", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.restoreAllMocks();
+  });
+
+  it("downloads a CSV of the visible summary and faction rows", async () => {
+    const user = userEvent.setup();
+    const createObjectURL = vi.fn(() => "blob:account");
+    const revokeObjectURL = vi.fn();
+    vi.stubGlobal("URL", { ...URL, createObjectURL, revokeObjectURL });
+    const clicked = vi
+      .spyOn(HTMLAnchorElement.prototype, "click")
+      .mockImplementation(() => {});
+
+    mockFetchUserStats.mockResolvedValue(
+      wrap({
+        tournamentsCreated: 2,
+        matchesPlayed: 4,
+        wins: 3,
+        losses: 1,
+        factions: [{ name: "Empire", count: 4, wins: 3 }],
+      }),
+    );
+    renderCard();
+
+    await waitFor(() => expect(screen.getByText("Empire")).toBeInTheDocument());
+
+    await user.click(
+      screen.getByRole("button", { name: /export your activity as csv/i }),
+    );
+
+    expect(clicked).toHaveBeenCalledTimes(1);
+    expect(createObjectURL).toHaveBeenCalledWith(expect.any(Blob));
+    expect(revokeObjectURL).toHaveBeenCalledWith("blob:account");
+    vi.unstubAllGlobals();
   });
 });

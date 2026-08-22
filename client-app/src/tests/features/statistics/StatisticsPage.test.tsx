@@ -18,6 +18,10 @@
  * - stats.recentTournaments.length > 0 → Recent Completed Tournaments section
  * - StatCard: colorPalette === "ink" → bg.subtle icon bg
  * - StatCard: sub present → sub text rendered
+ * - match-status fields (pending/in_progress/disputed/completionRate) rendered
+ * - range switch → refetch with the new range, dynamic window subtitle
+ * - "Show more" → renders more rows, refetching only when the page runs out
+ * - per-section CSV export → unpaginated refetch + download
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
@@ -152,7 +156,7 @@ describe("StatisticsPage – empty sections", () => {
     renderPage();
     await waitFor(() =>
       expect(
-        screen.getByText(/no tournaments completed in the last 7 days/i),
+        screen.getByText(/no tournaments completed in this window/i),
       ).toBeInTheDocument(),
     );
   });
@@ -434,5 +438,200 @@ describe("StatisticsPage – game-system toggle", () => {
     // Back to WH3.
     await user.click(screen.getByRole("button", { name: "WH3" }));
     await waitFor(() => expect(screen.getByText("Skaven")).toBeInTheDocument());
+  });
+});
+
+describe("StatisticsPage – match status granularity", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("renders the pending, in-progress, disputed and completion-rate figures", async () => {
+    mockGet.mockResolvedValueOnce({
+      success: true,
+      data: withWh3({
+        tournaments: { pending: 4, active: 2, completed: 6, total: 12 },
+        matches: {
+          pending: 7,
+          in_progress: 3,
+          completed: 9,
+          disputed: 1,
+          total: 20,
+          completionRate: 45,
+        },
+      }),
+    });
+    renderPage();
+
+    await waitFor(() =>
+      expect(screen.getByText(/pending tournaments/i)).toBeInTheDocument(),
+    );
+    expect(screen.getByText(/matches pending/i)).toBeInTheDocument();
+    expect(screen.getByText(/matches in progress/i)).toBeInTheDocument();
+    expect(screen.getByText(/disputed matches/i)).toBeInTheDocument();
+    expect(screen.getByText("45%")).toBeInTheDocument();
+    expect(screen.getByText("9 of 20")).toBeInTheDocument();
+  });
+});
+
+describe("StatisticsPage – time range", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("requests all-time on first load and refetches with the selected range", async () => {
+    const user = userEvent.setup();
+    mockGet.mockResolvedValue({ success: true, data: withWh3({}) });
+    renderPage();
+
+    await waitFor(() => expect(mockGet).toHaveBeenCalledTimes(1));
+    expect(mockGet.mock.calls[0][0]).toContain("range=all");
+
+    await user.click(screen.getByRole("button", { name: "30d" }));
+
+    await waitFor(() => expect(mockGet).toHaveBeenCalledTimes(2));
+    expect(mockGet.mock.calls[1][0]).toContain("range=30d");
+  });
+
+  it("labels the win-based sections with the selected window", async () => {
+    const user = userEvent.setup();
+    mockGet.mockResolvedValue({ success: true, data: withWh3({}) });
+    renderPage();
+
+    await waitFor(() =>
+      expect(screen.getAllByText("All time").length).toBeGreaterThan(0),
+    );
+
+    await user.click(screen.getByRole("button", { name: "7d" }));
+
+    await waitFor(() =>
+      expect(screen.getAllByText("Last 7 days").length).toBeGreaterThan(0),
+    );
+  });
+});
+
+describe("StatisticsPage – show more", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  const factions = (count: number, from = 0) =>
+    Array.from({ length: count }, (_, i) => ({
+      faction: `Faction ${from + i}`,
+      wins: 100 - (from + i),
+    }));
+
+  it("reports the total row count next to the visible page", async () => {
+    mockGet.mockResolvedValue({
+      success: true,
+      data: withWh3({ topFactions: factions(10), topFactionsTotal: 42 }),
+    });
+    renderPage();
+
+    await waitFor(() =>
+      expect(screen.getByText("Showing 10 of 42")).toBeInTheDocument(),
+    );
+  });
+
+  it("refetches with a larger limit when the visible page runs out", async () => {
+    const user = userEvent.setup();
+    mockGet.mockResolvedValueOnce({
+      success: true,
+      data: withWh3({ topFactions: factions(10), topFactionsTotal: 42 }),
+    });
+    mockGet.mockResolvedValueOnce({
+      success: true,
+      data: withWh3({ topFactions: factions(20), topFactionsTotal: 42 }),
+    });
+    renderPage();
+
+    await waitFor(() =>
+      expect(screen.getByText("Faction 0")).toBeInTheDocument(),
+    );
+    expect(screen.queryByText("Faction 15")).not.toBeInTheDocument();
+
+    await user.click(screen.getAllByRole("button", { name: /show more/i })[0]);
+
+    await waitFor(() =>
+      expect(screen.getByText("Faction 15")).toBeInTheDocument(),
+    );
+    expect(mockGet.mock.calls[1][0]).toContain("limit=20");
+  });
+
+  it("stops offering 'Show more' when the server caps the list below the total", async () => {
+    const user = userEvent.setup();
+    // 50 rows is all the server will ever materialise here, but it honestly
+    // reports 62 exist — the pager must not loop on a request that adds nothing.
+    mockGet.mockResolvedValue({
+      success: true,
+      data: withWh3({ topFactions: factions(50), topFactionsTotal: 62 }),
+    });
+    renderPage();
+
+    await waitFor(() =>
+      expect(screen.getByText("Showing 10 of 62")).toBeInTheDocument(),
+    );
+
+    const showMore = () =>
+      screen.queryAllByRole("button", { name: /show more/i })[0];
+    for (let i = 0; i < 5; i++) {
+      await user.click(showMore());
+    }
+
+    await waitFor(() =>
+      expect(screen.getByText("Showing 50 of 62")).toBeInTheDocument(),
+    );
+    expect(showMore()).toBeUndefined();
+  });
+
+  it("hides the pager once every row is on screen", async () => {
+    mockGet.mockResolvedValue({
+      success: true,
+      data: withWh3({ topFactions: factions(3), topFactionsTotal: 3 }),
+    });
+    renderPage();
+
+    await waitFor(() =>
+      expect(screen.getByText("Showing 3 of 3")).toBeInTheDocument(),
+    );
+    expect(
+      screen.queryByRole("button", { name: /show more/i }),
+    ).not.toBeInTheDocument();
+  });
+});
+
+describe("StatisticsPage – CSV export", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.restoreAllMocks();
+  });
+
+  it("fetches the unpaginated list and hands the browser a CSV download", async () => {
+    const user = userEvent.setup();
+    const createObjectURL = vi.fn(() => "blob:stats");
+    const revokeObjectURL = vi.fn();
+    vi.stubGlobal("URL", { ...URL, createObjectURL, revokeObjectURL });
+    const clicked = vi
+      .spyOn(HTMLAnchorElement.prototype, "click")
+      .mockImplementation(() => {});
+
+    mockGet.mockResolvedValue({
+      success: true,
+      data: withWh3({
+        topFactions: [{ faction: "Empire", wins: 4, matchesPlayed: 6 }],
+        topFactionsTotal: 1,
+      }),
+    });
+    renderPage();
+
+    await waitFor(() => expect(screen.getByText("Empire")).toBeInTheDocument());
+
+    await user.click(
+      screen.getByRole("button", {
+        name: /export top winning factions as csv/i,
+      }),
+    );
+
+    await waitFor(() => expect(clicked).toHaveBeenCalled());
+    expect(mockGet).toHaveBeenLastCalledWith(
+      expect.stringContaining("limit=200"),
+    );
+    expect(createObjectURL).toHaveBeenCalledWith(expect.any(Blob));
+    expect(revokeObjectURL).toHaveBeenCalledWith("blob:stats");
+    vi.unstubAllGlobals();
   });
 });

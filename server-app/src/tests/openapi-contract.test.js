@@ -31,6 +31,10 @@ import {
   validateResetToken,
 } from "../interfaces/http/middleware/validation/password-reset-validation.js";
 import {
+  validateGlobalStatsQuery,
+  validateUserStatsQuery,
+} from "../interfaces/http/middleware/validation/stats-validation.js";
+import {
   validateAddParticipant,
   validateCreateTournament,
   validateJoinTournament,
@@ -70,7 +74,7 @@ const VALIDATORS = {
   updateUsername: validateUpdateUsername,
   updatePassword: validateUpdatePassword,
   deleteAccount: null,
-  getUserStats: null,
+  getUserStats: validateUserStatsQuery,
   createGuest: null,
   updateGuestUsername: validateGuestUsername,
   requestPasswordReset: validatePasswordResetEmail,
@@ -97,7 +101,7 @@ const VALIDATORS = {
   resolveDispute: validateResolveDispute,
   overrideResult: validateOverrideResult,
   updateMatchStatus: validateUpdateMatchStatus,
-  getStats: null,
+  getStats: validateGlobalStatsQuery,
 };
 
 const METHODS = ["get", "post", "put", "patch", "delete"];

@@ -65,6 +65,33 @@ function mockReq(overrides = {}) {
   };
 }
 
+// Stand up the four queries getUserStats issues, with `testuser` winning one
+// completed match per requested faction.
+function stubUserStatsQueries({ factions = ["Empire"] } = {}) {
+  mockUserFindById.mock.mockImplementation(() => ({
+    select: mock.fn(() => ({
+      lean: mock.fn(async () => ({ username: "testuser" })),
+    })),
+  }));
+  mockTournamentFind.mock.mockImplementation(() => ({
+    select: mock.fn(() => ({
+      lean: mock.fn(async () => [{ _id: "tour1" }]),
+    })),
+  }));
+  mockTournamentCountDocuments.mock.mockImplementation(async () => 3);
+  mockMatchFind.mock.mockImplementation(() => ({
+    select: mock.fn(() => ({
+      lean: mock.fn(async () =>
+        factions.map((faction) => ({
+          player1: { name: "testuser", faction, participantId: "p1" },
+          player2: { name: "other", faction: "Skaven", participantId: "p2" },
+          winnerId: "p1",
+        })),
+      ),
+    })),
+  }));
+}
+
 describe("user-controller", () => {
   beforeEach(() => {
     mockUserFindOne.mock.resetCalls();
@@ -421,6 +448,76 @@ describe("user-controller", () => {
       // 40k mirrors the same mocked data.
       assert.strictEqual(data["40k"].matchesPlayed, 2);
       assert.strictEqual(data["40k"].wins, 2);
+    });
+
+    it("should omit per-faction wins unless detail=full is requested", async () => {
+      stubUserStatsQueries();
+
+      const summary = mockRes();
+      await getUserStats(mockReq(), summary);
+      assert.deepStrictEqual(
+        summary.json.mock.calls[0].arguments[0].data.wh3.factions,
+        [{ name: "Empire", count: 2 }],
+      );
+
+      const full = mockRes();
+      await getUserStats(mockReq({ query: { detail: "full" } }), full);
+      assert.deepStrictEqual(
+        full.json.mock.calls[0].arguments[0].data.wh3.factions,
+        [{ name: "Empire", count: 2, wins: 2 }],
+      );
+    });
+
+    it("should scope match queries to the requested range and echo it back", async () => {
+      stubUserStatsQueries();
+
+      const res = mockRes();
+      const before = Date.now();
+      await getUserStats(mockReq({ query: { range: "7d" } }), res);
+
+      const since = mockMatchFind.mock.calls[0].arguments[0].completedAt.$gte;
+      const ageDays = (before - since.getTime()) / (24 * 60 * 60 * 1000);
+      assert.ok(Math.abs(ageDays - 7) < 0.01);
+      assert.strictEqual(res.json.mock.calls[0].arguments[0].data.range, "7d");
+    });
+
+    it("should leave match queries unbounded for the default all-time range", async () => {
+      stubUserStatsQueries();
+
+      await getUserStats(mockReq(), mockRes());
+
+      assert.ok(!("completedAt" in mockMatchFind.mock.calls[0].arguments[0]));
+    });
+
+    it("should keep tournamentsCreated all-time regardless of range", async () => {
+      stubUserStatsQueries();
+
+      const res = mockRes();
+      await getUserStats(mockReq({ query: { range: "7d" } }), res);
+
+      const createdFilter =
+        mockTournamentCountDocuments.mock.calls[0].arguments[0];
+      assert.deepStrictEqual(Object.keys(createdFilter).sort(), [
+        "createdBy",
+        "enable40kFactions",
+      ]);
+      assert.strictEqual(
+        res.json.mock.calls[0].arguments[0].data.wh3.tournamentsCreated,
+        3,
+      );
+    });
+
+    it("should page the faction list while reporting the full total", async () => {
+      stubUserStatsQueries({
+        factions: ["Empire", "Skaven", "Greenskins", "Dwarfs"],
+      });
+
+      const res = mockRes();
+      await getUserStats(mockReq({ query: { limit: 2, offset: 1 } }), res);
+
+      const wh3 = res.json.mock.calls[0].arguments[0].data.wh3;
+      assert.strictEqual(wh3.factions.length, 2);
+      assert.strictEqual(wh3.factionsTotal, 4);
     });
 
     it("should return 500 on unexpected error", async () => {

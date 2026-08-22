@@ -2,6 +2,7 @@ import { toaster } from "@/shared/ui/toasterStore";
 import { apiConfig } from "@/core/config/apiConfig";
 import { httpClient } from "@/core/api/httpClient";
 import { useUserStore } from "@/shared/stores/userStore";
+import type { StatsRange } from "@/shared/ui/timeRange";
 
 export interface UpdateUsernameRequest {
   username: string;
@@ -27,23 +28,56 @@ export interface AccountUpdateResponse {
  * Refreshes the user's session by making a request to fetch CSRF token
  * This keeps the session active and helps prevent authentication issues
  */
+export interface UserFactionStats {
+  name: string;
+  count: number;
+  wins?: number;
+}
+
 export interface GameUserStats {
   tournamentsCreated: number;
   matchesPlayed: number;
   wins: number;
   losses: number;
-  factions: { name: string; count: number }[];
+  factions: UserFactionStats[];
+  factionsTotal?: number;
 }
 
 export interface UserStatsData {
+  range?: StatsRange;
   wh3: GameUserStats;
   "40k": GameUserStats;
 }
 
-export const fetchUserStats = async (): Promise<UserStatsData | null> => {
+export interface UserStatsQuery {
+  range?: StatsRange;
+  limit?: number;
+  offset?: number;
+  detail?: "summary" | "full";
+}
+
+export const userStatsUrl = ({
+  range,
+  limit,
+  offset,
+  detail,
+}: UserStatsQuery = {}): string => {
+  const params = new URLSearchParams();
+  if (range) params.set("range", range);
+  if (limit !== undefined) params.set("limit", String(limit));
+  if (offset !== undefined) params.set("offset", String(offset));
+  if (detail) params.set("detail", detail);
+  const query = params.toString();
+  const base = apiConfig.endpoints.userStats;
+  return query ? `${base}?${query}` : base;
+};
+
+export const fetchUserStats = async (
+  query: UserStatsQuery = {},
+): Promise<UserStatsData | null> => {
   try {
     const res = await httpClient.get<{ success: boolean; data: UserStatsData }>(
-      apiConfig.endpoints.userStats,
+      userStatsUrl(query),
     );
     return res.success ? res.data : null;
   } catch {
