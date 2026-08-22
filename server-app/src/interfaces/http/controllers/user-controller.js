@@ -232,12 +232,17 @@ export const deleteAccount = async (req, res) => {
  *   40k → { $eq: true }
  * For wh3 we keep the historical per-slot beta-faction exclusion; for 40k the
  * slots ARE beta-tagged, so we count them.
+ *
+ * `since` scopes match-derived numbers to a time window (null = all time);
+ * tournamentsCreated stays all-time. `detail === "full"` adds the per-faction
+ * win split, which is off by default because this endpoint is uncached.
  */
 async function computeUserGameStats(
   userId,
   username,
   enable40kOperator,
   excludeBetaFactions,
+  { since = null, detail = "summary", limit, offset } = {},
 ) {
   const tournamentIds = await Tournament.find({
     enable40kFactions: enable40kOperator,
@@ -246,6 +251,12 @@ async function computeUserGameStats(
     .lean()
     .then((docs) => docs.map((d) => d._id));
 
+  const matchFilter = {
+    status: "completed",
+    tournament: { $in: tournamentIds },
+    ...(since ? { completedAt: { $gte: since } } : {}),
+  };
+
   const [tournamentsCreatedCount, matchesAsP1, matchesAsP2] = await Promise.all(
     [
       Tournament.countDocuments({
@@ -253,44 +264,53 @@ async function computeUserGameStats(
         enable40kFactions: enable40kOperator,
       }),
 
-      Match.find({
-        "player1.name": username,
-        status: "completed",
-        tournament: { $in: tournamentIds },
-      })
+      Match.find({ ...matchFilter, "player1.name": username })
         .select("player1 player2 winnerId tournament")
         .lean(),
 
-      Match.find({
-        "player2.name": username,
-        status: "completed",
-        tournament: { $in: tournamentIds },
-      })
+      Match.find({ ...matchFilter, "player2.name": username })
         .select("player1 player2 winnerId tournament")
         .lean(),
     ],
   );
 
   const allMatches = [...matchesAsP1, ...matchesAsP2];
-  const wins = allMatches.filter((m) => {
-    const slot = m.player1.name === username ? m.player1 : m.player2;
+  const ownSlot = (m) => (m.player1.name === username ? m.player1 : m.player2);
+  const isWin = (m) => {
+    const slot = ownSlot(m);
     return (
       !!m.winnerId &&
       !!slot.participantId &&
       m.winnerId.toString() === slot.participantId.toString()
     );
-  }).length;
+  };
+
+  const wins = allMatches.filter(isWin).length;
   const losses = allMatches.length - wins;
 
-  const factionCounts = {};
+  const factionTallies = new Map();
   for (const m of allMatches) {
-    const slot = m.player1.name === username ? m.player1 : m.player2;
-    if (slot.faction && (!excludeBetaFactions || !slot.isBetaFaction))
-      factionCounts[slot.faction] = (factionCounts[slot.faction] || 0) + 1;
+    const slot = ownSlot(m);
+    if (!slot.faction || (excludeBetaFactions && slot.isBetaFaction)) continue;
+    const tally = factionTallies.get(slot.faction) ?? { count: 0, wins: 0 };
+    tally.count += 1;
+    if (isWin(m)) tally.wins += 1;
+    factionTallies.set(slot.faction, tally);
   }
-  const factions = Object.entries(factionCounts)
-    .sort((a, b) => b[1] - a[1])
-    .map(([name, count]) => ({ name, count }));
+
+  const rankedFactions = [...factionTallies.entries()]
+    .sort((a, b) => b[1].count - a[1].count || a[0].localeCompare(b[0]))
+    .map(([name, tally]) =>
+      detail === "full"
+        ? { name, count: tally.count, wins: tally.wins }
+        : { name, count: tally.count },
+    );
+
+  const start = offset ?? 0;
+  const factions =
+    limit === undefined && offset === undefined
+      ? rankedFactions
+      : rankedFactions.slice(start, start + (limit ?? rankedFactions.length));
 
   return {
     tournamentsCreated: tournamentsCreatedCount,
@@ -298,8 +318,11 @@ async function computeUserGameStats(
     wins,
     losses,
     factions,
+    factionsTotal: rankedFactions.length,
   };
 }
+
+const USER_STATS_RANGE_DAYS = { "7d": 7, "30d": 30, "90d": 90 };
 
 /** @type {import('express').RequestHandler} */
 export const getUserStats = async (req, res) => {
@@ -320,15 +343,23 @@ export const getUserStats = async (req, res) => {
     }
 
     const username = user.username;
+    const { range = "all", detail = "summary", limit, offset } = req.query;
+    const days = USER_STATS_RANGE_DAYS[range];
+    const options = {
+      since: days ? new Date(Date.now() - days * 24 * 60 * 60 * 1000) : null,
+      detail,
+      limit,
+      offset,
+    };
 
     const [wh3, k40] = await Promise.all([
-      computeUserGameStats(userId, username, { $ne: true }, true),
-      computeUserGameStats(userId, username, { $eq: true }, false),
+      computeUserGameStats(userId, username, { $ne: true }, true, options),
+      computeUserGameStats(userId, username, { $eq: true }, false, options),
     ]);
 
     return res.status(200).json({
       success: true,
-      data: { wh3, "40k": k40 },
+      data: { range, wh3, "40k": k40 },
     });
   } catch {
     return res.status(500).json({

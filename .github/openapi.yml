@@ -294,6 +294,41 @@ paths:
       operationId: getUserStats
       security:
         - sessionCookie: []
+      parameters:
+        - name: range
+          in: query
+          required: false
+          description: Time window applied to win-based aggregates
+          schema:
+            type: string
+            enum: [7d, 30d, 90d, all]
+            example: all
+        - name: limit
+          in: query
+          required: false
+          description: Rows per list section; omit for the default per-section caps
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 200
+            example: 10
+        - name: offset
+          in: query
+          required: false
+          description: Rows to skip in every list section
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 200
+            example: 0
+        - name: detail
+          in: query
+          required: false
+          description: full adds the per-faction win split
+          schema:
+            type: string
+            enum: [summary, full]
+            example: summary
       responses:
         "200":
           description: User stats
@@ -982,6 +1017,33 @@ paths:
     get:
       summary: Get global app statistics
       operationId: getStats
+      parameters:
+        - name: range
+          in: query
+          required: false
+          description: Time window applied to win-based aggregates
+          schema:
+            type: string
+            enum: [7d, 30d, 90d, all]
+            example: all
+        - name: limit
+          in: query
+          required: false
+          description: Rows per list section; omit for the default per-section caps
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 200
+            example: 10
+        - name: offset
+          in: query
+          required: false
+          description: Rows to skip in every list section
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 200
+            example: 0
       responses:
         "200":
           description: Global stats

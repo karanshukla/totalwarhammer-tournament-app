@@ -14,5 +14,6 @@ export const apiConfig = {
     updatePassword: "/user/update-password",
     deleteAccount: "/user/account",
     userStats: "/user/stats",
+    stats: "/stats",
   },
 };

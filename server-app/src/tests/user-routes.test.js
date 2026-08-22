@@ -68,6 +68,11 @@ mock.module("../interfaces/http/middleware/validation/validation-handler.js", {
   namedExports: { validationHandler: mockValidationHandler },
 });
 
+const mockValidateUserStatsQuery = mock.fn();
+mock.module("../interfaces/http/middleware/validation/stats-validation.js", {
+  namedExports: { validateUserStatsQuery: mockValidateUserStatsQuery },
+});
+
 const mockValidateLogin = mock.fn();
 mock.module(
   "../interfaces/http/middleware/validation/authentication-validation.js",
@@ -140,9 +145,11 @@ describe("user-routes wiring", () => {
     ]);
   });
 
-  it("wires GET /stats through auth to the getUserStats controller", () => {
+  it("wires GET /stats through auth, query validation, and the controller", () => {
     assert.deepStrictEqual(find("get", "/stats").handlers, [
       mockAuthenticateSession,
+      mockValidateUserStatsQuery,
+      mockValidationHandler,
       mockGetUserStats,
     ]);
   });

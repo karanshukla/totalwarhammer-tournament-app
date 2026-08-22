@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import {
+  Button,
   CardRoot,
   VStack,
   HStack,
@@ -11,13 +12,23 @@ import {
   Separator,
   Box,
 } from "@chakra-ui/react";
-import { LuTrophy, LuSwords, LuShield, LuChartBar } from "react-icons/lu";
+import {
+  LuTrophy,
+  LuSwords,
+  LuShield,
+  LuChartBar,
+  LuDownload,
+} from "react-icons/lu";
 import {
   fetchUserStats,
   UserStatsData,
   GameUserStats,
 } from "../api/accountApi";
 import GameSystemToggle from "@/shared/ui/GameSystemToggle";
+import TimeRangeSelect from "@/shared/ui/TimeRangeSelect";
+import { RANGE_DESCRIPTIONS, type StatsRange } from "@/shared/ui/timeRange";
+import { toCsv, csvFilename, downloadCsv } from "@/shared/utils/csv";
+import { toaster } from "@/shared/ui/toasterStore";
 
 type Game = "wh3" | "40k";
 
@@ -33,32 +44,107 @@ const UserStatsCard: React.FC = () => {
   const [stats, setStats] = useState<UserStatsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [game, setGame] = useState<Game>("wh3");
+  const [range, setRange] = useState<StatsRange>("all");
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
     // Without the catch a failed request left `loading` true forever, so the
     // card sat on animated skeletons with no error and no retry.
-    fetchUserStats()
-      .then((data) => setStats(data))
-      .catch(() => setStats(null))
-      .finally(() => setLoading(false));
-  }, []);
+    fetchUserStats({ range, detail: "full" })
+      .then((data) => !cancelled && setStats(data))
+      .catch(() => !cancelled && setStats(null))
+      .finally(() => !cancelled && setLoading(false));
+    return () => {
+      cancelled = true;
+    };
+  }, [range]);
 
   const active: GameUserStats = stats?.[game] ?? EMPTY_STATS;
 
+  const exportCsv = () => {
+    setExporting(true);
+    try {
+      const rows = [
+        {
+          section: "summary",
+          faction: "",
+          tournamentsCreated: active.tournamentsCreated,
+          matchesPlayed: active.matchesPlayed,
+          wins: active.wins,
+          losses: active.losses,
+        },
+        ...active.factions.map((f) => ({
+          section: "faction",
+          faction: f.name,
+          tournamentsCreated: "",
+          matchesPlayed: f.count,
+          wins: f.wins ?? "",
+          losses: f.wins === undefined ? "" : f.count - f.wins,
+        })),
+      ];
+      downloadCsv(
+        csvFilename({ surface: "account", section: "activity", game, range }),
+        toCsv(rows),
+      );
+    } catch {
+      toaster.create({
+        title: "Export failed",
+        description: "Could not build your activity CSV. Please try again.",
+        type: "error",
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
     <CardRoot p={5} borderWidth="1px" borderRadius="lg" bg="bg.panel">
-      <HStack justify="space-between" align="center" mb={4} wrap="wrap" gap={3}>
+      <HStack justify="space-between" align="center" mb={2} wrap="wrap" gap={3}>
         <Heading size="md">Your Activity</Heading>
-        <Box
-          p={1}
-          borderRadius="md"
-          borderWidth={1}
-          borderColor="border"
-          bg="bg.subtle"
-        >
-          <GameSystemToggle value={game} onChange={setGame} size="sm" />
-        </Box>
+        <HStack gap={2} wrap="wrap">
+          <Box
+            p={1}
+            borderRadius="md"
+            borderWidth={1}
+            borderColor="border"
+            bg="bg.subtle"
+          >
+            <GameSystemToggle value={game} onChange={setGame} size="sm" />
+          </Box>
+          <Box
+            p={1}
+            borderRadius="md"
+            borderWidth={1}
+            borderColor="border"
+            bg="bg.subtle"
+          >
+            <TimeRangeSelect
+              value={range}
+              onChange={setRange}
+              size="sm"
+              disabled={loading}
+            />
+          </Box>
+          <Button
+            size="xs"
+            variant="ghost"
+            colorPalette="ink"
+            onClick={exportCsv}
+            loading={exporting}
+            disabled={loading}
+            aria-label="Export your activity as CSV"
+          >
+            <LuDownload />
+            CSV
+          </Button>
+        </HStack>
       </HStack>
+
+      <Text fontSize="xs" color="fg.muted" mb={4}>
+        {RANGE_DESCRIPTIONS[range]} — tournaments created is always all-time.
+      </Text>
 
       {/* Summary stats */}
       <SimpleGrid columns={{ base: 2, sm: 4 }} gap={4} mb={6}>
@@ -143,9 +229,16 @@ const UserStatsCard: React.FC = () => {
               : active.factions.map((f) => (
                   <HStack key={f.name} justify="space-between">
                     <Text fontSize="sm">{f.name}</Text>
-                    <Badge colorPalette="ink" variant="subtle">
-                      {f.count} {f.count === 1 ? "match" : "matches"}
-                    </Badge>
+                    <HStack gap={2}>
+                      {f.wins !== undefined && (
+                        <Badge colorPalette="brass" variant="subtle">
+                          {f.wins} {f.wins === 1 ? "win" : "wins"}
+                        </Badge>
+                      )}
+                      <Badge colorPalette="ink" variant="subtle">
+                        {f.count} {f.count === 1 ? "match" : "matches"}
+                      </Badge>
+                    </HStack>
                   </HStack>
                 ))}
           </VStack>

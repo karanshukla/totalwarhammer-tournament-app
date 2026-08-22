@@ -5,6 +5,7 @@ import * as userController from "../controllers/user-controller.js";
 import authenticateSession from "../middleware/auth-middleware.js";
 import { doubleCsrfProtection } from "../middleware/csrf-middleware.js";
 import { validateLogin } from "../middleware/validation/authentication-validation.js";
+import { validateUserStatsQuery } from "../middleware/validation/stats-validation.js";
 import {
   validateUserExists,
   validateUserRegistration,
@@ -63,6 +64,12 @@ router.delete(
   userController.deleteAccount,
 );
 
-router.get("/stats", authenticateSession, userController.getUserStats);
+router.get(
+  "/stats",
+  authenticateSession,
+  validateUserStatsQuery,
+  validationHandler,
+  userController.getUserStats,
+);
 
 export default router;

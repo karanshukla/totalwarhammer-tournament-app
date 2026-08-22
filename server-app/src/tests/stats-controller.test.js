@@ -40,7 +40,7 @@ describe("stats-controller", () => {
       mockGetGlobalStats.mock.mockImplementation(async () => data);
 
       const res = mockRes();
-      await getStats({}, res);
+      await getStats({ query: {} }, res);
 
       assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
       assert.deepStrictEqual(res.json.mock.calls[0].arguments[0], {
@@ -49,13 +49,27 @@ describe("stats-controller", () => {
       });
     });
 
+    it("forwards range, limit and offset to the stats service", async () => {
+      mockGetGlobalStats.mock.mockImplementation(async () => ({}));
+
+      const res = mockRes();
+      await getStats({ query: { range: "30d", limit: 25, offset: 50 } }, res);
+
+      assert.deepStrictEqual(mockGetGlobalStats.mock.calls[0].arguments[0], {
+        range: "30d",
+        limit: 25,
+        offset: 50,
+      });
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
+    });
+
     it("returns 500 when the stats service throws", async () => {
       mockGetGlobalStats.mock.mockImplementation(async () => {
         throw new Error("DB connection failed");
       });
 
       const res = mockRes();
-      await getStats({}, res);
+      await getStats({ query: {} }, res);
 
       assert.strictEqual(res.status.mock.calls[0].arguments[0], 500);
       const body = res.json.mock.calls[0].arguments[0];
