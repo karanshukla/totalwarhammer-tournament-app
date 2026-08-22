@@ -635,3 +635,167 @@ describe("StatisticsPage – CSV export", () => {
     vi.unstubAllGlobals();
   });
 });
+
+// Each section flattens to its own CSV shape. Exercising every one of them
+// matters because a wrong column here is invisible in the UI — the file just
+// silently carries the wrong data.
+describe("StatisticsPage – CSV content per section", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.restoreAllMocks();
+  });
+
+  const populatedWh3 = {
+    topFactions: [
+      { faction: "Empire", wins: 4, matchesPlayed: 6, losses: 2, winRate: 67 },
+    ],
+    topFactionsTotal: 1,
+    topPlayers: [
+      {
+        name: "Karl Franz",
+        wins: 3,
+        factions: ["Empire", ""],
+        matchesPlayed: 5,
+        losses: 2,
+        winRate: 60,
+      },
+    ],
+    topPlayersTotal: 1,
+    recentWinners: [
+      {
+        tournamentName: "Waaagh Cup",
+        tournamentType: "Single Elimination",
+        winnerName: "Grimgork",
+        winnerFaction: "Greenskins",
+        completedAt: "2026-08-01T10:00:00.000Z",
+      },
+    ],
+    recentWinnersTotal: 1,
+    topCreators: [{ username: "Admin", tournamentsCreated: 3, completed: 2 }],
+    topCreatorsTotal: 1,
+    recentTournaments: [
+      {
+        _id: "t1",
+        name: "Winter Cup",
+        tournamentType: "Round Robin",
+        participants: [
+          { name: "a", faction: "" },
+          { name: "b", faction: "" },
+        ],
+        playerCount: 8,
+        createdAt: "2026-07-04T09:00:00.000Z",
+      },
+    ],
+    recentTournamentsTotal: 1,
+  };
+
+  // Export the named section and hand back the CSV the browser was given.
+  async function exportSection(buttonName: RegExp) {
+    const user = userEvent.setup();
+    const blobs: Blob[] = [];
+    const createObjectURL = vi.fn((blob: Blob) => {
+      blobs.push(blob);
+      return "blob:section";
+    });
+    vi.stubGlobal("URL", {
+      ...URL,
+      createObjectURL,
+      revokeObjectURL: vi.fn(),
+    });
+    vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
+
+    mockGet.mockResolvedValue({ success: true, data: withWh3(populatedWh3) });
+    renderPage();
+
+    await waitFor(() =>
+      expect(screen.getByText("Karl Franz")).toBeInTheDocument(),
+    );
+    await user.click(screen.getByRole("button", { name: buttonName }));
+    await waitFor(() => expect(blobs.length).toBe(1));
+
+    // The BOM is stripped by Blob.text()'s UTF-8 decode, so this is the body.
+    const csv = await blobs[0].text();
+    vi.unstubAllGlobals();
+    return csv.split("\r\n");
+  }
+
+  it("writes faction rows with the extended win-rate columns", async () => {
+    const rows = await exportSection(/export top winning factions as csv/i);
+    expect(rows[0]).toBe("rank,faction,wins,matchesPlayed,losses,winRate");
+    expect(rows[1]).toBe("1,Empire,4,6,2,67");
+  });
+
+  it("writes player rows and joins their factions into one cell", async () => {
+    const rows = await exportSection(/export top players as csv/i);
+    expect(rows[0]).toBe(
+      "rank,player,wins,matchesPlayed,losses,winRate,factions",
+    );
+    // Blank faction entries are dropped rather than leaving a dangling ";".
+    expect(rows[1]).toBe("1,Karl Franz,3,5,2,60,Empire");
+  });
+
+  it("writes recent-winner rows", async () => {
+    const rows = await exportSection(
+      /export recent tournament winners as csv/i,
+    );
+    expect(rows[0]).toBe(
+      "tournament,tournamentType,winner,winnerFaction,completedAt",
+    );
+    expect(rows[1]).toBe(
+      "Waaagh Cup,Single Elimination,Grimgork,Greenskins,2026-08-01T10:00:00.000Z",
+    );
+  });
+
+  it("writes creator rows", async () => {
+    const rows = await exportSection(/export top tournament creators as csv/i);
+    expect(rows[0]).toBe("rank,creator,tournamentsCreated,completed");
+    expect(rows[1]).toBe("1,Admin,3,2");
+  });
+
+  it("writes recent-tournament rows with the roster size", async () => {
+    const rows = await exportSection(
+      /export recent completed tournaments as csv/i,
+    );
+    expect(rows[0]).toBe(
+      "tournament,tournamentType,players,playerCount,createdAt",
+    );
+    // players is who actually joined; playerCount is the configured capacity.
+    expect(rows[1]).toBe("Winter Cup,Round Robin,2,8,2026-07-04T09:00:00.000Z");
+  });
+
+  it("leaves the extended columns blank when the server omits them", async () => {
+    const user = userEvent.setup();
+    const blobs: Blob[] = [];
+    vi.stubGlobal("URL", {
+      ...URL,
+      createObjectURL: vi.fn((blob: Blob) => {
+        blobs.push(blob);
+        return "blob:legacy";
+      }),
+      revokeObjectURL: vi.fn(),
+    });
+    vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
+
+    // A pre-upgrade payload: wins only, no matchesPlayed/losses/winRate.
+    mockGet.mockResolvedValue({
+      success: true,
+      data: withWh3({
+        topFactions: [{ faction: "Skaven", wins: 2 }],
+        topFactionsTotal: 1,
+      }),
+    });
+    renderPage();
+
+    await waitFor(() => expect(screen.getByText("Skaven")).toBeInTheDocument());
+    await user.click(
+      screen.getByRole("button", {
+        name: /export top winning factions as csv/i,
+      }),
+    );
+    await waitFor(() => expect(blobs.length).toBe(1));
+
+    const rows = (await blobs[0].text()).split("\r\n");
+    expect(rows[1]).toBe("1,Skaven,2,,,");
+    vi.unstubAllGlobals();
+  });
+});

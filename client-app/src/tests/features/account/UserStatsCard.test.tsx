@@ -10,6 +10,8 @@
  * - range switch → refetch with the new range and an updated window caption
  * - detail=full response → per-faction wins badge alongside the match count
  * - export → CSV download of the current game + range
+ * - fetch rejection → loading ends rather than hanging on skeletons
+ * - export failure → surfaced as an error toast, not swallowed
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
@@ -18,12 +20,17 @@ import "@testing-library/jest-dom";
 import React from "react";
 import { ChakraProvider, defaultSystem } from "@chakra-ui/react";
 
-const { mockFetchUserStats } = vi.hoisted(() => ({
+const { mockFetchUserStats, mockToasterCreate } = vi.hoisted(() => ({
   mockFetchUserStats: vi.fn(),
+  mockToasterCreate: vi.fn(),
 }));
 
 vi.mock("@/features/account/api/accountApi", () => ({
   fetchUserStats: mockFetchUserStats,
+}));
+
+vi.mock("@/shared/ui/toasterStore", () => ({
+  toaster: { create: mockToasterCreate },
 }));
 
 import UserStatsCard from "@/features/account/components/UserStatsCard";
@@ -305,6 +312,57 @@ describe("UserStatsCard – CSV export", () => {
     expect(clicked).toHaveBeenCalledTimes(1);
     expect(createObjectURL).toHaveBeenCalledWith(expect.any(Blob));
     expect(revokeObjectURL).toHaveBeenCalledWith("blob:account");
+    vi.unstubAllGlobals();
+  });
+});
+
+describe("UserStatsCard – failure paths", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.restoreAllMocks();
+  });
+
+  it("stops loading when the stats request rejects outright", async () => {
+    // fetchUserStats normally resolves null on failure, so this guard only
+    // fires if that contract ever changes — without it the card would sit on
+    // animated skeletons forever, with no error and no retry.
+    mockFetchUserStats.mockRejectedValueOnce(new Error("boom"));
+    renderCard();
+
+    await waitFor(() =>
+      expect(screen.getByText(/no activity recorded yet/i)).toBeInTheDocument(),
+    );
+  });
+
+  it("reports an export failure instead of failing silently", async () => {
+    const user = userEvent.setup();
+    vi.stubGlobal("URL", {
+      ...URL,
+      createObjectURL: vi.fn(() => {
+        throw new Error("blob unavailable");
+      }),
+      revokeObjectURL: vi.fn(),
+    });
+
+    mockFetchUserStats.mockResolvedValue(
+      wrap({ matchesPlayed: 2, wins: 1, losses: 1 }),
+    );
+    renderCard();
+
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: /export your activity as csv/i }),
+      ).toBeEnabled(),
+    );
+    await user.click(
+      screen.getByRole("button", { name: /export your activity as csv/i }),
+    );
+
+    await waitFor(() =>
+      expect(mockToasterCreate).toHaveBeenCalledWith(
+        expect.objectContaining({ type: "error", title: "Export failed" }),
+      ),
+    );
     vi.unstubAllGlobals();
   });
 });
