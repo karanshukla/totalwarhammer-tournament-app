@@ -59,11 +59,50 @@ export function configureSessionMiddleware(sessionSecret, isProduction) {
     store: sessionStore,
     proxy: true, // Because we set 'trust proxy'
     cookie: {
-      secure: isProduction,
+      // "auto" rather than `isProduction`: with a hard `true`, express-session
+      // silently emits no Set-Cookie at all when the forwarded scheme isn't
+      // https, so a login succeeds server-side and every request after it 401s
+      // with nothing logged. "auto" degrades to a cookie without the Secure
+      // flag instead of no session at all; warnOnInsecureForwardedScheme below
+      // is what makes that degraded state visible.
+      secure: "auto",
       httpOnly: true,
       maxAge: 2 * 60 * 60 * 1000, // 2 hours default; overridden per-session by auth-state-service
       sameSite: isProduction ? "strict" : "lax",
       path: "/",
     },
   });
+}
+
+/**
+ * Reports the first production request whose forwarded scheme is not https.
+ *
+ * express-session decides the session cookie's Secure flag from this header
+ * alone, and a reverse proxy that reports the wrong scheme degrades every
+ * session cookie in the deployment without failing any request. Only the proxy
+ * can get this wrong, and nothing else surfaces it, so it is reported once per
+ * process rather than left to be inferred from users being logged out.
+ *
+ * @returns {import('express').RequestHandler}
+ */
+export function warnOnInsecureForwardedScheme() {
+  let alreadyReported = false;
+
+  return (req, _res, next) => {
+    if (alreadyReported || process.env.NODE_ENV !== "production") return next();
+
+    const forwardedScheme = (req.headers["x-forwarded-proto"] || "")
+      .split(",")[0]
+      .trim()
+      .toLowerCase();
+
+    if (forwardedScheme !== "https") {
+      alreadyReported = true;
+      logger.error(
+        `Reverse proxy reported X-Forwarded-Proto: "${forwardedScheme || "(absent)"}" — session cookies are being issued without the Secure flag. Configure the proxy to forward the real scheme.`,
+      );
+    }
+
+    return next();
+  };
 }

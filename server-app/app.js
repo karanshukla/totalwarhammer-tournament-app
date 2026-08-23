@@ -20,7 +20,10 @@ import {
 } from "./src/infrastructure/config/env.js";
 import { passport } from "./src/infrastructure/config/passport-config.js";
 import { connectToDatabase } from "./src/infrastructure/db/connection.js";
-import { configureSessionMiddleware } from "./src/infrastructure/services/session-store-service.js";
+import {
+  configureSessionMiddleware,
+  warnOnInsecureForwardedScheme,
+} from "./src/infrastructure/services/session-store-service.js";
 import { initSocketIO } from "./src/infrastructure/socket/socket-service.js";
 import logger from "./src/infrastructure/utils/logger.js";
 import {
@@ -103,6 +106,7 @@ logger.info(
 logger.info(`CORS origin: ${clientUrl}`);
 
 // Configure and use session middleware
+app.use(warnOnInsecureForwardedScheme());
 app.use(configureSessionMiddleware(SESSION_SECRET, isProduction));
 
 // Passport session support — must come after express-session
