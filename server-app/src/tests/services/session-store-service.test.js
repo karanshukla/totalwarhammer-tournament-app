@@ -47,25 +47,25 @@ describe("session-store-service", () => {
   });
 
   describe("configureSessionStore", () => {
-    it("uses the MongoDB store when USE_MONGO_SESSION is true", () => {
+    it("uses the MongoDB store when USE_MONGO_SESSION is true", async () => {
       process.env.USE_MONGO_SESSION = "true";
       process.env.REDIS_URL = "redis://localhost:6379";
 
-      const store = configureSessionStore();
+      const store = await configureSessionStore();
 
       assert.ok(store instanceof mockMongoDBSessionStoreCtor);
       assert.strictEqual(store.options.collection, "sessions");
       assert.strictEqual(mockRedisStoreCtor.mock.calls.length, 0);
     });
 
-    it("uses the MongoDB store when REDIS_URL is not set", () => {
-      const store = configureSessionStore();
+    it("uses the MongoDB store when REDIS_URL is not set", async () => {
+      const store = await configureSessionStore();
 
       assert.ok(store instanceof mockMongoDBSessionStoreCtor);
     });
 
-    it("logs an error when the MongoDB store emits an error event", () => {
-      const store = configureSessionStore();
+    it("logs an error when the MongoDB store emits an error event", async () => {
+      const store = await configureSessionStore();
       const callsBefore = mockLoggerError.mock.calls.length;
 
       store.handlers.error(new Error("connection lost"));
@@ -77,10 +77,10 @@ describe("session-store-service", () => {
       );
     });
 
-    it("uses the Redis store when REDIS_URL is set and USE_MONGO_SESSION is not true", () => {
+    it("uses the Redis store when REDIS_URL is set and USE_MONGO_SESSION is not true", async () => {
       process.env.REDIS_URL = "redis://localhost:6379";
 
-      const store = configureSessionStore();
+      const store = await configureSessionStore();
 
       assert.ok(store instanceof mockRedisStoreCtor);
       assert.strictEqual(store.options.prefix, "twt-app-session:");
@@ -89,8 +89,8 @@ describe("session-store-service", () => {
   });
 
   describe("configureSessionMiddleware", () => {
-    it("builds session middleware with a strict, secure cookie in production", () => {
-      const middleware = configureSessionMiddleware("shh", true);
+    it("builds session middleware with a strict, secure cookie in production", async () => {
+      const middleware = await configureSessionMiddleware("shh", true);
 
       const [options] = mockSession.mock.calls.at(-1).arguments;
       assert.strictEqual(options.secret, "shh");
@@ -99,8 +99,8 @@ describe("session-store-service", () => {
       assert.ok(middleware.sessionOptions);
     });
 
-    it("builds session middleware with a lax cookie outside production", () => {
-      configureSessionMiddleware("shh", false);
+    it("builds session middleware with a lax cookie outside production", async () => {
+      await configureSessionMiddleware("shh", false);
 
       const [options] = mockSession.mock.calls.at(-1).arguments;
       assert.strictEqual(options.cookie.sameSite, "lax");

@@ -11,6 +11,9 @@ dns.setServers(["8.8.8.8", "8.8.4.4", "1.1.1.1"]);
 
 const connectOptions = {
   dbName: "twt-app",
+  // Driver default is 100; this app's traffic doesn't need anywhere near that
+  // many idle sockets held open.
+  maxPoolSize: 10,
 };
 
 export const connectToDatabase = async () => {

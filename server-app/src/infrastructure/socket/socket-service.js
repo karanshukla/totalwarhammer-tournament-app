@@ -19,6 +19,14 @@ const connectionLimiter = createRateLimiter({ windowMs: 60_000, max: 20 });
 // 60 events per connected socket per minute
 const eventLimiter = createRateLimiter({ windowMs: 60_000, max: 60 });
 
+// connectionLimiter is keyed by client IP rather than a short-lived id like a
+// socket id, so there's no per-connection event to reclaim its bucket from.
+// Left unpruned it grows by one entry per distinct IP for the life of the
+// process.
+/* node:coverage disable */
+setInterval(() => connectionLimiter.pruneExpired(), 10 * 60_000).unref();
+/* node:coverage enable */
+
 let io = null;
 
 // Behind Caddy every handshake reports the proxy's address, which would put
