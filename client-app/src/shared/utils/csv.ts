@@ -30,6 +30,30 @@ export const toCsv = (rows: CsvRow[]): string => {
   return lines.join("\r\n");
 };
 
+export type CsvSection = { title: string; rows: CsvRow[] };
+
+const EMPTY_SECTION_PLACEHOLDER = "(no data for this selection)";
+
+/**
+ * Serialise labelled sections into one file, each as a titled block with its
+ * own header row.
+ *
+ * The statistics lists share no common shape — a faction row and a tournament
+ * row have almost no columns in common — so folding them into one table would
+ * produce a header of every column that exists and rows that are mostly empty
+ * cells. Blocks give up single-table RFC 4180 in exchange for a file each
+ * section of which is readable on its own. An empty section still gets its
+ * title so the export shows the section was covered and had nothing in it,
+ * rather than looking like it was skipped.
+ */
+export const toSectionedCsv = (sections: CsvSection[]): string =>
+  sections
+    .map(
+      ({ title, rows }) =>
+        `${escapeCell(title)}\r\n${rows.length === 0 ? EMPTY_SECTION_PLACEHOLDER : toCsv(rows)}`,
+    )
+    .join("\r\n\r\n");
+
 /**
  * `tw-<surface>-<section>-<game>-<range>-<yyyy-mm-dd>.csv`, e.g.
  * `tw-stats-topFactions-wh3-30d-2026-08-03.csv`.

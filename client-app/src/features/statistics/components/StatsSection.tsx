@@ -62,10 +62,11 @@ const StatsSection: React.FC<StatsSectionProps> = ({
           </HStack>
           <Button
             size="xs"
-            variant="ghost"
+            variant="outline"
             colorPalette="ink"
             onClick={onExport}
             loading={exporting}
+            flexShrink={0}
             aria-label={`Export ${title} as CSV`}
           >
             <LuDownload />

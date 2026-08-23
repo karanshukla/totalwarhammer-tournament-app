@@ -5,13 +5,21 @@
  *   - header row from the union of every row's keys, in first-seen order
  *   - missing / null / undefined cells → empty
  *   - commas, quotes, newlines → quoted and doubled per RFC 4180
+ * toSectionedCsv:
+ *   - one titled block per section, blank line between
+ *   - empty section keeps its title and says so
  * csvFilename:
  *   - tw-<surface>-<section>-<game>-<range>-<yyyy-mm-dd>.csv, zero-padded
  * downloadCsv:
  *   - Blob + object URL + anchor click, and the URL is revoked afterwards
  */
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { toCsv, csvFilename, downloadCsv } from "@/shared/utils/csv";
+import {
+  toCsv,
+  toSectionedCsv,
+  csvFilename,
+  downloadCsv,
+} from "@/shared/utils/csv";
 
 describe("toCsv", () => {
   it("returns an empty string for no rows", () => {
@@ -118,5 +126,75 @@ describe("downloadCsv", () => {
     const bytes = new Uint8Array(await blob.arrayBuffer());
     expect([...bytes.slice(0, 3)]).toEqual([0xef, 0xbb, 0xbf]);
     expect(new TextDecoder().decode(bytes.slice(3))).toBe("a,b\r\n1,2");
+  });
+});
+
+describe("toSectionedCsv", () => {
+  it("writes one titled block per section, separated by a blank line", () => {
+    const csv = toSectionedCsv([
+      { title: "Summary", rows: [{ metric: "Total Tournaments", value: 42 }] },
+      {
+        title: "Top Winning Factions",
+        rows: [
+          { rank: 1, faction: "Kislev", wins: 7 },
+          { rank: 2, faction: "Skaven", wins: 5 },
+        ],
+      },
+    ]);
+
+    expect(csv).toBe(
+      [
+        "Summary",
+        "metric,value",
+        "Total Tournaments,42",
+        "",
+        "Top Winning Factions",
+        "rank,faction,wins",
+        "1,Kislev,7",
+        "2,Skaven,5",
+      ].join("\r\n"),
+    );
+  });
+
+  it("keeps each block on its own header, so unrelated shapes do not merge", () => {
+    const csv = toSectionedCsv([
+      { title: "A", rows: [{ onlyInA: 1 }] },
+      { title: "B", rows: [{ onlyInB: 2 }] },
+    ]);
+
+    expect(csv).toContain("onlyInA\r\n1");
+    expect(csv).toContain("onlyInB\r\n2");
+    // A union header would have produced this; blocks must not.
+    expect(csv).not.toContain("onlyInA,onlyInB");
+  });
+
+  it("keeps an empty section visible rather than dropping it", () => {
+    const csv = toSectionedCsv([
+      { title: "Recent Tournament Winners", rows: [] },
+      { title: "Top Players", rows: [{ rank: 1, player: "Karz" }] },
+    ]);
+
+    expect(csv).toBe(
+      [
+        "Recent Tournament Winners",
+        "(no data for this selection)",
+        "",
+        "Top Players",
+        "rank,player",
+        "1,Karz",
+      ].join("\r\n"),
+    );
+  });
+
+  it("escapes a title that contains a comma or quote", () => {
+    const csv = toSectionedCsv([
+      { title: 'Top "Winning" Factions, ranked', rows: [{ a: 1 }] },
+    ]);
+
+    expect(csv.split("\r\n")[0]).toBe('"Top ""Winning"" Factions, ranked"');
+  });
+
+  it("returns an empty string when there are no sections", () => {
+    expect(toSectionedCsv([])).toBe("");
   });
 });

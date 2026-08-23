@@ -12,6 +12,7 @@ import {
   Card,
   Separator,
   For,
+  Button,
 } from "@chakra-ui/react";
 import {
   LuTrophy,
@@ -23,9 +24,15 @@ import {
   LuTriangleAlert,
   LuHourglass,
   LuPercent,
+  LuDownload,
 } from "react-icons/lu";
 import { displayName as dn } from "@/shared/utils/displayName";
-import { toCsv, csvFilename, downloadCsv } from "@/shared/utils/csv";
+import {
+  toCsv,
+  toSectionedCsv,
+  csvFilename,
+  downloadCsv,
+} from "@/shared/utils/csv";
 import Callout from "@/shared/ui/Callout";
 import { toaster } from "@/shared/ui/toasterStore";
 import GameSystemToggle from "@/shared/ui/GameSystemToggle";
@@ -46,6 +53,23 @@ type ListSection =
   | "recentWinners"
   | "topCreators"
   | "recentTournaments";
+
+// Ordered so the combined export reads down the page.
+const LIST_SECTIONS: ListSection[] = [
+  "topFactions",
+  "topPlayers",
+  "recentWinners",
+  "topCreators",
+  "recentTournaments",
+];
+
+const SECTION_TITLES: Record<ListSection, string> = {
+  topFactions: "Top Winning Factions",
+  topPlayers: "Top Players",
+  recentWinners: "Recent Tournament Winners",
+  topCreators: "Top Tournament Creators",
+  recentTournaments: "Recent Completed Tournaments",
+};
 
 const SECTION_DEFAULTS: Record<ListSection, number> = {
   topFactions: 10,
@@ -114,6 +138,22 @@ const CSV_ROWS: Record<
       createdAt: t.createdAt,
     })),
 };
+
+// The overview and pipeline tiles, as metric/value pairs. These are the only
+// numbers on the page with no list behind them, so they need their own shape
+// rather than a row builder.
+const SUMMARY_ROWS = (s: GameStats): Record<string, unknown>[] => [
+  { metric: "Total Tournaments", value: s.tournaments.total },
+  { metric: "Active Tournaments", value: s.tournaments.active },
+  { metric: "Pending Tournaments", value: s.tournaments.pending },
+  { metric: "Completed Tournaments", value: s.tournaments.completed },
+  { metric: "Matches Played", value: s.matches.completed },
+  { metric: "Matches Pending", value: s.matches.pending },
+  { metric: "Matches In Progress", value: s.matches.in_progress },
+  { metric: "Disputed Matches", value: s.matches.disputed },
+  { metric: "Total Matches", value: s.matches.total },
+  { metric: "Match Completion %", value: s.matches.completionRate },
+];
 
 interface StatCardProps {
   label: string;
@@ -191,6 +231,7 @@ const StatisticsPage: React.FC = () => {
   const [exportingSection, setExportingSection] = useState<ListSection | null>(
     null,
   );
+  const [exportingAll, setExportingAll] = useState(false);
 
   // Cards follow the app-wide pattern (TournamentViewPage / TournamentList):
   // bg.panel fill + a real drop shadow (shadow sm) for elevation + border.subtle
@@ -269,6 +310,34 @@ const StatisticsPage: React.FC = () => {
     [game, range],
   );
 
+  // One fetch feeds every block, so exporting the whole page costs the same
+  // request as exporting a single section.
+  const exportEverything = useCallback(async () => {
+    setExportingAll(true);
+    try {
+      const full = await fetchStats({ range, limit: MAX_LIST_LIMIT });
+      const gameStats = full[game];
+      downloadCsv(
+        csvFilename({ surface: "stats", section: "all", game, range }),
+        toSectionedCsv([
+          { title: "Summary", rows: SUMMARY_ROWS(gameStats) },
+          ...LIST_SECTIONS.map((section) => ({
+            title: SECTION_TITLES[section],
+            rows: CSV_ROWS[section](gameStats),
+          })),
+        ]),
+      );
+    } catch {
+      toaster.create({
+        title: "Export failed",
+        description: "Could not build the statistics CSV. Please try again.",
+        type: "error",
+      });
+    } finally {
+      setExportingAll(false);
+    }
+  }, [game, range]);
+
   if (loading) {
     return (
       <Container maxW="7xl" py={16}>
@@ -294,13 +363,14 @@ const StatisticsPage: React.FC = () => {
   const maxFactionWins = active.topFactions[0]?.wins ?? 1;
   const maxPlayerWins = active.topPlayers[0]?.wins ?? 1;
 
-  const sectionProps = (section: ListSection, title: string) => ({
+  const sectionProps = (section: ListSection) => ({
+    title: SECTION_TITLES[section],
     shown: shown[section],
     available: (active[section] as unknown[]).length,
     total: active[TOTAL_KEYS[section]] as number | undefined,
     loadingMore: pendingSection === section,
     onShowMore: () => showMore(section),
-    onExport: () => exportSection(section, title),
+    onExport: () => exportSection(section, SECTION_TITLES[section]),
     exporting: exportingSection === section,
   });
 
@@ -350,6 +420,18 @@ const StatisticsPage: React.FC = () => {
           >
             <TimeRangeSelect value={range} onChange={changeRange} size="sm" />
           </Box>
+          <Button
+            size="sm"
+            variant="outline"
+            colorPalette="ink"
+            onClick={exportEverything}
+            loading={exportingAll}
+            ml={{ base: 0, md: "auto" }}
+            aria-label="Export all statistics as CSV"
+          >
+            <LuDownload />
+            Export all
+          </Button>
         </HStack>
 
         {/* Overview cards */}
@@ -427,11 +509,10 @@ const StatisticsPage: React.FC = () => {
         <SimpleGrid columns={{ base: 1, lg: 2 }} gap={6}>
           {/* Top Factions */}
           <StatsSection
-            title="Top Winning Factions"
             icon={<LuShield />}
             accent="gold.border"
             subtitle={rangeLabel}
-            {...sectionProps("topFactions", "Top Winning Factions")}
+            {...sectionProps("topFactions")}
           >
             {active.topFactions.length === 0 ? (
               <Text color="fg.secondary" fontSize="sm">
@@ -488,11 +569,10 @@ const StatisticsPage: React.FC = () => {
 
           {/* Top Players */}
           <StatsSection
-            title="Top Players"
             icon={<LuTrophy />}
             accent="gold.border"
             subtitle={rangeLabel}
-            {...sectionProps("topPlayers", "Top Players")}
+            {...sectionProps("topPlayers")}
           >
             {active.topPlayers.length === 0 ? (
               <Text color="fg.secondary" fontSize="sm">
@@ -562,11 +642,10 @@ const StatisticsPage: React.FC = () => {
 
           {/* Recent Tournament Winners */}
           <StatsSection
-            title="Recent Tournament Winners"
             icon={<LuTrophy />}
             accent="info.border"
             subtitle={rangeLabel}
-            {...sectionProps("recentWinners", "Recent Tournament Winners")}
+            {...sectionProps("recentWinners")}
           >
             {active.recentWinners.length === 0 ? (
               <Text fontSize="sm" color="fg.secondary" fontStyle="italic">
@@ -629,11 +708,10 @@ const StatisticsPage: React.FC = () => {
 
           {/* Top Tournament Creators */}
           <StatsSection
-            title="Top Tournament Creators"
             icon={<LuUsers />}
             accent="brass.border"
             subtitle="All time — creating a tournament isn't a dated event"
-            {...sectionProps("topCreators", "Top Tournament Creators")}
+            {...sectionProps("topCreators")}
           >
             {active.topCreators.length === 0 ? (
               <Text color="fg.secondary" fontSize="sm">
@@ -685,15 +763,11 @@ const StatisticsPage: React.FC = () => {
         {/* Recent Completed Tournaments */}
         {active.recentTournaments.length > 0 && (
           <StatsSection
-            title="Recent Completed Tournaments"
             icon={<LuTrophy />}
             accent="info.border"
             iconColor="info.text"
             subtitle={rangeLabel}
-            {...sectionProps(
-              "recentTournaments",
-              "Recent Completed Tournaments",
-            )}
+            {...sectionProps("recentTournaments")}
           >
             <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} gap={4}>
               <For each={page("recentTournaments", active.recentTournaments)}>

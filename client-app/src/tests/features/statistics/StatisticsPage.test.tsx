@@ -634,4 +634,68 @@ describe("StatisticsPage – CSV export", () => {
     expect(revokeObjectURL).toHaveBeenCalledWith("blob:stats");
     vi.unstubAllGlobals();
   });
+
+  it("exports every section plus the summary numbers in one file", async () => {
+    const user = userEvent.setup();
+    const exported: Blob[] = [];
+    const createObjectURL = vi.fn((blob: Blob) => {
+      exported.push(blob);
+      return "blob:stats-all";
+    });
+    const revokeObjectURL = vi.fn();
+    vi.stubGlobal("URL", { ...URL, createObjectURL, revokeObjectURL });
+    const downloadNames: string[] = [];
+    vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(function (
+      this: HTMLAnchorElement,
+    ) {
+      downloadNames.push(this.download);
+    });
+
+    mockGet.mockResolvedValue({
+      success: true,
+      data: withWh3({
+        topFactions: [{ faction: "Empire", wins: 4, matchesPlayed: 6 }],
+        topFactionsTotal: 1,
+      }),
+    });
+    renderPage();
+
+    await waitFor(() => expect(screen.getByText("Empire")).toBeInTheDocument());
+
+    await user.click(
+      screen.getByRole("button", { name: /export all statistics as csv/i }),
+    );
+
+    await waitFor(() => expect(createObjectURL).toHaveBeenCalled());
+
+    // One request feeds every block, and it is the unpaginated one.
+    expect(mockGet).toHaveBeenLastCalledWith(
+      expect.stringContaining("limit=200"),
+    );
+    expect(downloadNames).toHaveLength(1);
+    expect(downloadNames[0]).toMatch(
+      /^tw-stats-all-wh3-all-\d{4}-\d{2}-\d{2}\.csv$/,
+    );
+
+    expect(exported).toHaveLength(1);
+    const text = new TextDecoder().decode(await exported[0].arrayBuffer());
+
+    // The summary block is the gap the per-section buttons never covered.
+    expect(text).toContain("Summary");
+    expect(text).toContain("metric,value");
+    expect(text).toContain("Total Tournaments,");
+
+    for (const title of [
+      "Top Winning Factions",
+      "Top Players",
+      "Recent Tournament Winners",
+      "Top Tournament Creators",
+      "Recent Completed Tournaments",
+    ]) {
+      expect(text).toContain(title);
+    }
+
+    expect(revokeObjectURL).toHaveBeenCalledWith("blob:stats-all");
+    vi.unstubAllGlobals();
+  });
 });
