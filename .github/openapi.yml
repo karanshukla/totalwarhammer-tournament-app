@@ -54,8 +54,6 @@ paths:
                 properties:
                   csrfToken:
                     type: string
-                  sessionId:
-                    type: string
 
   /auth/login:
     post:
