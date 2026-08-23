@@ -84,4 +84,48 @@ describe("password-reset model", () => {
       assert.strictEqual(result, null);
     });
   });
+
+  // Requesting a new reset link, or completing a reset, has to retire the
+  // links already in the user's inbox — otherwise an older email keeps working
+  // and an attacker who obtained one still holds a live token.
+  describe("invalidateOutstandingTokens", () => {
+    it("marks every unused token for the user as used", async () => {
+      const mockUpdateMany = mock.fn(async () => ({ modifiedCount: 2 }));
+      await schema.statics.invalidateOutstandingTokens.call(
+        { updateMany: mockUpdateMany },
+        "user-123",
+      );
+
+      assert.strictEqual(mockUpdateMany.mock.calls.length, 1);
+      const [filter, update] = mockUpdateMany.mock.calls[0].arguments;
+      assert.deepStrictEqual(filter, { userId: "user-123", isUsed: false });
+      assert.deepStrictEqual(update, { $set: { isUsed: true } });
+    });
+
+    it("scopes the update to one user, never the whole collection", async () => {
+      const mockUpdateMany = mock.fn(async () => ({ modifiedCount: 0 }));
+      await schema.statics.invalidateOutstandingTokens.call(
+        { updateMany: mockUpdateMany },
+        "user-abc",
+      );
+
+      const [filter] = mockUpdateMany.mock.calls[0].arguments;
+      assert.strictEqual(filter.userId, "user-abc");
+      assert.ok(
+        "userId" in filter,
+        "a missing userId would invalidate every user's tokens",
+      );
+    });
+
+    it("leaves already-used tokens alone so the filter stays selective", async () => {
+      const mockUpdateMany = mock.fn(async () => ({ modifiedCount: 0 }));
+      await schema.statics.invalidateOutstandingTokens.call(
+        { updateMany: mockUpdateMany },
+        "user-123",
+      );
+
+      const [filter] = mockUpdateMany.mock.calls[0].arguments;
+      assert.strictEqual(filter.isUsed, false);
+    });
+  });
 });

@@ -4,6 +4,10 @@
  *   - res.success=true → returns res.data
  *   - res.success=false → returns null
  *   - catch → returns null
+ *   - query params are forwarded to the request URL
+ * userStatsUrl:
+ *   - no params → bare endpoint, no "?"
+ *   - each param appears only when supplied; offset=0 is not "falsy-dropped"
  * refreshSession:
  *   - result.valid=true → returns true
  *   - catch → returns false
@@ -69,6 +73,7 @@ vi.mock("@/shared/ui/toasterStore", () => ({
 
 import {
   fetchUserStats,
+  userStatsUrl,
   refreshSession,
   updateUsername,
   deleteAccount,
@@ -102,6 +107,44 @@ describe("fetchUserStats", () => {
     mockGet.mockRejectedValueOnce(new Error("Network error"));
     const result = await fetchUserStats();
     expect(result).toBeNull();
+  });
+
+  it("forwards the query to the request URL", async () => {
+    mockGet.mockResolvedValueOnce({ success: true, data: fakeStats });
+    await fetchUserStats({ range: "30d", detail: "full" });
+    expect(mockGet).toHaveBeenCalledWith("/user/stats?range=30d&detail=full");
+  });
+
+  it("requests the bare endpoint when no query is given", async () => {
+    mockGet.mockResolvedValueOnce({ success: true, data: fakeStats });
+    await fetchUserStats();
+    expect(mockGet).toHaveBeenCalledWith("/user/stats");
+  });
+});
+
+// The URL builder is the whole contract between this client and the server's
+// query validation — a dropped or misnamed param silently returns the wrong
+// window rather than failing loudly.
+describe("userStatsUrl", () => {
+  it("returns the bare endpoint when nothing is supplied", () => {
+    expect(userStatsUrl()).toBe("/user/stats");
+    expect(userStatsUrl({})).toBe("/user/stats");
+  });
+
+  it("includes only the params that were supplied", () => {
+    expect(userStatsUrl({ range: "7d" })).toBe("/user/stats?range=7d");
+    expect(userStatsUrl({ detail: "full" })).toBe("/user/stats?detail=full");
+    expect(userStatsUrl({ limit: 25 })).toBe("/user/stats?limit=25");
+  });
+
+  it("keeps offset=0, which a truthiness check would drop", () => {
+    expect(userStatsUrl({ offset: 0 })).toBe("/user/stats?offset=0");
+  });
+
+  it("builds the full query in a stable order", () => {
+    expect(
+      userStatsUrl({ range: "90d", limit: 10, offset: 20, detail: "summary" }),
+    ).toBe("/user/stats?range=90d&limit=10&offset=20&detail=summary");
   });
 });
 

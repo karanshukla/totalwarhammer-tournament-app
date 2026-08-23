@@ -19,6 +19,13 @@ services:
     environment:
       NODE_ENV: development
       MONGO_URI: mongodb://mongo:27017/twt-hurl-test
+      # Every suite shares one source IP, and each session switch costs an auth
+      # request, so the production ceilings (300 global / 20 auth per 15 min)
+      # throttle the runner itself and surface as spurious 429 assertion
+      # failures. Raised here only — the limiter's own behaviour is not what
+      # these suites test.
+      RATE_LIMIT_GLOBAL_MAX: "5000"
+      RATE_LIMIT_AUTH_MAX: "500"
 
   hurl:
     image: ghcr.io/orange-opensource/hurl:latest
@@ -27,28 +34,27 @@ services:
     entrypoint: ["/bin/sh", "-c"]
     command:
       - |
-        RUN_ID=$$(tr -dc 'a-f0-9' < /dev/urandom | head -c 12) && \
+        set -e
+        RUN_ID=$$(tr -dc 'a-f0-9' < /dev/urandom | head -c 12)
+        # no-auth runs first, with retries, so it doubles as the readiness gate.
         hurl --test \
              --retry 12 \
              --retry-interval 5000 \
              --error-format long \
              --variable host=server:3000 \
              --report-html /report \
-             /tests/no-auth.hurl \
-        && \
-        hurl --test \
-             --error-format long \
-             --variable host=server:3000 \
-             --variable run_id="$$RUN_ID" \
-             --report-html /report \
-             /tests/auth-boundaries.hurl \
-        && \
-        hurl --test \
-             --error-format long \
-             --variable host=server:3000 \
-             --variable run_id="$$RUN_ID" \
-             --report-html /report \
-             /tests/validation.hurl
+             /tests/no-auth.hurl
+        # One invocation per suite, so each starts from a clean cookie jar and
+        # its anonymous-caller assertions mean what they say. Order matters:
+        # stats-api asserts on the results the two preceding suites produce.
+        for suite in auth-boundaries validation tournament-lifecycle match-disputes stats-api; do
+          hurl --test \
+               --error-format long \
+               --variable host=server:3000 \
+               --variable run_id="$$RUN_ID" \
+               --report-html /report \
+               "/tests/$$suite.hurl"
+        done
     volumes:
       - ./tests/hurl:/tests:ro
       - hurl-report:/report
