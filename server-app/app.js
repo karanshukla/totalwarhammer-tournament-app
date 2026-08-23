@@ -107,7 +107,7 @@ logger.info(`CORS origin: ${clientUrl}`);
 
 // Configure and use session middleware
 app.use(warnOnInsecureForwardedScheme());
-app.use(configureSessionMiddleware(SESSION_SECRET, isProduction));
+app.use(await configureSessionMiddleware(SESSION_SECRET, isProduction));
 
 // Passport session support — must come after express-session
 app.use(passport.initialize());

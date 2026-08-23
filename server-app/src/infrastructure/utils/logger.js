@@ -1,6 +1,5 @@
 import path from "path";
 
-import { WinstonTransport as AxiomTransport } from "@axiomhq/winston";
 import winston from "winston";
 
 // Define log levels
@@ -70,6 +69,9 @@ const transports = [
 ];
 
 if (process.env.AXIOM_TOKEN && process.env.AXIOM_DATASET) {
+  // Dynamically imported so the Axiom SDK's dependency tree never loads into
+  // the process when log shipping isn't configured.
+  const { WinstonTransport: AxiomTransport } = await import("@axiomhq/winston");
   transports.push(
     new AxiomTransport({
       token: process.env.AXIOM_TOKEN,

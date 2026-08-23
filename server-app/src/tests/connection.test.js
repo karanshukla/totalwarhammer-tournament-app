@@ -39,7 +39,7 @@ describe("connection", () => {
     assert.strictEqual(mockConnect.mock.calls.length, 1);
     assert.deepStrictEqual(mockConnect.mock.calls[0].arguments, [
       "mongodb://localhost:27017/twt-app",
-      { dbName: "twt-app" },
+      { dbName: "twt-app", maxPoolSize: 10 },
     ]);
   });
 
