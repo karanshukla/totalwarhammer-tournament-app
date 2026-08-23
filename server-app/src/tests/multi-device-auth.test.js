@@ -53,21 +53,16 @@ describe("multi-device auth", () => {
       assert.notStrictEqual(deviceA.session, deviceB.session);
     });
 
-    it("each device gets its own UA fingerprint", async () => {
+    it("each device gets its own independently stamped session", async () => {
       const deviceA = makeDevice(CHROME_WINDOWS_UA);
       const deviceB = makeDevice(FIREFOX_MAC_UA);
 
       await service.createUserAuthState(deviceA, USER);
       await service.createUserAuthState(deviceB, USER);
 
-      assert.deepStrictEqual(deviceA.session.fingerprint, {
-        browser: "Chrome",
-        os: "Windows",
-      });
-      assert.deepStrictEqual(deviceB.session.fingerprint, {
-        browser: "Firefox",
-        os: "macOS",
-      });
+      assert.ok(deviceA.session.authAt instanceof Date);
+      assert.ok(deviceB.session.authAt instanceof Date);
+      assert.notStrictEqual(deviceA.session.user, deviceB.session.user);
     });
 
     it("each device remains authenticated independently", async () => {
@@ -165,17 +160,17 @@ describe("multi-device auth", () => {
     });
   });
 
-  describe("cross-device fingerprint validation", () => {
-    it("device A request is rejected if its UA changes to a different browser", async () => {
+  describe("cross-device session isolation", () => {
+    it("device A survives its own UA changing mid-session", async () => {
       const deviceA = makeDevice(CHROME_WINDOWS_UA);
       await service.createUserAuthState(deviceA, USER);
 
       deviceA.get = (h) => (h === "user-agent" ? FIREFOX_MAC_UA : null);
 
-      assert.strictEqual(service.isAuthenticated(deviceA), false);
+      assert.strictEqual(service.isAuthenticated(deviceA), true);
     });
 
-    it("device B with different browser is valid regardless of device A fingerprint", async () => {
+    it("devices on different browsers are both valid", async () => {
       const deviceA = makeDevice(CHROME_WINDOWS_UA);
       const deviceB = makeDevice(FIREFOX_MAC_UA);
 
@@ -186,15 +181,14 @@ describe("multi-device auth", () => {
       assert.strictEqual(service.isAuthenticated(deviceB), true);
     });
 
-    it("fingerprint mismatch on device A does not invalidate device B", async () => {
+    it("clearing device A's session leaves device B signed in", async () => {
       const deviceA = makeDevice(CHROME_WINDOWS_UA);
-      const deviceB = makeDevice(FIREFOX_MAC_UA);
+      const deviceB = makeDevice(SAFARI_IOS_UA);
 
       await service.createUserAuthState(deviceA, USER);
       await service.createUserAuthState(deviceB, USER);
 
-      // Device A's UA changes mid-session (different browser family)
-      deviceA.get = (h) => (h === "user-agent" ? SAFARI_IOS_UA : null);
+      deviceA.session.isAuthenticated = false;
 
       assert.strictEqual(service.isAuthenticated(deviceA), false);
       assert.strictEqual(service.isAuthenticated(deviceB), true);

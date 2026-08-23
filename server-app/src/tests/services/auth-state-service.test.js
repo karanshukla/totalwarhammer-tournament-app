@@ -5,7 +5,8 @@ import AuthStateService from "../../infrastructure/services/auth-state-service.j
 
 mock.timers.enable(["Date"]);
 
-// Real UA strings so ua-parser-js can identify browser/OS
+// Distinct real UA strings, used to assert that a changing User-Agent does
+// NOT invalidate a live session (see "a changing User-Agent" below).
 const CHROME_UA =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
 const FIREFOX_UA =
@@ -51,10 +52,6 @@ describe("AuthStateService", () => {
       });
       assert.strictEqual(req.session.isAuthenticated, true);
       assert.ok(req.session.createdAt instanceof Date);
-      assert.deepStrictEqual(req.session.fingerprint, {
-        browser: "Chrome",
-        os: "Windows",
-      });
       assert.strictEqual(
         req.session.cookie.maxAge,
         authStateService.DEFAULT_AUTH_STATE_TIMEOUT,
@@ -132,7 +129,7 @@ describe("AuthStateService", () => {
       assert.strictEqual(req.session.user.isGuest, true);
     });
 
-    it("stores a null fingerprint when no user-agent header is present", async () => {
+    it("establishes a session for a request that sends no user-agent header", async () => {
       const req = createMockRequest({
         session: { cookie: {} },
         userAgent: null,
@@ -143,7 +140,8 @@ describe("AuthStateService", () => {
         username: "testuser",
       });
 
-      assert.strictEqual(req.session.fingerprint, null);
+      assert.strictEqual(req.session.isAuthenticated, true);
+      assert.strictEqual(authStateService.isAuthenticated(req), true);
     });
   });
 
@@ -216,50 +214,6 @@ describe("AuthStateService", () => {
       assert.strictEqual(authStateService.isAuthenticated(req), true);
     });
 
-    it("should return false when browser family changes", () => {
-      // Session fingerprinted with Chrome, but Firefox is making the request
-      const req = createMockRequest({
-        session: {
-          isAuthenticated: true,
-          user: { id: "123" },
-          fingerprint: { browser: "Chrome", os: "Windows" },
-        },
-        userAgent: FIREFOX_UA,
-      });
-
-      assert.strictEqual(authStateService.isAuthenticated(req), false);
-    });
-
-    it("should return false when the OS family changes but the browser stays the same", () => {
-      const CHROME_ON_MAC =
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
-      const req = createMockRequest({
-        session: {
-          isAuthenticated: true,
-          user: { id: "123" },
-          fingerprint: { browser: "Chrome", os: "Windows" },
-        },
-        userAgent: CHROME_ON_MAC,
-      });
-
-      assert.strictEqual(authStateService.isAuthenticated(req), false);
-    });
-
-    it("should return true when UA version changes but browser family is the same", () => {
-      const CHROME_NEWER =
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36";
-      const req = createMockRequest({
-        session: {
-          isAuthenticated: true,
-          user: { id: "123" },
-          fingerprint: { browser: "Chrome", os: "Windows" },
-        },
-        userAgent: CHROME_NEWER,
-      });
-
-      assert.strictEqual(authStateService.isAuthenticated(req), true);
-    });
-
     it("should return true when no fingerprint was stored on the session", () => {
       const req = createMockRequest({
         session: {
@@ -270,27 +224,87 @@ describe("AuthStateService", () => {
 
       assert.strictEqual(authStateService.isAuthenticated(req), true);
     });
+  });
 
-    it("should reject a session whose request omits the user-agent it was created with", () => {
-      const req = createMockRequest({
-        session: {
-          isAuthenticated: true,
-          user: { id: "123" },
-          fingerprint: { browser: "Chrome", os: "Windows" },
-        },
-        userAgent: null,
-      });
-
-      assert.strictEqual(authStateService.isAuthenticated(req), false);
+  // Sessions were once bound to the browser/OS families parsed out of the
+  // User-Agent. It cost legitimate users their session for changes they make
+  // routinely, and bought little: an attacker replaying a stolen cookie has the
+  // matching User-Agent in the same request they stole it from. Password-change
+  // eviction (issue #101) is the control that actually holds.
+  describe("isAuthenticated - a changing User-Agent does not evict a session", () => {
+    const liveSession = (session = {}) => ({
+      isAuthenticated: true,
+      user: { id: "123" },
+      // Sessions minted before the check was removed still carry this; it must
+      // be ignored rather than enforced.
+      fingerprint: { browser: "Chrome", os: "Windows" },
+      ...session,
     });
 
-    it("should allow a session that never recorded a fingerprint", () => {
+    it("survives a switch to a different browser", () => {
       const req = createMockRequest({
-        session: { isAuthenticated: true, user: { id: "123" } },
+        session: liveSession(),
+        userAgent: FIREFOX_UA,
+      });
+
+      assert.strictEqual(authStateService.isAuthenticated(req), true);
+    });
+
+    it("survives a switch to a different OS", () => {
+      const CHROME_ON_MAC =
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
+      const req = createMockRequest({
+        session: liveSession(),
+        userAgent: CHROME_ON_MAC,
+      });
+
+      assert.strictEqual(authStateService.isAuthenticated(req), true);
+    });
+
+    // "Request desktop site" rewrites both halves at once — Mobile Chrome on
+    // Android becomes Chrome on Linux — so the old check logged you out for
+    // toggling a browser menu item.
+    it("survives toggling desktop mode on a phone", () => {
+      const ANDROID_CHROME =
+        "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Mobile Safari/537.36";
+      const ANDROID_CHROME_DESKTOP_MODE =
+        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36";
+
+      const req = createMockRequest({
+        session: { cookie: {} },
+        userAgent: ANDROID_CHROME,
+      });
+      authStateService.createUserAuthState(req, {
+        _id: "123",
+        username: "testuser",
+      });
+
+      req.get = (header) =>
+        header === "user-agent" ? ANDROID_CHROME_DESKTOP_MODE : null;
+
+      assert.strictEqual(authStateService.isAuthenticated(req), true);
+    });
+
+    it("survives a request that omits the user-agent entirely", () => {
+      const req = createMockRequest({
+        session: liveSession(),
         userAgent: null,
       });
 
       assert.strictEqual(authStateService.isAuthenticated(req), true);
+    });
+
+    it("still evicts the session when the password changed after it was issued", () => {
+      const req = createMockRequest({
+        session: liveSession({ authAt: new Date("2020-01-01") }),
+        userAgent: FIREFOX_UA,
+      });
+      req.user = {
+        id: "123",
+        passwordChangedAt: new Date("2020-06-01"),
+      };
+
+      assert.strictEqual(authStateService.isAuthenticated(req), false);
     });
   });
 
@@ -512,7 +526,7 @@ describe("AuthStateService", () => {
       assert.strictEqual(authStateService.isAuthenticated(req), true);
     });
 
-    it("should return false when guest browser family changes", () => {
+    it("keeps a guest session when the browser family changes", () => {
       const req = createMockRequest({
         session: {
           isAuthenticated: true,
@@ -523,7 +537,7 @@ describe("AuthStateService", () => {
         userAgent: FIREFOX_UA,
       });
 
-      assert.strictEqual(authStateService.isAuthenticated(req), false);
+      assert.strictEqual(authStateService.isAuthenticated(req), true);
     });
   });
 
@@ -601,10 +615,6 @@ describe("AuthStateService", () => {
       assert.strictEqual(req.session.isAuthenticated, true);
       assert.strictEqual(req.session.isGuest, true);
       assert.ok(req.session.createdAt instanceof Date);
-      assert.deepStrictEqual(req.session.fingerprint, {
-        browser: "Chrome",
-        os: "Windows",
-      });
       assert.strictEqual(
         req.session.cookie.maxAge,
         authStateService.GUEST_AUTH_STATE_TIMEOUT,

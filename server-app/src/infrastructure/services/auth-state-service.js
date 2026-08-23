@@ -1,39 +1,6 @@
 import { promisify } from "util";
 
-import { UAParser } from "ua-parser-js";
-
 import logger from "../utils/logger.js";
-
-/**
- * Parses a User-Agent string into a normalised fingerprint that only captures
- * browser family and OS family. Minor version bumps (e.g. Chrome 124 → 125)
- * are deliberately ignored so they don't invalidate a live session.
- *
- * @param {string | undefined} uaString
- * @returns {{ browser: string, os: string } | null}
- */
-function parseUAFingerprint(uaString) {
-  if (!uaString) return null;
-  const { browser, os } = new UAParser(uaString).getResult();
-  return {
-    browser: browser.name ?? "Unknown",
-    os: os.name ?? "Unknown",
-  };
-}
-
-/**
- * @param {{ browser: string, os: string } | null | undefined} stored
- * @param {{ browser: string, os: string } | null | undefined} current
- * @returns {boolean}
- */
-function fingerprintMatches(stored, current) {
-  // No stored fingerprint means the session predates the check — nothing to
-  // compare against. But once one is stored, an absent current fingerprint is
-  // a mismatch, otherwise dropping the User-Agent header bypasses the check.
-  if (!stored) return true;
-  if (!current) return false;
-  return stored.browser === current.browser && stored.os === current.os;
-}
 
 class AuthStateService {
   constructor() {
@@ -45,7 +12,7 @@ class AuthStateService {
   /**
    * Creates a new authenticated session for a regular user.
    *
-   * Writes all session metadata (user object, fingerprint, maxAge) and, when
+   * Writes all session metadata (user object, authAt, maxAge) and, when
    * passport is available on the request, also calls `req.login()` so that
    * `req.isAuthenticated()` works on all subsequent requests via
    * `passport.session()` + `deserializeUser`.
@@ -85,7 +52,6 @@ class AuthStateService {
     // authAt records when this session was authenticated, used to reject it
     // if the password is later changed elsewhere (issue #101).
     req.session.authAt = new Date();
-    req.session.fingerprint = parseUAFingerprint(req.get("user-agent"));
     req.session.cookie.maxAge = maxAge;
   }
 
@@ -133,10 +99,10 @@ class AuthStateService {
   }
 
   /**
-   * Returns true when the request belongs to a valid, un-tampered session.
-   * Checks the session flag, the UA fingerprint (browser family + OS), and
-   * that the session was authenticated after the user's most recent password
-   * change (issue #101: changing a password must invalidate older sessions).
+   * Returns true when the request belongs to a valid session. Checks the
+   * session flag and that the session was authenticated after the user's most
+   * recent password change (issue #101: changing a password must invalidate
+   * older sessions).
    *
    * @param {import('express').Request} req
    * @returns {boolean}
@@ -151,9 +117,6 @@ class AuthStateService {
 
     const isGuest =
       req.session.isGuest === true || req.session.user?.isGuest === true;
-
-    const stored = req.session.fingerprint;
-    const current = parseUAFingerprint(req.get("user-agent"));
 
     // Reject sessions authenticated before the user changed their password.
     // req.user.passwordChangedAt is loaded fresh on every request by passport's
@@ -173,22 +136,7 @@ class AuthStateService {
         );
         return false;
       }
-      if (!fingerprintMatches(stored, current)) {
-        logger.warn("Guest authentication rejected: UA fingerprint mismatch", {
-          stored,
-          current,
-        });
-        return false;
-      }
       return true;
-    }
-
-    if (!fingerprintMatches(stored, current)) {
-      logger.warn("Authentication rejected: UA fingerprint mismatch", {
-        stored,
-        current,
-      });
-      return false;
     }
 
     return true;
@@ -213,7 +161,7 @@ class AuthStateService {
 
   /**
    * Creates a guest session. Guests are not managed by passport — they live
-   * purely in the session and are identified by their UA fingerprint.
+   * purely in the session and are identified by their guestId.
    *
    * @param {import('express').Request} req
    * @param {string} guestId
@@ -236,7 +184,6 @@ class AuthStateService {
     req.session.isGuest = true;
     req.session.createdAt = new Date();
     req.session.authAt = new Date();
-    req.session.fingerprint = parseUAFingerprint(req.get("user-agent"));
 
     req.session.cookie.maxAge = this.GUEST_AUTH_STATE_TIMEOUT;
 
@@ -253,5 +200,4 @@ class AuthStateService {
   }
 }
 
-export { parseUAFingerprint };
 export default AuthStateService;

@@ -5,8 +5,8 @@ const authStateService = new AuthStateService();
 
 /**
  * Requires an authenticated (non-guest) session. Returns 401 when the session
- * is missing, the isAuthenticated flag is not set, or the UA fingerprint
- * doesn't match the one recorded at login.
+ * is missing, the isAuthenticated flag is not set, or the session predates the
+ * user's most recent password change.
  *
  * @type {import('express').RequestHandler}
  */
