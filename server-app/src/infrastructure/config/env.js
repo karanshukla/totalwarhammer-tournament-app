@@ -27,7 +27,6 @@ const withoutTrailingSlash = (url) =>
 // Export configuration values
 export const port = config.port;
 export const mongoUri = config.mongoUri;
-export const jwtSecret = config.jwtSecret;
 export const sessionSecret = config.sessionSecret;
 export const baseUrl = withoutTrailingSlash(config.baseUrl);
 export const clientUrl = withoutTrailingSlash(config.clientUrl);

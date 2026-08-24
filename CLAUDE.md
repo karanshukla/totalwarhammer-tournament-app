@@ -193,13 +193,6 @@ AXIOM_TOKEN=              # Optional; Axiom API token — enables structured log
 AXIOM_DATASET=            # Optional; Axiom dataset name (required when AXIOM_TOKEN is set)
 RATE_LIMIT_GLOBAL_MAX=300 # Optional; requests per 15 min per IP across all routes
 RATE_LIMIT_AUTH_MAX=20    # Optional; requests per 15 min per IP on login/register/token routes
-
-# Read only by infrastructure/services/jwt-service.js, which nothing currently
-# imports. Session cookies, not JWTs, carry auth.
-JWT_SECRET=
-JWT_EXPIRES_IN=
-JWT_GUEST_EXPIRES_IN=
-JWT_REMEMBER_ME_EXPIRES_IN=
 ```
 
 Client (`client-app/.env`):
