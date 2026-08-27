@@ -5,13 +5,11 @@
  * `npm run test:e2e`.
  */
 
-const ALPHABET = "abcdefghijklmnopqrstuvwxyz0123456789";
+import { randomBytes } from "node:crypto";
 
-const randomSuffix = (length: number): string =>
-  Array.from(
-    { length },
-    () => ALPHABET[Math.floor(Math.random() * ALPHABET.length)],
-  ).join("");
+/** Hex keeps the result inside the server's [a-zA-Z0-9_-] username rule. */
+const randomSuffix = (byteLength: number): string =>
+  randomBytes(byteLength).toString("hex");
 
 export interface TestUser {
   username: string;
@@ -25,7 +23,7 @@ export interface TestUser {
  *   the server's 30-character username limit.
  */
 export const buildTestUser = (prefix = "e2e"): TestUser => {
-  const username = `${prefix}_${randomSuffix(10)}`.slice(0, 30);
+  const username = `${prefix}_${randomSuffix(5)}`.slice(0, 30);
   return {
     username,
     email: `${username}@example.test`,
@@ -34,4 +32,4 @@ export const buildTestUser = (prefix = "e2e"): TestUser => {
 };
 
 export const buildTournamentName = (prefix = "E2E Tournament"): string =>
-  `${prefix} ${randomSuffix(6)}`;
+  `${prefix} ${randomSuffix(3)}`;
