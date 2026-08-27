@@ -1,0 +1,35 @@
+/**
+ * Specs run in parallel against one shared stack whose users and tournament
+ * codes are globally unique, so every account a spec creates has to be unique
+ * too — including across reruns, since the compose volumes outlive a single
+ * `npm run test:e2e`.
+ */
+
+import { randomBytes } from "node:crypto";
+
+/** Hex keeps the result inside the server's [a-zA-Z0-9_-] username rule. */
+const randomSuffix = (byteLength: number): string =>
+  randomBytes(byteLength).toString("hex");
+
+export interface TestUser {
+  username: string;
+  email: string;
+  password: string;
+}
+
+/**
+ * @param prefix Short label that identifies the spec in the seeded data, so a
+ *   surviving row in the test DB points back at what created it. Kept within
+ *   the server's 30-character username limit.
+ */
+export const buildTestUser = (prefix = "e2e"): TestUser => {
+  const username = `${prefix}_${randomSuffix(5)}`.slice(0, 30);
+  return {
+    username,
+    email: `${username}@example.test`,
+    password: "E2ePassw0rd!",
+  };
+};
+
+export const buildTournamentName = (prefix = "E2E Tournament"): string =>
+  `${prefix} ${randomSuffix(3)}`;
