@@ -29,8 +29,9 @@
     "test:e2e:typecheck": "tsc -p tests/e2e/tsconfig.json"
   },
   "devDependencies": {
+    "@playwright/test": "^1.56.0",
     "concurrently": "^10.0.3",
-    "@playwright/test": "^1.56.0"
+    "railway": "^3.11.0"
   },
   "overrides": {
     "@exodus/bytes": "^1.15.0",
