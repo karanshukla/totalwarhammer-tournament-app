@@ -23,7 +23,8 @@
     "format:check": "npm run format:check --workspace=client-app && npm run format:check --workspace=server-app"
   },
   "devDependencies": {
-    "concurrently": "^10.0.3"
+    "concurrently": "^10.0.3",
+    "railway": "^3.11.0"
   },
   "overrides": {
     "@exodus/bytes": "^1.15.0",
