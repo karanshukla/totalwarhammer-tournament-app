@@ -1,0 +1,27 @@
+# docker-compose.e2e.yml
+# Overlay on top of docker-compose.yml to host the stack the Playwright suite
+# drives. Playwright itself runs on the host (see tests/e2e), not in a service,
+# so `--ui`, `--headed` and the trace viewer all work against this stack.
+#
+# Usage (local):
+#   docker compose -f docker-compose.yml -f docker-compose.e2e.yml up -d --build
+#   npm run test:e2e
+#   docker compose -f docker-compose.yml -f docker-compose.e2e.yml down --volumes
+#
+# In CI the workflow handles startup and teardown.
+
+services:
+  server:
+    environment:
+      # Production mode marks the session and CSRF cookies Secure, which the
+      # browser drops over plain HTTP on localhost:8080 — every mutation then
+      # fails CSRF validation with 403. Development mode leaves them readable.
+      NODE_ENV: development
+      MONGO_URI: mongodb://mongo:27017/twt-e2e-test
+      # A browser run spends far more requests per scenario than a bare API
+      # call does — page loads, polling and asset fetches all count — so the
+      # production ceilings throttle the suite itself and surface as spurious
+      # 429s. Raised here only; the limiter's own behaviour is not what these
+      # specs test.
+      RATE_LIMIT_GLOBAL_MAX: "5000"
+      RATE_LIMIT_AUTH_MAX: "500"

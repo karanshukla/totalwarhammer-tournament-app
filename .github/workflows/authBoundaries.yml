@@ -38,12 +38,10 @@ jobs:
         env:
           SESSION_SECRET: ${{ secrets.SESSION_SECRET != '' && secrets.SESSION_SECRET || 'ci-session-secret-hurl' }}
           CSRF_SECRET: ${{ secrets.CSRF_SECRET != '' && secrets.CSRF_SECRET || 'ci-csrf-secret-hurl' }}
-          JWT_SECRET: ${{ secrets.JWT_SECRET != '' && secrets.JWT_SECRET || 'ci-jwt-secret-hurl' }}
         run: |
           cat > .env <<EOF
           SESSION_SECRET=${SESSION_SECRET}
           CSRF_SECRET=${CSRF_SECRET}
-          JWT_SECRET=${JWT_SECRET}
           RESEND_API_KEY=re_placeholder_not_used_in_tests
           CLIENT_URL=http://localhost:8080
           BASE_URL=http://localhost:8080

@@ -22,10 +22,6 @@ describe("env.js – test branch", () => {
     );
   });
 
-  it("exports jwtSecret from test config", () => {
-    assert.ok(typeof envModule.jwtSecret === "string");
-  });
-
   it("exports sessionSecret from test config", () => {
     assert.ok(typeof envModule.sessionSecret === "string");
   });

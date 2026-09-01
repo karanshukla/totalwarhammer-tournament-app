@@ -41,12 +41,10 @@ jobs:
         env:
           SESSION_SECRET: ${{ secrets.SESSION_SECRET != '' && secrets.SESSION_SECRET || 'ci-session-secret-zap' }}
           CSRF_SECRET: ${{ secrets.CSRF_SECRET != '' && secrets.CSRF_SECRET || 'ci-csrf-secret-zap' }}
-          JWT_SECRET: ${{ secrets.JWT_SECRET != '' && secrets.JWT_SECRET || 'ci-jwt-secret-zap' }}
         run: |
           cat > .env <<EOF
           SESSION_SECRET=${SESSION_SECRET}
           CSRF_SECRET=${CSRF_SECRET}
-          JWT_SECRET=${JWT_SECRET}
           RESEND_API_KEY=re_placeholder_not_used_in_scan
           CLIENT_URL=http://localhost:8080
           BASE_URL=http://localhost:8080

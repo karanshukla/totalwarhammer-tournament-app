@@ -22,6 +22,15 @@ npm run test --workspace=server-app        # Node test runner
 npm run test:watch --workspace=server-app  # Node test runner watch mode
 ```
 
+End-to-end (Playwright, needs Docker — see `tests/e2e/README.md`):
+
+```bash
+npm run e2e:up           # build and start the stack on http://localhost:8080
+npm run test:e2e         # run the suite
+npm run test:e2e:ui      # Playwright watch UI
+npm run e2e:down         # stop and drop the volumes
+```
+
 To run a single test file (server):
 ```bash
 cd server-app && node --test src/tests/authentication-controller.test.js
@@ -193,13 +202,6 @@ AXIOM_TOKEN=              # Optional; Axiom API token — enables structured log
 AXIOM_DATASET=            # Optional; Axiom dataset name (required when AXIOM_TOKEN is set)
 RATE_LIMIT_GLOBAL_MAX=300 # Optional; requests per 15 min per IP across all routes
 RATE_LIMIT_AUTH_MAX=20    # Optional; requests per 15 min per IP on login/register/token routes
-
-# Read only by infrastructure/services/jwt-service.js, which nothing currently
-# imports. Session cookies, not JWTs, carry auth.
-JWT_SECRET=
-JWT_EXPIRES_IN=
-JWT_GUEST_EXPIRES_IN=
-JWT_REMEMBER_ME_EXPIRES_IN=
 ```
 
 Client (`client-app/.env`):
@@ -231,5 +233,6 @@ GitHub Actions workflows in `.github/workflows/`:
 - `coverage.yml` — test coverage reporting (push to `main` only; it does not gate PRs, and no threshold is enforced)
 - `codacy.yml` — Codacy security scan (`continue-on-error`, so it reports rather than gates)
 - `zapScan.yml` — OWASP ZAP API security scan (`fail_action: false`, so it reports rather than gates)
+- `e2eTests.yml` — Playwright browser tests against the docker-compose stack
 - `claude-code-review.yml` — automated review via Claude
 - `claude.yml` — Claude Code agent integration

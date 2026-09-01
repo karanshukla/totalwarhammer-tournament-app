@@ -34,7 +34,6 @@ services:
       BASE_URL: ${BASE_URL:-http://localhost:8080}
       SESSION_SECRET: ${SESSION_SECRET}
       CSRF_SECRET: ${CSRF_SECRET}
-      JWT_SECRET: ${JWT_SECRET}
       RESEND_API_KEY: ${RESEND_API_KEY:-}
     networks:
       - backend

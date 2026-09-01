@@ -5,6 +5,7 @@
 [![Client Tests](https://github.com/karanshukla/totalwarhammer-tournament-app/actions/workflows/clientTests.yml/badge.svg)](https://github.com/karanshukla/totalwarhammer-tournament-app/actions/workflows/clientTests.yml)
 [![Server Tests](https://github.com/karanshukla/totalwarhammer-tournament-app/actions/workflows/serverTests.yml/badge.svg)](https://github.com/karanshukla/totalwarhammer-tournament-app/actions/workflows/serverTests.yml)
 [![Skaven Underway Test Yes Yes](https://github.com/karanshukla/totalwarhammer-tournament-app/actions/workflows/authBoundaries.yml/badge.svg)](https://github.com/karanshukla/totalwarhammer-tournament-app/actions/workflows/authBoundaries.yml)
+[![Playwright E2E Tests](https://github.com/karanshukla/totalwarhammer-tournament-app/actions/workflows/e2eTests.yml/badge.svg)](https://github.com/karanshukla/totalwarhammer-tournament-app/actions/workflows/e2eTests.yml)
 [![Coverage Status](https://coveralls.io/repos/github/karanshukla/totalwarhammer-tournament-app/badge.svg)](https://coveralls.io/github/karanshukla/totalwarhammer-tournament-app)
 [![OWASP ZAP Security Scan](https://github.com/karanshukla/totalwarhammer-tournament-app/actions/workflows/zapScan.yml/badge.svg)](https://github.com/karanshukla/totalwarhammer-tournament-app/actions/workflows/zapScan.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
@@ -107,7 +108,7 @@ npm run dev        # client (port 5173) + server (port 3000) concurrently
 | Auth | Custom session-based auth with PKCE |
 | Email | Resend |
 | Logging | Winston + optional Axiom |
-| Testing | Vitest (client), Node test runner (server) |
+| Testing | Vitest (client), Node test runner (server), Hurl (API), Playwright (E2E) |
 | Swiss Pairing | [tournament-pairings](https://github.com/slashinfty/tournament-pairings) - Blossom algorithm |
 
 ## Authentication
@@ -122,6 +123,7 @@ Session-based auth with a PKCE-inspired flow. Guest users get a UUID identity st
 | Server Tests | Push/PR to `main` touching `server-app/` | Yes |
 | Lint & Format | Push/PR to `main` | Yes |
 | Hurl Auth Boundary Tests | Push/PR to `main` touching the server or `tests/hurl/` | Yes |
+| Playwright E2E Tests | Push/PR to `main` touching either app, `tests/e2e/` or the compose stack | Yes |
 | Cron Script Tests | Push/PR to `main` touching `cron/` | Yes |
 | Coverage | Push to `main` only | No — reports, no threshold |
 | OWASP ZAP Security Scan | Push/PR to `main` | No — `fail_action: false` |
@@ -132,7 +134,7 @@ Session-based auth with a PKCE-inspired flow. Guest users get a UUID identity st
 Contributions are welcome. To get started:
 
 1. Fork the repo and create a branch from `main`
-2. Make your changes with tests where applicable (`npm run test:client` / `npm run test:server`)
+2. Make your changes with tests where applicable (`npm run test:client` / `npm run test:server`, and `npm run test:e2e` for browser flows — see `tests/e2e/README.md`)
 3. Run `npm run lint` and `npm run format` before submitting
 4. Open a pull request - CI and automated code review run automatically
 

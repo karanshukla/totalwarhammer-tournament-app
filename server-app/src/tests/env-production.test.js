@@ -8,7 +8,6 @@ import { describe, it } from "node:test";
 process.env.NODE_ENV = "production";
 process.env.PORT = "8080";
 process.env.MONGO_URI = "mongodb://prod-host:27017/prod_db";
-process.env.JWT_SECRET = "prod-jwt-secret";
 process.env.SESSION_SECRET = "prod-session-secret";
 process.env.BASE_URL = "https://prod.example.com";
 process.env.CLIENT_URL = "https://app.example.com";
@@ -23,10 +22,6 @@ describe("env.js – production branch", () => {
 
   it("exports mongoUri from production config", () => {
     assert.strictEqual(envModule.mongoUri, "mongodb://prod-host:27017/prod_db");
-  });
-
-  it("exports jwtSecret from production config", () => {
-    assert.strictEqual(envModule.jwtSecret, "prod-jwt-secret");
   });
 
   it("exports sessionSecret from production config", () => {

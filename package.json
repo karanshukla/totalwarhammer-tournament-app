@@ -20,9 +20,16 @@
     "lint": "npm run lint --workspace=client-app && npm run lint --workspace=server-app",
     "lint:fix": "npm run lint:fix --workspace=client-app && npm run lint:fix --workspace=server-app",
     "format": "npm run format --workspace=client-app && npm run format --workspace=server-app",
-    "format:check": "npm run format:check --workspace=client-app && npm run format:check --workspace=server-app"
+    "format:check": "npm run format:check --workspace=client-app && npm run format:check --workspace=server-app",
+    "e2e:up": "docker compose -f docker-compose.yml -f docker-compose.e2e.yml up -d --build",
+    "e2e:down": "docker compose -f docker-compose.yml -f docker-compose.e2e.yml down --volumes --remove-orphans",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:report": "playwright show-report tests/e2e/playwright-report",
+    "test:e2e:typecheck": "tsc -p tests/e2e/tsconfig.json"
   },
   "devDependencies": {
+    "@playwright/test": "^1.56.0",
     "concurrently": "^10.0.3",
     "railway": "^3.11.0"
   },
