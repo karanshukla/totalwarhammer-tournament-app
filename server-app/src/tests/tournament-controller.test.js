@@ -55,6 +55,7 @@ const mockTournamentFindOneAndUpdate = mock.fn();
 const mockTournamentFindById = mock.fn();
 const mockTournamentFindByIdAndUpdate = mock.fn();
 const mockTournamentAggregate = mock.fn(async () => []);
+const mockTournamentUpdateOne = mock.fn(async () => ({}));
 
 mock.module("../domain/models/tournament.js", {
   namedExports: {},
@@ -66,6 +67,7 @@ mock.module("../domain/models/tournament.js", {
     findById: mockTournamentFindById,
     findByIdAndUpdate: mockTournamentFindByIdAndUpdate,
     aggregate: mockTournamentAggregate,
+    updateOne: mockTournamentUpdateOne,
   },
 });
 
@@ -74,6 +76,7 @@ mock.module("../infrastructure/utils/logger.js", {
     error: mock.fn(),
     info: mock.fn(),
     debug: mock.fn(),
+    warn: mock.fn(),
   },
 });
 
@@ -139,6 +142,7 @@ describe("tournament-controller", () => {
     mockTournamentFindByIdAndUpdate.mock.resetCalls();
     mockTournamentAggregate.mock.resetCalls();
     mockTournamentInstance.deleteOne.mock.resetCalls();
+    mockTournamentUpdateOne.mock.resetCalls();
     mockMatchInsertMany.mock.resetCalls();
     mockEmitTournamentUpdated.mock.resetCalls();
     mockEmitMatchesUpdated.mock.resetCalls();
@@ -222,6 +226,71 @@ describe("tournament-controller", () => {
 
       const called = mockTournamentCreate.mock.calls[0].arguments[0];
       assert.deepStrictEqual(called.bannedFactions, []);
+    });
+
+    function duplicateCodeError() {
+      const error = new Error("E11000 duplicate key error");
+      error.code = 11000;
+      error.keyPattern = { code: 1 };
+      return error;
+    }
+
+    it("regenerates the code and retries when it collides, then succeeds", async () => {
+      let attempts = 0;
+      mockTournamentCreate.mock.mockImplementation(async (data) => {
+        attempts += 1;
+        if (attempts < 3) throw duplicateCodeError();
+        return { ...data, _id: "t1" };
+      });
+
+      const req = mockReq({
+        body: { name: "Collides", playerCount: 4, tournamentType: "Swiss" },
+      });
+      const res = mockRes();
+
+      await createTournament(req, res);
+
+      assert.strictEqual(attempts, 3);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 201);
+    });
+
+    it("returns 500 after exhausting every collision retry", async () => {
+      mockTournamentCreate.mock.mockImplementation(async () => {
+        throw duplicateCodeError();
+      });
+
+      const req = mockReq({
+        body: {
+          name: "AlwaysCollides",
+          playerCount: 4,
+          tournamentType: "Swiss",
+        },
+      });
+      const res = mockRes();
+
+      await createTournament(req, res);
+
+      assert.strictEqual(mockTournamentCreate.mock.calls.length, 5);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 500);
+    });
+
+    it("does not retry on a non-collision duplicate-key error", async () => {
+      mockTournamentCreate.mock.mockImplementation(async () => {
+        const error = new Error("E11000 duplicate key error");
+        error.code = 11000;
+        error.keyPattern = { name: 1 };
+        throw error;
+      });
+
+      const req = mockReq({
+        body: { name: "Dup", playerCount: 4, tournamentType: "Swiss" },
+      });
+      const res = mockRes();
+
+      await createTournament(req, res);
+
+      assert.strictEqual(mockTournamentCreate.mock.calls.length, 1);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 500);
     });
   });
 
@@ -1030,6 +1099,35 @@ describe("tournament-controller", () => {
       assert.strictEqual(mockEmitTournamentUpdated.mock.calls.length, 0);
       assert.strictEqual(mockEmitMatchesUpdated.mock.calls.length, 0);
     });
+
+    it("returns 409 when the atomic claim loses the race to another request", async () => {
+      const t = makePendingTournament();
+      mockTournamentFindOne.mock.mockImplementation(async () => t);
+      mockTournamentFindOneAndUpdate.mock.mockImplementation(async () => null);
+      const req = mockReq({ params: { id: "t1" } });
+      const res = mockRes();
+      await startTournament(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 409);
+      assert.strictEqual(mockMatchInsertMany.mock.calls.length, 0);
+    });
+
+    it("rolls the tournament back to pending and returns 500 when bracket generation fails", async () => {
+      mockTournamentFindOne.mock.mockImplementation(async () =>
+        makePendingTournament(),
+      );
+      mockSingleElimStart.mock.mockImplementation(() => [{ round: 1 }]);
+      mockMatchInsertMany.mock.mockImplementation(async () => {
+        throw new Error("insert failed");
+      });
+      const req = mockReq({ params: { id: "t1" } });
+      const res = mockRes();
+      await startTournament(req, res);
+      assert.strictEqual(mockTournamentUpdateOne.mock.calls.length, 1);
+      const [filter, update] = mockTournamentUpdateOne.mock.calls[0].arguments;
+      assert.strictEqual(filter.status, "active");
+      assert.deepStrictEqual(update, { $set: { status: "pending" } });
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 500);
+    });
   });
 
   // ── advanceRound ────────────────────────────────────────────────────────────
@@ -1469,6 +1567,23 @@ describe("tournament-controller", () => {
       const res = mockRes();
       await advanceRound(req, res);
       assert.strictEqual(res.status.mock.calls[0].arguments[0], 500);
+    });
+
+    it("returns 409 when a concurrent request already advanced the round", async () => {
+      const t = makeActiveTournament();
+      mockTournamentFindOne.mock.mockImplementation(async () => t);
+      mockMatchFind.mock.mockImplementation(() => ({
+        sort: mock.fn(async () => makeCompletedMatches(1)),
+      }));
+      mockSingleElimAdvance.mock.mockImplementation(() => {
+        const error = new Error("E11000 duplicate key error");
+        error.code = 11000;
+        throw error;
+      });
+      const req = mockReq({ params: { id: "t1" } });
+      const res = mockRes();
+      await advanceRound(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 409);
     });
   });
 

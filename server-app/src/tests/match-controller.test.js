@@ -647,6 +647,23 @@ describe("match-controller", () => {
       assert.strictEqual(res.status.mock.calls[0].arguments[0], 403);
     });
 
+    it("should return 400 if the tournament is no longer active", async () => {
+      const creatorId = "cccccccccccccccccccccccc";
+      const match = makeDisputedMatch(creatorId);
+      match.tournament.status = "completed";
+      mockMatchFindById.mock.mockImplementation(() => ({
+        populate: async () => match,
+      }));
+      const req = mockReq({
+        params: { id: "m1" },
+        body: { winnerId: match.player1.participantId },
+        user: { id: creatorId },
+      });
+      const res = mockRes();
+      await resolveDispute(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 400);
+    });
+
     it("should resolve dispute and mark completed when creator picks winner", async () => {
       const creatorId = "cccccccccccccccccccccccc";
       const match = makeDisputedMatch(creatorId);
@@ -739,6 +756,23 @@ describe("match-controller", () => {
       const res = mockRes();
       await overrideResult(req, res);
       assert.strictEqual(res.status.mock.calls[0].arguments[0], 403);
+    });
+
+    it("should return 400 if the tournament is no longer active", async () => {
+      const creatorId = "cccccccccccccccccccccccc";
+      const match = makeCompletedMatch(creatorId);
+      match.tournament.status = "completed";
+      mockMatchFindById.mock.mockImplementation(() => ({
+        populate: async () => match,
+      }));
+      const req = mockReq({
+        params: { id: "m1" },
+        body: { winnerId: match.player2.participantId },
+        user: { id: creatorId },
+      });
+      const res = mockRes();
+      await overrideResult(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 400);
     });
 
     it("should override result and return 200", async () => {
