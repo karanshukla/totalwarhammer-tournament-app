@@ -1,4 +1,3 @@
-// Export all bracket components
 export * from "./types";
 export * from "./ParticipantList";
 export * from "./SortableItem";

@@ -52,10 +52,6 @@ export const requestPasswordReset = async (
   }
 };
 
-/**
- * Verify if a password reset token is valid
- * @param token The reset token to verify
- */
 export const verifyResetToken = async (
   token: string,
 ): Promise<TokenVerificationResponse> => {
@@ -77,11 +73,6 @@ export const verifyResetToken = async (
   }
 };
 
-/**
- * Reset password using token and new password
- * @param token The reset token
- * @param newPassword The new password to set
- */
 export const resetPassword = async (
   token: string,
   newPassword: string,

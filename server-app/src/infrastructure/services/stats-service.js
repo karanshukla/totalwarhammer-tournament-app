@@ -408,7 +408,7 @@ async function computeGameStats(game, since) {
 async function computeGlobalStats(range) {
   const since = rangeStart(range);
 
-  const [wh3, k40] = await Promise.all([
+  const [wh3, warhammer40k] = await Promise.all([
     computeGameStats("wh3", since),
     computeGameStats("40k", since),
   ]);
@@ -417,7 +417,7 @@ async function computeGlobalStats(range) {
     cachedAt: new Date().toISOString(),
     range,
     wh3,
-    "40k": k40,
+    "40k": warhammer40k,
   };
 }
 

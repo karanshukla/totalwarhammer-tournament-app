@@ -59,7 +59,7 @@ function renderCard(
   return render(
     <ChakraProvider value={defaultSystem}>
       <MatchCard
-        m={m}
+        match={m}
         isOverriding={false}
         isAdmin={false}
         isActive={false}

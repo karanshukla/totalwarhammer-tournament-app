@@ -16,11 +16,11 @@ const authenticationFormSchema = z.object({
     .min(5, { message: "A valid Username or Email is required" }),
 });
 
-export type authenticationFormValues = z.infer<typeof authenticationFormSchema>;
+export type AuthenticationFormValues = z.infer<typeof authenticationFormSchema>;
 export type AuthEventType = "close-drawer";
 
 export function AuthenticationForm() {
-  const [formState, setFormState] = useState({
+  const [flowState, setFlowState] = useState({
     view: "check" as "check" | "login" | "register" | "reset-password",
     usernameOrEmail: "",
     isCheckingUser: false,
@@ -31,7 +31,7 @@ export function AuthenticationForm() {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<authenticationFormValues>({
+  } = useForm<AuthenticationFormValues>({
     resolver: zodResolver(authenticationFormSchema),
   });
 
@@ -47,21 +47,21 @@ export function AuthenticationForm() {
   // after toasting). Without a catch the loading flag was never cleared, so a
   // rate-limited or offline request left the button spinning and disabled
   // until the user reloaded the page.
-  const onSubmit = async (data: authenticationFormValues) => {
-    setFormState((prev) => ({
+  const onSubmit = async (data: AuthenticationFormValues) => {
+    setFlowState((prev) => ({
       ...prev,
       isCheckingUser: true,
       usernameOrEmail: data.usernameOrEmail,
     }));
     try {
       const exists = await userExists(data.usernameOrEmail);
-      setFormState((prev) => ({
+      setFlowState((prev) => ({
         ...prev,
         view: exists ? "login" : "register",
         isCheckingUser: false,
       }));
     } catch {
-      setFormState((prev) => ({ ...prev, isCheckingUser: false }));
+      setFlowState((prev) => ({ ...prev, isCheckingUser: false }));
       toaster.create({
         title: "Could not continue",
         description: "We couldn't reach the server. Please try again.",
@@ -71,55 +71,55 @@ export function AuthenticationForm() {
   };
 
   const handleGuestLogin = async () => {
-    setFormState((prev) => ({ ...prev, isCreatingGuest: true }));
+    setFlowState((prev) => ({ ...prev, isCreatingGuest: true }));
     try {
       await createGuestUser();
       closeDrawer();
     } catch {
       // createGuestUser has already surfaced the failure via a toast.
     } finally {
-      setFormState((prev) => ({ ...prev, isCreatingGuest: false }));
+      setFlowState((prev) => ({ ...prev, isCreatingGuest: false }));
     }
   };
 
   const handlePasswordResetClick = () => {
-    setFormState((prev) => ({
+    setFlowState((prev) => ({
       ...prev,
       view: "reset-password",
     }));
   };
 
   const handleBackToLogin = () => {
-    setFormState((prev) => ({
+    setFlowState((prev) => ({
       ...prev,
       view: "check",
     }));
   };
 
-  if (formState.view === "login") {
+  if (flowState.view === "login") {
     return (
       <>
         <LoginForm
           key="login-form"
-          defaultIdentifier={formState.usernameOrEmail}
+          defaultIdentifier={flowState.usernameOrEmail}
           onSuccess={closeDrawer}
         />
       </>
     );
   }
 
-  if (formState.view === "register") {
+  if (flowState.view === "register") {
     return (
       <>
         <RegistrationForm
           key="registration-form"
-          defaultIdentifier={formState.usernameOrEmail}
+          defaultIdentifier={flowState.usernameOrEmail}
         />
       </>
     );
   }
 
-  if (formState.view === "reset-password") {
+  if (flowState.view === "reset-password") {
     return (
       <PasswordResetForm
         onBackClick={handleBackToLogin}
@@ -142,7 +142,7 @@ export function AuthenticationForm() {
             </Field.Root>
             <Button
               type="submit"
-              loading={formState.isCheckingUser}
+              loading={flowState.isCheckingUser}
               loadingText="Checking..."
             >
               Submit
@@ -161,7 +161,7 @@ export function AuthenticationForm() {
             colorPalette="ink"
             width="full"
             onClick={handleGuestLogin}
-            loading={formState.isCreatingGuest}
+            loading={flowState.isCreatingGuest}
             loadingText="Creating guest account..."
           >
             Continue as Guest

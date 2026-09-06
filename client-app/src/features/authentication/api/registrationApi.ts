@@ -41,8 +41,9 @@ export const registerUser = async (
           password: data.password,
         });
       } else {
-        // For cases where password might not be required or provided
-        // Set the user in the store using the registration response
+        // RegistrationData.password is optional; without one there's no
+        // credential to auto-login with, so just adopt the registration
+        // response as the active user.
         const { setUser } = useUserStore.getState();
         setUser({
           id: responseData.data?.id || "",

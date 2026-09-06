@@ -3,17 +3,16 @@ import { fileURLToPath } from "url";
 
 import dotenv from "dotenv";
 
-// Get the directory path of this file
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Path to the .env file (three levels up from this file)
+// server-app/.env, not the repo root — see CLAUDE.md.
 const envPath = path.resolve(__dirname, "../../..", ".env");
 
-// Load environment variables from .env file
 const result = dotenv.config({ path: envPath, quiet: true });
 
-// Check if we're in production (most cloud environments set this)
+// Most cloud environments set NODE_ENV=production and inject env vars
+// directly, so a missing .env file there is expected, not an error.
 const isProduction = process.env.NODE_ENV === "production";
 
 if (result.error) {

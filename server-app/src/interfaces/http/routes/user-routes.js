@@ -16,7 +16,6 @@ import { validationHandler } from "../middleware/validation/validation-handler.j
 
 const router = express.Router();
 
-// Public route - no authentication needed
 router.post(
   "/register",
   validateUserRegistration,
@@ -37,8 +36,6 @@ router.get(
   userController.userExists,
 );
 // Guest routes have been removed as they are now handled in guest-routes.js
-
-// Protected routes - require authentication
 router.post(
   "/update-username",
   authenticateSession,

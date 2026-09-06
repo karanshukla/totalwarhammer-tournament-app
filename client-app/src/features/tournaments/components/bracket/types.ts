@@ -1,4 +1,3 @@
-// Define basic types for the tournament bracket
 export interface Participant {
   id: string;
   name: string;

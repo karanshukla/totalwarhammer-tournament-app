@@ -18,7 +18,6 @@ if (process.env.NODE_ENV === "production" && !process.env.CSRF_SECRET) {
 const CSRF_SECRET =
   process.env.CSRF_SECRET || crypto.randomBytes(32).toString("hex");
 
-// Initialize the CSRF protection middleware with more debugging
 const { doubleCsrfProtection, generateCsrfToken, invalidCsrfTokenError } =
   doubleCsrf({
     getSessionIdentifier: (req) => {
@@ -29,7 +28,6 @@ const { doubleCsrfProtection, generateCsrfToken, invalidCsrfTokenError } =
       return sessionId;
     },
 
-    // Use fixed secret key for consistent tokens
     getSecret: () => CSRF_SECRET,
 
     // The __Host- prefix (csrf-csrf's default) requires the Secure attribute by spec.
@@ -48,15 +46,12 @@ const { doubleCsrfProtection, generateCsrfToken, invalidCsrfTokenError } =
       maxAge: 24 * 60 * 60 * 1000, // 1 day
     },
 
-    // Get the CSRF token from request headers
     getCsrfTokenFromRequest: (req) => {
       return req.headers["x-csrf-token"];
     },
 
-    // Ignore specific methods that don't need CSRF protection
     ignoredMethods: ["GET", "HEAD", "OPTIONS"],
 
-    // Enable size validation bypass for token
     size: 64,
     ignoreCsrfSizeCheck: true,
   });
@@ -69,7 +64,6 @@ const csrfPrerequisiteCheck = (req, res, next) => {
   next();
 };
 
-// Enhanced error handling middleware for CSRF errors
 /** @type {import('express').ErrorRequestHandler} */
 const csrfErrorHandler = (err, req, res, next) => {
   // Skip CSRF validation for preflight OPTIONS requests

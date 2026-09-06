@@ -10,7 +10,6 @@ import { validationHandler } from "../middleware/validation/validation-handler.j
 
 const router = express.Router();
 
-// Public routes for password reset workflow
 router.post(
   "/request",
   validatePasswordResetEmail,

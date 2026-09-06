@@ -20,8 +20,8 @@ import MatchesSection from "@/features/matches/components/MatchesSection";
 import type { Match, Tournament } from "@/features/matches/components/types";
 
 vi.mock("@/features/matches/components/MatchCard", () => ({
-  default: ({ m }: { m: { matchNumber: number } }) => (
-    <div data-testid={`match-card-${m.matchNumber}`} />
+  default: ({ match }: { match: { matchNumber: number } }) => (
+    <div data-testid={`match-card-${match.matchNumber}`} />
   ),
 }));
 

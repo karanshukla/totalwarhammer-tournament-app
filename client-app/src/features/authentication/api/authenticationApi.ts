@@ -136,11 +136,6 @@ const exchangeCodeForToken = async (code: string, codeVerifier: string) => {
   }
 };
 
-/**
- * Logs out the current user by making a request to the server
- * to destroy the session and clears the local user state
- * @returns Promise that resolves when logout is complete
- */
 export const logoutUser = async (): Promise<{
   success: boolean;
   message: string;

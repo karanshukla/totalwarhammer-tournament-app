@@ -76,7 +76,7 @@ function renderCard(
   return render(
     <ChakraProvider value={defaultSystem}>
       <MatchCard
-        m={{ ...baseMatch, ...matchOverrides } as unknown as Match}
+        match={{ ...baseMatch, ...matchOverrides } as unknown as Match}
         {...baseProps}
         {...propOverrides}
       />

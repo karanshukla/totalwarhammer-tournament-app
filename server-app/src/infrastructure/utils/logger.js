@@ -2,7 +2,6 @@ import path from "path";
 
 import winston from "winston";
 
-// Define log levels
 const levels = {
   error: 0,
   warn: 1,
@@ -11,13 +10,11 @@ const levels = {
   debug: 4,
 };
 
-// Define level based on environment
 const level = () => {
   const env = process.env.NODE_ENV || "development";
   return env === "development" ? "debug" : "info";
 };
 
-// Define custom colors
 const colors = {
   error: "red",
   warn: "yellow",
@@ -26,7 +23,6 @@ const colors = {
   debug: "blue",
 };
 
-// Add colors to winston
 winston.addColors(colors);
 
 // Shared by every transport. `errors({ stack: true })` is what makes the
@@ -49,9 +45,7 @@ const consoleFormat = winston.format.combine(
 // Structured, so metadata and stacks survive to disk and to Axiom.
 const structuredFormat = winston.format.json();
 
-// Define transports for the logs
 const transports = [
-  // Console transport for all logs
   new winston.transports.Console({ format: consoleFormat }),
 
   // File transport for errors
@@ -81,7 +75,6 @@ if (process.env.AXIOM_TOKEN && process.env.AXIOM_DATASET) {
   );
 }
 
-// Create the Winston logger
 const logger = winston.createLogger({
   level: level(),
   levels,

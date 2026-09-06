@@ -162,6 +162,17 @@ describe("user-controller", () => {
   });
 
   describe("updateUsername", () => {
+    it("should return 403 for a guest account", async () => {
+      const req = mockReq({
+        body: { username: "new" },
+        user: { id: "u1", isGuest: true },
+      });
+      const res = mockRes();
+      await updateUsername(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 403);
+      assert.strictEqual(mockUserFindOne.mock.calls.length, 0);
+    });
+
     it("should return 400 if username taken", async () => {
       mockUserFindOne.mock.mockImplementation(() => ({ username: "taken" }));
       const req = mockReq({ body: { username: "taken" } });
@@ -228,6 +239,17 @@ describe("user-controller", () => {
   });
 
   describe("updatePassword", () => {
+    it("should return 403 for a guest account", async () => {
+      const req = mockReq({
+        body: { currentPassword: "old", newPassword: "new" },
+        user: { id: "u1", isGuest: true },
+      });
+      const res = mockRes();
+      await updatePassword(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 403);
+      assert.strictEqual(mockUserFindById.mock.calls.length, 0);
+    });
+
     it("should return 404 if user not found", async () => {
       mockUserFindById.mock.mockImplementation(() => ({
         select: mock.fn(async () => null),
@@ -351,6 +373,17 @@ describe("user-controller", () => {
   });
 
   describe("deleteAccount", () => {
+    it("should return 403 for a guest account", async () => {
+      const req = mockReq({
+        session: { destroy: mock.fn((cb) => cb()) },
+        user: { id: "u1", isGuest: true },
+      });
+      const res = mockRes();
+      await deleteAccount(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 403);
+      assert.strictEqual(mockUserFindByIdAndUpdate.mock.calls.length, 0);
+    });
+
     it("should return 404 if user not found", async () => {
       mockUserFindByIdAndUpdate.mock.mockImplementation(async () => null);
       const req = mockReq({
@@ -388,6 +421,14 @@ describe("user-controller", () => {
   });
 
   describe("getUserStats", () => {
+    it("should return 403 for a guest account", async () => {
+      const req = mockReq({ user: { id: "u1", isGuest: true } });
+      const res = mockRes();
+      await getUserStats(req, res);
+      assert.strictEqual(res.status.mock.calls[0].arguments[0], 403);
+      assert.strictEqual(mockUserFindById.mock.calls.length, 0);
+    });
+
     it("should return 404 if user not found", async () => {
       mockUserFindById.mock.mockImplementation(() => ({
         select: mock.fn(() => ({ lean: mock.fn(async () => null) })),

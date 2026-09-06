@@ -24,10 +24,6 @@ export interface AccountUpdateResponse {
   };
 }
 
-/**
- * Refreshes the user's session by making a request to fetch CSRF token
- * This keeps the session active and helps prevent authentication issues
- */
 export interface UserFactionStats {
   name: string;
   count: number;
@@ -87,7 +83,6 @@ export const fetchUserStats = async (
 
 export const refreshSession = async (): Promise<boolean> => {
   try {
-    // This will make a request to the server which keeps the session active
     const result = await httpClient.checkSessionStatus();
     return result.valid;
   } catch (error) {
@@ -96,11 +91,6 @@ export const refreshSession = async (): Promise<boolean> => {
   }
 };
 
-/**
- * Updates the username of an authenticated user
- * @param username New username to set
- * @returns Promise with response from the server
- */
 export const updateUsername = async (
   username: string,
 ): Promise<AccountUpdateResponse> => {
@@ -112,7 +102,6 @@ export const updateUsername = async (
     );
 
     if (responseData.success) {
-      // Update the user in the store
       const { setUser } = useUserStore.getState();
       setUser({
         username: responseData.data?.username || username,
@@ -138,11 +127,6 @@ export const updateUsername = async (
   }
 };
 
-/**
- * Updates the password of an authenticated user
- * @param data Object containing current password, new password, and confirmation
- * @returns Promise with response from the server
- */
 export const deleteAccount = async (): Promise<AccountUpdateResponse> => {
   try {
     const responseData = await httpClient.delete<AccountUpdateResponse>(
