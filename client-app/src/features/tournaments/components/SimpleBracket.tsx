@@ -34,7 +34,6 @@ const SimpleBracket = () => {
   const [editingParticipant, setEditingParticipant] =
     useState<Participant | null>(null);
 
-  // For ParticipantEditDialog (Chakra Modal)
   const {
     open: isEditParticipantDialogOpen,
     onOpen: onEditParticipantDialogOnOpen,
@@ -72,7 +71,7 @@ const SimpleBracket = () => {
     const slotMatch = SLOT_ID_PATTERN.exec(overId);
     if (slotMatch) {
       const matchId = slotMatch[1];
-      const positionString = slotMatch[2]; // "1" or "2"
+      const positionString = slotMatch[2];
 
       const matchExists = storeRounds.some((round) =>
         round.matches.some((m) => m.id === matchId),
@@ -144,14 +143,13 @@ const SimpleBracket = () => {
       />
 
       <TournamentBracket />
-      {/* Removed props: rounds, participants, onAddRound, onAddMatchToRound, onRemoveMatch, onRemoveParticipantFromSlot */}
 
       {editingParticipant && (
         <ParticipantEditDialog
           isOpen={isEditParticipantDialogOpen}
           onClose={onEditParticipantDialogOnClose}
           participant={editingParticipant}
-          onParticipantChange={setEditingParticipant} // Pass the state setter directly
+          onParticipantChange={setEditingParticipant}
           onSave={() => {
             /* v8 ignore next */
             if (editingParticipant) {

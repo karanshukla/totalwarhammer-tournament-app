@@ -9,7 +9,7 @@ import {
   leaveTournamentRoom,
 } from "@/core/socket/socketClient";
 import { useUserStore } from "@/shared/stores/userStore";
-import { displayName as dn } from "@/shared/utils/displayName";
+import { displayName } from "@/shared/utils/displayName";
 import ChampionBanner from "@/shared/ui/ChampionBanner";
 import SidebarLayout from "@/shared/ui/SidebarLayout";
 import { championOf } from "@/shared/tournament/outcome";
@@ -188,7 +188,7 @@ const TournamentViewPage: React.FC<{ id?: string }> = ({ id: propId }) => {
         <LuChevronLeft /> Back
       </Button>
 
-      <ChampionBanner champion={champion} displayName={dn} mb={6} />
+      <ChampionBanner champion={champion} displayName={displayName} mb={6} />
 
       <TournamentHeader
         tournament={tournament}

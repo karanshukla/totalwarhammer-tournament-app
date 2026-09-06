@@ -31,7 +31,7 @@ const priorUserIds = db.users
 
 if (priorUserIds.length) {
   // Also catches tournaments owned by a real account that seed users played in
-  // (see seed-karan.js), so one teardown removes the whole showcase.
+  // (see seed-owner.js), so one teardown removes the whole showcase.
   const priorTournamentIds = db.tournaments
     .find(
       {

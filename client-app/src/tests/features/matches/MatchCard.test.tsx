@@ -70,7 +70,7 @@ function renderCard(
   return render(
     <ChakraProvider value={defaultSystem}>
       <MatchCard
-        m={m}
+        match={m}
         isOverriding={false}
         isAdmin={false}
         isActive={false}
@@ -270,7 +270,7 @@ describe("MatchCard – isOverriding panel", () => {
     rerender(
       <ChakraProvider value={defaultSystem}>
         <MatchCard
-          m={{ ...baseMatch }}
+          match={{ ...baseMatch }}
           isOverriding={false}
           isAdmin={false}
           isActive={false}

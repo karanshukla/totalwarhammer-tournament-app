@@ -25,7 +25,6 @@ import {
   PASSWORD_MAX_LENGTH,
 } from "@/shared/constants/validation";
 
-// Schema for password reset form validation
 const resetPasswordFormSchema = z
   .object({
     password: passwordSchema,
@@ -46,7 +45,6 @@ const ResetPasswordPage: React.FC = () => {
   const [isResetting, setIsResetting] = useState<boolean>(false);
   const [expiryTime, setExpiryTime] = useState<Date | null>(null);
 
-  // Form handling
   const {
     register,
     handleSubmit,
@@ -55,7 +53,6 @@ const ResetPasswordPage: React.FC = () => {
     resolver: zodResolver(resetPasswordFormSchema),
   });
 
-  // Verify if token is valid
   const verifyToken = async (token: string) => {
     try {
       const response = await verifyResetToken(token);
@@ -77,7 +74,6 @@ const ResetPasswordPage: React.FC = () => {
     }
   };
 
-  // Extract token from URL on component mount
   useEffect(() => {
     const queryParams = new URLSearchParams(window.location.search);
     const token = queryParams.get("token");
@@ -98,7 +94,6 @@ const ResetPasswordPage: React.FC = () => {
     verifyToken(token);
   }, []);
 
-  // Handle form submission
   const onSubmit = async (data: ResetPasswordFormValues) => {
     if (!resetToken) return;
 
@@ -107,7 +102,8 @@ const ResetPasswordPage: React.FC = () => {
       const response = await resetPassword(resetToken, data.password);
 
       if (response.success) {
-        // After success, redirect to login after a brief delay
+        // Delay the redirect so the success toast (raised inside
+        // resetPassword) is visible before the page navigates away.
         setTimeout(() => {
           navigate("/");
         }, 2000);
@@ -119,7 +115,6 @@ const ResetPasswordPage: React.FC = () => {
     }
   };
 
-  // Render different states
   if (isLoading) {
     return (
       <Container maxW="2xl" py={10}>

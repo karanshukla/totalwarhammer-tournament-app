@@ -19,36 +19,43 @@ import { ChakraProvider, defaultSystem } from "@chakra-ui/react";
 // onSetOverrideWinner and onConfirmOverride as buttons
 vi.mock("@/features/matches/components/MatchCard", () => ({
   default: ({
-    m,
+    match,
     onStartOverride,
     onCancelOverride,
     onSetOverrideWinner,
     onConfirmOverride,
   }: {
-    m: { _id: string; matchNumber: number; player1: { participantId: string } };
+    match: {
+      _id: string;
+      matchNumber: number;
+      player1: { participantId: string };
+    };
     onStartOverride?: () => void;
     onCancelOverride?: () => void;
     onSetOverrideWinner?: (id: string) => void;
     onConfirmOverride?: () => void;
   }) => (
-    <div data-testid={`match-card-${m._id}`}>
-      <button data-testid={`start-override-${m._id}`} onClick={onStartOverride}>
+    <div data-testid={`match-card-${match._id}`}>
+      <button
+        data-testid={`start-override-${match._id}`}
+        onClick={onStartOverride}
+      >
         StartOverride
       </button>
       <button
-        data-testid={`cancel-override-${m._id}`}
+        data-testid={`cancel-override-${match._id}`}
         onClick={onCancelOverride}
       >
         CancelOverride
       </button>
       <button
-        data-testid={`set-winner-${m._id}`}
-        onClick={() => onSetOverrideWinner?.(m.player1.participantId)}
+        data-testid={`set-winner-${match._id}`}
+        onClick={() => onSetOverrideWinner?.(match.player1.participantId)}
       >
         SetWinner
       </button>
       <button
-        data-testid={`confirm-override-${m._id}`}
+        data-testid={`confirm-override-${match._id}`}
         onClick={onConfirmOverride}
       >
         ConfirmOverride

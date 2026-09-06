@@ -1,4 +1,5 @@
 import { apiConfig } from "../config/apiConfig";
+import { CsrfTokenCache, type SessionStatus } from "./csrfTokenCache";
 
 interface RequestOptions extends RequestInit {
   params?: Record<string, string>;
@@ -7,95 +8,23 @@ interface RequestOptions extends RequestInit {
 
 class HttpClient {
   private baseUrl: string;
-  private csrfToken: string | null = null;
-  private tokenPromise: Promise<string | null> | null = null;
+  private csrf: CsrfTokenCache;
   // Set by the app root. The HTTP layer can't import the user store directly
   // without a cycle (store -> feature api -> httpClient), so the app registers
   // what should happen when the server tells us the session is gone.
   private unauthorizedHandler: (() => void) | null = null;
-  private debug: boolean = false; // Set to false by default
 
   constructor(baseUrl: string) {
     this.baseUrl = baseUrl;
+    this.csrf = new CsrfTokenCache(baseUrl);
   }
 
-  /**
-   * Check if the current session is valid and functioning.
-   * This also refreshes the CSRF token as a side-effect.
-   * @returns Promise with session check result
-   */
-  async checkSessionStatus(): Promise<{
-    valid: boolean;
-    sessionId: string | null;
-  }> {
-    try {
-      const base = this.baseUrl || window.location.origin;
-      const response = await fetch(`${base}/auth/csrf-token`, {
-        method: "GET",
-        credentials: "include",
-        cache: "no-cache",
-      });
-
-      if (!response.ok) {
-        return { valid: false, sessionId: null };
-      }
-
-      const data = await response.json();
-
-      // Update the CSRF token as it's available from this endpoint
-      if (data.csrfToken) {
-        this.csrfToken = data.csrfToken;
-      }
-
-      return { valid: true, sessionId: data.sessionId };
-    } catch {
-      // Error is intentionally not logged here as debug is false
-      return { valid: false, sessionId: null };
-    }
+  async checkSessionStatus(): Promise<SessionStatus> {
+    return this.csrf.checkSessionStatus();
   }
 
   async ensureCsrfToken(): Promise<string | null> {
-    if (this.csrfToken) {
-      return this.csrfToken;
-    }
-    if (this.tokenPromise) {
-      return this.tokenPromise;
-    }
-    this.tokenPromise = new Promise<string | null>((resolve) => {
-      const base = this.baseUrl || window.location.origin;
-      fetch(`${base}/auth/csrf-token`, {
-        method: "GET",
-        credentials: "include",
-        cache: "no-cache",
-      })
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error(
-              `Failed to fetch CSRF token: ${response.statusText}`,
-            );
-          }
-          return response.json();
-        })
-        .then((data) => {
-          if (!data.csrfToken) {
-            throw new Error("Server did not return a CSRF token");
-          }
-
-          this.csrfToken = data.csrfToken;
-
-          resolve(this.csrfToken);
-        })
-        .catch((error) => {
-          console.error("Error fetching CSRF token:", error);
-          this.csrfToken = null;
-          resolve(null);
-        })
-        .finally(() => {
-          this.tokenPromise = null;
-        });
-    });
-
-    return this.tokenPromise;
+    return this.csrf.ensureToken();
   }
 
   async get<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
@@ -169,7 +98,7 @@ class HttpClient {
 
     let token: string | null = null;
     if (!skipCsrf) {
-      token = await this.ensureCsrfToken();
+      token = await this.csrf.ensureToken();
       if (!token) {
         console.warn(`Could not fetch CSRF token for ${method} request`);
       }
@@ -208,8 +137,8 @@ class HttpClient {
 
       if (errorData !== null) {
         if (errorData.error === "CSRF validation failed") {
-          this.csrfToken = null;
-          const freshToken = await this.ensureCsrfToken();
+          this.csrf.clearToken();
+          const freshToken = await this.csrf.ensureToken();
           if (freshToken) {
             return this.handleResponse<T>(await send(freshToken));
           }
@@ -247,8 +176,7 @@ class HttpClient {
       // kept its persisted "logged in" state and rendered raw `Error 401`
       // messages in place of content, with no route back to a sign-in form.
       if (response.status === 401) {
-        this.csrfToken = null;
-        this.tokenPromise = null;
+        this.csrf.clear();
         this.unauthorizedHandler?.();
       }
 
@@ -264,7 +192,7 @@ class HttpClient {
           response.status === 403 &&
           errorData.error === "CSRF validation failed"
         ) {
-          this.csrfToken = null;
+          this.csrf.clearToken();
         }
 
         throw new Error(errorMessage);
@@ -293,8 +221,7 @@ class HttpClient {
   }
 
   resetCsrfToken(): void {
-    this.csrfToken = null;
-    this.tokenPromise = null;
+    this.csrf.clear();
   }
 }
 

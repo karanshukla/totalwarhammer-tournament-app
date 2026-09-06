@@ -5,163 +5,22 @@ import {
   Participant,
   Round,
 } from "@/features/tournaments/components/bracket/types";
-import { warhammer3Factions } from "../constants/factions";
 import { uniqueId } from "../utils/id";
-
-// Helper to create default participants
-const createDefaultParticipants = (): Participant[] => [
-  { id: "p1", name: "Player 1", faction: "Empire" },
-  { id: "p2", name: "Player 2", faction: "Dwarfs" },
-  { id: "p3", name: "Player 3", faction: "Greenskins" },
-  { id: "p4", name: "Player 4", faction: "Vampire Counts" },
-  { id: "p5", name: "Player 5", faction: "Bretonnia" },
-  { id: "p6", name: "Player 6", faction: "High Elves" },
-  { id: "p7", name: "Player 7", faction: "Dark Elves" },
-  { id: "p8", name: "Player 8", faction: "Lizardmen" },
-];
-
-// Helper to populate the default bracket structure
-const populateTournamentDefaultBracket = (): Round[] => {
-  return [
-    {
-      id: "r1",
-      title: "Round 1",
-      matches: [
-        {
-          id: "m1",
-          title: "Match 1",
-          bestOf: 3,
-          roundId: "r1",
-          participant1Id: "p1",
-          participant2Id: "p2",
-          winnerId: null,
-        },
-        {
-          id: "m2",
-          title: "Match 2",
-          bestOf: 3,
-          roundId: "r1",
-          participant1Id: "p3",
-          participant2Id: "p4",
-          winnerId: null,
-        },
-        {
-          id: "m3",
-          title: "Match 3",
-          bestOf: 3,
-          roundId: "r1",
-          participant1Id: "p5",
-          participant2Id: "p6",
-          winnerId: null,
-        },
-        {
-          id: "m4",
-          title: "Match 4",
-          bestOf: 3,
-          roundId: "r1",
-          participant1Id: "p7",
-          participant2Id: "p8",
-          winnerId: null,
-        },
-      ],
-    },
-    {
-      id: "r2",
-      title: "Semi-Finals",
-      matches: [
-        {
-          id: "m5",
-          title: "Match 5",
-          bestOf: 3,
-          roundId: "r2",
-          participant1Id: null,
-          participant2Id: null,
-          winnerId: null,
-        },
-        {
-          id: "m6",
-          title: "Match 6",
-          bestOf: 3,
-          roundId: "r2",
-          participant1Id: null,
-          participant2Id: null,
-          winnerId: null,
-        },
-      ],
-    },
-    {
-      id: "r3",
-      title: "Finals",
-      matches: [
-        {
-          id: "m7",
-          title: "Final Match",
-          bestOf: 5,
-          roundId: "r3",
-          participant1Id: null,
-          participant2Id: null,
-          winnerId: null,
-        },
-      ],
-    },
-  ];
-};
-
-// Helper to determine sort order of rounds
-const getRoundSortKey = (title: string): number => {
-  const lowerTitle = title.toLowerCase();
-  // Prioritize specific final stages
-  if (
-    lowerTitle.includes("final") &&
-    !lowerTitle.includes("semi") &&
-    !lowerTitle.includes("quarter") &&
-    !lowerTitle.includes("bronze")
-  )
-    return 100; // Final
-  if (lowerTitle.includes("bronze final") || lowerTitle.includes("3rd place"))
-    return 99; // Bronze Final / 3rd Place
-  if (lowerTitle.includes("semi-final")) return 90; // Semi-Final
-  if (lowerTitle.includes("quarter-final")) return 80; // Quarter-Final
-
-  // Handle numbered rounds
-  const roundMatch = lowerTitle.match(/round\s+(\d+)/);
-  if (roundMatch && roundMatch[1]) {
-    return 10 + parseInt(roundMatch[1], 10); // e.g., Round 1 -> 11, Round 2 -> 12
-  }
-
-  // Default for other titles (e.g., Group Stages, early custom rounds)
-  return 50;
-};
-
-const sortRounds = (rounds: Round[]): Round[] => {
-  return [...rounds].sort(
-    (a, b) => getRoundSortKey(a.title) - getRoundSortKey(b.title),
-  );
-};
-
-// Helper function to renumber match titles globally, preserving special titles
-// Assumes currentRounds are already sorted in the desired logical order
-const renumberAllMatchTitlesGlobally = (currentRounds: Round[]): Round[] => {
-  let matchNumber = 1;
-  return currentRounds.map((round) => ({
-    ...round,
-    matches: round.matches.map((match) => {
-      // If the title is "Final Match" (or contains "final" case-insensitively), keep it.
-      // Otherwise, renumber it.
-      if (match.title.toLowerCase().includes("final")) {
-        return match; // Keep original special title
-      }
-      // For all other matches, assign a new sequential title
-      return { ...match, title: `Match ${matchNumber++}` };
-    }),
-  }));
-};
+import {
+  createDefaultParticipants,
+  populateTournamentDefaultBracket,
+  randomFaction,
+} from "./tournamentDefaults";
+import {
+  sortRounds,
+  renumberAllMatchTitlesGlobally,
+} from "./tournamentRoundOrdering";
 
 interface TournamentState {
   participants: Participant[];
   rounds: Round[];
   lastUpdated: string | null;
-  // Actions
+
   addParticipants: (count: number) => void;
   updateParticipant: (updatedParticipant: Participant) => void;
   deleteParticipant: (participantId: string) => void;
@@ -180,17 +39,14 @@ interface TournamentState {
   resetParticipantsAndBracket: () => void;
 }
 
-// Initial state setup
-const initialRawRounds = populateTournamentDefaultBracket();
-const sortedInitialRounds = sortRounds(initialRawRounds);
-const renumberedAndSortedInitialRounds =
-  renumberAllMatchTitlesGlobally(sortedInitialRounds);
+const buildInitialRounds = (): Round[] =>
+  renumberAllMatchTitlesGlobally(sortRounds(populateTournamentDefaultBracket()));
 
 export const useTournamentStore = create<TournamentState>()(
   persist(
     (set) => ({
       participants: createDefaultParticipants(),
-      rounds: renumberedAndSortedInitialRounds, // Use pre-sorted and renumbered initial rounds
+      rounds: buildInitialRounds(),
       lastUpdated: new Date().toISOString(),
 
       addParticipants: (count) =>
@@ -201,10 +57,7 @@ export const useTournamentStore = create<TournamentState>()(
             newParticipants.push({
               id: uniqueId("p"),
               name: `Player ${currentCount + i + 1}`,
-              faction:
-                warhammer3Factions[
-                  Math.floor(Math.random() * warhammer3Factions.length)
-                ],
+              faction: randomFaction(),
             });
           }
           return {
@@ -266,26 +119,27 @@ export const useTournamentStore = create<TournamentState>()(
 
       addRound: () =>
         set((state) => {
-          const numericRounds = state.rounds
+          const existingRoundNumbers = state.rounds
             .map((r) => {
-              const match = r.title.match(/Round\s+(\d+)/i); // Fixed regex escape
+              const match = r.title.match(/Round\s+(\d+)/i);
               return match ? parseInt(match[1], 10) : 0;
             })
-            .filter((n) => !isNaN(n) && n > 0); // Ensure only positive numbers from "Round X"
+            .filter((n) => !isNaN(n) && n > 0);
           const highestRoundNumber =
-            numericRounds.length > 0 ? Math.max(...numericRounds) : 0;
+            existingRoundNumbers.length > 0
+              ? Math.max(...existingRoundNumbers)
+              : 0;
           const nextRoundNumber = highestRoundNumber + 1;
-          const newRoundId = uniqueId("r");
 
           const newRound: Round = {
-            id: newRoundId,
-            title: `Round ${nextRoundNumber}`, // Fixed template literal
+            id: uniqueId("r"),
+            title: `Round ${nextRoundNumber}`,
             matches: [],
           };
 
-          let updatedRounds = [...state.rounds, newRound];
-          updatedRounds = sortRounds(updatedRounds); // Sort all rounds including the new one
-          updatedRounds = renumberAllMatchTitlesGlobally(updatedRounds); // Renumber matches based on new sorted order
+          const updatedRounds = renumberAllMatchTitlesGlobally(
+            sortRounds([...state.rounds, newRound]),
+          );
 
           return {
             rounds: updatedRounds,
@@ -295,12 +149,11 @@ export const useTournamentStore = create<TournamentState>()(
 
       addMatchToRound: (roundId) =>
         set((state) => {
-          let newRounds = state.rounds.map((r) => {
+          const newRounds = state.rounds.map((r) => {
             if (r.id === roundId) {
-              const newMatchId = uniqueId("m");
               const newMatch = {
-                id: newMatchId,
-                title: "Match", // Placeholder title, will be correctly numbered
+                id: uniqueId("m"),
+                title: "Match", // placeholder; renumberAllMatchTitlesGlobally assigns the real number below
                 bestOf: 3,
                 roundId: r.id,
                 participant1Id: null,
@@ -314,10 +167,9 @@ export const useTournamentStore = create<TournamentState>()(
             }
             return r;
           });
-          // state.rounds is already sorted, so newRounds maintains that round order
-          const renumberedRounds = renumberAllMatchTitlesGlobally(newRounds);
+          // state.rounds is already sorted, so newRounds keeps that round order
           return {
-            rounds: renumberedRounds,
+            rounds: renumberAllMatchTitlesGlobally(newRounds),
             lastUpdated: new Date().toISOString(),
           };
         }),
@@ -328,15 +180,10 @@ export const useTournamentStore = create<TournamentState>()(
             ...round,
             matches: round.matches.filter((match) => match.id !== matchId),
           }));
-          // Note: This doesn't remove empty rounds. If a round becomes empty, it stays.
-          // This is generally fine as the UI should handle displaying empty rounds if necessary,
-          // or further logic could be added to remove empty non-essential rounds.
-          // state.rounds is already sorted
-          const renumberedRounds = renumberAllMatchTitlesGlobally(
-            roundsWithMatchRemoved,
-          );
+          // A round that becomes empty stays in the list; the UI is expected
+          // to handle rendering an empty round rather than this pruning it.
           return {
-            rounds: renumberedRounds,
+            rounds: renumberAllMatchTitlesGlobally(roundsWithMatchRemoved),
             lastUpdated: new Date().toISOString(),
           };
         }),
@@ -356,28 +203,17 @@ export const useTournamentStore = create<TournamentState>()(
         })),
 
       resetBracket: () =>
-        set(() => {
-          const defaultRounds = populateTournamentDefaultBracket();
-          const sortedRounds = sortRounds(defaultRounds);
-          const renumberedRounds = renumberAllMatchTitlesGlobally(sortedRounds);
-          return {
-            rounds: renumberedRounds,
-            lastUpdated: new Date().toISOString(),
-          };
-        }),
+        set(() => ({
+          rounds: buildInitialRounds(),
+          lastUpdated: new Date().toISOString(),
+        })),
 
       resetParticipantsAndBracket: () =>
-        set(() => {
-          const defaultParticipants = createDefaultParticipants();
-          const defaultRounds = populateTournamentDefaultBracket();
-          const sortedRounds = sortRounds(defaultRounds);
-          const renumberedRounds = renumberAllMatchTitlesGlobally(sortedRounds);
-          return {
-            participants: defaultParticipants,
-            rounds: renumberedRounds,
-            lastUpdated: new Date().toISOString(),
-          };
-        }),
+        set(() => ({
+          participants: createDefaultParticipants(),
+          rounds: buildInitialRounds(),
+          lastUpdated: new Date().toISOString(),
+        })),
     }),
     {
       name: "tournament-storage",

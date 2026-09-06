@@ -29,13 +29,12 @@ export function TournamentBracket() {
     );
   };
 
-  // Sort rounds to keep finals at the end
+  // Rounds are otherwise rendered in creation order, but a "Finals" round
+  // should always appear last regardless of when it was added.
   const sortedRounds = [...rounds].sort((a, b) => {
     const aIsFinals = a.title.toLowerCase().includes("final") ? 1 : 0;
     const bIsFinals = b.title.toLowerCase().includes("final") ? 1 : 0;
-
-    if (aIsFinals !== bIsFinals) return aIsFinals - bIsFinals; // Finals go last
-    return 0; // Keep original order otherwise
+    return aIsFinals - bIsFinals;
   });
 
   return (
@@ -59,19 +58,19 @@ export function TournamentBracket() {
         </Button>
 
         <Flex
-          gap={6} // Increased gap between rounds
+          gap={6}
           direction={{ base: "column", lg: "row" }}
           overflowX="auto"
-          py={2} // Added some padding for visual separation
+          py={2}
         >
           {sortedRounds.map((round) => (
             <VStack
               key={round.id}
               gap={4}
               align="stretch"
-              minW={{ base: "auto", lg: "220px" }} // Slightly reduced minW
+              minW={{ base: "auto", lg: "220px" }}
               flex="1"
-              maxW={{ base: "100%", lg: "280px" }} // Slightly reduced maxW
+              maxW={{ base: "100%", lg: "280px" }}
             >
               <Text
                 fontFamily="cond"
@@ -122,7 +121,7 @@ export function TournamentBracket() {
                         onClick={() => onRemoveMatch(match.id)}
                         variant="ghost"
                         colorPalette="crimson"
-                        px={1.5} // Reduced padding for a smaller button
+                        px={1.5}
                       >
                         Remove
                       </Button>

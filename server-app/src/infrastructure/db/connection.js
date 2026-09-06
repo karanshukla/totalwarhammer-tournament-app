@@ -2,7 +2,6 @@ import dns from "node:dns";
 
 import mongoose from "mongoose";
 
-// Import configuration which ensures environment variables are loaded via bootstrap.js
 import { mongoUri } from "../config/env.js";
 
 // Node 24 uses the system resolver for SRV lookups; force public DNS so
@@ -18,7 +17,6 @@ const connectOptions = {
 
 export const connectToDatabase = async () => {
   try {
-    // Use environment variable directly as fallback
     const uri = mongoUri || process.env.MONGO_URI;
 
     if (!uri) {

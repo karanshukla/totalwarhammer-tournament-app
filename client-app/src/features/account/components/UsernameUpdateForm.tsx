@@ -41,9 +41,9 @@ const UsernameUpdateForm: React.FC<UsernameUpdateFormProps> = ({
         await updateAuthUsername(username);
       }
       setError("");
-    } catch (error) {
-      if (error instanceof Error) {
-        setError(error.message);
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(err.message);
       } else {
         setError("Failed to update username");
       }

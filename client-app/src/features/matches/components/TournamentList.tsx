@@ -141,7 +141,6 @@ const TournamentList: React.FC<Props> = ({
         </HStack>
       )}
 
-      {/* Game-system filter (All / WH3 / 40K) */}
       <HStack mb={4} gap={2}>
         {(
           [

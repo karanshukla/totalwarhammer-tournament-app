@@ -69,7 +69,6 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
         Skip to main content
       </SkipNavLink>
 
-      {/* Header — always at top, never scrolls */}
       <Flex
         as="header"
         h={HEADER_HEIGHT}
@@ -128,9 +127,7 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
         </HStack>
       </Flex>
 
-      {/* Body row: sidebar + scrollable content */}
       <Flex flex="1" minH={0}>
-        {/* Sidebar — desktop only */}
         {!isPortrait && (
           <Box
             as="nav"
@@ -152,7 +149,6 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
           </Box>
         )}
 
-        {/* Scrollable content — fills remaining space exactly */}
         <Box
           as="main"
           id={MAIN_CONTENT_ID}
@@ -167,7 +163,6 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
         </Box>
       </Flex>
 
-      {/* Bottom nav — portrait mobile only, always at bottom, never overlaps */}
       {isPortrait && (
         <Box
           as="nav"

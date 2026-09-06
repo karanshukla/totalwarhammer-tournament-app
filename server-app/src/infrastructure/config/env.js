@@ -2,10 +2,8 @@ import devConfig from "./environments/development.js";
 import prodConfig from "./environments/production.js";
 import testConfig from "./environments/test.js";
 
-// Determine current environment
 const environment = process.env.NODE_ENV || "development";
 
-// Load the appropriate configuration based on the environment
 let config;
 switch (environment) {
   case "production":
@@ -24,7 +22,6 @@ switch (environment) {
 const withoutTrailingSlash = (url) =>
   typeof url === "string" ? url.replace(/\/+$/, "") : url;
 
-// Export configuration values
 export const port = config.port;
 export const mongoUri = config.mongoUri;
 export const sessionSecret = config.sessionSecret;

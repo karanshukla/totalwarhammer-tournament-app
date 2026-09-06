@@ -1,4 +1,4 @@
-﻿import React, { useState } from "react";
+import React, { useState } from "react";
 import {
   Heading,
   Container,
@@ -28,6 +28,18 @@ import {
   KEYBOARD_SHORTCUTS,
   KEYBOARD_SHORTCUT_LABELS,
 } from "@/shared/ui/keyboardShortcuts";
+import {
+  QUICK_START_STEPS,
+  TOURNAMENT_FORMATS,
+  ORGANISER_RESPONSIBILITIES,
+  PLAYER_RESPONSIBILITIES,
+  RESULT_REPORTING_CARDS,
+  JOIN_CODE_BULLETS,
+  GUEST_CAPABILITIES,
+  REGISTERED_CAPABILITIES,
+  FAQ_ENTRIES,
+  type ResultReportingCard,
+} from "./contactPageContent";
 
 interface FaqItemProps {
   question: string;
@@ -80,6 +92,40 @@ const Section: React.FC<{
   </Card.Root>
 );
 
+const BulletList: React.FC<{ items: string[] }> = ({ items }) => (
+  <VStack gap={1} alignItems="flex-start">
+    {items.map((item) => (
+      <Text key={item} fontSize="sm" color="fg.muted">
+        • {item}
+      </Text>
+    ))}
+  </VStack>
+);
+
+// Maps each result-reporting outcome to the semantic status tokens that
+// colour its card; "neutral" (organiser override) has no status.* token
+// of its own, so it falls back to the standard subtle bg/border/fg triad.
+const RESULT_CARD_TONES: Record<
+  ResultReportingCard["tone"],
+  { bg: string; borderColor: string; titleColor: string }
+> = {
+  win: {
+    bg: "status.win.subtle",
+    borderColor: "status.win.border",
+    titleColor: "status.win",
+  },
+  loss: {
+    bg: "status.loss.subtle",
+    borderColor: "status.loss.border",
+    titleColor: "status.loss",
+  },
+  neutral: {
+    bg: "bg.subtle",
+    borderColor: "border",
+    titleColor: "fg.secondary",
+  },
+};
+
 const ContactPage: React.FC = () => {
   return (
     <Container maxW="5xl" py={8}>
@@ -93,32 +139,10 @@ const ContactPage: React.FC = () => {
       </VStack>
 
       <VStack gap={6} align="stretch">
-        {/* Quick Start */}
         <Section icon={<LuCircleCheck />} title="Quick Start">
           <VStack gap={3} align="stretch">
             <SimpleGrid columns={{ base: 1, md: 2 }} gap={3}>
-              {[
-                {
-                  step: "1",
-                  title: "Create or join a tournament",
-                  desc: "Go to Tournaments to create one, or enter a join code on the home page.",
-                },
-                {
-                  step: "2",
-                  title: "Fill the roster",
-                  desc: "The organiser adds players (or players join with the code). Minimum 2 players required to start.",
-                },
-                {
-                  step: "3",
-                  title: "Start the tournament",
-                  desc: "Once the organiser clicks Start, matches are generated automatically based on the format.",
-                },
-                {
-                  step: "4",
-                  title: "Report results & advance",
-                  desc: "Players report who won each match. The organiser advances rounds until the tournament completes.",
-                },
-              ].map(({ step, title, desc }) => (
+              {QUICK_START_STEPS.map(({ step, title, desc }) => (
                 <HStack
                   key={step}
                   gap={3}
@@ -156,95 +180,32 @@ const ContactPage: React.FC = () => {
           </VStack>
         </Section>
 
-        {/* Tournament Formats */}
         <Section icon={<LuSwords />} title="Tournament Formats">
           <VStack gap={4} align="stretch">
             <SimpleGrid columns={{ base: 1, md: 2 }} gap={4}>
-              <Box p={4} borderRadius="md" borderWidth={1} borderColor="border">
-                <HStack mb={2}>
-                  <Badge colorPalette="ink">Single Elimination</Badge>
-                </HStack>
-                <Text fontSize="md" color="fg.muted" mb={2}>
-                  Lose once and you're out. Best for quick events with a
-                  definitive winner.
-                </Text>
-                <VStack gap={1} alignItems="flex-start">
-                  <Text fontSize="sm" color="fg.muted">
-                    • Rounds: ⌈log₂(n)⌉
+              {TOURNAMENT_FORMATS.map((format) => (
+                <Box
+                  key={format.badge}
+                  p={4}
+                  borderRadius="md"
+                  borderWidth={1}
+                  borderColor="border"
+                >
+                  <HStack mb={2}>
+                    <Badge colorPalette={format.badgeColorPalette}>
+                      {format.badge}
+                    </Badge>
+                  </HStack>
+                  <Text fontSize="md" color="fg.muted" mb={2}>
+                    {format.description}
                   </Text>
-                  <Text fontSize="sm" color="fg.muted">
-                    • Non-power-of-2 player counts get byes in round 1
-                  </Text>
-                  <Text fontSize="sm" color="fg.muted">
-                    • Minimum 2 players
-                  </Text>
-                </VStack>
-              </Box>
-              <Box p={4} borderRadius="md" borderWidth={1} borderColor="border">
-                <HStack mb={2}>
-                  <Badge colorPalette="ink">Double Elimination</Badge>
-                </HStack>
-                <Text fontSize="md" color="fg.muted" mb={2}>
-                  Two losses to be eliminated. Winners and Losers brackets run
-                  in parallel, meeting at the Grand Final.
-                </Text>
-                <VStack gap={1} alignItems="flex-start">
-                  <Text fontSize="sm" color="fg.muted">
-                    • Winners bracket → Losers bracket on first loss
-                  </Text>
-                  <Text fontSize="sm" color="fg.muted">
-                    • Grand Final can reset if Losers finalist wins
-                  </Text>
-                  <Text fontSize="sm" color="fg.muted">
-                    • Minimum 4 players
-                  </Text>
-                </VStack>
-              </Box>
-              <Box p={4} borderRadius="md" borderWidth={1} borderColor="border">
-                <HStack mb={2}>
-                  <Badge colorPalette="verdigris">Swiss System</Badge>
-                </HStack>
-                <Text fontSize="md" color="fg.muted" mb={2}>
-                  Nobody is eliminated. Players are paired against others with
-                  the same record each round. Best overall standings wins.
-                </Text>
-                <VStack gap={1} alignItems="flex-start">
-                  <Text fontSize="sm" color="fg.muted">
-                    • Rounds: ⌈log₂(n)⌉ (e.g. 8 players = 3 rounds)
-                  </Text>
-                  <Text fontSize="sm" color="fg.muted">
-                    • Odd player counts get a bye each round
-                  </Text>
-                  <Text fontSize="sm" color="fg.muted">
-                    • No rematches within the same tournament
-                  </Text>
-                </VStack>
-              </Box>
-              <Box p={4} borderRadius="md" borderWidth={1} borderColor="border">
-                <HStack mb={2}>
-                  <Badge colorPalette="ink">Round Robin</Badge>
-                </HStack>
-                <Text fontSize="md" color="fg.muted" mb={2}>
-                  Everyone plays everyone. Most comprehensive format - the
-                  player with the best overall record wins.
-                </Text>
-                <VStack gap={1} alignItems="flex-start">
-                  <Text fontSize="sm" color="fg.muted">
-                    • Rounds: n−1 (even) or n (odd players)
-                  </Text>
-                  <Text fontSize="sm" color="fg.muted">
-                    • All matches are generated upfront
-                  </Text>
-                  <Text fontSize="sm" color="fg.muted">
-                    • Organiser finalises after all matches complete
-                  </Text>
-                </VStack>
-              </Box>
+                  <BulletList items={format.bullets} />
+                </Box>
+              ))}
             </SimpleGrid>
           </VStack>
         </Section>
 
-        {/* Roles */}
         <Section icon={<LuUsers />} title="Organiser vs. Player">
           <SimpleGrid columns={{ base: 1, md: 2 }} gap={4}>
             <VStack gap={2} alignItems="flex-start">
@@ -254,26 +215,9 @@ const ContactPage: React.FC = () => {
                   Organiser (creator)
                 </Text>
               </HStack>
-              <VStack gap={1} alignItems="flex-start" pl={6}>
-                <Text fontSize="sm" color="fg.muted">
-                  • Start and delete tournaments
-                </Text>
-                <Text fontSize="sm" color="fg.muted">
-                  • Add and remove participants
-                </Text>
-                <Text fontSize="sm" color="fg.muted">
-                  • Record match results directly
-                </Text>
-                <Text fontSize="sm" color="fg.muted">
-                  • Override disputed results with a reason
-                </Text>
-                <Text fontSize="sm" color="fg.muted">
-                  • Advance rounds / finalise the tournament
-                </Text>
-                <Text fontSize="sm" color="fg.muted">
-                  • Edit participant names and factions
-                </Text>
-              </VStack>
+              <Box pl={6}>
+                <BulletList items={ORGANISER_RESPONSIBILITIES} />
+              </Box>
             </VStack>
             <VStack gap={2} alignItems="flex-start">
               <HStack>
@@ -282,30 +226,13 @@ const ContactPage: React.FC = () => {
                   Player (participant)
                 </Text>
               </HStack>
-              <VStack gap={1} alignItems="flex-start" pl={6}>
-                <Text fontSize="sm" color="fg.muted">
-                  • Join tournaments via code or tournament page
-                </Text>
-                <Text fontSize="sm" color="fg.muted">
-                  • Report who won your match
-                </Text>
-                <Text fontSize="sm" color="fg.muted">
-                  • If both players report the same winner, result confirms
-                  automatically
-                </Text>
-                <Text fontSize="sm" color="fg.muted">
-                  • If reports conflict, match is marked Disputed for organiser
-                  resolution
-                </Text>
-                <Text fontSize="sm" color="fg.muted">
-                  • View standings and bracket at any time
-                </Text>
-              </VStack>
+              <Box pl={6}>
+                <BulletList items={PLAYER_RESPONSIBILITIES} />
+              </Box>
             </VStack>
           </SimpleGrid>
         </Section>
 
-        {/* Result Reporting */}
         <Section icon={<LuCircleCheck />} title="Reporting Match Results">
           <VStack gap={3} align="stretch">
             <Text fontSize="md" color="fg.muted">
@@ -313,71 +240,35 @@ const ContactPage: React.FC = () => {
               the organiser.
             </Text>
             <SimpleGrid columns={{ base: 1, md: 3 }} gap={3}>
-              <Box
-                p={3}
-                borderRadius="md"
-                bg="status.win.subtle"
-                borderWidth={1}
-                borderColor="status.win.border"
-              >
-                <Text
-                  fontSize="sm"
-                  fontWeight="semibold"
-                  color="status.win"
-                  mb={1}
-                >
-                  Both agree
-                </Text>
-                <Text fontSize="sm" color="fg.muted">
-                  Both players report the same winner → match completes
-                  automatically.
-                </Text>
-              </Box>
-              <Box
-                p={3}
-                borderRadius="md"
-                bg="status.loss.subtle"
-                borderWidth={1}
-                borderColor="status.loss.border"
-              >
-                <Text
-                  fontSize="sm"
-                  fontWeight="semibold"
-                  color="status.loss"
-                  mb={1}
-                >
-                  Conflict
-                </Text>
-                <Text fontSize="sm" color="fg.muted">
-                  Players report different winners → match is marked Disputed.
-                  Organiser resolves with an optional reason.
-                </Text>
-              </Box>
-              <Box
-                p={3}
-                borderRadius="md"
-                bg="bg.subtle"
-                borderWidth={1}
-                borderColor="border"
-              >
-                <Text
-                  fontSize="sm"
-                  fontWeight="semibold"
-                  color="fg.secondary"
-                  mb={1}
-                >
-                  Organiser override
-                </Text>
-                <Text fontSize="sm" color="fg.muted">
-                  Organiser can override any result at any time, even completed
-                  ones, with a logged reason.
-                </Text>
-              </Box>
+              {RESULT_REPORTING_CARDS.map((card) => {
+                const tone = RESULT_CARD_TONES[card.tone];
+                return (
+                  <Box
+                    key={card.title}
+                    p={3}
+                    borderRadius="md"
+                    bg={tone.bg}
+                    borderWidth={1}
+                    borderColor={tone.borderColor}
+                  >
+                    <Text
+                      fontSize="sm"
+                      fontWeight="semibold"
+                      color={tone.titleColor}
+                      mb={1}
+                    >
+                      {card.title}
+                    </Text>
+                    <Text fontSize="sm" color="fg.muted">
+                      {card.description}
+                    </Text>
+                  </Box>
+                );
+              })}
             </SimpleGrid>
           </VStack>
         </Section>
 
-        {/* Join Codes */}
         <Section icon={<LuHash />} title="Join Codes">
           <VStack gap={2} align="stretch">
             <Text fontSize="md" color="fg.muted">
@@ -389,21 +280,15 @@ const ContactPage: React.FC = () => {
               link.
             </Text>
             <HStack gap={4} flexWrap="wrap">
-              <Text fontSize="sm" color="fg.muted">
-                • Enter the code on the Home page
-              </Text>
-              <Text fontSize="sm" color="fg.muted">
-                • Codes are case-insensitive
-              </Text>
-              <Text fontSize="sm" color="fg.muted">
-                • Joining is only possible while the tournament is in Pending
-                status
-              </Text>
+              {JOIN_CODE_BULLETS.map((bullet) => (
+                <Text key={bullet} fontSize="sm" color="fg.muted">
+                  • {bullet}
+                </Text>
+              ))}
             </HStack>
           </VStack>
         </Section>
 
-        {/* Guest Users */}
         <Section icon={<LuInfo />} title="Guest vs. Registered Accounts">
           <VStack gap={2} align="stretch">
             <Text fontSize="md" color="fg.muted">
@@ -415,99 +300,29 @@ const ContactPage: React.FC = () => {
                 <Text fontSize="sm" fontWeight="semibold" mb={1}>
                   Guest users can:
                 </Text>
-                <VStack gap={1} alignItems="flex-start">
-                  <Text fontSize="sm" color="fg.muted">
-                    • Join tournaments via code
-                  </Text>
-                  <Text fontSize="sm" color="fg.muted">
-                    • Report match results
-                  </Text>
-                  <Text fontSize="sm" color="fg.muted">
-                    • View standings and brackets
-                  </Text>
-                  <Text fontSize="sm" color="fg.muted">
-                    • Set a display name (Guest_XXXX by default)
-                  </Text>
-                </VStack>
+                <BulletList items={GUEST_CAPABILITIES} />
               </Box>
               <Box p={3} borderRadius="md" borderWidth={1} borderColor="border">
                 <Text fontSize="sm" fontWeight="semibold" mb={1}>
                   Registered users also can:
                 </Text>
-                <VStack gap={1} alignItems="flex-start">
-                  <Text fontSize="sm" color="fg.muted">
-                    • Create tournaments
-                  </Text>
-                  <Text fontSize="sm" color="fg.muted">
-                    • Persistent account across sessions
-                  </Text>
-                  <Text fontSize="sm" color="fg.muted">
-                    • Appear in Statistics
-                  </Text>
-                  <Text fontSize="sm" color="fg.muted">
-                    • "Remember me" login for 30-day sessions
-                  </Text>
-                </VStack>
+                <BulletList items={REGISTERED_CAPABILITIES} />
               </Box>
             </SimpleGrid>
           </VStack>
         </Section>
 
-        {/* FAQ */}
         <Section icon={<LuTrophy />} title="Frequently Asked Questions">
           <VStack gap={1} align="stretch">
-            <FaqItem question="Can I change a result after it's been recorded?">
-              Yes - organisers can override any match result using the Override
-              button on a completed match card. An optional reason can be logged
-              for transparency.
-            </FaqItem>
-            <Separator />
-            <FaqItem question="What happens if a player doesn't report their result?">
-              The organiser can record the result directly on behalf of both
-              players at any time. Players reporting results is optional - the
-              organiser always has full control.
-            </FaqItem>
-            <Separator />
-            <FaqItem question="Can I add more players after the tournament starts?">
-              No - the participant roster is locked once a tournament is
-              started. Make sure all players are added before clicking Start.
-            </FaqItem>
-            <Separator />
-            <FaqItem question="What is a bye?">
-              A bye is a free win given to a player when there's no opponent to
-              pair them with (e.g. odd number of players in Swiss). Bye matches
-              are automatically marked as completed.
-            </FaqItem>
-            <Separator />
-            <FaqItem question="Why can't I see the Advance Round button?">
-              The Advance Round button only appears once all matches in the
-              current round are completed. Make sure every match has a result
-              recorded before trying to advance.
-            </FaqItem>
-            <Separator />
-            <FaqItem question="What does the Grand Final bracket reset mean in Double Elimination?">
-              In Double Elimination, the Winners bracket finalist enters the
-              Grand Final undefeated. If the Losers bracket finalist wins, both
-              players now have one loss each - so a reset match is played to
-              determine the true champion.
-            </FaqItem>
-            <Separator />
-            <FaqItem question="Can I delete a tournament?">
-              Only the organiser can delete a tournament, and only while it's in
-              Pending status (not yet started). Once started, it cannot be
-              deleted.
-            </FaqItem>
-            <Separator />
-            <FaqItem question="How are Swiss pairings generated?">
-              Round 1 is random. Subsequent rounds pair players with the same
-              number of wins together (top-down), avoiding rematches. If a
-              perfect pairing isn't possible, the algorithm falls back to
-              best-available.
-            </FaqItem>
+            {FAQ_ENTRIES.map((faq, index) => (
+              <React.Fragment key={faq.question}>
+                {index > 0 && <Separator />}
+                <FaqItem question={faq.question}>{faq.answer}</FaqItem>
+              </React.Fragment>
+            ))}
           </VStack>
         </Section>
 
-        {/* Keyboard shortcuts */}
         <Section icon={<LuInfo />} title="Keyboard Shortcuts">
           <SimpleGrid columns={{ base: 2, md: 4 }} gap={2}>
             {(

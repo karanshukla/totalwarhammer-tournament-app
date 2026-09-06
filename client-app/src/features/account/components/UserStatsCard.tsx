@@ -30,7 +30,7 @@ import { RANGE_DESCRIPTIONS, type StatsRange } from "@/shared/ui/timeRange";
 import { toCsv, csvFilename, downloadCsv } from "@/shared/utils/csv";
 import { toaster } from "@/shared/ui/toasterStore";
 
-type Game = "wh3" | "40k";
+type GameSystem = "wh3" | "40k";
 
 const EMPTY_STATS: GameUserStats = {
   tournamentsCreated: 0,
@@ -43,7 +43,7 @@ const EMPTY_STATS: GameUserStats = {
 const UserStatsCard: React.FC = () => {
   const [stats, setStats] = useState<UserStatsData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [game, setGame] = useState<Game>("wh3");
+  const [game, setGame] = useState<GameSystem>("wh3");
   const [range, setRange] = useState<StatsRange>("all");
   const [exporting, setExporting] = useState(false);
 
@@ -61,27 +61,28 @@ const UserStatsCard: React.FC = () => {
     };
   }, [range]);
 
-  const active: GameUserStats = stats?.[game] ?? EMPTY_STATS;
+  const activeGameStats: GameUserStats = stats?.[game] ?? EMPTY_STATS;
 
-  const exportCsv = () => {
+  const handleExportCsv = () => {
     setExporting(true);
     try {
       const rows = [
         {
           section: "summary",
           faction: "",
-          tournamentsCreated: active.tournamentsCreated,
-          matchesPlayed: active.matchesPlayed,
-          wins: active.wins,
-          losses: active.losses,
+          tournamentsCreated: activeGameStats.tournamentsCreated,
+          matchesPlayed: activeGameStats.matchesPlayed,
+          wins: activeGameStats.wins,
+          losses: activeGameStats.losses,
         },
-        ...active.factions.map((f) => ({
+        ...activeGameStats.factions.map((faction) => ({
           section: "faction",
-          faction: f.name,
+          faction: faction.name,
           tournamentsCreated: "",
-          matchesPlayed: f.count,
-          wins: f.wins ?? "",
-          losses: f.wins === undefined ? "" : f.count - f.wins,
+          matchesPlayed: faction.count,
+          wins: faction.wins ?? "",
+          losses:
+            faction.wins === undefined ? "" : faction.count - faction.wins,
         })),
       ];
       downloadCsv(
@@ -131,7 +132,7 @@ const UserStatsCard: React.FC = () => {
             size="xs"
             variant="ghost"
             colorPalette="ink"
-            onClick={exportCsv}
+            onClick={handleExportCsv}
             loading={exporting}
             disabled={loading}
             aria-label="Export your activity as CSV"
@@ -146,34 +147,33 @@ const UserStatsCard: React.FC = () => {
         {RANGE_DESCRIPTIONS[range]} — tournaments created is always all-time.
       </Text>
 
-      {/* Summary stats */}
       <SimpleGrid columns={{ base: 2, sm: 4 }} gap={4} mb={6}>
         {[
           {
             icon: LuTrophy,
             label: "Tournaments",
-            value: active.tournamentsCreated,
+            value: activeGameStats.tournamentsCreated,
             bg: "gold.subtle",
             color: "gold.text",
           },
           {
             icon: LuSwords,
             label: "Matches",
-            value: active.matchesPlayed,
+            value: activeGameStats.matchesPlayed,
             bg: "info.subtle",
             color: "info.text",
           },
           {
             icon: LuChartBar,
             label: "Wins",
-            value: active.wins,
+            value: activeGameStats.wins,
             bg: "info.subtle",
             color: "info.text",
           },
           {
             icon: LuShield,
             label: "Losses",
-            value: active.losses,
+            value: activeGameStats.losses,
             bg: "brand.subtle",
             color: "brand.text",
           },
@@ -208,8 +208,8 @@ const UserStatsCard: React.FC = () => {
         ))}
       </SimpleGrid>
 
-      {/* Faction breakdown */}
-      {(loading || (active.factions && active.factions.length > 0)) && (
+      {(loading ||
+        (activeGameStats.factions && activeGameStats.factions.length > 0)) && (
         <>
           <Separator mb={4} />
           <Heading
@@ -226,17 +226,18 @@ const UserStatsCard: React.FC = () => {
               ? Array.from({ length: 3 }).map((_, i) => (
                   <Skeleton key={i} h="24px" borderRadius="md" />
                 ))
-              : active.factions.map((f) => (
-                  <HStack key={f.name} justify="space-between">
-                    <Text fontSize="sm">{f.name}</Text>
+              : activeGameStats.factions.map((faction) => (
+                  <HStack key={faction.name} justify="space-between">
+                    <Text fontSize="sm">{faction.name}</Text>
                     <HStack gap={2}>
-                      {f.wins !== undefined && (
+                      {faction.wins !== undefined && (
                         <Badge colorPalette="brass" variant="subtle">
-                          {f.wins} {f.wins === 1 ? "win" : "wins"}
+                          {faction.wins} {faction.wins === 1 ? "win" : "wins"}
                         </Badge>
                       )}
                       <Badge colorPalette="ink" variant="subtle">
-                        {f.count} {f.count === 1 ? "match" : "matches"}
+                        {faction.count}{" "}
+                        {faction.count === 1 ? "match" : "matches"}
                       </Badge>
                     </HStack>
                   </HStack>
@@ -246,8 +247,8 @@ const UserStatsCard: React.FC = () => {
       )}
 
       {!loading &&
-        active.matchesPlayed === 0 &&
-        active.tournamentsCreated === 0 && (
+        activeGameStats.matchesPlayed === 0 &&
+        activeGameStats.tournamentsCreated === 0 && (
           <Text fontSize="sm" color="fg.muted" textAlign="center" py={4}>
             No activity recorded yet. Join or create a tournament to get
             started.

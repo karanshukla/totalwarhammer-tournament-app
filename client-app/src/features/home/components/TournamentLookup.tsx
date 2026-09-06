@@ -61,10 +61,10 @@ const TournamentLookup: React.FC = () => {
       const guestFallback =
         user?.isGuest && user?.id ? `guest_${user.id.substring(0, 6)}` : null;
       const isParticipant = t.participants?.some((p) => {
-        const ln = p.name.trim().toLowerCase();
+        const participantName = p.name.trim().toLowerCase();
         return (
-          (lowerName && ln === lowerName) ||
-          (guestFallback && ln === guestFallback) ||
+          (lowerName && participantName === lowerName) ||
+          (guestFallback && participantName === guestFallback) ||
           p.name === user?.id
         );
       });
