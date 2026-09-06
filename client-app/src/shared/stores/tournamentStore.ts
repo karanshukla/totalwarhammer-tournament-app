@@ -40,7 +40,9 @@ interface TournamentState {
 }
 
 const buildInitialRounds = (): Round[] =>
-  renumberAllMatchTitlesGlobally(sortRounds(populateTournamentDefaultBracket()));
+  renumberAllMatchTitlesGlobally(
+    sortRounds(populateTournamentDefaultBracket()),
+  );
 
 export const useTournamentStore = create<TournamentState>()(
   persist(
