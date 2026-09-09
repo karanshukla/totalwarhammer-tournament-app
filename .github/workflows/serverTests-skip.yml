@@ -1,0 +1,32 @@
+name: Server Node Tests
+
+# Companion stub for serverTests.yml.
+#
+# serverTests.yml is path-filtered, so it does not run on pull requests that
+# touch none of its paths. Its jobs are required status checks, and a required
+# check that never runs leaves the PR blocked forever waiting for a result that
+# is not coming -- which is what happened to CI-only and docs-only PRs.
+#
+# This workflow carries the inverse filter (`paths-ignore` mirrors the list in
+# serverTests.yml) and reports the same job names as successful, so exactly one
+# of the two runs for any given PR and the contexts are always reported.
+#
+# Keep the path list and job names below in sync with serverTests.yml.
+
+on:
+  pull_request:
+    branches: ["main"]
+    paths-ignore:
+      - "server-app/**"
+      - "package.json"
+      - "package-lock.json"
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Run Server App Node Tests
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "No files relevant to Run Server App Node Tests changed; nothing to check."
