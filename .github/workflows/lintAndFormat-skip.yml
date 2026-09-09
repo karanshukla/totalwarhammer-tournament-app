@@ -1,0 +1,42 @@
+name: Lint & Format
+
+# Companion stub for lintAndFormat.yml.
+#
+# lintAndFormat.yml is path-filtered, so it does not run on pull requests that
+# touch none of its paths. Its jobs are required status checks, and a required
+# check that never runs leaves the PR blocked forever waiting for a result that
+# is not coming -- which is what happened to CI-only and docs-only PRs.
+#
+# This workflow carries the inverse filter (`paths-ignore` mirrors the list in
+# lintAndFormat.yml) and reports the same job names as successful, so exactly one
+# of the two runs for any given PR and the contexts are always reported.
+#
+# Keep the path list and job names below in sync with lintAndFormat.yml.
+
+on:
+  pull_request:
+    branches: ["main"]
+    paths-ignore:
+      - "client-app/**"
+      - "server-app/**"
+      - ".prettierrc"
+      - ".gitattributes"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/lintAndFormat.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  prettier:
+    name: Prettier
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "No files relevant to Prettier changed; nothing to check."
+
+  oxlint:
+    name: Oxlint
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "No files relevant to Oxlint changed; nothing to check."

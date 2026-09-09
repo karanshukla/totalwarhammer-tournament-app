@@ -1,0 +1,35 @@
+name: Skaven Underway Tests Yes-Yes
+
+# Companion stub for authBoundaries.yml.
+#
+# authBoundaries.yml is path-filtered, so it does not run on pull requests that
+# touch none of its paths. Its jobs are required status checks, and a required
+# check that never runs leaves the PR blocked forever waiting for a result that
+# is not coming -- which is what happened to CI-only and docs-only PRs.
+#
+# This workflow carries the inverse filter (`paths-ignore` mirrors the list in
+# authBoundaries.yml) and reports the same job names as successful, so exactly one
+# of the two runs for any given PR and the contexts are always reported.
+#
+# Keep the path list and job names below in sync with authBoundaries.yml.
+
+on:
+  pull_request:
+    branches: ["main"]
+    paths-ignore:
+      - "server-app/**"
+      - "tests/hurl/**"
+      - "docker-compose.yml"
+      - "docker-compose.hurl.yml"
+      - "docker/server/Dockerfile"
+      - ".github/workflows/authBoundaries.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  hurl:
+    name: Hurl Auth Boundary Tests
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "No files relevant to Hurl Auth Boundary Tests changed; nothing to check."
